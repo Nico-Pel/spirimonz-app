@@ -1,7 +1,7 @@
 using UnityEngine;
 
 [RequireComponent(typeof(CharacterController))]
-public class FPSControllerNoPhysics : MonoBehaviour
+public class FPSControllerNoPhysics : GameBehaviour
 {
 [Header("Références")]
     public Camera playerCamera;
@@ -23,7 +23,17 @@ public class FPSControllerNoPhysics : MonoBehaviour
     public KeyCode rightKey = KeyCode.D;
     public KeyCode sprintKey = KeyCode.LeftShift;
     
-    private Vector3 movementInput;
+    [Header("Crouch")]
+    public KeyCode crouchKey = KeyCode.C;
+    public float crouchHeight = 1f;          // Hauteur du CharacterController accroupi
+    public float crouchSpeedMultiplier = 0.5f; // Vitesse divisée en crouch
+    public float crouchCameraHeight = 0.5f;  // Hauteur caméra accroupi
+    public float crouchTransitionSpeed = 6f; // Vitesse de transition
+    public float delayBeforeActivatingHeadBob = 0.5f; // ré-activer le head bob après s'être remis debout
+
+    private bool isCrouching = false;
+    private float standingHeight;
+    private Vector3 cameraStandingPos;
 
     [Header("Gravité")]
     public float gravity = -9.81f;
@@ -40,8 +50,6 @@ public class FPSControllerNoPhysics : MonoBehaviour
     public float slopeCheckOffset = 0.4f;
 
     [Header("Headbob")]
-    [Tooltip("Vitesse du headbob")]
-    public float bobFrequency = 1.5f;
 
     [Tooltip("Amplitude verticale (très faible !)")]
     public float bobAmplitude = 0.04f;
@@ -63,6 +71,8 @@ public class FPSControllerNoPhysics : MonoBehaviour
 
     [Tooltip("Temps pour recharger complètement la stamina (en secondes)")]
     public float staminaRegenTime = 6f;
+    
+    private Vector3 movementInput;
 
     private float currentStamina;
     private bool staminaDepleted = false;
@@ -74,6 +84,7 @@ public class FPSControllerNoPhysics : MonoBehaviour
 
     private float bobTimer = 0f;
     private float stepTimer = 0f;
+    private bool _canUseHeadBob;
     
     private Vector3 cameraStartLocalPos;
 
@@ -87,6 +98,9 @@ public class FPSControllerNoPhysics : MonoBehaviour
         Cursor.visible = false;
         
         currentStamina = maxStamina;
+        
+        standingHeight = controller.height;
+        cameraStandingPos = playerCamera.transform.localPosition;
     }
 
     void Update()
@@ -95,6 +109,7 @@ public class FPSControllerNoPhysics : MonoBehaviour
         HandleMove();
         ApplyGravity();
         HandleHeadbob();
+        HandleCrouch();
     }
 
     void HandleLook()
@@ -128,7 +143,8 @@ public class FPSControllerNoPhysics : MonoBehaviour
         // Gestion stamina
         HandleStamina(canSprint);
 
-        float targetSpeed = canSprint ? sprintSpeed : walkSpeed;
+        float baseSpeed = canSprint ? sprintSpeed : walkSpeed;
+        float targetSpeed = isCrouching ? baseSpeed * crouchSpeedMultiplier : baseSpeed;
         Vector3 targetMove = transform.TransformDirection(movementInput) * targetSpeed;
 
         currentMove = Vector3.Lerp(currentMove, targetMove, acceleration * Time.deltaTime);
@@ -172,9 +188,46 @@ public class FPSControllerNoPhysics : MonoBehaviour
 
         controller.Move(velocity * Time.deltaTime);
     }
+    
+    void HandleCrouch()
+    {
+        // Toggle crouch
+        if (Input.GetKeyDown(crouchKey))
+            isCrouching = !isCrouching;
+
+        if (isCrouching)
+        {
+            _canUseHeadBob = false;
+        }
+        else
+        {
+            this.Invoke(delayBeforeActivatingHeadBob, () =>
+            {
+                if (!isCrouching)
+                {
+                    _canUseHeadBob = true;
+                }
+            });
+        }
+
+        // Hauteur cible du CharacterController
+        float targetHeight = isCrouching ? crouchHeight : standingHeight;
+        controller.height = Mathf.Lerp(controller.height, targetHeight, Time.deltaTime * crouchTransitionSpeed);
+
+        // Ajustement du center du CharacterController
+        controller.center = new Vector3(0, controller.height / 2f, 0);
+
+        // Caméra
+        float targetCamY = isCrouching ? crouchCameraHeight : cameraStandingPos.y;
+        Vector3 camPos = playerCamera.transform.localPosition;
+        camPos.y = Mathf.Lerp(camPos.y, targetCamY, Time.deltaTime * crouchTransitionSpeed);
+        playerCamera.transform.localPosition = camPos;
+    }
 
     void HandleHeadbob()
     {
+        if (!_canUseHeadBob) return;
+        
         if (movementInput.magnitude > 0.1f && controller.isGrounded)
         {
             float stepTime = Input.GetKey(sprintKey)
