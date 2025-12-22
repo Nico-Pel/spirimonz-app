@@ -1,0 +1,194 @@
+using UnityEngine;
+
+[RequireComponent(typeof(CharacterController))]
+public class FPSControllerNoPhysics : MonoBehaviour
+{
+[Header("Références")]
+    public Camera playerCamera;
+
+    [Header("Déplacement")]
+    public float walkSpeed = 2.0f;
+    public float sprintSpeed = 3.5f;
+    public float acceleration = 10f;
+
+    [Header("Souris")]
+    public float mouseSensitivityX = 2.0f;
+    public float mouseSensitivityY = 2.0f;
+    public float maxLookAngle = 80f;
+
+    [Header("Clavier (AZERTY)")]
+    public KeyCode forwardKey = KeyCode.Z;
+    public KeyCode backwardKey = KeyCode.S;
+    public KeyCode leftKey = KeyCode.Q;
+    public KeyCode rightKey = KeyCode.D;
+    public KeyCode sprintKey = KeyCode.LeftShift;
+    
+    private Vector3 movementInput;
+
+    [Header("Gravité")]
+    public float gravity = -9.81f;
+    public float stickToGroundForce = -2f;
+
+    [Header("Headbob")]
+    [Tooltip("Vitesse du headbob")]
+    public float bobFrequency = 1.5f;
+
+    [Tooltip("Amplitude verticale (très faible !)")]
+    public float bobAmplitude = 0.04f;
+    
+    [Tooltip("Durée d'un pas (plus petit = marche plus rapide)")]
+    public float stepDuration = 0.45f;
+    
+    [Tooltip("Multiplicateur de vitesse en sprint")]
+    public float sprintStepMultiplier = 0.7f;
+    
+    [Tooltip("Vitesse de retour à la position neutre")]
+    public float bobResetSpeed = 8f;
+    
+    [Header("Stamina")]
+    public float maxStamina = 100f;
+
+    [Tooltip("Temps pour vider complètement la stamina (en secondes)")]
+    public float staminaDrainTime = 4f;
+
+    [Tooltip("Temps pour recharger complètement la stamina (en secondes)")]
+    public float staminaRegenTime = 6f;
+
+    private float currentStamina;
+    private bool staminaDepleted = false;
+
+    private CharacterController controller;
+    private Vector3 velocity;
+    private Vector3 currentMove;
+    private float xRotation = 0f;
+
+    private float bobTimer = 0f;
+    private float stepTimer = 0f;
+    
+    private Vector3 cameraStartLocalPos;
+
+    void Start()
+    {
+        controller = GetComponent<CharacterController>();
+
+        cameraStartLocalPos = playerCamera.transform.localPosition;
+
+        Cursor.lockState = CursorLockMode.Locked;
+        Cursor.visible = false;
+        
+        currentStamina = maxStamina;
+    }
+
+    void Update()
+    {
+        HandleLook();
+        HandleMove();
+        ApplyGravity();
+        HandleHeadbob();
+    }
+
+    void HandleLook()
+    {
+        float mouseX = Input.GetAxis("Mouse X") * mouseSensitivityX * 100f * Time.deltaTime;
+        float mouseY = Input.GetAxis("Mouse Y") * mouseSensitivityY * 100f * Time.deltaTime;
+
+        xRotation -= mouseY;
+        xRotation = Mathf.Clamp(xRotation, -maxLookAngle, maxLookAngle);
+
+        playerCamera.transform.localRotation = Quaternion.Euler(xRotation, 0f, 0f);
+        transform.Rotate(Vector3.up * mouseX);
+    }
+
+    void HandleMove()
+    {
+        float inputX = 0f;
+        float inputZ = 0f;
+
+        if (Input.GetKey(forwardKey)) inputZ += 1f;
+        if (Input.GetKey(backwardKey)) inputZ -= 1f;
+        if (Input.GetKey(leftKey)) inputX -= 1f;
+        if (Input.GetKey(rightKey)) inputX += 1f;
+
+        movementInput = new Vector3(inputX, 0, inputZ).normalized;
+
+        bool wantsToSprint = Input.GetKey(sprintKey);
+        bool isMoving = movementInput.magnitude > 0.1f;
+        bool canSprint = wantsToSprint && isMoving && !staminaDepleted;
+
+        // Gestion stamina
+        HandleStamina(canSprint);
+
+        float targetSpeed = canSprint ? sprintSpeed : walkSpeed;
+        Vector3 targetMove = transform.TransformDirection(movementInput) * targetSpeed;
+
+        currentMove = Vector3.Lerp(currentMove, targetMove, acceleration * Time.deltaTime);
+        controller.Move(currentMove * Time.deltaTime);
+    }
+
+    void ApplyGravity()
+    {
+        if (controller.isGrounded)
+        {
+            velocity.y = stickToGroundForce;
+        }
+        else
+        {
+            velocity.y += gravity * Time.deltaTime;
+        }
+
+        controller.Move(velocity * Time.deltaTime);
+    }
+
+    void HandleHeadbob()
+    {
+        if (movementInput.magnitude > 0.1f && controller.isGrounded)
+        {
+            float stepTime = Input.GetKey(sprintKey)
+                ? stepDuration * sprintStepMultiplier
+                : stepDuration;
+
+            stepTimer += Time.deltaTime / stepTime;
+
+            if (stepTimer > 1f)
+                stepTimer -= 1f;
+
+            float bobOffset = Mathf.Sin(stepTimer * Mathf.PI * 2f) * bobAmplitude;
+            playerCamera.transform.localPosition = cameraStartLocalPos + Vector3.up * bobOffset;
+        }
+        else
+        {
+            stepTimer = 0f;
+            playerCamera.transform.localPosition = Vector3.Lerp(
+                playerCamera.transform.localPosition,
+                cameraStartLocalPos,
+                Time.deltaTime * bobResetSpeed
+            );
+        }
+    }
+    
+    void HandleStamina(bool isTryingToSprint)
+    {
+        // Consommation
+        if (isTryingToSprint && !staminaDepleted)
+        {
+            currentStamina -= (maxStamina / staminaDrainTime) * Time.deltaTime;
+
+            if (currentStamina <= 0f)
+            {
+                currentStamina = 0f;
+                staminaDepleted = true;
+            }
+        }
+        // Recharge
+        else
+        {
+            currentStamina += (maxStamina / staminaRegenTime) * Time.deltaTime;
+
+            if (currentStamina >= maxStamina)
+            {
+                currentStamina = maxStamina;
+                staminaDepleted = false; // sprint à nouveau autorisé
+            }
+        }
+    }
+}
