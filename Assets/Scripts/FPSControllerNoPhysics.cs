@@ -28,6 +28,16 @@ public class FPSControllerNoPhysics : MonoBehaviour
     [Header("Gravité")]
     public float gravity = -9.81f;
     public float stickToGroundForce = -2f;
+    
+    [Header("Pentes & Obstacles")]
+    [Tooltip("Angle max de pente franchissable")]
+    public float maxGroundAngle = 45f;
+
+    [Tooltip("Distance du raycast vers le sol")]
+    public float groundCheckDistance = 1.2f;
+
+    [Tooltip("Décalage vers l'avant pour tester la pente")]
+    public float slopeCheckOffset = 0.4f;
 
     [Header("Headbob")]
     [Tooltip("Vitesse du headbob")]
@@ -122,7 +132,31 @@ public class FPSControllerNoPhysics : MonoBehaviour
         Vector3 targetMove = transform.TransformDirection(movementInput) * targetSpeed;
 
         currentMove = Vector3.Lerp(currentMove, targetMove, acceleration * Time.deltaTime);
+
+        if (IsSlopeTooSteep(currentMove))
+        {
+            currentMove = Vector3.zero;
+        }
+
         controller.Move(currentMove * Time.deltaTime);
+    }
+    
+    bool IsSlopeTooSteep(Vector3 moveDirection)
+    {
+        if (moveDirection.magnitude < 0.1f)
+            return false;
+
+        Vector3 origin = transform.position 
+                         + Vector3.up * 0.1f 
+                         + moveDirection.normalized * slopeCheckOffset;
+
+        if (Physics.Raycast(origin, Vector3.down, out RaycastHit hit, groundCheckDistance))
+        {
+            float angle = Vector3.Angle(hit.normal, Vector3.up);
+            return angle > maxGroundAngle;
+        }
+
+        return false;
     }
 
     void ApplyGravity()
