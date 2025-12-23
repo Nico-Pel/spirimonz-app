@@ -5,6 +5,7 @@ public class FPSControllerNoPhysics : GameBehaviour
 {
 [Header("Références")]
     public Camera playerCamera;
+    public Light mLight;
 
     [Header("Déplacement")]
     public float walkSpeed = 2.0f;
@@ -22,6 +23,7 @@ public class FPSControllerNoPhysics : GameBehaviour
     public KeyCode leftKey = KeyCode.Q;
     public KeyCode rightKey = KeyCode.D;
     public KeyCode sprintKey = KeyCode.LeftShift;
+    public KeyCode turnLight = KeyCode.T;
     
     [Header("Crouch")]
     public KeyCode crouchKey = KeyCode.C;
@@ -71,7 +73,7 @@ public class FPSControllerNoPhysics : GameBehaviour
 
     [Tooltip("Temps pour recharger complètement la stamina (en secondes)")]
     public float staminaRegenTime = 6f;
-    
+
     private Vector3 movementInput;
 
     private float currentStamina;
@@ -110,6 +112,15 @@ public class FPSControllerNoPhysics : GameBehaviour
         ApplyGravity();
         HandleHeadbob();
         HandleCrouch();
+        HandleLight();
+    }
+
+    void HandleLight()
+    {
+        if (Input.GetKeyDown(turnLight) && mLight != null)
+        {
+            mLight.gameObject.SetActive(!mLight.gameObject.activeInHierarchy);
+        }
     }
 
     void HandleLook()

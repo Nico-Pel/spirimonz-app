@@ -103,19 +103,20 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   isActivated: 0
   isLocked: 0
-  lightObjectsRenderers:
-  - {fileID: 4388011981941500709}
-  - {fileID: 2643687712008018201}
-  - {fileID: 6899441776615758}
-  - {fileID: 6953995238313163297}
-  lightObjects:
+  objectsToEnable:
   - {fileID: 7403577679865908046}
   - {fileID: 9145633253584107890}
   - {fileID: 6504059930286391589}
   - {fileID: 4240735920166607434}
   - {fileID: 4258991708130442185}
-  lightObjectMatOff: {fileID: 2100000, guid: 74160ab1ad6834d3498863d6ef859100, type: 2}
-  lightObjectMatOn: {fileID: 2100000, guid: 93ad473a1d6d4457b84eec44dbc9c7e3, type: 2}
+  rendererGroups:
+  - renderers:
+    - {fileID: 4388011981941500709}
+    - {fileID: 2643687712008018201}
+    - {fileID: 6899441776615758}
+    - {fileID: 6953995238313163297}
+    materialOff: {fileID: 2100000, guid: 74160ab1ad6834d3498863d6ef859100, type: 2}
+    materialOn: {fileID: 2100000, guid: 93ad473a1d6d4457b84eec44dbc9c7e3, type: 2}
 --- !u!1 &4258991708130442185
 GameObject:
   m_ObjectHideFlags: 0

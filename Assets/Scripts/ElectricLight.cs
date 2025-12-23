@@ -2,34 +2,57 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+[System.Serializable]
+public class RendererGroup
+{
+    public MeshRenderer[] renderers;
+    public Material materialOff;
+    public Material materialOn;
+}
+
 public class ElectricLight : ActivableObject
 {
-    public MeshRenderer[] lightObjectsRenderers;
-    public GameObject[] lightObjects;
-    public Material lightObjectMatOff;
-    public Material lightObjectMatOn;
+    [Header("Objects to enable")]
+    public GameObject[] objectsToEnable;
+
+    [Header("Renderer groups")]
+    public RendererGroup[] rendererGroups;
 
     public override void Activate()
     {
         base.Activate();
-        foreach (MeshRenderer mr in lightObjectsRenderers)
+
+        // Appliquer les matériaux On
+        foreach (RendererGroup group in rendererGroups)
         {
-            mr.material = lightObjectMatOn;
+            foreach (MeshRenderer mr in group.renderers)
+            {
+                mr.material = group.materialOn;
+            }
         }
-        foreach (GameObject g in lightObjects)
+
+        // Activer les objets
+        foreach (GameObject g in objectsToEnable)
         {
             g.SetActive(true);
         }
     }
-    
+
     public override void Deactivate()
     {
         base.Deactivate();
-        foreach (MeshRenderer mr in lightObjectsRenderers)
+
+        // Appliquer les matériaux Off
+        foreach (RendererGroup group in rendererGroups)
         {
-            mr.material = lightObjectMatOff;
+            foreach (MeshRenderer mr in group.renderers)
+            {
+                mr.material = group.materialOff;
+            }
         }
-        foreach (GameObject g in lightObjects)
+
+        // Désactiver les objets
+        foreach (GameObject g in objectsToEnable)
         {
             g.SetActive(false);
         }

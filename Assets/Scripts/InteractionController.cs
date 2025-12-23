@@ -5,6 +5,8 @@ public class InteractionController : MonoBehaviour
     [Header("Raycast Settings")]
     public float interactionDistance = 3f; // Distance max pour interagir
     public LayerMask interactableLayer;    // Layer des objets interactifs
+    public float rayOffset = 0.2f;         // Décalage devant la caméra
+    public float sphereRadius = 0.1f;      // Rayon du SphereCast
 
     private ClickableObject currentObject;
 
@@ -16,18 +18,15 @@ public class InteractionController : MonoBehaviour
 
     void HandleRaycast()
     {
-        if (Input.GetMouseButtonDown(0))
-        {
-            // Raycast pour détecter un objet à cliquer
-            Ray ray = new Ray(Camera.main.transform.position, Camera.main.transform.forward);
-            if (Physics.Raycast(ray, out RaycastHit hit, interactionDistance, interactableLayer))
-            {
-                currentObject = hit.collider.GetComponent<ClickableObject>();
-            }
-        }
+        Vector3 rayOrigin = Camera.main.transform.position + Camera.main.transform.forward * rayOffset;
+        Ray ray = new Ray(rayOrigin, Camera.main.transform.forward);
 
-        // Si on ne maintient plus le clic, on peut libérer currentObject
-        if (!Input.GetMouseButton(0))
+        // SphereCast pour plus de tolérance
+        if (Physics.SphereCast(ray, sphereRadius, out RaycastHit hit, interactionDistance, interactableLayer, QueryTriggerInteraction.Ignore))
+        {
+            currentObject = hit.collider.GetComponent<ClickableObject>();
+        }
+        else
         {
             currentObject = null;
         }
