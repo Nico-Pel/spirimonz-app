@@ -1,9 +1,11 @@
-Shader "Custom/BillboardWithColor"
+Shader "Custom/Billboard"
 {
     Properties
     {
         _MainTex ("Texture", 2D) = "white" {}
-        _Color ("Color Tint", Color) = (1,1,1,1) // <-- nouvelle option couleur
+        _Color ("Color Tint", Color) = (1,1,1,1)
+        _Size ("Size", Float) = 1.0
+        _RotationZ ("Rotation Z (deg)", Float) = 0.0
     }
     SubShader
     {
@@ -22,7 +24,9 @@ Shader "Custom/BillboardWithColor"
 
             sampler2D _MainTex;
             float4 _MainTex_ST;
-            fixed4 _Color; // couleur depuis le material
+            fixed4 _Color;
+            float _Size;
+            float _RotationZ;
 
             struct appdata
             {
@@ -36,30 +40,40 @@ Shader "Custom/BillboardWithColor"
                 float4 vertex : SV_POSITION;
             };
 
-            v2f vert (appdata v)
+            v2f vert(appdata v)
             {
                 v2f o;
 
-                float3 worldPos = mul(unity_ObjectToWorld, v.vertex).xyz;
+                // position de l'objet dans le monde
+                float3 worldPos = mul(unity_ObjectToWorld, float4(0,0,0,1)).xyz;
 
-                float3 camRight = UNITY_MATRIX_V._m00_m01_m02;
-                float3 camUp    = UNITY_MATRIX_V._m10_m11_m12;
+                // vecteurs caméra
+                float3 toCam = normalize(_WorldSpaceCameraPos - worldPos);
+                float3 camRight = normalize(cross(float3(0,1,0), toCam));
+                float3 camUp = cross(toCam, camRight);
 
-                float size = 1.0;
+                // rotation Z dans le plan du sprite
+                float angle = _RotationZ * UNITY_PI / 180.0;
+                float cosA = cos(angle);
+                float sinA = sin(angle);
+                float2 rotatedXY = float2(
+                    v.vertex.x * cosA - v.vertex.y * sinA,
+                    v.vertex.x * sinA + v.vertex.y * cosA
+                );
 
-                float3 billboardPos = worldPos
-                    + camRight * (v.vertex.x * size)
-                    + camUp    * (v.vertex.y * size);
+                // offset final
+                float3 offset = camRight * (rotatedXY.x * _Size) + camUp * (rotatedXY.y * _Size);
 
-                o.vertex = UnityObjectToClipPos(float4(billboardPos, 1));
+                float3 finalPos = worldPos + offset;
+
+                o.vertex = UnityObjectToClipPos(float4(finalPos,1));
                 o.uv = TRANSFORM_TEX(v.uv, _MainTex);
                 return o;
             }
 
-            fixed4 frag (v2f i) : SV_Target
+            fixed4 frag(v2f i) : SV_Target
             {
-                fixed4 texColor = tex2D(_MainTex, i.uv);
-                return texColor * _Color; // applique le tint
+                return tex2D(_MainTex, i.uv) * _Color;
             }
             ENDCG
         }
