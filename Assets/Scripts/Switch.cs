@@ -13,8 +13,8 @@ public class Switch : ClickableObject
     public override void OnClick()
     {
         base.OnClick();
-        if (activableObject != null && !isLocked)
-        {
+        if (activableObject != null)
+        {        
             activableObject.Operate();
         }
 

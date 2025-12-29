@@ -2,10 +2,18 @@ using UnityEngine;
 
 public class ClickableObject : MonoBehaviour
 {
+    
     [Header("Interaction Options")]
     public bool canClick = true;
     public bool canHold = false;
     public bool canRelease = false;
+    
+    public House house { get; set; }
+    
+    public virtual void Initialize(House h)
+    {
+        house = h;
+    }
 
     /// <summary>Quand l'objet est cliqué</summary>
     public virtual void OnClick()
