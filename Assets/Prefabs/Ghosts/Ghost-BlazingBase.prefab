@@ -12,6 +12,7 @@ GameObject:
   - component: {fileID: 2655488261236733874}
   - component: {fileID: 7980668545007682571}
   - component: {fileID: 7672551948432591362}
+  - component: {fileID: 6134636237207404671}
   m_Layer: 8
   m_Name: Ghost-BlazingBase
   m_TagString: Untagged
@@ -53,29 +54,38 @@ MonoBehaviour:
   house: {fileID: 0}
   favoriteRoom: {fileID: 0}
   currentRoom: {fileID: 0}
-  angrinessPercentage: 0
-  minimumAngrinessToHunt: 50
   hidingSpeedBase: 0.75
   normalSpeedBase: 2
   targetingSpeedBase: 3
-  detectPlayerActivityRange: 20
-  averageActivityTime: 60
-  activityTimeVariation: 10
+  angrinessPercentage: 0
+  minimumAngrinessToHunt: 0
+  startHuntingStandingTime: 2
+  forcedStartTargetingTime: 4
   averageHuntTime: 10
   huntTimeVariation: 5
+  currentHuntTime: 0
+  currentWayPoint: {fileID: 0}
+  huntingWayPoints: []
+  currentHuntingWayPointDistanceTargeted: 0
+  chancesPercentageToIgnoreAWayPoint: 40
+  detectPlayerActivityRange: 20
+  throwDetectionRange: 3
+  throwForceMin: 25
+  throwForceMax: 100
+  throwTorqueMax: 90
+  throwableMask:
+    serializedVersion: 2
+    m_Bits: 512
+  averageActivityTime: 10
+  activityTimeVariation: 5
+  chancesToRoamInAnotherRoom: 25
   averageVisibleTime: 1
   visibleTimeVariation: 0.5
   averageInvisibleTime: 1
   invisibleTimeVariation: 0.5
-  startHuntingStandingTime: 2
-  forcedStartTargetingTime: 4
-  huntingWayPoints: []
-  chancesPercentageToIgnoreAWayPoint: 40
-  chancesToRoamInAnotherRoom: 25
   renderer: {fileID: 688498512902161500}
   agent: {fileID: 7672551948432591362}
   ghostModel: {fileID: 8761666447411872595}
-  collider: {fileID: 2126601092882432060}
   vision: {fileID: 7980668545007682571}
 --- !u!114 &7980668545007682571
 MonoBehaviour:
@@ -120,6 +130,29 @@ NavMeshAgent:
   m_BaseOffset: 0
   m_WalkableMask: 4294967295
   m_ObstacleAvoidanceType: 4
+--- !u!136 &6134636237207404671
+CapsuleCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 834800365721955821}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 1
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 2
+  m_Radius: 0.5
+  m_Height: 2
+  m_Direction: 1
+  m_Center: {x: 0, y: 1, z: 0}
 --- !u!1 &4111006304891633901
 GameObject:
   m_ObjectHideFlags: 0
@@ -162,7 +195,6 @@ GameObject:
   - component: {fileID: 6320906961089675723}
   - component: {fileID: 9102154992807585343}
   - component: {fileID: 688498512902161500}
-  - component: {fileID: 2126601092882432060}
   m_Layer: 8
   m_Name: GhostModel
   m_TagString: Untagged
@@ -235,26 +267,3 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!136 &2126601092882432060
-CapsuleCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8761666447411872595}
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_IsTrigger: 0
-  m_ProvidesContacts: 0
-  m_Enabled: 1
-  serializedVersion: 2
-  m_Radius: 0.5
-  m_Height: 2
-  m_Direction: 1
-  m_Center: {x: 0, y: 0, z: 0}

@@ -1,8 +1,10 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using Unity.Collections;
 using UnityEngine;
 using UnityEngine.AI;
+using UnityEngine.Serialization;
 using Random = UnityEngine.Random;
 
 public class Ghost : GameBehaviour
@@ -51,45 +53,56 @@ public class Ghost : GameBehaviour
     public House house;
     public Room favoriteRoom;
     public Room currentRoom;
-
-    [Header("Ghost Stats")] 
-    public float angrinessPercentage = 0f;
-    public float minimumAngrinessToHunt = 50;
+    
+    [Header("Ghost Stats : Speed")] 
     public float hidingSpeedBase = 0.75f;
     public float normalSpeedBase = 1f;
     public float targetingSpeedBase = 2f;
 
-    public float detectPlayerActivityRange = 20f;
-
-    public float averageActivityTime = 60f;
-    public float activityTimeVariation = 10f;
+    [Header("Ghost Stats : Hunting")] 
+    public float angrinessPercentage = 0f;
+    public float minimumAngrinessToHunt = 50;
     
+    public float startHuntingStandingTime = 2;
+    public float forcedStartTargetingTime = 4;
     public float averageHuntTime = 10f;
     public float huntTimeVariation = 5f;
 
+    [Header("Ghost Stats : Waypoints Hunting")]
+
+    [ReadOnly] public float currentHuntTime;
+    [ReadOnly] public WayPoint currentWayPoint;
+    public List<WayPoint> huntingWayPoints = new List<WayPoint>();
+    [ReadOnly] public float currentHuntingWayPointDistanceTargeted;
+    public float chancesPercentageToIgnoreAWayPoint = 40f;
+    public float detectPlayerActivityRange = 50f;
+
+    [Header("Ghost Stats : Throwing")] 
+    public float throwDetectionRange = 5;
+    public float throwForceMin = 10;
+    public float throwForceMax = 25;
+    public float throwTorqueMax = 90;
+    public LayerMask throwableMask;
+
+    [Header("Ghost Stats : Activities")] 
+    public float averageActivityTime = 60f;
+    public float activityTimeVariation = 10f;
+    public float chancesToRoamInAnotherRoom = 25f;
+
+    [Header("Ghost Stats : Blinking")] 
     public float averageVisibleTime = 1;
     public float visibleTimeVariation = 0.5f;
     
     public float averageInvisibleTime = 1;
     public float invisibleTimeVariation = 0.5f;
 
-    public float startHuntingStandingTime = 2;
-    public float forcedStartTargetingTime = 4;
     private bool _forcedStartTargeting = false;
-    
-    public float currentHuntTime { get; set; }
-    public List<WayPoint> huntingWayPoints = new List<WayPoint>();
-    public WayPoint currentWayPoint { get; set; }
-    public float currentHuntingWayPointDistanceTargeted { get; set; }
-    public float chancesPercentageToIgnoreAWayPoint = 40f;
-    public float chancesToRoamInAnotherRoom = 25f;
     private bool _targetingPlayer;
 
     [Header("Ghost Components")] 
     public MeshRenderer renderer;
     public NavMeshAgent agent;
     public GameObject ghostModel;
-    public Collider collider;
     public GhostVision vision;
 
     public void Initialize(House h)
@@ -124,7 +137,6 @@ public class Ghost : GameBehaviour
     {
         currentState = GhostState.standingState;
         
-        collider.enabled = false;
         float startingHuntDelay = DivideByPercentage(startHuntingStandingTime, angrinessPercentage);
         this.Invoke(startingHuntDelay, StartHunting);
     }
@@ -134,7 +146,6 @@ public class Ghost : GameBehaviour
         InitWayPoints();
         
         currentState = GhostState.huntingState;
-        collider.enabled = true;
 
         //Le fantôme va forcément aller vers le joueur durant cette période.
         _forcedStartTargeting = true;
@@ -162,7 +173,7 @@ public class Ghost : GameBehaviour
             {
                 _targetingPlayer = false;
             }
-            else if(vision.CanSeePlayer(house.currentPlayer))
+            else if(_forcedStartTargeting || vision.CanSeePlayer(house.currentPlayer))
             {
                 _targetingPlayer = true;
             }
@@ -204,7 +215,7 @@ public class Ghost : GameBehaviour
         }
 
         float dist = Vector3.Distance(transform.position, currentWayPoint.transform.position);
-        if (dist < 0.5f)
+        if (dist < 1)
         {
             //if ghost come back after a hunt, its speed become slow again
             agent.speed = hidingSpeedBase;
@@ -220,6 +231,9 @@ public class Ghost : GameBehaviour
 
         //Ghost go back to its room
         agent.speed = normalSpeedBase;
+        
+        float nextActivityTime = Random.Range(averageActivityTime - activityTimeVariation, averageActivityTime + activityTimeVariation);
+        this.Invoke(nextActivityTime, TriggerActivity);
     }
 
     private void Kill(Player player)
@@ -276,28 +290,37 @@ public class Ghost : GameBehaviour
         switch (randomActivity)
         {
             case GhostActivities.ObjectInteraction:
+                ThrowRandomObject();
+                Debug.Log("Activity triggered : Throw Object");
                 break;
 
             case GhostActivities.ChangeLightState:
                 TriggerElectronicLightActivity();
+                Debug.Log("Activity triggered : Elec Light " + Time.time);
                 break;
 
             case GhostActivities.ChangeElectronicObjectState:
                 TriggerElectronicObjectActivity();
+                Debug.Log("Activity triggered : Electronic Object " + Time.time);
                 break;
             
             case GhostActivities.Hunt:
-                if (angrinessPercentage > minimumAngrinessToHunt)
+                if (angrinessPercentage >= minimumAngrinessToHunt)
                 {
                     TriggerHunting();
+                    Debug.Log("Activity triggered : Hunt " + Time.time);
+                    return;
                 }
                 else
                 {
                     TriggerActivity();
+                    Debug.Log("Activity triggered : Reroll activity " + Time.time);
+                    return;
                 }
                 break;
 
             default:
+                Debug.Log("Activity triggered : Nothing " + Time.time);
                 nextActivityTime = nextActivityTime / 2;
                 break;
         }
@@ -308,6 +331,14 @@ public class Ghost : GameBehaviour
     private void TriggerElectronicLightActivity()
     {
         Switch lightObject = currentRoom.SelectSpecialSwitchObject(ActivableObject.ActivationSpecialType.electronicLight);
+        
+        //No object found, throw an object instead
+        if (lightObject == null)
+        {
+            ThrowRandomObject();
+            return;
+        }
+        
         if (ghostType == GhostType.Demonic || ghostType == GhostType.Totemic)
         {
             lightObject.activableObject.Deactivate();
@@ -325,6 +356,14 @@ public class Ghost : GameBehaviour
     private void TriggerElectronicObjectActivity()
     {
         Switch elecObject = currentRoom.SelectSpecialSwitchObject(ActivableObject.ActivationSpecialType.electronicObject);
+        
+        //No object found, throw an object instead
+        if (elecObject == null)
+        {
+            ThrowRandomObject();
+            return;
+        }
+        
         if (ghostType == GhostType.Totemic)
         {
             elecObject.activableObject.Deactivate();
@@ -395,5 +434,53 @@ public class Ghost : GameBehaviour
     public void ForceNewWaypoint(Room room)
     {
         currentWayPoint = house.SelectRandomWayPointFromARoom(room);
+    }
+
+    private ThrowableObject GetRandomThrowableObjects()
+    {
+        Collider[] hits = Physics.OverlapSphere(
+            transform.position,
+            throwDetectionRange,
+            throwableMask
+        );
+
+        List<ThrowableObject> throwables = new List<ThrowableObject>();
+
+        foreach (var hit in hits)
+        {
+            if (hit.TryGetComponent(out ThrowableObject throwable))
+            {
+                throwables.Add(throwable);
+            }
+        }
+
+        if (throwables.Count == 0) return null;
+
+        return throwables[Random.Range(0, throwables.Count)];
+    }
+
+    private void ThrowRandomObject()
+    {
+        float randomForceX = Random.Range(-throwForceMax, throwForceMax);
+        float randomForceY = Random.Range(throwForceMin, throwForceMax) * 2;
+        float randomForceZ = Random.Range(-throwForceMax, throwForceMax);
+        
+        float randomTorqueX = Random.Range(-throwTorqueMax, throwTorqueMax);
+        float randomTorqueY = Random.Range(-throwTorqueMax, throwTorqueMax);
+        float randomTorqueZ = Random.Range(-throwTorqueMax, throwTorqueMax);
+        
+        ThrowableObject objectToThrow = GetRandomThrowableObjects();
+
+        if (objectToThrow == null)
+        {
+            Debug.Log("Activity : ThrowObject Failed");
+            return;
+        }
+        
+        Debug.Log("Activity : ThrowObject Success " + objectToThrow);
+
+        objectToThrow.rb.isKinematic = false;
+        objectToThrow.rb.AddForce(new Vector3(randomForceX,randomForceY,randomForceZ));
+        objectToThrow.rb.AddTorque(new Vector3(randomTorqueX,randomTorqueY,randomTorqueZ));
     }
 }

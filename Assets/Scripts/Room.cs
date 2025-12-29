@@ -44,6 +44,10 @@ public class Room : MonoBehaviour
             if(s.activableObject.activationType == forbiddenType)
                 selectableObjects.Add(s);
         }
+
+        if (selectableObjects.Count == 0)
+            return null;
+        
         return selectableObjects[Random.Range(0, selectableObjects.Count)];
     }
 }

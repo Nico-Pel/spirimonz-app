@@ -14,7 +14,7 @@ GameObject:
   - component: {fileID: 204427492447419700}
   - component: {fileID: 948612004006750957}
   - component: {fileID: 5653303803608419158}
-  m_Layer: 0
+  m_Layer: 10
   m_Name: Door0
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -219,14 +219,6 @@ MonoBehaviour:
   canClick: 1
   canHold: 1
   canRelease: 1
-  minOffset: 0
-  maxOffset: 120
-  lerpSpeed: 10
-  closeThreshold: 5
-  slamVelocityThreshold: 50
-  closeDuration: 0.3
-  springSpeed: 2
-  interactionDistance: 5
-  squeakSound: {fileID: 0}
-  closeSound: {fileID: 0}
-  slamSound: {fileID: 0}
+  openAngle: 90
+  openSpeed: 2
+  isOpen: 0
