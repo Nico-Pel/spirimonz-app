@@ -49,23 +49,33 @@ public class GhostVision : GameBehaviour
         if (ghostHead == null || player == null)
             return false;
 
-        // Point de départ et point d'arrivée
         Vector3 origin = ghostHead.position;
-        Vector3 target = player.head.position + Vector3.up * 1.0f; // vise la tête
+        Vector3 target = player.head.position;
         Vector3 direction = target - origin;
         float distance = direction.magnitude;
         direction.Normalize();
 
-        // Raycast vers le joueur
+        // Raycast
         if (Physics.Raycast(origin, direction, out RaycastHit hit, distance, obstacleMask | playerMask))
         {
-            // Vérifie si on a touché le joueur
+            // Si on touche le joueur
             if (((1 << hit.collider.gameObject.layer) & playerMask) != 0)
             {
+                Debug.DrawRay(origin, direction * distance, Color.green);
                 return true;
             }
+            else
+            {
+                // On touche un obstacle
+                Debug.DrawRay(origin, direction * hit.distance, Color.red);
+                return false;
+            }
+            
+            Debug.Log($"Hit: {hit.collider.name} | distance: {hit.distance}");
         }
 
+        // Rien touché
+        Debug.DrawRay(origin, direction * distance, Color.red);
         return false;
     }
 }

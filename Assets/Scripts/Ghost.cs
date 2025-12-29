@@ -186,6 +186,19 @@ public class Ghost : GameBehaviour
             SetHidingDestination();
         }
         
+        # if UNITY_EDITOR
+        if (Input.GetKeyDown(KeyCode.H))
+        {
+            if (currentState == GhostState.hideState)
+            {
+                TriggerHunting();
+            }
+            else if (currentState == GhostState.huntingState)
+            {
+                StopHunting();
+            }
+        }
+        #endif
     }
 
     private void SetHuntingDestination()
