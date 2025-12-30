@@ -7,10 +7,12 @@ using UnityEngine;
 
 public class ThrowableObject : GameBehaviour
 {
+    public bool canBeGrabByPlayer = true;
+    
     public Rigidbody rb;
     public ActivitySource activitySource;
 
-    public bool isGrabbed;
+    [ReadOnly] public bool isGrabbed;
 
     private void Awake()
     {

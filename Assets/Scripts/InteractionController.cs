@@ -16,7 +16,7 @@ public class InteractionController : GameBehaviour
     public Transform handObjectPosition;
     public Transform handObjectDropPosition;
     public float throwForceForward = 5;
-    public float throwForceUp = 3;
+    //public float throwForceUp = 3;
     
     private ClickableObject _targetedClickableObject;
     private ThrowableObject _targetedThrowableObject;
@@ -72,7 +72,7 @@ public class InteractionController : GameBehaviour
                 _targetedClickableObject = null;
             }
             
-            if (objectInHands == null && hit.collider.TryGetComponent(out ThrowableObject throwableObject) && throwableObject.isGrabbed == false)
+            if (objectInHands == null && hit.collider.TryGetComponent(out ThrowableObject throwableObject) && throwableObject.canBeGrabByPlayer && throwableObject.isGrabbed == false)
             {
                 _targetedThrowableObject = throwableObject;
             }
@@ -132,9 +132,11 @@ public class InteractionController : GameBehaviour
         objectInHands.transform.position = handObjectDropPosition.position;
         objectInHands.rb.isKinematic = false;
         objectInHands.isGrabbed = false;
-        
-        if(throwObject)
-            objectInHands.rb.AddForce(transform.forward * throwForceForward + Vector3.up * throwForceUp, ForceMode.Impulse);
+
+        if (throwObject)
+        {
+            objectInHands.rb.AddForce(transform.forward * throwForceForward /*+ Vector3.up * throwForceUp*/, ForceMode.Impulse);
+        }
         
         objectInHands = null;
     }

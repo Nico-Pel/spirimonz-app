@@ -3,7 +3,7 @@ using UnityEngine;
 [RequireComponent(typeof(CharacterController))]
 public class FPSControllerNoPhysics : GameBehaviour
 {
-[Header("Références")]
+    [Header("Références")]
     public Camera playerCamera;
     public Light mLight;
 
@@ -76,6 +76,9 @@ public class FPSControllerNoPhysics : GameBehaviour
 
     [Tooltip("Temps pour recharger complètement la stamina (en secondes)")]
     public float staminaRegenTime = 6f;
+    
+    [Header("Layers")]
+    public LayerMask groundLayers;
 
     private Vector3 movementInput;
 
@@ -182,7 +185,7 @@ public class FPSControllerNoPhysics : GameBehaviour
                          + Vector3.up * 0.1f 
                          + moveDirection.normalized * slopeCheckOffset;
 
-        if (Physics.Raycast(origin, Vector3.down, out RaycastHit hit, groundCheckDistance))
+        if (Physics.Raycast(origin, Vector3.down, out RaycastHit hit, groundCheckDistance, groundLayers))
         {
             float angle = Vector3.Angle(hit.normal, Vector3.up);
             return angle > maxGroundAngle;
