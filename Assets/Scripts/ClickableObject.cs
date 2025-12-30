@@ -1,14 +1,25 @@
 using UnityEngine;
 
+[RequireComponent(typeof(ActivitySource))]
 public class ClickableObject : MonoBehaviour
 {
     
+    public ActivitySource activitySource;
+
     [Header("Interaction Options")]
     public bool canClick = true;
     public bool canHold = false;
     public bool canRelease = false;
     
     public House house { get; set; }
+    
+    private void Awake()
+    {
+        if (activitySource == null)
+        {
+            activitySource = GetComponent<ActivitySource>();
+        }
+    }
     
     public virtual void Initialize(House h)
     {

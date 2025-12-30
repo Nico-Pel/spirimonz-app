@@ -9,25 +9,7 @@ using Random = UnityEngine.Random;
 
 public class Ghost : GameBehaviour
 {
-    public enum GhostType
-    {
-        Blazing, //Flamboyant
-        Totemic, //Totémique
-        Aquatic, //Aqueux
-        Glacial, //Glacial
-        Misty, //Brumeux
-        Demonic, //Démoniaque
-        Runic, //Runique
-        Grumpy, //Grognon
-        Trickster, //Farceur
-        Weird, //Bizarre
-        Draconic, //Draconique
-        Earthbound, //Téllurique
-        Psychic, //Psychique
-        Striker, //Frappeur
-        Voltaic, //Voltaïque
-        Luminous //Lumineux
-    }
+   public GhostParameters ghostParameters;
 
     public enum GhostState
     {
@@ -47,7 +29,6 @@ public class Ghost : GameBehaviour
         Nothing
     }
     
-    public GhostType ghostType;
     public GhostState currentState;
 
     public House house;
@@ -58,11 +39,13 @@ public class Ghost : GameBehaviour
     public float hidingSpeedBase = 0.75f;
     public float normalSpeedBase = 1f;
     public float targetingSpeedBase = 2f;
-
-    [Header("Ghost Stats : Hunting")] 
+    
+    [Header("Ghost Stats : Angriness")] 
     public float angrinessPercentage = 0f;
     public float minimumAngrinessToHunt = 50;
+    public float angrinessToAddByTriggeringPlayer = 10f;
     
+    [Header("Ghost Stats : Hunting")] 
     public float startHuntingStandingTime = 2;
     public float forcedStartTargetingTime = 4;
     public float averageHuntTime = 10f;
@@ -124,12 +107,18 @@ public class Ghost : GameBehaviour
         if (other.TryGetComponent(out Room newRoom))
         {
             currentRoom = newRoom;
-        }else if (other.TryGetComponent(out Player touchedPlayer))
+        }
+        else if (other.TryGetComponent(out Player touchedPlayer))
         {
-            if (currentState != GhostState.huntingState) return;
-            
-            StopHunting();
-            Kill(touchedPlayer);
+            if (currentState == GhostState.huntingState)
+            {
+                StopHunting();
+                Kill(touchedPlayer);
+            }
+            if (currentState == GhostState.hideState)
+            {
+                ImproveAngriness(angrinessToAddByTriggeringPlayer);
+            }
         }
     }
 
@@ -343,51 +332,69 @@ public class Ghost : GameBehaviour
 
     private void TriggerElectronicLightActivity()
     {
-        Switch lightObject = currentRoom.SelectSpecialSwitchObject(ActivableObject.ActivationSpecialType.electronicLight);
+        Switch switchLightObject = currentRoom.SelectSpecialSwitchObject(ActivableObject.ActivationSpecialType.electronicLight);
         
         //No object found, throw an object instead
-        if (lightObject == null)
+        if (switchLightObject == null)
         {
             ThrowRandomObject();
             return;
         }
         
-        if (ghostType == GhostType.Demonic || ghostType == GhostType.Totemic)
+        if (ghostParameters.ghostType == GhostParameters.GhostType.Demonic || ghostParameters.ghostType == GhostParameters.GhostType.Totemic)
         {
-            lightObject.activableObject.Deactivate();
+            if (switchLightObject.activableObject.isActivated)
+            {
+                switchLightObject.activableObject.Deactivate();
+                ActivateActivitySource(switchLightObject.activitySource);
+            }
         }
-        else if (ghostType == GhostType.Luminous || ghostType == GhostType.Voltaic)
+        else if (ghostParameters.ghostType == GhostParameters.GhostType.Luminous || ghostParameters.ghostType == GhostParameters.GhostType.Voltaic)
         {
-            lightObject.activableObject.Activate();
+            if (!switchLightObject.activableObject.isActivated)
+            {
+                switchLightObject.activableObject.Activate();
+                ActivateActivitySource(switchLightObject.activitySource);
+            }
         }
         else
         {
-            lightObject.activableObject.Operate();
+            switchLightObject.activableObject.Operate();
+            ActivateActivitySource(switchLightObject.activitySource);
         }
     }
     
     private void TriggerElectronicObjectActivity()
     {
-        Switch elecObject = currentRoom.SelectSpecialSwitchObject(ActivableObject.ActivationSpecialType.electronicObject);
+        Switch electronicObject = currentRoom.SelectSpecialSwitchObject(ActivableObject.ActivationSpecialType.electronicObject);
         
         //No object found, throw an object instead
-        if (elecObject == null)
+        if (electronicObject == null)
         {
             ThrowRandomObject();
             return;
         }
         
-        if (ghostType == GhostType.Totemic)
+        if (ghostParameters.ghostType == GhostParameters.GhostType.Totemic)
         {
-            elecObject.activableObject.Deactivate();
+            if (electronicObject.activableObject.isActivated)
+            {
+                electronicObject.activableObject.Deactivate();
+                ActivateActivitySource(electronicObject.activitySource);
+            }
         }
-        else if (ghostType == GhostType.Voltaic)
+        else if (ghostParameters.ghostType == GhostParameters.GhostType.Voltaic)
         {
-            elecObject.activableObject.Activate();
+            if (!electronicObject.activableObject.isActivated)
+            {
+                electronicObject.activableObject.Activate();
+                ActivateActivitySource(electronicObject.activitySource);
+            }
         }
         else
         {
-            elecObject.activableObject.Operate();
+            electronicObject.activableObject.Operate();
+            ActivateActivitySource(electronicObject.activitySource);
         }
     }
 
@@ -495,5 +502,36 @@ public class Ghost : GameBehaviour
         objectToThrow.rb.isKinematic = false;
         objectToThrow.rb.AddForce(new Vector3(randomForceX,randomForceY,randomForceZ));
         objectToThrow.rb.AddTorque(new Vector3(randomTorqueX,randomTorqueY,randomTorqueZ));
+        
+        ActivateActivitySource(objectToThrow.activitySource);
+    }
+
+    public void ImproveAngriness(float percentageToAdd)
+    {
+        angrinessPercentage += percentageToAdd;
+        if (angrinessPercentage > 100)
+        {
+            angrinessPercentage = 100;
+        }
+    }
+
+    public void DecreaseAngriness(float percentageToDecrease)
+    {
+        if (angrinessPercentage < 0)
+        {
+            angrinessPercentage = 0;
+        }
+    }
+
+    private void ActivateActivitySource(ActivitySource activitySource)
+    {
+        //Activate paranormal activity
+        int randomValue = ghostParameters.GetRandomActivityValue();
+        float randomTime = ghostParameters.GetRandomActivityTime();
+        
+        activitySource.SetActivityValue(randomValue, randomTime);
+        
+        //Activate refreshment
+        currentRoom.AddTemperatureDelta(ghostParameters.GetRandomRefreshment());
     }
 }
