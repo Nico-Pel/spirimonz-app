@@ -9,6 +9,9 @@ public class Fruit : ThrowableObject
     public MeshFilter meshFilter;
     public Mesh[] eatSteps;
 
+    private float elevationMin = 0.5f;
+    private float elevationMax = 2;
+
     public bool canBeEaten { get; set; } = true;
     private int _currentStep = 0;
 
@@ -21,8 +24,9 @@ public class Fruit : ThrowableObject
         canBeEaten = false;
         _ghost = ghost;
         
-        rb.isKinematic = false;
-        this.transform.DOMove(transform.position + Vector3.up * 2, 2).OnComplete(() =>
+        rb.isKinematic = true;
+        float elevation = Random.Range(elevationMin, elevationMax);
+        this.transform.DOMove(transform.position + Vector3.up * elevation, 2).OnComplete(() =>
         {
             Crunch();
         });
@@ -43,7 +47,7 @@ public class Fruit : ThrowableObject
             else
             {
                 meshFilter.mesh = eatSteps[_currentStep - 1];
-                if (eatSteps.Length < _currentStep + 1 || disappearAfterEat)
+                if (eatSteps.Length >= _currentStep + 1 || disappearAfterEat)
                 {
                     this.Invoke(0.25f, Crunch);
                 }
