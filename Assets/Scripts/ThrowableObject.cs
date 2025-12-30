@@ -5,10 +5,12 @@ using UnityEngine;
 
 [RequireComponent(typeof(ActivitySource))]
 
-public class ThrowableObject : MonoBehaviour
+public class ThrowableObject : GameBehaviour
 {
     public Rigidbody rb;
     public ActivitySource activitySource;
+
+    public bool isGrabbed;
 
     private void Awake()
     {

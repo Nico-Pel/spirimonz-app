@@ -7,6 +7,8 @@ using Random = UnityEngine.Random;
 
 public class House : MonoBehaviour
 {
+    public static House Instance { get; private set; }
+
     public Room[] rooms;
     public Room[] hauntableRooms;
     public bool electricCurrentEnabled = true;
@@ -24,17 +26,18 @@ public class House : MonoBehaviour
 
     private void Awake()
     {
+        Instance = this;
         InitializeHouse();
     }
 
     private void InitializeHouse()
     {
-        InstantiateGhost();
-
         foreach (WayPoint wp in this.GetComponentsInChildren<WayPoint>())
         {
             wayPoints.Add(wp);
         }
+        
+        InstantiateGhost();
 
         //Change the average start temperature for the rooms
         averageStartTemperature += Random.Range(-temperatureMaxHouseVariation, temperatureMaxHouseVariation);

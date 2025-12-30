@@ -24,7 +24,8 @@ public class GhostParameters : ScriptableObject
         Psychic, //Psychique
         Striker, //Frappeur
         Voltaic, //Voltaïque
-        Luminous //Lumineux
+        Luminous, //Lumineux
+        DEBUG
     }
 
     public GhostType ghostType;
@@ -39,6 +40,10 @@ public class GhostParameters : ScriptableObject
     public bool HighSpiritActivities;
     public bool SpiritOrbs;
     public bool Radioactivity;
+
+    [Header("Eating Fruit")] 
+    [Tooltip("Use this data only if you want to use Eating Fruits Activities")]
+    public float chancesToEatFruitInsteadOfThrowingIt = 70f;
 
     [Header("Spirit Activities")]
     public float activityOneChances = 35f;
@@ -84,6 +89,14 @@ public class GhostParameters : ScriptableObject
     public float GetRandomRefreshment()
     {
         return Random.Range(activityTimeMin, activityTimeMax);
+    }
+
+    public bool ShouldEatFruit()
+    {
+        if (!EatFruits) return false;
+        
+        float roll = Random.Range(0f, 100f);
+        return roll <= chancesToEatFruitInsteadOfThrowingIt;
     }
 }
 

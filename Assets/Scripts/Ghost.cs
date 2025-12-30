@@ -142,6 +142,7 @@ public class Ghost : GameBehaviour
         _targetingPlayer = true;
 
         currentHuntTime = Random.Range(averageHuntTime - huntTimeVariation, averageHuntTime + huntTimeVariation);
+        Debug.Log("Starting a HUNT for: " + currentHuntTime + " seconds");
 
         ghostModel.SetActive(true);
         
@@ -153,7 +154,7 @@ public class Ghost : GameBehaviour
         if (currentState == GhostState.huntingState)
         {
             currentHuntTime -= Time.deltaTime;
-            if (currentHuntTime == 0)
+            if (currentHuntTime <= 0)
             {
                 StopHunting();
             }
@@ -292,7 +293,7 @@ public class Ghost : GameBehaviour
         switch (randomActivity)
         {
             case GhostActivities.ObjectInteraction:
-                ThrowRandomObject();
+                ThrowObject();
                 Debug.Log("Activity triggered : Throw Object");
                 break;
 
@@ -307,7 +308,11 @@ public class Ghost : GameBehaviour
                 break;
             
             case GhostActivities.Hunt:
-                if (angrinessPercentage >= minimumAngrinessToHunt)
+                //Can't attack if not enough angry
+                //Can't attack if Earthbound ghost and not in its favorite room
+                if (angrinessPercentage >= minimumAngrinessToHunt && 
+                    (ghostParameters.ghostType != GhostParameters.GhostType.Earthbound || 
+                     (ghostParameters.ghostType == GhostParameters.GhostType.Earthbound && currentRoom == favoriteRoom)))
                 {
                     TriggerHunting();
                     Debug.Log("Activity triggered : Hunt " + Time.time);
@@ -337,7 +342,7 @@ public class Ghost : GameBehaviour
         //No object found, throw an object instead
         if (switchLightObject == null)
         {
-            ThrowRandomObject();
+            ThrowObject();
             return;
         }
         
@@ -371,7 +376,7 @@ public class Ghost : GameBehaviour
         //No object found, throw an object instead
         if (electronicObject == null)
         {
-            ThrowRandomObject();
+            ThrowObject();
             return;
         }
         
@@ -470,7 +475,8 @@ public class Ghost : GameBehaviour
         {
             if (hit.TryGetComponent(out ThrowableObject throwable))
             {
-                throwables.Add(throwable);
+                if(!throwable.isGrabbed)
+                    throwables.Add(throwable);
             }
         }
 
@@ -479,8 +485,26 @@ public class Ghost : GameBehaviour
         return throwables[Random.Range(0, throwables.Count)];
     }
 
-    private void ThrowRandomObject()
+    public void ThrowObject(ThrowableObject objectToThrow = null)
     {
+        if (objectToThrow == null)
+        {
+            //If the objectToThrow is not forced, we select a random object near from the ghost
+            objectToThrow = GetRandomThrowableObjects();
+        }
+
+        //If the trowing object is a fruit and ghost can eat fruits, it has chances to be eaten
+        if (objectToThrow is Fruit && ghostParameters.ShouldEatFruit())
+        {
+            Fruit fruit = objectToThrow as Fruit;
+            if (fruit != null && fruit.canBeEaten)
+            {
+                fruit.EatFruit(this);
+                Debug.Log("Activity : Eat Fruit " + objectToThrow);
+                return;
+            }
+        }
+        
         float randomForceX = Random.Range(-throwForceMax, throwForceMax);
         float randomForceY = Random.Range(throwForceMin, throwForceMax) * 2;
         float randomForceZ = Random.Range(-throwForceMax, throwForceMax);
@@ -488,8 +512,6 @@ public class Ghost : GameBehaviour
         float randomTorqueX = Random.Range(-throwTorqueMax, throwTorqueMax);
         float randomTorqueY = Random.Range(-throwTorqueMax, throwTorqueMax);
         float randomTorqueZ = Random.Range(-throwTorqueMax, throwTorqueMax);
-        
-        ThrowableObject objectToThrow = GetRandomThrowableObjects();
 
         if (objectToThrow == null)
         {

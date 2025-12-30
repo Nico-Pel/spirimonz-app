@@ -24,6 +24,9 @@ public class FPSControllerNoPhysics : GameBehaviour
     public KeyCode rightKey = KeyCode.D;
     public KeyCode sprintKey = KeyCode.LeftShift;
     public KeyCode turnLight = KeyCode.T;
+    public KeyCode grabObject = KeyCode.E;
+    public KeyCode dropObject = KeyCode.D;
+    public KeyCode throwObject = KeyCode.G;
     
     [Header("Crouch")]
     public KeyCode crouchKey = KeyCode.C;
@@ -103,6 +106,8 @@ public class FPSControllerNoPhysics : GameBehaviour
         
         standingHeight = controller.height;
         cameraStandingPos = playerCamera.transform.localPosition;
+
+        UIGame.Instance.InitControlTexts(this);
     }
 
     void Update()
