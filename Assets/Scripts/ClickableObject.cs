@@ -1,6 +1,5 @@
 using UnityEngine;
 
-[RequireComponent(typeof(ActivitySource))]
 public class ClickableObject : MonoBehaviour
 {
     
@@ -17,7 +16,10 @@ public class ClickableObject : MonoBehaviour
     {
         if (activitySource == null)
         {
-            activitySource = GetComponent<ActivitySource>();
+            Debug.LogError(
+                $"{nameof(ActivitySource)} introuvable sur {name}",
+                this
+            );
         }
     }
     

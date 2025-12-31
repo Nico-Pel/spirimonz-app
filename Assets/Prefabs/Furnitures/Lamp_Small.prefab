@@ -181,6 +181,7 @@ GameObject:
   - component: {fileID: 2805580607180560246}
   - component: {fileID: 1326013373441224102}
   - component: {fileID: 7401345498061517891}
+  - component: {fileID: 3189330312244025807}
   m_Layer: 0
   m_Name: Lamp_Small
   m_TagString: Untagged
@@ -297,6 +298,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 178557b3c91de47f3b560b4be8a91908, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  activitySource: {fileID: 3189330312244025807}
   canClick: 1
   canHold: 0
   canRelease: 0
@@ -325,6 +327,19 @@ MeshCollider:
   m_Convex: 0
   m_CookingOptions: 30
   m_Mesh: {fileID: -5905391991893039794, guid: 25bb645ea70064daba3fe7b042f79378, type: 3}
+--- !u!114 &3189330312244025807
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3677057190611405604}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ab10b1aeff7e1420d8fb1f2aeadacca7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  activityValue: 0
 --- !u!1 &6590165102062264431
 GameObject:
   m_ObjectHideFlags: 0
