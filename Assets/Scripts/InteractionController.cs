@@ -27,6 +27,9 @@ public class InteractionController : GameBehaviour
     
     private ClickableObject _targetedClickableObject;
     private ThrowableObject _targetedThrowableObject;
+    
+    private GameObject _grabbedDoor;
+    private float _grabDistance;
 
     void Update()
     {
@@ -52,88 +55,45 @@ public class InteractionController : GameBehaviour
         HandleUIText();
         HandleDoor();
     }
-    
+
     private void HandleDoor()
     {
-        //Raycast
+        // Raycast pour détecter la porte
         RaycastHit hit;
+        Ray ray = controller.playerCamera.ScreenPointToRay(Input.mousePosition);
 
-        if (Physics.Raycast(controller.playerCamera.transform.position, controller.playerCamera.transform.forward, out hit, 20, doorLayer))
+        if (Physics.Raycast(ray, out hit, 5f, doorLayer))
         {
-            _targetingDoor = true;
             if (Input.GetMouseButtonDown(0))
             {
-                _targetedDoor = hit.collider.gameObject.transform.GetComponent<Door>();
+                Rigidbody rb = hit.collider.GetComponent<Rigidbody>();
+                HingeJoint hinge = hit.collider.GetComponent<HingeJoint>();
+                if (rb != null && hinge != null)
+                {
+                    _grabbedDoor = hit.collider.gameObject;
+                    _grabDistance = Vector3.Distance(controller.playerCamera.transform.position, _grabbedDoor.transform.position);
+                    rb.useGravity = false;          // on désactive la gravité pendant qu’on tire
+                    rb.freezeRotation = false;      // on autorise le Hinge à tourner
+                }
             }
         }
-        else
+
+        if (_grabbedDoor != null)
         {
-            _targetingDoor = false;
-        }
+            Rigidbody rb = _grabbedDoor.GetComponent<Rigidbody>();
+            if (rb == null) return;
 
-        if (_targetedDoor != null)
-        {
-            HingeJoint joint = _targetedDoor.hingeJoint;
-            JointMotor motor = joint.motor;
+            // Calcul du point cible devant la caméra
+            Vector3 targetPos = controller.playerCamera.transform.position + ray.direction * _grabDistance;
 
-            //Create drag point object for reference where players mouse is pointing
-            if (_dragPointDoor == null)
-            {
-                _dragPointDoor = new GameObject("Ray door");
-                _dragPointDoor.transform.parent = _targetedDoor.transform;
-            }
+            // Appliquer la vitesse pour suivre la souris
+            rb.velocity = (targetPos - rb.position) * 10f;
 
-            Ray ray = controller.playerCamera.ScreenPointToRay(Input.mousePosition);
-            _dragPointDoor.transform.position =
-                ray.GetPoint(Vector3.Distance(_targetedDoor.transform.position, transform.position));
-            _dragPointDoor.transform.rotation = _targetedDoor.transform.rotation;
-
-
-            float delta = Mathf.Pow(Vector3.Distance(_dragPointDoor.transform.position, _targetedDoor.transform.position), 3);
-
-            //Deciding if it is left or right door
-            if (_targetedDoor.GetComponent<MeshRenderer>().localBounds.center.x > _targetedDoor.transform.localPosition.x)
-            {
-                _doorValue = 1;
-            }
-            else
-            {
-                _doorValue = -1;
-            }
-
-            //Applying velocity to door motor
-            float speedMultiplier = 60000;
-            if (Mathf.Abs(_targetedDoor.transform.parent.forward.z) > 0.5f)
-            {
-                if (_dragPointDoor.transform.position.x > _targetedDoor.transform.position.x)
-                {
-                    motor.targetVelocity = delta * speedMultiplier * Time.deltaTime * _doorValue;
-                }
-                else
-                {
-                    motor.targetVelocity = delta * -speedMultiplier * Time.deltaTime * _doorValue;
-                }
-            }
-            else
-            {
-                if (_dragPointDoor.transform.position.z > _targetedDoor.transform.position.z)
-                {
-                    motor.targetVelocity = delta * speedMultiplier * Time.deltaTime * _doorValue;
-                }
-                else
-                {
-                    motor.targetVelocity = delta * -speedMultiplier * Time.deltaTime * _doorValue;
-                }
-            }
-
-            joint.motor = motor;
-
+            // Relâchement du clic
             if (Input.GetMouseButtonUp(0))
             {
-                _targetedDoor = null;
-                motor.targetVelocity = 0;
-                joint.motor = motor;
-                Destroy(_dragPointDoor);
+                rb.useGravity = true;
+                _grabbedDoor = null;
             }
         }
     }

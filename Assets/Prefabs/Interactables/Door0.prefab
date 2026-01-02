@@ -92,7 +92,7 @@ Transform:
   m_GameObject: {fileID: 8890290496291417065}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0.7071068, z: 0, w: 0.7071068}
-  m_LocalPosition: {x: 0, y: 0, z: -0.75}
+  m_LocalPosition: {x: 0, y: 1.5, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -217,7 +217,7 @@ HingeJoint:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 8890290496291417065}
-  m_ConnectedBody: {fileID: 8508408755396087841}
+  m_ConnectedBody: {fileID: 0}
   m_ConnectedArticulationBody: {fileID: 0}
   m_Anchor: {x: 0, y: -0.15, z: 0}
   m_Axis: {x: 0, y: 1, z: 0}
@@ -232,7 +232,7 @@ HingeJoint:
   m_UseMotor: 1
   m_Motor:
     targetVelocity: 0
-    force: 10
+    force: 100
     freeSpin: 0
   m_UseLimits: 1
   m_ExtendedLimits: 0
