@@ -29,10 +29,10 @@ public class InteractionController : GameBehaviour
 
     void Update()
     {
+        HandleDoor();
         DetectInteractable();
         HandleInput();
         UpdateCursorUI();
-        HandleDoor();
     }
 
     // =========================
@@ -117,6 +117,15 @@ public class InteractionController : GameBehaviour
 
     private void HandleDoor()
     {
+        if (Input.GetMouseButtonUp(0))
+        {
+            if (_targetedDoor != null)
+            {
+                _targetedDoor.Release();
+                _targetedDoor = null;
+            }
+        }
+        
         // Raycast pour détecter la porte
         RaycastHit hit;
         Ray ray = controller.playerCamera.ScreenPointToRay(Input.mousePosition);
@@ -132,31 +141,38 @@ public class InteractionController : GameBehaviour
                 HingeJoint hinge = _targetedDoor.hingeJoint;
                 if (rb != null && hinge != null)
                 {
-                    _grabbedDoor = hit.collider.gameObject;
+                    _grabbedDoor = _targetedDoor.gameObject;
+                    _targetedDoor.Grab();
                     _grabDistance = Vector3.Distance(controller.playerCamera.transform.position, _grabbedDoor.transform.position);
                     rb.useGravity = false;          // on désactive la gravité pendant qu’on tire
                     rb.freezeRotation = false;      // on autorise le Hinge à tourner
                 }
             }
         }
+        else if (!Input.GetMouseButton(0) && _targetedDoor != null && _grabbedDoor == null)
+        {
+            _targetedDoor = null;
+        }
 
         if (_grabbedDoor != null)
         {
             Rigidbody rb = _grabbedDoor.GetComponent<Rigidbody>();
-            if (rb == null) return;
+            if (rb != null)
+            {
+                Vector3 targetPos = controller.playerCamera.transform.position + ray.direction * _grabDistance;
+                rb.velocity = (targetPos - rb.position) * 10f;
+            }
 
-            // Calcul du point cible devant la caméra
-            Vector3 targetPos = controller.playerCamera.transform.position + ray.direction * _grabDistance;
-
-            // Appliquer la vitesse pour suivre la souris
-            rb.velocity = (targetPos - rb.position) * 10f;
-
-            // Relâchement du clic
             if (Input.GetMouseButtonUp(0))
             {
+                if (_targetedDoor != null)
+                {
+                    _targetedDoor.Release();
+                    _targetedDoor = null;
+                }
+                
                 rb.useGravity = true;
                 _grabbedDoor = null;
-                _targetedDoor = null;
             }
         }
     }

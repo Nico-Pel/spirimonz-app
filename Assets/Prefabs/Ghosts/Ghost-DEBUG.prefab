@@ -50,10 +50,17 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   ghostParameters: {fileID: 11400000, guid: 8bc19d300597f4977b3b400a60ce14ed, type: 2}
+  forcedGhostActivity: 6
   currentState: 0
   house: {fileID: 0}
   favoriteRoom: {fileID: 0}
   currentRoom: {fileID: 0}
+  sprintDurationMin: 6
+  sprintDurationMax: 15
+  pawSprites:
+  - {fileID: -1729295334, guid: d168312f7a8ed4d04affb3dc767d28b2, type: 3}
+  - {fileID: 1823777000, guid: d168312f7a8ed4d04affb3dc767d28b2, type: 3}
+  fingerSprite: {fileID: 1826102752, guid: d168312f7a8ed4d04affb3dc767d28b2, type: 3}
   hidingSpeedBase: 0.75
   normalSpeedBase: 1
   targetingSpeedBase: 2
@@ -77,6 +84,17 @@ MonoBehaviour:
   throwableMask:
     serializedVersion: 2
     m_Bits: 512
+  slamChances: 50
+  doorDetectionRange: 5
+  closeForce: 10
+  slamForce: 100
+  openForceMin: 10
+  openForceMax: 40
+  openAngleMin: 35
+  openAngleMax: 90
+  doorMask:
+    serializedVersion: 2
+    m_Bits: 1024
   averageActivityTime: 10
   activityTimeVariation: 5
   chancesToRoamInAnotherRoom: 25

@@ -41,6 +41,11 @@ public class GhostParameters : ScriptableObject
     public bool SpiritOrbs;
     public bool Radioactivity;
 
+    [Header("Spirit Prints")] 
+    public float chancesToPutPrintOnDoors = 33;
+    public float chancesToPutPrintOnSwitch = 33;
+    public float chancesToPutPrintOnGround = 33;
+
     [Header("Eating Fruit")] 
     [Tooltip("Use this data only if you want to use Eating Fruits Activities")]
     public float chancesToEatFruitInsteadOfThrowingIt = 70f;

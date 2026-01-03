@@ -10,6 +10,9 @@ using Random = UnityEngine.Random;
 public class Ghost : GameBehaviour
 {
    public GhostParameters ghostParameters;
+    # if UNITY_EDITOR
+        public GhostActivities forcedGhostActivity = GhostActivities.Nothing;
+    #endif
 
     public enum GhostState
     {
@@ -26,7 +29,14 @@ public class Ghost : GameBehaviour
         ChangeElectronicObjectState,
         TriggerEvent,
         Hunt,
+        PlayWithDoor,
         Nothing
+    }
+    
+    public enum PrintTypes
+    {
+        Paw,
+        Finger
     }
     
     public GhostState currentState;
@@ -34,6 +44,12 @@ public class Ghost : GameBehaviour
     public House house;
     public Room favoriteRoom;
     public Room currentRoom;
+    
+    [Header("Ghost Prints")]
+    public float sprintDurationMin = 6f;
+    public float sprintDurationMax = 15f;
+    public Sprite[] pawSprites;
+    public Sprite fingerSprite;
     
     [Header("Ghost Stats : Speed")] 
     public float hidingSpeedBase = 0.75f;
@@ -66,6 +82,17 @@ public class Ghost : GameBehaviour
     public float throwForceMax = 25;
     public float throwTorqueMax = 90;
     public LayerMask throwableMask;
+
+    [Header("Ghost Stats : Doors Playing")]
+    public float slamChances = 50;
+    public float doorDetectionRange = 8;
+    public float closeForce = 10;
+    public float slamForce = 100;
+    public float openForceMin = 15;
+    public float openForceMax = 25;
+    public float openAngleMin = 35;
+    public float openAngleMax = 90;
+    public LayerMask doorMask;
 
     [Header("Ghost Stats : Activities")] 
     public float averageActivityTime = 60f;
@@ -279,6 +306,13 @@ public class Ghost : GameBehaviour
             (GhostActivities)Enum.GetValues(typeof(GhostActivities))
                 .GetValue(Random.Range(0,
                     Enum.GetValues(typeof(GhostActivities)).Length));
+
+# if UNITY_EDITOR
+        if (forcedGhostActivity != GhostActivities.Nothing)
+        {
+            randomActivity = forcedGhostActivity;
+        }
+#endif
         
         float nextActivityTime = Random.Range(averageActivityTime - activityTimeVariation, averageActivityTime + activityTimeVariation);
         //Le fantôme trigger plus vite le prochain event s'il est enervé
@@ -325,6 +359,11 @@ public class Ghost : GameBehaviour
                     return;
                 }
                 break;
+            
+            case GhostActivities.PlayWithDoor:
+                PlayWithDoor();
+                Debug.Log("Activity triggered : Play With Door " + Time.time);
+                break;
 
             default:
                 Debug.Log("Activity triggered : Nothing " + Time.time);
@@ -333,6 +372,68 @@ public class Ghost : GameBehaviour
         }
         
         this.Invoke(nextActivityTime, TriggerActivity);
+    }
+
+    private void PlayWithDoor()
+    {
+        Door selectedDoor = GetRandomDoor();
+        //No door found
+        if (selectedDoor == null)
+        {
+            Debug.Log("No door find");
+            return;
+        }
+        else
+        {
+            Debug.Log("Door activity! : ", selectedDoor);
+        }
+
+        if (selectedDoor.isOpen)
+        {
+            if(ghostParameters.ghostType == GhostParameters.GhostType.Misty) return;
+            
+            float roll = Random.Range(0f, 100f);
+            if (roll <= slamChances)
+            {
+                //Slam
+                selectedDoor.GhostDoorInteraction(0, slamForce, true);
+            }
+            else
+            {
+                //Close
+                selectedDoor.GhostDoorInteraction(0, closeForce);
+            }
+        }
+        else
+        {
+            if(ghostParameters.ghostType == GhostParameters.GhostType.Grumpy) return;
+            
+            float openForce = Random.Range(openForceMin, openForceMax);
+            float openAngle = Random.Range(openAngleMin, openAngleMax);
+            selectedDoor.GhostDoorInteraction(openAngle, openForce);
+        }
+        ActivateActivitySource(selectedDoor.activitySource);
+
+        if (ghostParameters.SpiritPrints)
+        {
+            float roll = Random.Range(0f, 100f);
+            if (roll <= ghostParameters.chancesToPutPrintOnDoors)
+            {
+                PrintSource printSourceToUse = selectedDoor.GetRandomPrintSource();
+                if (printSourceToUse != null)
+                {
+                    ActivatePrint(printSourceToUse, PrintTypes.Paw);
+                }
+            }
+        }
+    }
+
+    private void ActivatePrint(PrintSource printSource, PrintTypes printType)
+    {
+        float duration = Random.Range(sprintDurationMin, sprintDurationMax);
+        Sprite spriteToUse =
+            printType == PrintTypes.Paw ? pawSprites[Random.Range(0, pawSprites.Length)] : fingerSprite;
+        printSource.Activate(duration, spriteToUse);
     }
 
     private void TriggerElectronicLightActivity()
@@ -366,6 +467,19 @@ public class Ghost : GameBehaviour
         {
             switchLightObject.activableObject.Operate();
             ActivateActivitySource(switchLightObject.activitySource);
+        }
+        
+        if (ghostParameters.SpiritPrints)
+        {
+            float roll = Random.Range(0f, 100f);
+            if (roll <= ghostParameters.chancesToPutPrintOnSwitch)
+            {
+                PrintSource printSourceToUse = switchLightObject.GetRandomPrintSource();
+                if (printSourceToUse != null)
+                {
+                    ActivatePrint(printSourceToUse, PrintTypes.Finger);
+                }
+            }
         }
     }
     
@@ -475,6 +589,8 @@ public class Ghost : GameBehaviour
         {
             if (hit.TryGetComponent(out ThrowableObject throwable))
             {
+                //Ignore objects from another stair
+                if (throwable.transform.position.y - transform.position.y > 3 || throwable.transform.position.y - transform.position.y < -3) continue;
                 if(!throwable.isGrabbed)
                     throwables.Add(throwable);
             }
@@ -483,6 +599,33 @@ public class Ghost : GameBehaviour
         if (throwables.Count == 0) return null;
 
         return throwables[Random.Range(0, throwables.Count)];
+    }
+    
+    private Door GetRandomDoor()
+    {
+        Collider[] hits = Physics.OverlapSphere(
+            transform.position,
+            doorDetectionRange,
+            doorMask
+        );
+
+        List<Door> doors = new List<Door>();
+
+        foreach (var hit in hits)
+        {
+            if (hit.TryGetComponent(out Door door))
+            {
+                //Ignore doors from another stair
+                if (door.transform.position.y - transform.position.y > 3 || door.transform.position.y - transform.position.y < -3) continue;
+                
+                if(!door.IsGrabbed())
+                    doors.Add(door);
+            }
+        }
+
+        if (doors.Count == 0) return null;
+
+        return doors[Random.Range(0, doors.Count)];
     }
 
     public void ThrowObject(ThrowableObject objectToThrow = null)

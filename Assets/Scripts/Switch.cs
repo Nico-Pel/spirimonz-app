@@ -4,6 +4,7 @@ using UnityEngine;
 
 public class Switch : ClickableObject
 {
+    public PrintSource[] printSources;
     public ActivableObject activableObject;
     public Animator animator;
     public bool isLocked;
@@ -33,5 +34,18 @@ public class Switch : ClickableObject
         {
             activableObject.Deactivate();
         }
+    }
+    
+    public PrintSource GetRandomPrintSource()
+    {
+        if (printSources.Length == 0) return null;
+        
+        List<PrintSource> possiblePrintSources = new List<PrintSource>();
+        foreach (PrintSource printSource in printSources)
+        {
+            if(printSource.IsActivated() == false)
+                possiblePrintSources.Add(printSource);
+        }
+        return possiblePrintSources[Random.Range(0, possiblePrintSources.Count)];
     }
 }
