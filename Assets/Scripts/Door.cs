@@ -3,16 +3,10 @@ using UnityEngine;
 
 public class Door : GameBehaviour
 {
-    public enum DoorType
-    {
-        rightDoor,
-        leftDoor
-    }
-    
     [Header("Door Components")]
     public HingeJoint hingeJoint;
+    public Rigidbody rb;
     
     [Header("Door Options")]
-    public DoorType doorType;
     public bool isOpen = false;
 }

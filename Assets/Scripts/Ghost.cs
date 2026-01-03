@@ -487,44 +487,27 @@ public class Ghost : GameBehaviour
 
     public void ThrowObject(ThrowableObject objectToThrow = null)
     {
-        if (objectToThrow == null)
-        {
-            //If the objectToThrow is not forced, we select a random object near from the ghost
-            objectToThrow = GetRandomThrowableObjects();
-        }
+        if (objectToThrow == null) objectToThrow = GetRandomThrowableObjects();
 
-        //If the trowing object is a fruit and ghost can eat fruits, it has chances to be eaten
-        if (objectToThrow is Fruit && ghostParameters.ShouldEatFruit())
+        if (objectToThrow is Fruit fruit && ghostParameters.ShouldEatFruit() && fruit.canBeEaten)
         {
-            Fruit fruit = objectToThrow as Fruit;
-            if (fruit != null && fruit.canBeEaten)
-            {
-                fruit.EatFruit(this);
-                Debug.Log("Activity : Eat Fruit " + objectToThrow);
-                return;
-            }
-        }
-        
-        float randomForceX = Random.Range(-throwForceMax, throwForceMax);
-        float randomForceY = Random.Range(throwForceMin, throwForceMax) * 2;
-        float randomForceZ = Random.Range(-throwForceMax, throwForceMax);
-        
-        float randomTorqueX = Random.Range(-throwTorqueMax, throwTorqueMax);
-        float randomTorqueY = Random.Range(-throwTorqueMax, throwTorqueMax);
-        float randomTorqueZ = Random.Range(-throwTorqueMax, throwTorqueMax);
-
-        if (objectToThrow == null)
-        {
-            Debug.Log("Activity : ThrowObject Failed");
+            fruit.EatFruit(this);
             return;
         }
-        
-        Debug.Log("Activity : ThrowObject Success " + objectToThrow);
 
-        objectToThrow.rb.isKinematic = false;
-        objectToThrow.rb.AddForce(new Vector3(randomForceX,randomForceY,randomForceZ));
-        objectToThrow.rb.AddTorque(new Vector3(randomTorqueX,randomTorqueY,randomTorqueZ));
-        
+        Vector3 randomForce = new Vector3(
+            Random.Range(-throwForceMax, throwForceMax),
+            Random.Range(throwForceMin, throwForceMax) * 2,
+            Random.Range(-throwForceMax, throwForceMax)
+        );
+
+        Vector3 randomTorque = new Vector3(
+            Random.Range(-throwTorqueMax, throwTorqueMax),
+            Random.Range(-throwTorqueMax, throwTorqueMax),
+            Random.Range(-throwTorqueMax, throwTorqueMax)
+        );
+
+        objectToThrow.ApplyForce(randomForce, randomTorque);
         ActivateActivitySource(objectToThrow.activitySource);
     }
 

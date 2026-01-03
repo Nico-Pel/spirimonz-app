@@ -1,17 +1,16 @@
 using UnityEngine;
 
-public class ClickableObject : MonoBehaviour
+public class ClickableObject : MonoBehaviour, IInteractable
 {
-    
     public ActivitySource activitySource;
 
     [Header("Interaction Options")]
     public bool canClick = true;
     public bool canHold = false;
     public bool canRelease = false;
-    
+
     public House house { get; set; }
-    
+
     private void Awake()
     {
         if (activitySource == null)
@@ -22,25 +21,48 @@ public class ClickableObject : MonoBehaviour
             );
         }
     }
-    
+
     public virtual void Initialize(House h)
     {
         house = h;
     }
 
-    /// <summary>Quand l'objet est cliqué</summary>
+    // =========================
+    // IInteractable
+    // =========================
+
+    public void OnInteractStart()
+    {
+        if (canClick)
+            OnClick();
+    }
+
+    public void OnInteractHold()
+    {
+        if (canHold)
+            OnHold();
+    }
+
+    public void OnInteractEnd()
+    {
+        if (canRelease)
+            OnRelease();
+    }
+
+    // =========================
+    // Existing logic (inchangé)
+    // =========================
+
     public virtual void OnClick()
     {
         Debug.Log($"{name} clicked!");
     }
 
-    /// <summary>Quand l'objet est maintenu</summary>
     public virtual void OnHold()
     {
         Debug.Log($"{name} held!");
     }
 
-    /// <summary>Quand le clic est relâché</summary>
     public virtual void OnRelease()
     {
         Debug.Log($"{name} released!");

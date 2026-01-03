@@ -4,56 +4,115 @@ using UnityEngine;
 public class InteractionController : GameBehaviour
 {
     public FPSControllerNoPhysics controller;
-    
-    [Header("Raycast Settings")]
-    public float interactionDistance = 3f; // Distance max pour interagir
-    public LayerMask interactableLayer;    // Layer des objets interactifs
-    public float rayOffset = 0.2f;         // Décalage devant la caméra
-    public float sphereRadius = 0.1f;      // Rayon du SphereCast
 
-    [Header("Hand object Settings")]
-    [ReadOnly] public ThrowableObject objectInHands;
+    [Header("Raycast Settings")]
+    public float interactionDistance = 3f;
+    public LayerMask interactableLayer;
+    public float rayOffset = 0.2f;
+    public float sphereRadius = 0.1f;
+
+    [Header("Hand Settings")]
     public Transform handObjectPosition;
     public Transform handObjectDropPosition;
-    public float throwForceForward = 5;
-    //public float throwForceUp = 3;
+    public float throwForceForward = 5f;
 
+    [ReadOnly] public ThrowableObject objectInHands;
+    
     [Header("Doors Settings")] 
     [SerializeField] LayerMask doorLayer;
-    private bool _targetingDoor;
+
     private Door _targetedDoor;
-    private GameObject _dragPointDoor;
-    private int _doorValue = 0;
-    
-    private ClickableObject _targetedClickableObject;
-    private ThrowableObject _targetedThrowableObject;
-    
-    private GameObject _grabbedDoor;
+    private GameObject _grabbedDoor; 
     private float _grabDistance;
+
+    private IInteractable _currentTarget;
 
     void Update()
     {
-        HandleRaycast();
+        DetectInteractable();
         HandleInput();
-
-        if (Input.GetKeyDown(controller.grabObject) && _targetedThrowableObject && objectInHands == null)
-        {
-            GrabObject();
-        }
-
-        if (Input.GetKeyDown(controller.dropObject) && objectInHands != null)
-        {
-            DropObject(false);
-        }
-        
-        if (Input.GetKeyDown(controller.throwObject) && objectInHands != null)
-        {
-            DropObject(true);
-        }
-        
-        HandleUICursor();
-        HandleUIText();
+        UpdateCursorUI();
         HandleDoor();
+    }
+
+    // =========================
+    // Raycast & Detection
+    // =========================
+    void DetectInteractable()
+    {
+        Vector3 rayOrigin = Camera.main.transform.position + Camera.main.transform.forward * rayOffset;
+        Ray ray = new Ray(rayOrigin, Camera.main.transform.forward);
+
+        if (Physics.SphereCast(ray, sphereRadius, out RaycastHit hit, interactionDistance, interactableLayer, QueryTriggerInteraction.Ignore))
+        {
+            _currentTarget = hit.collider.GetComponent<IInteractable>();
+        }
+        else
+        {
+            _currentTarget = null;
+        }
+    }
+
+    // =========================
+    // Input Handling
+    // =========================
+    void HandleInput()
+    {
+        // =====================
+        // Interaction avec l'objet ciblé
+        // =====================
+        if (_currentTarget != null)
+        {
+            if (Input.GetMouseButtonDown(0))
+                _currentTarget.OnInteractStart();
+
+            if (Input.GetMouseButton(0))
+                _currentTarget.OnInteractHold();
+
+            if (Input.GetMouseButtonUp(0))
+                _currentTarget.OnInteractEnd();
+        }
+
+        // =====================
+        // Grab / Drop / Throw d'objet en main
+        // =====================
+        if (objectInHands != null)
+        {
+            // Drop
+            if (Input.GetKeyDown(controller.dropObject))
+            {
+                objectInHands.Drop(handObjectDropPosition, Vector3.zero);
+                objectInHands = null;
+            }
+
+            // Throw
+            if (Input.GetKeyDown(controller.throwObject))
+            {
+                Vector3 throwForce = transform.forward * throwForceForward;
+                objectInHands.Drop(handObjectDropPosition, throwForce);
+                objectInHands = null;
+            }
+        }
+        else if (_currentTarget is ThrowableObject targetThrowable)
+        {
+            // Grab uniquement si rien en main
+            if (Input.GetKeyDown(controller.grabObject))
+            {
+                objectInHands = targetThrowable;
+                objectInHands.Grab(handObjectPosition);
+            }
+        }
+    }
+    
+    // =========================
+    // UI Handling
+    // =========================
+    void UpdateCursorUI()
+    {
+        bool showCursor = _currentTarget != null;
+        UIGame.Instance.EnableCursor(showCursor || _targetedDoor != null);
+        bool showGrabText = _currentTarget is ThrowableObject;
+        UIGame.Instance.EnableGrabText(showGrabText);
     }
 
     private void HandleDoor()
@@ -64,10 +123,13 @@ public class InteractionController : GameBehaviour
 
         if (Physics.Raycast(ray, out hit, 5f, doorLayer))
         {
+            if(_targetedDoor == null)
+                _targetedDoor = hit.collider.GetComponent<Door>();
+            
             if (Input.GetMouseButtonDown(0))
             {
-                Rigidbody rb = hit.collider.GetComponent<Rigidbody>();
-                HingeJoint hinge = hit.collider.GetComponent<HingeJoint>();
+                Rigidbody rb = _targetedDoor.rb;
+                HingeJoint hinge = _targetedDoor.hingeJoint;
                 if (rb != null && hinge != null)
                 {
                     _grabbedDoor = hit.collider.gameObject;
@@ -94,104 +156,8 @@ public class InteractionController : GameBehaviour
             {
                 rb.useGravity = true;
                 _grabbedDoor = null;
+                _targetedDoor = null;
             }
         }
-    }
-
-    private void HandleUICursor()
-    {
-        UIGame.Instance.EnableCursor(_targetedClickableObject != null || _targetedThrowableObject != null || _targetedDoor != null || (_targetedDoor == null && _targetingDoor));
-    }
-    
-    private void HandleUIText()
-    {
-        UIGame.Instance.EnableGrabText(_targetedThrowableObject != null);
-    }
-
-    void HandleRaycast()
-    {
-        Vector3 rayOrigin = Camera.main.transform.position + Camera.main.transform.forward * rayOffset;
-        Ray ray = new Ray(rayOrigin, Camera.main.transform.forward);
-
-        // SphereCast pour plus de tolérance
-        if (Physics.SphereCast(ray, sphereRadius, out RaycastHit hit, interactionDistance, interactableLayer, QueryTriggerInteraction.Ignore))
-        {
-            if (hit.collider.TryGetComponent(out ClickableObject clickableObject))
-            {
-                _targetedClickableObject = clickableObject;
-            }
-            else
-            {
-                _targetedClickableObject = null;
-            }
-            
-            if (objectInHands == null && hit.collider.TryGetComponent(out ThrowableObject throwableObject) && throwableObject.canBeGrabByPlayer && throwableObject.isGrabbed == false)
-            {
-                _targetedThrowableObject = throwableObject;
-            }
-            else
-            {
-                _targetedThrowableObject = null;
-            }
-        }
-        else
-        {
-            _targetedClickableObject = null;
-            _targetedThrowableObject = null;
-            _targetingDoor = false;
-        }
-    }
-
-    void HandleInput()
-    {
-        if (_targetedClickableObject == null) return;
-
-        // Clic pressé
-        if (Input.GetMouseButtonDown(0) && _targetedClickableObject.canClick)
-        {
-            _targetedClickableObject.OnClick();
-        }
-
-        // Maintien du clic
-        if (Input.GetMouseButton(0) && _targetedClickableObject.canHold)
-        {
-            _targetedClickableObject.OnHold();
-        }
-
-        // Relâchement du clic
-        if (Input.GetMouseButtonUp(0) && _targetedClickableObject.canRelease)
-        {
-            _targetedClickableObject.OnRelease();
-        }
-    }
-
-    void GrabObject()
-    {
-        if (objectInHands != null) return;
-        
-        objectInHands = _targetedThrowableObject;
-        
-        objectInHands.isGrabbed = true;
-        objectInHands.transform.parent = handObjectPosition.transform;
-        objectInHands.rb.isKinematic = true;
-        objectInHands.transform.position = handObjectPosition.position;
-        objectInHands.transform.localEulerAngles = Vector3.zero;
-    }
-
-    void DropObject(bool throwObject = false)
-    {
-        if (objectInHands == null) return;
-
-        objectInHands.transform.parent = House.Instance.transform;
-        objectInHands.transform.position = handObjectDropPosition.position;
-        objectInHands.rb.isKinematic = false;
-        objectInHands.isGrabbed = false;
-
-        if (throwObject)
-        {
-            objectInHands.rb.AddForce(transform.forward * throwForceForward /*+ Vector3.up * throwForceUp*/, ForceMode.Impulse);
-        }
-        
-        objectInHands = null;
     }
 }
