@@ -31,7 +31,6 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 3831861337463726972}
-  - {fileID: 429397251360961806}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!54 &8508408755396087841
@@ -130,8 +129,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 7752861410798718293}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalRotation: {x: -0, y: -0.7071068, z: -0, w: 0.7071068}
+  m_LocalPosition: {x: -0.7500001, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -145,7 +144,7 @@ Transform:
   - {fileID: 6532876740040813357}
   - {fileID: 3609250946242744896}
   - {fileID: 509160203146691661}
-  m_Father: {fileID: 5731235527729555950}
+  m_Father: {fileID: 3831861337463726972}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &8890290496291417065
 GameObject:
@@ -163,6 +162,8 @@ GameObject:
   - component: {fileID: 5647385760626523807}
   - component: {fileID: 5805818611459730451}
   - component: {fileID: 6436315715604109456}
+  - component: {fileID: 4228925829040203139}
+  - component: {fileID: 380998469329897726}
   m_Layer: 10
   m_Name: Model
   m_TagString: Untagged
@@ -184,6 +185,7 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 8971112669268530734}
+  - {fileID: 429397251360961806}
   m_Father: {fileID: 5731235527729555950}
   m_LocalEulerAnglesHint: {x: 0, y: 90, z: 0}
 --- !u!33 &7370818212737463135
@@ -297,7 +299,7 @@ HingeJoint:
   m_Anchor: {x: 0, y: -0.15, z: 0}
   m_Axis: {x: 0, y: 1, z: 0}
   m_AutoConfigureConnectedAnchor: 1
-  m_ConnectedAnchor: {x: -0.00000023841858, y: -0.14999998, z: -0.7500001}
+  m_ConnectedAnchor: {x: 0, y: -0.15, z: -0.75}
   serializedVersion: 2
   m_UseSpring: 0
   m_Spring:
@@ -340,6 +342,7 @@ MonoBehaviour:
   rb: {fileID: 1388572082184423863}
   audioSource: {fileID: 6436315715604109456}
   activitySource: {fileID: 3530682131506126043}
+  printSources: []
   closeAngle: 0
   openFullAngle: -90
   autoCloseSpeed: 10
@@ -448,6 +451,41 @@ AudioSource:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
+--- !u!208 &4228925829040203139
+NavMeshObstacle:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8890290496291417065}
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Shape: 1
+  m_Extents: {x: 0.625, y: 1.225, z: 0.025}
+  m_MoveThreshold: 0.1
+  m_Carve: 1
+  m_CarveOnlyStationary: 1
+  m_Center: {x: -0.75, y: -0.05, z: -0.01}
+  m_TimeToStationary: 0.5
+--- !u!114 &380998469329897726
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8890290496291417065}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1e3fdca004f2d45fe8abbed571a8abd5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_OverrideArea: 1
+  m_Area: 3
+  m_OverrideGenerateLinks: 0
+  m_GenerateLinks: 0
+  m_IgnoreFromBuild: 0
+  m_ApplyToChildren: 0
+  m_AffectedAgents: ffffffff
 --- !u!1001 &673172686178843883
 PrefabInstance:
   m_ObjectHideFlags: 0

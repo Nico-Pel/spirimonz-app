@@ -71,4 +71,30 @@ public class House : MonoBehaviour
 
         return selectableWayPoints[Random.Range(0, selectableWayPoints.Count)];
     }
+
+    public WayPoint SelectRandomWaypointFurthestFromPosition(Vector3 pos, int nbOfRandomPossibilities)
+    {
+        List<WayPoint> selectableWayPoints = new List<WayPoint>();
+        
+        while (selectableWayPoints.Count < nbOfRandomPossibilities || selectableWayPoints.Count == wayPoints.Count - 1 || /*ERROR*/wayPoints.Count == 0)
+        {
+            List<WayPoint> waypointsToTest = wayPoints;
+            waypointsToTest.RemoveAll(swp => selectableWayPoints.Contains(swp));
+
+            WayPoint furthestWayPoint = null;
+            float currentBestDist = 0;
+            foreach (WayPoint w in waypointsToTest)
+            {
+                float dist = Vector3.Distance(w.transform.position, pos);
+                if (dist > currentBestDist)
+                {
+                    furthestWayPoint = w;
+                    currentBestDist = dist;
+                }
+            }
+            if (furthestWayPoint == null) break;
+            selectableWayPoints.Add(furthestWayPoint);
+        }
+        return selectableWayPoints[Random.Range(0, selectableWayPoints.Count)];
+    }
 }

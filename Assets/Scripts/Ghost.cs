@@ -55,6 +55,9 @@ public class Ghost : GameBehaviour
     public float hidingSpeedBase = 0.75f;
     public float normalSpeedBase = 1f;
     public float targetingSpeedBase = 2f;
+
+    private float _waitDoorTime = 1f;
+    private bool _stopMoving = false;
     
     [Header("Ghost Stats : Angriness")] 
     public float angrinessPercentage = 0f;
@@ -147,6 +150,27 @@ public class Ghost : GameBehaviour
                 ImproveAngriness(angrinessToAddByTriggeringPlayer);
             }
         }
+        else if (other.TryGetComponent(out Door door))
+        {
+            if (currentState != GhostState.huntingState || door.isOpen)
+                return;
+
+            Vector3 directionToDoor = (door.transform.position - transform.position).normalized;
+            Vector3 moveDirection = agent.velocity.normalized;
+
+            float dot = Vector3.Dot(moveDirection, directionToDoor);
+
+            if (dot > 0.6f) // seuil à ajuster
+            {
+                _stopMoving = true;
+                this.Invoke(_waitDoorTime, () => _stopMoving = false);
+
+                door.GhostDoorInteraction(
+                    Random.Range(80, 100),
+                    Random.Range(80, 100)
+                );
+            }
+        }
     }
 
     public void TriggerHunting()
@@ -196,7 +220,14 @@ public class Ghost : GameBehaviour
             }
             
             SetHuntingDestination();
-            agent.speed = currentState == GhostState.huntingState && vision.CanSeePlayer(house.currentPlayer) ? targetingSpeedBase : normalSpeedBase;
+            if (_stopMoving)
+            {
+                agent.speed = 0;
+            }
+            else
+            {
+                agent.speed = currentState == GhostState.huntingState && vision.CanSeePlayer(house.currentPlayer) ? targetingSpeedBase : normalSpeedBase;
+            }
         }
         else
         {

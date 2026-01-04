@@ -12,6 +12,7 @@ GameObject:
   - component: {fileID: 6742889510362299170}
   - component: {fileID: 7976204639952685289}
   - component: {fileID: 7437194866658696760}
+  - component: {fileID: -5287600853263155817}
   m_Layer: 0
   m_Name: Kitchen_Furtniture_Corner
   m_TagString: Untagged
@@ -105,3 +106,19 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 0.999959, y: 1.1, z: 1.0000001}
   m_Center: {x: 0.4999795, y: 0.55, z: 0.50000006}
+--- !u!208 &-5287600853263155817
+NavMeshObstacle:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8425584755764474554}
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Shape: 1
+  m_Extents: {x: 0.5, y: 0.55, z: 0.5}
+  m_MoveThreshold: 0.1
+  m_Carve: 0
+  m_CarveOnlyStationary: 1
+  m_Center: {x: 0.5, y: 0.55, z: 0.5}
+  m_TimeToStationary: 0.5
