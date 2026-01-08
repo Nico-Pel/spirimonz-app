@@ -5,12 +5,25 @@ using UnityEngine;
 
 public class Player : MonoBehaviour
 {
+    public static Player Instance { get; private set; }
+    
+    [Header("Player Components")]
+    public InteractionController interactionController;
+    public FPSControllerNoPhysics fpsController;
+    public InventoryManager inventoryManager;
+    
+    [Header("Player Settings")]
     public float sanity = 100f;
     public Room currentRoom;
     public House house;
 
     public Transform head;
     public Transform body;
+    
+    private void Awake()
+    {
+        Instance = this;
+    }
 
     private void OnTriggerEnter(Collider other)
     {

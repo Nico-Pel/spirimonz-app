@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AI;
+using UnityEngine.Serialization;
 
 public class Spirimonz : GameBehaviour, IInteractable
 {
@@ -15,15 +16,18 @@ public class Spirimonz : GameBehaviour, IInteractable
     }
 
     [Header("Spirimonz Settings")] 
+    [ReadOnly] public bool isOnTheMap;
     public bool canInteract = true;
-    
+    public bool powerActiveInHands = true;
+
+    public InventoryManager.HandPoses handPosType = InventoryManager.HandPoses.PalmOfTheHand;
     public SpirimonzBehaviourState baseBehaviour = SpirimonzBehaviourState.Wait;
     public SpirimonzBehaviourState secondaryBehaviour = SpirimonzBehaviourState.FollowPlayer;
     public float speed = 2;
     public float followingDistance = 2f;
     
     private SpirimonzBehaviourState _currentBehaviour;
-    private Room _currentRoom;
+    public Room currentRoom { get; set; }
 
     [Header("Spirimonz Settings : Escape")]
     public float targetedEscapeDistance = 1f;
@@ -34,6 +38,7 @@ public class Spirimonz : GameBehaviour, IInteractable
     
     [Header("Spirimonz Components")]
     public NavMeshAgent agent;
+    public Collider collider;
     public Animator animator;
     private IInteractable _interactableImplementation;
     
@@ -44,7 +49,7 @@ public class Spirimonz : GameBehaviour, IInteractable
         InitSpirimonz();
     }
 
-    public void InitSpirimonz()
+    public virtual void InitSpirimonz()
     {
         _currentBehaviour = baseBehaviour;
 
@@ -58,15 +63,17 @@ public class Spirimonz : GameBehaviour, IInteractable
     {
         if (other.TryGetComponent(out Room room))
         {
-            _currentRoom = room;
+            currentRoom = room;
         }
     }
 
     private void Update()
     {
+        UpdateSpirimonzBehaviour();
+        
         if (animator != null)
         {
-            animator.SetFloat("Movespeed", agent.speed);
+            animator.SetFloat("MoveSpeed", agent.speed);
         }
         
         switch (_currentBehaviour)
@@ -83,6 +90,11 @@ public class Spirimonz : GameBehaviour, IInteractable
             default:
                 break;
         }
+    }
+
+    public virtual void UpdateSpirimonzBehaviour()
+    {
+        if (isOnTheMap == false && powerActiveInHands == false) return;
     }
 
     private void FollowingPlayer()
@@ -156,5 +168,13 @@ public class Spirimonz : GameBehaviour, IInteractable
 
     public void OnInteractEnd()
     {
+    }
+
+    public void EnableSpirimonz(bool enable)
+    {
+        gameObject.SetActive(enable);
+        agent.enabled = enable;
+        collider.enabled = enable;
+        isOnTheMap = enable;
     }
 }

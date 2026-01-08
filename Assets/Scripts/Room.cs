@@ -11,6 +11,10 @@ public class Room : MonoBehaviour
     public float _smoothSpeed = 1f; // vitesse de transition (°C/sec)
     public float minTemperature = -2f; // température minimale possible
     public float maxTemperature = 30f; // température maximale possible
+    
+    public float naturalReequilibriumSpeed = 0.01f;
+
+    private float _startTemperature;
 
     [Header("Objects in Room")]
     public ClickableObject[] clickableObjects;
@@ -43,6 +47,7 @@ public class Room : MonoBehaviour
 
         currentTemperature = house.averageStartTemperature + temperatureRandomVariation;
         _temperatureTarget = currentTemperature; // synchronisation initiale
+        _startTemperature = currentTemperature;
     }
 
     public Switch SelectRandomSwitchObject(ActivableObject.ActivationSpecialType forbiddenType = ActivableObject.ActivationSpecialType.none)
@@ -75,13 +80,23 @@ public class Room : MonoBehaviour
 
     private void Update()
     {
-        // Interpolation douce vers la température cible
-        currentTemperature = Mathf.MoveTowards(currentTemperature, _temperatureTarget, _smoothSpeed * Time.deltaTime);
+        // Natural re-equilibrium (VERY slow)
+        _temperatureTarget = Mathf.MoveTowards(
+            _temperatureTarget,
+            _startTemperature,
+            naturalReequilibriumSpeed * Time.deltaTime
+        );
 
-        // Petit bruit naturel pour plus de réalisme
+        // Smooth transition to target
+        currentTemperature = Mathf.MoveTowards(
+            currentTemperature,
+            _temperatureTarget,
+            _smoothSpeed * Time.deltaTime
+        );
+
+        // Optional subtle noise
         currentTemperature += Random.Range(-0.02f, 0.02f);
 
-        // Clamp pour rester dans des limites réalistes
         currentTemperature = Mathf.Clamp(currentTemperature, minTemperature, maxTemperature);
     }
 

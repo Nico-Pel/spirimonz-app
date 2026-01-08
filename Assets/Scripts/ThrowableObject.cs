@@ -42,7 +42,7 @@ public class ThrowableObject : GameBehaviour, IInteractable
     public void Grab(Transform handPosition)
     {
         if (isGrabbed) return;
-
+        
         isGrabbed = true;
         _currentHolder = handPosition;
 

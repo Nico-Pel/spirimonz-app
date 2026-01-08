@@ -62,8 +62,8 @@ public class GhostParameters : ScriptableObject
     public float activityTimeMax = 20;
 
     [Header("Cold temperature")] 
-    public float refreshmentAfterActivityMin = 1;
-    public float refreshmentAfterActivityMax = 5;
+    public float refreshmentAfterActivityMin = -1;
+    public float refreshmentAfterActivityMax = -5;
     
     public int GetRandomActivityValue()
     {
@@ -93,7 +93,7 @@ public class GhostParameters : ScriptableObject
 
     public float GetRandomRefreshment()
     {
-        return Random.Range(activityTimeMin, activityTimeMax);
+        return Random.Range(refreshmentAfterActivityMin, refreshmentAfterActivityMax);
     }
 
     public bool ShouldEatFruit()

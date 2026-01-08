@@ -82,6 +82,6 @@ public class Fruit : ThrowableObject
     private void StopEating()
     {
         rb.isKinematic = false;
-        _ghost.ThrowObject(this);
+        //_ghost.ThrowObject(this);
     }
 }

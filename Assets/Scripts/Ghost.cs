@@ -81,8 +81,8 @@ public class Ghost : GameBehaviour
 
     [Header("Ghost Stats : Throwing")] 
     public float throwDetectionRange = 5;
-    public float throwForceMin = 10;
-    public float throwForceMax = 25;
+    public float throwForceMin = 0.5f;
+    public float throwForceMax = 4;
     public float throwTorqueMax = 90;
     public LayerMask throwableMask;
 
@@ -663,6 +663,8 @@ public class Ghost : GameBehaviour
     {
         if (objectToThrow == null) objectToThrow = GetRandomThrowableObjects();
 
+        if (objectToThrow == null) return; //No object to throw found
+        
         if (objectToThrow is Fruit fruit && ghostParameters.ShouldEatFruit() && fruit.canBeEaten)
         {
             fruit.EatFruit(this);
