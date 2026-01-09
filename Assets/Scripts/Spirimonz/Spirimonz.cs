@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AI;
 using UnityEngine.Serialization;
+using Random = UnityEngine.Random;
 
 public class Spirimonz : GameBehaviour, IInteractable
 {
@@ -19,7 +20,10 @@ public class Spirimonz : GameBehaviour, IInteractable
     [ReadOnly] public bool isOnTheMap;
     public bool canInteract = true;
     public bool canBeDroppedOnMap = true;
+    public bool canBetakenBackIntoHands = true;
     public bool powerActiveInHands = true;
+    public bool lookAtPlayerWhileWaiting = true;
+    public bool openDoorsOnItsWay = false;
 
     public InventoryManager.HandPoses handPosType = InventoryManager.HandPoses.PalmOfTheHand;
     public SpirimonzBehaviourState baseBehaviour = SpirimonzBehaviourState.Wait;
@@ -36,6 +40,8 @@ public class Spirimonz : GameBehaviour, IInteractable
     public int nbOfWayPointsToConsider = 3;
 
     private bool _escaping;
+    private bool _stopMoving;
+    private float _waitDoorTime = 1f;
     
     [Header("Spirimonz Components")]
     public NavMeshAgent agent;
@@ -52,6 +58,11 @@ public class Spirimonz : GameBehaviour, IInteractable
 
     public virtual void InitSpirimonz()
     {
+        _currentBehaviour = SpirimonzBehaviourState.Wait;
+    }
+
+    public virtual void DroppedOnMap()
+    {
         _currentBehaviour = baseBehaviour;
 
         if (baseBehaviour == SpirimonzBehaviourState.Escape)
@@ -66,6 +77,36 @@ public class Spirimonz : GameBehaviour, IInteractable
         {
             currentRoom = room;
         }
+        else if (other.TryGetComponent(out Door door) && openDoorsOnItsWay)
+        {
+            TryToOpenDoor(door);
+        }
+    }
+
+    private void TryToOpenDoor(Door door)
+    {
+        if (openDoorsOnItsWay == false) return;
+        
+        Vector3 directionToDoor = (door.transform.position - transform.position).normalized;
+        Vector3 moveDirection = agent.velocity.normalized;
+
+        float dot = Vector3.Dot(moveDirection, directionToDoor);
+
+        if (dot > 0.6f) // seuil à ajuster
+        {
+            OpenDoor(door);
+        }
+    }
+
+    private void OpenDoor(Door door)
+    {
+        _stopMoving = true;
+        this.Invoke(_waitDoorTime, () => _stopMoving = false);
+
+        door.GhostDoorInteraction(
+            Random.Range(80, 100),
+            Random.Range(80, 100)
+        );
     }
 
     private void Update()
@@ -82,7 +123,13 @@ public class Spirimonz : GameBehaviour, IInteractable
 
     private void UpdateMovementBehaviour()
     {
-        if (isOnTheMap == false) return;
+        if (isOnTheMap == false)
+        {
+            agent.speed = 0;
+            return;
+        }
+        
+        if (_stopMoving == true) return;
         
         switch (_currentBehaviour)
         {
@@ -147,7 +194,7 @@ public class Spirimonz : GameBehaviour, IInteractable
         }
     }
 
-    protected virtual void EscapePointReached()
+    public virtual void EscapePointReached()
     {
         
     }
@@ -156,10 +203,15 @@ public class Spirimonz : GameBehaviour, IInteractable
     {
         if (canInteract == false) return;
         
+        InteractionStarted();
+    }
+
+    public virtual void InteractionStarted()
+    {
         SwitchBehaviour();
     }
     
-    private void SwitchBehaviour()
+    protected void SwitchBehaviour()
     {
         SpirimonzBehaviourState stateToUse = _currentBehaviour == baseBehaviour ? secondaryBehaviour : baseBehaviour;
         ChangeBehaviour(stateToUse);

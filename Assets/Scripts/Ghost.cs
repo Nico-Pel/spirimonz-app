@@ -182,7 +182,7 @@ public class Ghost : GameBehaviour
         }
         else if (other.TryGetComponent(out Door door))
         {
-            if (currentState != GhostState.huntingState || door.isOpen)
+            if (currentState != GhostState.huntingState /*|| door.isOpen*/)
                 return;
 
             Vector3 directionToDoor = (door.transform.position - transform.position).normalized;

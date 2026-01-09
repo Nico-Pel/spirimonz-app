@@ -144,7 +144,7 @@ public class InteractionController : GameBehaviour
                 }
             }
         }
-        else if (_currentTarget is Spirimonz spirimonz && spirimonz.isOnTheMap == true)
+        else if (_currentTarget is Spirimonz spirimonz && spirimonz.isOnTheMap == true && spirimonz.canBetakenBackIntoHands)
         {
             // Grab uniquement si rien en main
             if (Input.GetKeyDown(Player.Instance.fpsController.grabObject))

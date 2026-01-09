@@ -171,6 +171,7 @@ public class InventoryManager : GameBehaviour
         spirimonzToDrop.transform.DOJump(dropPos, 1, 1, 0.75f).OnComplete(() =>
         {
             spirimonzToDrop.EnableSpirimonz(true);
+            spirimonzToDrop.DroppedOnMap();
         });
         selectedSpirimonz = null;
     }
