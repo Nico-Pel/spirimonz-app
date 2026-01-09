@@ -15184,7 +15184,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6657164899661425278, guid: 73b72ad84d9584d7e91279923787a2cc, type: 3}
       propertyPath: m_LocalPosition.x
-      value: -1.25
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 6657164899661425278, guid: 73b72ad84d9584d7e91279923787a2cc, type: 3}
       propertyPath: m_LocalPosition.y
@@ -15192,7 +15192,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6657164899661425278, guid: 73b72ad84d9584d7e91279923787a2cc, type: 3}
       propertyPath: m_LocalPosition.z
-      value: -5
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 6657164899661425278, guid: 73b72ad84d9584d7e91279923787a2cc, type: 3}
       propertyPath: m_LocalRotation.w
@@ -15257,10 +15257,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   isOnTheMap: 0
   canInteract: 1
+  canBeDroppedOnMap: 1
   powerActiveInHands: 1
   handPosType: 5
-  baseBehaviour: 0
-  secondaryBehaviour: 1
+  baseBehaviour: 1
+  secondaryBehaviour: 0
   speed: 2
   followingDistance: 2
   targetedEscapeDistance: 1

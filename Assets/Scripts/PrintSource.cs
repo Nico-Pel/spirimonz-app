@@ -21,6 +21,8 @@ public class PrintSource : GameBehaviour
         _colorPower = 0;
         _activated = true;
         _currentDuration = duration;
+        
+        Debug.Log("POUET UV PRINT: ", gameObject);
     }
 
     private void Update()
@@ -41,7 +43,7 @@ public class PrintSource : GameBehaviour
         }
     }
 
-    private void ChargingColor(float value)
+    public void ChargingColor(float value)
     {
         _colorPower += value;
         if (_colorPower > _powerMax)

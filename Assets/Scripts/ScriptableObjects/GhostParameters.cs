@@ -64,6 +64,10 @@ public class GhostParameters : ScriptableObject
     [Header("Cold temperature")] 
     public float refreshmentAfterActivityMin = -1;
     public float refreshmentAfterActivityMax = -5;
+
+    [Header("Spirit Orbs")] 
+    public float nextOrbsDelayMin = 3f;
+    public float nextOrbsDelayMax = 10f;
     
     public int GetRandomActivityValue()
     {

@@ -50,6 +50,9 @@ public class Ghost : GameBehaviour
     public float sprintDurationMax = 15f;
     public Sprite[] pawSprites;
     public Sprite fingerSprite;
+
+    [Header("Spirit Orbs")] 
+    public GameObject ghostOrbsPrefab;
     
     [Header("Ghost Stats : Speed")] 
     public float hidingSpeedBase = 0.75f;
@@ -130,6 +133,33 @@ public class Ghost : GameBehaviour
         this.Invoke(nextActivityTime, TriggerActivity);
         
         ghostModel.SetActive(false);
+
+        if (ghostParameters.SpiritOrbs)
+        {
+            float delayBeforeNextGhostOrbs = Random.Range(ghostParameters.nextOrbsDelayMin, ghostParameters.nextOrbsDelayMax);
+            this.Invoke(delayBeforeNextGhostOrbs, () =>
+            {
+                CreateSpiritOrbs();
+            });
+        }
+    }
+
+    private void CreateSpiritOrbs()
+    {
+        if (currentRoom == favoriteRoom)
+        {
+            GameObject newGhostOrbs = Instantiate(ghostOrbsPrefab, transform.position, ghostOrbsPrefab.transform.rotation, house.transform);
+            this.Invoke(5, () =>
+            {
+                Destroy(newGhostOrbs);
+            });
+        }
+        
+        float delayBeforeNextGhostOrbs = Random.Range(ghostParameters.nextOrbsDelayMin, ghostParameters.nextOrbsDelayMax);
+        this.Invoke(delayBeforeNextGhostOrbs, () =>
+        {
+            CreateSpiritOrbs();
+        });
     }
 
     private void OnTriggerEnter(Collider other)

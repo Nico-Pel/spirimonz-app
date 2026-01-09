@@ -33,6 +33,8 @@ public class InventoryManager : GameBehaviour
     public LayerMask fpsMask;
     public LayerMask spirimonzMask;
 
+    private bool _forcedLightStateDuringCam;
+
     private void Awake()
     {
         InitializeTeam();
@@ -80,14 +82,35 @@ public class InventoryManager : GameBehaviour
         {
             TryToDropSpirimonz();
         }
-        else if (Input.GetMouseButtonDown(1) && handAnimator.GetInteger("HandPos") == (int)HandPoses.LightAim)
+        if (Input.GetMouseButtonDown(1) && handAnimator.GetInteger("HandPos") == (int)HandPoses.LightAim)
         {
-            Player.Instance.fpsController.ChangeLightState();
+            handAnimator.SetInteger("HandPos", (int)HandPoses.CameraAim);
+            if (Player.Instance.fpsController.mLight.gameObject.activeInHierarchy == true)
+            {
+                Player.Instance.fpsController.ForceLightState(false);
+                _forcedLightStateDuringCam = true;
+            }
+        }
+        if (Input.GetMouseButtonUp(1) && handAnimator.GetInteger("HandPos") == (int)HandPoses.CameraAim)
+        {
+            if(_forcedLightStateDuringCam)
+            {this.Invoke(0.25f, () =>
+                {
+                    if (handAnimator.GetInteger("HandPos") == (int)HandPoses.LightAim)
+                    {
+                        Player.Instance.fpsController.ForceLightState(true);
+                        _forcedLightStateDuringCam = false;
+                    }
+                });
+            }
+            handAnimator.SetInteger("HandPos", (int)HandPoses.LightAim);
         }
     }
 
     private void UseWatchObject()
     {
+        if (Player.Instance.interactionController.objectInHands) return;
+        
         handAnimator.SetInteger("HandPos", (int)HandPoses.LightAim);
         UnequipSpirimonz();
     }
@@ -97,7 +120,7 @@ public class InventoryManager : GameBehaviour
         //You can't select a Spirimonz if an object in hands
         if (Player.Instance.interactionController.objectInHands != null) return;
         
-        if (selectedSpirimonz != null)
+        if (selectedSpirimonz != null && selectedSpirimonz.isOnTheMap == false)
         {
             selectedSpirimonz.gameObject.SetActive(false);
         }
@@ -117,7 +140,7 @@ public class InventoryManager : GameBehaviour
     private void UnequipSpirimonz()
     {
         currentSelectedIndex = -1;
-        if (selectedSpirimonz != null)
+        if (selectedSpirimonz != null && selectedSpirimonz.isOnTheMap == false)
         {
             selectedSpirimonz.gameObject.SetActive(false);
         }
@@ -127,6 +150,7 @@ public class InventoryManager : GameBehaviour
     private void TryToDropSpirimonz()
     {
         if (selectedSpirimonz == null) return; //No spirimonz in hands
+        if (selectedSpirimonz.canBeDroppedOnMap == false) return;
 
         Vector3 dropPos = Player.Instance.interactionController.GetLastGroundPos();
         if (dropPos == Vector3.zero) return; //No Ground detected
@@ -183,5 +207,22 @@ public class InventoryManager : GameBehaviour
     {
         if(selectedSpirimonz != null)
             UnequipSpirimonz();
+    }
+
+    public bool OccupedHands()
+    {
+        if (handAnimator.GetInteger("HandPos") != (int)HandPoses.Null &&
+            handAnimator.GetInteger("HandPos") != (int)HandPoses.LightAim)
+            return true;
+
+        if (Player.Instance.interactionController.objectInHands != null)
+            return true;
+
+        return false;
+    }
+
+    public void SetHandsStateNull()
+    {
+        handAnimator.SetInteger("HandPos", (int)HandPoses.Null);
     }
 }

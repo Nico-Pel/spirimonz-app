@@ -18,6 +18,7 @@ public class Spirimonz : GameBehaviour, IInteractable
     [Header("Spirimonz Settings")] 
     [ReadOnly] public bool isOnTheMap;
     public bool canInteract = true;
+    public bool canBeDroppedOnMap = true;
     public bool powerActiveInHands = true;
 
     public InventoryManager.HandPoses handPosType = InventoryManager.HandPoses.PalmOfTheHand;
@@ -75,6 +76,13 @@ public class Spirimonz : GameBehaviour, IInteractable
         {
             animator.SetFloat("MoveSpeed", agent.speed);
         }
+        
+        UpdateMovementBehaviour();
+    }
+
+    private void UpdateMovementBehaviour()
+    {
+        if (isOnTheMap == false) return;
         
         switch (_currentBehaviour)
         {

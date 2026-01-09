@@ -6,6 +6,7 @@ public class FPSControllerNoPhysics : GameBehaviour
     [Header("Références")]
     public Camera playerCamera;
     public Light mLight;
+    public GameObject mLightObject;
 
     [Header("Déplacement")]
     public float walkSpeed = 2.0f;
@@ -133,7 +134,15 @@ public class FPSControllerNoPhysics : GameBehaviour
 
     public void ChangeLightState()
     {
-        mLight.gameObject.SetActive(!mLight.gameObject.activeInHierarchy);
+        bool enable = !mLight.gameObject.activeInHierarchy;
+        mLight.gameObject.SetActive(enable);
+        mLightObject.gameObject.SetActive(enable);
+    }
+    
+    public void ForceLightState(bool enable)
+    {
+        mLight.gameObject.SetActive(enable);
+        mLightObject.gameObject.SetActive(enable);
     }
 
     void HandleLook()

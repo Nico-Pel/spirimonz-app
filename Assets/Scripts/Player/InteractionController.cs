@@ -125,7 +125,9 @@ public class InteractionController : GameBehaviour
         }
         else if (_currentTarget is ThrowableObject targetThrowable)
         {
-            // Grab uniquement si rien en main
+            // Grab uniquement si rien en main ni en mode caméra
+            if (Player.Instance.inventoryManager.OccupedHands()) return;
+            
             if (Input.GetKeyDown(Player.Instance.fpsController.grabObject))
             {
                 objectInHands = targetThrowable;
@@ -136,6 +138,7 @@ public class InteractionController : GameBehaviour
                     Player.Instance.inventoryManager.ReplaceSpirimonzByAnItem();
                     
                     //Grab item
+                    Player.Instance.inventoryManager.SetHandsStateNull();
                     objectInHands.ChangeLayer(Player.Instance.inventoryManager.fpsMask);
                     objectInHands.Grab(handObjectPosition);
                 }
