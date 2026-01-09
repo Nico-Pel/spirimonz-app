@@ -21,6 +21,50 @@ public class GameBehaviour : MonoBehaviour
         yield return new WaitForSeconds(delay);
         action?.Invoke();
     }
+    
+    public static int LayerMaskToLayer(LayerMask mask)
+    {
+        int value = mask.value;
+
+        if (value == 0 || (value & (value - 1)) != 0)
+        {
+            Debug.LogError("LayerMask must contain exactly ONE layer");
+            return -1;
+        }
+
+        return Mathf.RoundToInt(Mathf.Log(value, 2));
+    }
+    
+    public void ChangeLayer(LayerMask mask)
+    {
+        int layer = LayerMaskToLayer(mask);
+        if (layer == -1) return;
+
+        ApplyLayerRecursively(gameObject, layer);
+    }
+    
+    public void ChangeLayer(int layerIndex)
+    {
+        if (layerIndex == -1) return;
+
+        ApplyLayerRecursively(gameObject, layerIndex);
+    }
+    
+    private void ApplyLayerRecursively(GameObject obj, int layer)
+    {
+        if (layer < 0 || layer > 31)
+        {
+            Debug.LogError($"Invalid layer index: {layer}");
+            return;
+        }
+
+        obj.layer = layer;
+
+        foreach (Transform child in obj.transform)
+        {
+            ApplyLayerRecursively(child.gameObject, layer);
+        }
+    }
 }
 
 #region ReadOnly Attribute

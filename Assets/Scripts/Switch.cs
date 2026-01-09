@@ -46,6 +46,8 @@ public class Switch : ClickableObject
             if(printSource.IsActivated() == false)
                 possiblePrintSources.Add(printSource);
         }
+        
+        if (possiblePrintSources.Count == 0) return null;
         return possiblePrintSources[Random.Range(0, possiblePrintSources.Count)];
     }
 }

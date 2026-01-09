@@ -63,12 +63,12 @@ public class Room : MonoBehaviour
         return selectableObjects[Random.Range(0, selectableObjects.Count)];
     }
 
-    public Switch SelectSpecialSwitchObject(ActivableObject.ActivationSpecialType forbiddenType)
+    public Switch SelectSpecialSwitchObject(ActivableObject.ActivationSpecialType targetedType)
     {
         List<Switch> selectableObjects = new List<Switch>();
         foreach (Switch s in clickableObjects)
         {
-            if(s.activableObject.activationType == forbiddenType)
+            if(s.activableObject.activationType == targetedType)
                 selectableObjects.Add(s);
         }
 

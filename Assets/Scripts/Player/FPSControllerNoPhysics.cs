@@ -127,8 +127,13 @@ public class FPSControllerNoPhysics : GameBehaviour
     {
         if (Input.GetKeyDown(turnLight) && mLight != null)
         {
-            mLight.gameObject.SetActive(!mLight.gameObject.activeInHierarchy);
+            ChangeLightState();
         }
+    }
+
+    public void ChangeLightState()
+    {
+        mLight.gameObject.SetActive(!mLight.gameObject.activeInHierarchy);
     }
 
     void HandleLook()

@@ -52,7 +52,16 @@ public class PrintSource : GameBehaviour
 
     private void HandlePrintColor()
     {
-        spriteRenderer.material.color = new Color(1, 1, 1, _colorPower - invisibleMarge);
+        float colorPower = _colorPower - invisibleMarge;
+        if (colorPower < 0)
+        {
+            colorPower = 0;
+        }
+        else if (colorPower > 1)
+        {
+            colorPower = 1;
+        }
+        spriteRenderer.material.color = new Color(1, 1, 1, colorPower);
     }
 
     private void Deactivate()

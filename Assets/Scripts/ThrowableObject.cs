@@ -52,12 +52,12 @@ public class ThrowableObject : GameBehaviour, IInteractable
         transform.localRotation = Quaternion.identity;
     }
 
-    public void Drop(Transform dropPosition, Vector3 throwForce)
+    public void Drop(Vector3 dropPosition, Vector3 throwForce)
     {
         if (!isGrabbed) return;
 
         transform.SetParent(null);
-        transform.position = dropPosition.position;
+        transform.position = dropPosition;
 
         rb.isKinematic = false;
         rb.AddForce(throwForce, ForceMode.Impulse);

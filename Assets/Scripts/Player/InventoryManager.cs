@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using DG.Tweening;
 
-public class InventoryManager : MonoBehaviour
+public class InventoryManager : GameBehaviour
 {
     public enum HandPoses
     {
@@ -29,6 +29,10 @@ public class InventoryManager : MonoBehaviour
     public Transform spirimonzHandPos;
     public Animator handAnimator;
 
+    [Header("Layer Masks")] 
+    public LayerMask fpsMask;
+    public LayerMask spirimonzMask;
+
     private void Awake()
     {
         InitializeTeam();
@@ -45,6 +49,7 @@ public class InventoryManager : MonoBehaviour
             spirimonzTeam.Add(newSpirimonz);
             newSpirimonz.transform.localPosition = Vector3.zero;
             newSpirimonz.transform.localEulerAngles = Vector3.zero;
+            newSpirimonz.ChangeLayer(fpsMask);
         }
     }
     
@@ -75,7 +80,10 @@ public class InventoryManager : MonoBehaviour
         {
             TryToDropSpirimonz();
         }
-        
+        else if (Input.GetMouseButtonDown(1) && handAnimator.GetInteger("HandPos") == (int)HandPoses.LightAim)
+        {
+            Player.Instance.fpsController.ChangeLightState();
+        }
     }
 
     private void UseWatchObject()
@@ -106,7 +114,7 @@ public class InventoryManager : MonoBehaviour
         handAnimator.SetInteger("HandPos", (int)selectedSpirimonz.handPosType);
     }
 
-    public void UnequipSpirimonz()
+    private void UnequipSpirimonz()
     {
         currentSelectedIndex = -1;
         if (selectedSpirimonz != null)
@@ -134,6 +142,8 @@ public class InventoryManager : MonoBehaviour
         Spirimonz spirimonzToDrop = selectedSpirimonz;
         spirimonzToDrop.transform.parent = House.Instance.transform;
         spirimonzToDrop.transform.DORotate(transform.localEulerAngles, 0.5f, RotateMode.Fast);
+        spirimonzToDrop.ChangeLayer(spirimonzMask);
+
         spirimonzToDrop.transform.DOJump(dropPos, 1, 1, 0.75f).OnComplete(() =>
         {
             spirimonzToDrop.EnableSpirimonz(true);
@@ -147,6 +157,7 @@ public class InventoryManager : MonoBehaviour
         spirimonz.transform.parent = spirimonzHandPos;
         spirimonz.transform.localPosition = Vector3.zero;
         spirimonz.transform.localEulerAngles = Vector3.zero;
+        spirimonz.ChangeLayer(fpsMask);
         
         //Equip spirimonz if player do not use items or other spirimonz
         if(handAnimator.GetInteger("HandPos") == (int)HandPoses.Null || handAnimator.GetInteger("HandPos") == (int)HandPoses.LightAim)

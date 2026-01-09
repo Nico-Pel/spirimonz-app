@@ -11,6 +11,8 @@ public class InteractionController : GameBehaviour
     public float rayOffset = 0.2f;
     public float sphereRadius = 0.1f;
 
+    private int _objectInHandLayerIndex;
+
     [ReadOnly] public bool targetingGround;
     private Vector3 _lastGroundPosTargeted;
 
@@ -87,15 +89,37 @@ public class InteractionController : GameBehaviour
             // Drop
             if (Input.GetKeyDown(Player.Instance.fpsController.dropObject))
             {
-                objectInHands.Drop(handObjectDropPosition, Vector3.zero);
+                objectInHands.ChangeLayer(_objectInHandLayerIndex);
+
+                Vector3 dropPos = handObjectDropPosition.position;
+                
+                // Check si un mur est juste devant
+                if (Physics.Raycast(transform.position + Vector3.up * 1.5f, Player.Instance.fpsController.playerCamera.transform.forward, out RaycastHit hit, 0.65f))
+                {
+                    dropPos = hit.point - transform.forward * 0.25f; // recule un peu pour pas clipper
+                }
+    
+                objectInHands.Drop(dropPos, Vector3.zero);
                 objectInHands = null;
             }
 
             // Throw
             if (Input.GetKeyDown(Player.Instance.fpsController.throwObject))
             {
-                Vector3 throwForce = transform.forward * throwForceForward;
-                objectInHands.Drop(handObjectDropPosition, throwForce);
+                Vector3 throwDir = Player.Instance.fpsController.playerCamera.transform.forward;
+
+                Vector3 throwForce = throwDir * throwForceForward;
+                Vector3 dropPos = handObjectDropPosition.position;
+                
+                // Check collision avant de lancer
+                if (Physics.Raycast(transform.position + Vector3.up * 1.5f, throwDir, out RaycastHit hit, 0.75f))
+                {
+                    dropPos = hit.point - transform.forward * 0.25f; // recule un peu pour pas clipper
+                    throwForce = Vector3.zero;
+                }
+
+                objectInHands.ChangeLayer(_objectInHandLayerIndex);
+                objectInHands.Drop(dropPos, throwForce);
                 objectInHands = null;
             }
         }
@@ -112,6 +136,7 @@ public class InteractionController : GameBehaviour
                     Player.Instance.inventoryManager.ReplaceSpirimonzByAnItem();
                     
                     //Grab item
+                    objectInHands.ChangeLayer(Player.Instance.inventoryManager.fpsMask);
                     objectInHands.Grab(handObjectPosition);
                 }
             }
