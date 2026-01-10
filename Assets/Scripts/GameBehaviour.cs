@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using UnityEngine;
+using UnityEngine.AI;
 
 #if UNITY_EDITOR
 using UnityEditor;
@@ -64,6 +65,41 @@ public class GameBehaviour : MonoBehaviour
         {
             ApplyLayerRecursively(child.gameObject, layer);
         }
+    }
+    
+    public bool IsNearFromMyAgent(
+        NavMeshAgent mAgent,
+        Transform mTransform,
+        float maxPathDistance = 10f,
+        float sampleRadius = 5f)
+    {
+        // 1. Projection sur le NavMesh
+        if (!NavMesh.SamplePosition(
+                mTransform.position,
+                out NavMeshHit hit,
+                sampleRadius,
+                NavMesh.AllAreas))
+        {
+            return false;
+        }
+
+        // 2. Calcul du path
+        NavMeshPath path = new NavMeshPath();
+        if (!mAgent.CalculatePath(hit.position, path))
+            return false;
+
+        if (path.status != NavMeshPathStatus.PathComplete)
+            return false;
+
+        // 3. Calcul de la longueur du chemin
+        float pathLength = 0f;
+        for (int i = 1; i < path.corners.Length; i++)
+        {
+            pathLength += Vector3.Distance(path.corners[i - 1], path.corners[i]);
+        }
+
+        // 4. Comparaison
+        return pathLength <= maxPathDistance;
     }
 }
 

@@ -124,6 +124,8 @@ public class InventoryManager : GameBehaviour
         {
             selectedSpirimonz.gameObject.SetActive(false);
         }
+
+        if (spirimonzTeam[teamIndex] == null) return;
         
         selectedSpirimonz = spirimonzTeam[teamIndex];
         
@@ -165,8 +167,18 @@ public class InventoryManager : GameBehaviour
         handAnimator.SetInteger("HandPos", (int)HandPoses.Null);
         Spirimonz spirimonzToDrop = selectedSpirimonz;
         spirimonzToDrop.transform.parent = House.Instance.transform;
-        spirimonzToDrop.transform.DORotate(transform.localEulerAngles, 0.5f, RotateMode.Fast);
         spirimonzToDrop.ChangeLayer(spirimonzMask);
+
+        if (spirimonzToDrop.lookForwardOnDropOnMap)
+        {
+            spirimonzToDrop.transform.DORotate(transform.localEulerAngles, 0.5f, RotateMode.Fast);
+        }
+        else
+        {
+            Vector3 oppositeRotation = transform.localEulerAngles;
+            oppositeRotation.y += 180f;
+            spirimonzToDrop.transform.DORotate(oppositeRotation, 0.5f, RotateMode.Fast);
+        }
 
         spirimonzToDrop.transform.DOJump(dropPos, 1, 1, 0.75f).OnComplete(() =>
         {

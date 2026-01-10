@@ -14,16 +14,20 @@ public class Spirimonz : GameBehaviour, IInteractable
         FollowPlayer,
         Roam,
         Escape,
+        Special,
     }
 
     [Header("Spirimonz Settings")] 
     [ReadOnly] public bool isOnTheMap;
     public bool canInteract = true;
     public bool canBeDroppedOnMap = true;
-    public bool canBetakenBackIntoHands = true;
+    [FormerlySerializedAs("canBetakenBackIntoHands")] public bool canBeTakenBackIntoHands = true;
     public bool powerActiveInHands = true;
     public bool lookAtPlayerWhileWaiting = true;
     public bool openDoorsOnItsWay = false;
+    public bool lookForwardOnDropOnMap;
+
+    private bool _baseCanInteract;
 
     public InventoryManager.HandPoses handPosType = InventoryManager.HandPoses.PalmOfTheHand;
     public SpirimonzBehaviourState baseBehaviour = SpirimonzBehaviourState.Wait;
@@ -58,6 +62,7 @@ public class Spirimonz : GameBehaviour, IInteractable
 
     public virtual void InitSpirimonz()
     {
+        _baseCanInteract = canInteract;
         _currentBehaviour = SpirimonzBehaviourState.Wait;
     }
 
@@ -134,7 +139,7 @@ public class Spirimonz : GameBehaviour, IInteractable
         switch (_currentBehaviour)
         {
             case SpirimonzBehaviourState.Wait:
-                agent.speed = 0;
+                Wait();
                 break;
             case SpirimonzBehaviourState.FollowPlayer:
                 FollowingPlayer();
@@ -142,9 +147,26 @@ public class Spirimonz : GameBehaviour, IInteractable
             case SpirimonzBehaviourState.Escape:
                 Escaping();
                 break;
+            case SpirimonzBehaviourState.Special:
+                UpdateSpecialMovement();
+                break;
             default:
                 break;
         }
+    }
+
+    private void Wait()
+    {
+        agent.speed = 0;
+        if (lookAtPlayerWhileWaiting)
+        {
+            transform.LookAt(House.Instance.currentPlayer.transform.position);
+        }
+    }
+
+    public virtual void UpdateSpecialMovement()
+    {
+        
     }
 
     public virtual void UpdateSpirimonzBehaviour()
@@ -211,13 +233,13 @@ public class Spirimonz : GameBehaviour, IInteractable
         SwitchBehaviour();
     }
     
-    protected void SwitchBehaviour()
+    public void SwitchBehaviour()
     {
         SpirimonzBehaviourState stateToUse = _currentBehaviour == baseBehaviour ? secondaryBehaviour : baseBehaviour;
         ChangeBehaviour(stateToUse);
     }
 
-    private void ChangeBehaviour(SpirimonzBehaviourState newBehaviour)
+    public void ChangeBehaviour(SpirimonzBehaviourState newBehaviour)
     {
         _currentBehaviour = newBehaviour;
     }
@@ -236,5 +258,29 @@ public class Spirimonz : GameBehaviour, IInteractable
         agent.enabled = enable;
         collider.enabled = enable;
         isOnTheMap = enable;
+
+        if (enable == true)
+        {
+            OnSpirimonzEnabled();
+        }
+        else
+        {
+            OnSpirimonzDisabled();
+        }
+    }
+
+    public virtual void OnSpirimonzEnabled()
+    {
+        
+    }
+    
+    public virtual void OnSpirimonzDisabled()
+    {
+        
+    }
+
+    public SpirimonzBehaviourState CurrentBehaviour()
+    {
+        return _currentBehaviour;
     }
 }
