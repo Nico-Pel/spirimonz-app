@@ -652,7 +652,7 @@ public class Ghost : GameBehaviour
             {
                 //Ignore objects from another stair
                 if (throwable.transform.position.y - transform.position.y > 3 || throwable.transform.position.y - transform.position.y < -3) continue;
-                if(!throwable.isGrabbed)
+                if(!throwable.isGrabbed && throwable.canBeThrownByGhost)
                     throwables.Add(throwable);
             }
         }

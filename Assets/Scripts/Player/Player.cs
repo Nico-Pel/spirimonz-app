@@ -33,6 +33,11 @@ public class Player : MonoBehaviour
         }
     }
 
+    public void UseSlashAnimation()
+    {
+        inventoryManager.handAnimator.SetTrigger("Slash");
+    }
+
     public void AlertTheHuntingGhost()
     {
         if (house.currentGhost == null || house.currentGhost.currentState != Ghost.GhostState.huntingState)

@@ -15232,6 +15232,12 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 1928178831690860980, guid: 73b72ad84d9584d7e91279923787a2cc, type: 3}
       insertIndex: 1
       addedObject: {fileID: 5469584514252593962}
+    - targetCorrespondingSourceObject: {fileID: 1928178831690860980, guid: 73b72ad84d9584d7e91279923787a2cc, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 302835960848933700}
+    - targetCorrespondingSourceObject: {fileID: 1928178831690860980, guid: 73b72ad84d9584d7e91279923787a2cc, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1661653435779877194}
   m_SourcePrefab: {fileID: 100100000, guid: 73b72ad84d9584d7e91279923787a2cc, type: 3}
 --- !u!136 &498686366832229859 stripped
 CapsuleCollider:
@@ -15258,7 +15264,11 @@ MonoBehaviour:
   isOnTheMap: 0
   canInteract: 1
   canBeDroppedOnMap: 1
+  canBeTakenBackIntoHands: 1
   powerActiveInHands: 1
+  lookAtPlayerWhileWaiting: 1
+  openDoorsOnItsWay: 0
+  lookForwardOnDropOnMap: 0
   handPosType: 5
   baseBehaviour: 1
   secondaryBehaviour: 0
@@ -15308,6 +15318,41 @@ MonoBehaviour:
   higherTemperature: 25
   lowerTemperature: 1
   colorLerpSpeed: 0.1
+--- !u!114 &302835960848933700
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4422935575074760151}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bbb32acf3b95949e6a7b2bd6d7727fe2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  linkedFireableObject: {fileID: 0}
+  canGiveFire: 1
+--- !u!135 &1661653435779877194
+SphereCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4422935575074760151}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 1
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Radius: 0.4
+  m_Center: {x: 0, y: 0.75, z: 0}
 --- !u!195 &5786660165154912983 stripped
 NavMeshAgent:
   m_CorrespondingSourceObject: {fileID: 8641687317530957492, guid: 73b72ad84d9584d7e91279923787a2cc, type: 3}

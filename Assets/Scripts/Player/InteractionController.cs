@@ -86,6 +86,11 @@ public class InteractionController : GameBehaviour
         // =====================
         if (objectInHands != null)
         {
+            if (Input.GetMouseButtonDown(0))
+            {
+                objectInHands.SpecialActionInHandsOnClick();
+            }
+            
             // Drop
             if (Input.GetKeyDown(Player.Instance.fpsController.dropObject))
             {
@@ -123,24 +128,20 @@ public class InteractionController : GameBehaviour
                 objectInHands = null;
             }
         }
-        else if (_currentTarget is ThrowableObject targetThrowable)
+        else if (_currentTarget is ThrowableObject targetedThrowable)
         {
             // Grab uniquement si rien en main ni en mode caméra
             if (Player.Instance.inventoryManager.OccupedHands()) return;
             
             if (Input.GetKeyDown(Player.Instance.fpsController.grabObject))
             {
-                objectInHands = targetThrowable;
-
-                if (!objectInHands.isGrabbed)
+                if (targetedThrowable.canBeGrabByPlayer && !targetedThrowable.isGrabbed)
                 {
-                    //If the player has a spirimonz in hands, unequip it
+                    //If the player has a Spirimonz in hands, unequip it
                     Player.Instance.inventoryManager.ReplaceSpirimonzByAnItem();
                     
                     //Grab item
-                    Player.Instance.inventoryManager.SetHandsStateNull();
-                    objectInHands.ChangeLayer(Player.Instance.inventoryManager.fpsMask);
-                    objectInHands.Grab(handObjectPosition);
+                    GrabItem(targetedThrowable);
                 }
             }
         }
@@ -152,6 +153,18 @@ public class InteractionController : GameBehaviour
                 Player.Instance.inventoryManager.SpirimonzGoBackToHands(spirimonz);
             }
         }
+    }
+
+    public void GrabItem(ThrowableObject throwableObject)
+    {
+        if (objectInHands != null)
+        {
+            objectInHands.Drop(transform.position, Vector3.zero);
+        }
+        objectInHands = throwableObject;
+        Player.Instance.inventoryManager.SetHandsStateNull();
+        objectInHands.ChangeLayer(Player.Instance.inventoryManager.fpsMask);
+        objectInHands.Grab(handObjectPosition);
     }
     
     // =========================
