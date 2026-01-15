@@ -94,7 +94,7 @@ public class InteractionController : GameBehaviour
             // Drop
             if (Input.GetKeyDown(Player.Instance.fpsController.dropObject))
             {
-                objectInHands.ChangeLayer(_objectInHandLayerIndex);
+                objectInHands.ChangeLayer(_objectInHandLayerIndex, 0);
 
                 Vector3 dropPos = handObjectDropPosition.position;
                 
@@ -123,7 +123,7 @@ public class InteractionController : GameBehaviour
                     throwForce = Vector3.zero;
                 }
 
-                objectInHands.ChangeLayer(_objectInHandLayerIndex);
+                objectInHands.ChangeLayer(_objectInHandLayerIndex, 0);
                 objectInHands.Drop(dropPos, throwForce);
                 objectInHands = null;
             }

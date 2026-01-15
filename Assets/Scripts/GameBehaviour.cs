@@ -36,22 +36,22 @@ public class GameBehaviour : MonoBehaviour
         return Mathf.RoundToInt(Mathf.Log(value, 2));
     }
     
-    public void ChangeLayer(LayerMask mask)
+    public void ChangeLayer(LayerMask mask, int ignoredLayerIndex = -1)
     {
         int layer = LayerMaskToLayer(mask);
         if (layer == -1) return;
 
-        ApplyLayerRecursively(gameObject, layer);
+        ApplyLayerRecursively(gameObject, layer, ignoredLayerIndex);
     }
     
-    public void ChangeLayer(int layerIndex)
+    public void ChangeLayer(int layerIndex, int ignoredLayerIndex = -1)
     {
         if (layerIndex == -1) return;
 
-        ApplyLayerRecursively(gameObject, layerIndex);
+        ApplyLayerRecursively(gameObject, layerIndex, ignoredLayerIndex);
     }
     
-    private void ApplyLayerRecursively(GameObject obj, int layer)
+    private void ApplyLayerRecursively(GameObject obj, int layer, int ignoreLayerIndex = -1)
     {
         if (layer < 0 || layer > 31)
         {
@@ -59,11 +59,14 @@ public class GameBehaviour : MonoBehaviour
             return;
         }
 
-        obj.layer = layer;
+        if ((int)obj.layer != ignoreLayerIndex)
+        {
+            obj.layer = layer;
+        }
 
         foreach (Transform child in obj.transform)
         {
-            ApplyLayerRecursively(child.gameObject, layer);
+            ApplyLayerRecursively(child.gameObject, layer, ignoreLayerIndex);
         }
     }
     

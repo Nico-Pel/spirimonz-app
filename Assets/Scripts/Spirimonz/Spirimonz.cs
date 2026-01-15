@@ -69,23 +69,52 @@ public class Spirimonz : GameBehaviour, IInteractable
     public virtual void DroppedOnMap()
     {
         _currentBehaviour = baseBehaviour;
+        
+        animator.SetBool("IsOnMap", true);
 
         if (baseBehaviour == SpirimonzBehaviourState.Escape)
         {
             _escaping = true;
         }
     }
+
+    public virtual void GoBackToHands(Transform handPos)
+    {
+        EnableSpirimonz(false);
+        transform.parent = handPos;
+        transform.localPosition = Vector3.zero;
+        transform.localEulerAngles = Vector3.zero;
+        
+        animator.SetBool("IsOnMap", false);
+    }
     
     private void OnTriggerEnter(Collider other)
     {
+        if (other.GetComponent<NavMeshAgent>() && other.gameObject.layer == 8)
+        {
+            agent.obstacleAvoidanceType = ObstacleAvoidanceType.NoObstacleAvoidance;
+        }
         if (other.TryGetComponent(out Room room))
         {
-            currentRoom = room;
+            SetCurrentRoom(room);
         }
         else if (other.TryGetComponent(out Door door) && openDoorsOnItsWay)
         {
             TryToOpenDoor(door);
         }
+    }
+
+    private void OnTriggerExit(Collider other)
+    {
+        if (other.GetComponent<NavMeshAgent>() && other.gameObject.layer == 8)
+        {
+            agent.obstacleAvoidanceType = ObstacleAvoidanceType.HighQualityObstacleAvoidance;
+        }
+    }
+
+    protected virtual void SetCurrentRoom(Room room)
+    {
+        currentRoom = room;
     }
 
     private void TryToOpenDoor(Door door)

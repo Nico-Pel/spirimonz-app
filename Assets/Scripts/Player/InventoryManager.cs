@@ -51,7 +51,7 @@ public class InventoryManager : GameBehaviour
             spirimonzTeam.Add(newSpirimonz);
             newSpirimonz.transform.localPosition = Vector3.zero;
             newSpirimonz.transform.localEulerAngles = Vector3.zero;
-            newSpirimonz.ChangeLayer(fpsMask);
+            newSpirimonz.ChangeLayer(fpsMask, 0);
         }
     }
     
@@ -167,7 +167,7 @@ public class InventoryManager : GameBehaviour
         handAnimator.SetInteger("HandPos", (int)HandPoses.Null);
         Spirimonz spirimonzToDrop = selectedSpirimonz;
         spirimonzToDrop.transform.parent = House.Instance.transform;
-        spirimonzToDrop.ChangeLayer(spirimonzMask);
+        spirimonzToDrop.ChangeLayer(spirimonzMask, 0);
 
         if (spirimonzToDrop.lookForwardOnDropOnMap)
         {
@@ -190,11 +190,8 @@ public class InventoryManager : GameBehaviour
 
     public void SpirimonzGoBackToHands(Spirimonz spirimonz)
     {
-        spirimonz.EnableSpirimonz(false);
-        spirimonz.transform.parent = spirimonzHandPos;
-        spirimonz.transform.localPosition = Vector3.zero;
-        spirimonz.transform.localEulerAngles = Vector3.zero;
-        spirimonz.ChangeLayer(fpsMask);
+        spirimonz.GoBackToHands(spirimonzHandPos);
+        spirimonz.ChangeLayer(fpsMask, 0);
         
         //Equip spirimonz if player do not use items or other spirimonz
         if(handAnimator.GetInteger("HandPos") == (int)HandPoses.Null || handAnimator.GetInteger("HandPos") == (int)HandPoses.LightAim)

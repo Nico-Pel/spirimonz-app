@@ -120,6 +120,8 @@ public class Ghost : GameBehaviour
     public NavMeshAgent agent;
     public GameObject ghostModel;
     public GhostVision vision;
+    
+    int agentContacts = 0;
 
     public void Initialize(House h)
     {
@@ -164,6 +166,12 @@ public class Ghost : GameBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
+        if (other.GetComponent<NavMeshAgent>())
+        {
+            agentContacts++;
+            agent.obstacleAvoidanceType = ObstacleAvoidanceType.NoObstacleAvoidance;
+        }
+        
         if (other.TryGetComponent(out Room newRoom))
         {
             currentRoom = newRoom;
@@ -178,6 +186,14 @@ public class Ghost : GameBehaviour
             if (currentState == GhostState.hideState)
             {
                 ImproveAngriness(angrinessToAddByTriggeringPlayer);
+            }
+        }
+        else if (ghostParameters.Radioactivity && other.TryGetComponent(out RadiationDetector radiationDetector))
+        {
+            if (ghostParameters.ShouldDetectRadiationOnTrigger())
+            {
+                Debug.Log("TRIGGER RADIATIONS");
+                radiationDetector.TriggerDetection(ghostParameters.radiationDurationOnTrigger);
             }
         }
         else if (other.TryGetComponent(out Door door))
@@ -199,6 +215,19 @@ public class Ghost : GameBehaviour
                     Random.Range(80, 100),
                     Random.Range(80, 100)
                 );
+            }
+        }
+    }
+    
+    void OnTriggerExit(Collider other)
+    {
+        if (other.GetComponent<NavMeshAgent>())
+        {
+            agentContacts--;
+            if (agentContacts <= 0)
+            {
+                agentContacts = 0;
+                agent.obstacleAvoidanceType = ObstacleAvoidanceType.HighQualityObstacleAvoidance;
             }
         }
     }
@@ -325,6 +354,11 @@ public class Ghost : GameBehaviour
         
         float nextActivityTime = Random.Range(averageActivityTime - activityTimeVariation, averageActivityTime + activityTimeVariation);
         this.Invoke(nextActivityTime, TriggerActivity);
+
+        if (ghostParameters.Radioactivity)
+        {
+            currentRoom.StartRadiation(ghostParameters.radiationDurationAfterAttack);
+        }
     }
 
     private void Kill(Player player)
@@ -676,8 +710,8 @@ public class Ghost : GameBehaviour
         {
             if (hit.TryGetComponent(out Door door))
             {
-                //Ignore doors from another stair
-                if (door.transform.position.y - transform.position.y > 3 || door.transform.position.y - transform.position.y < -3) continue;
+                //Ignore if the door is too far (from another floor?)
+                if (IsNearFromMyAgent(agent, door.transform, doorDetectionRange * 1.2f, 2) == false) continue;
                 
                 if(!door.IsGrabbed())
                     doors.Add(door);

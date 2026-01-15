@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Events;
 using UnityEngine.Serialization;
 
 public class Room : MonoBehaviour
@@ -15,6 +16,12 @@ public class Room : MonoBehaviour
     public float naturalReequilibriumSpeed = 0.01f;
 
     private float _startTemperature;
+    
+    [Header("Radiations in Room")]
+    public bool radiationInTheRoom;
+    public float radiationDuration;
+    public UnityEvent<float> OnRadiationStart;
+    public UnityEvent OnRadiationEnd;
 
     [Header("Objects in Room")]
     public ClickableObject[] clickableObjects;
@@ -98,6 +105,30 @@ public class Room : MonoBehaviour
         currentTemperature += Random.Range(-0.02f, 0.02f);
 
         currentTemperature = Mathf.Clamp(currentTemperature, minTemperature, maxTemperature);
+
+        //Radiations
+        if (radiationInTheRoom)
+        {
+            radiationDuration -= Time.deltaTime;
+            if (radiationDuration <= 0)
+            {
+                EndRadiation();
+            }
+        }
+    }
+
+    public void StartRadiation(float duration)
+    {
+        radiationDuration = duration;
+        radiationInTheRoom = true;
+        OnRadiationStart?.Invoke(radiationDuration);
+    }
+
+    private void EndRadiation()
+    {
+        radiationInTheRoom = false;
+        radiationDuration = 0;
+        OnRadiationEnd?.Invoke();
     }
 
     /// <summary>

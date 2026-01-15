@@ -68,6 +68,11 @@ public class GhostParameters : ScriptableObject
     [Header("Spirit Orbs")] 
     public float nextOrbsDelayMin = 3f;
     public float nextOrbsDelayMax = 10f;
+
+    [Header("Radiations")] 
+    public float chancesToDetectRadiationOnTrigger = 10f;
+    public float radiationDurationOnTrigger = 5f;
+    public float radiationDurationAfterAttack = 15f;
     
     public int GetRandomActivityValue()
     {
@@ -106,6 +111,14 @@ public class GhostParameters : ScriptableObject
         
         float roll = Random.Range(0f, 100f);
         return roll <= chancesToEatFruitInsteadOfThrowingIt;
+    }
+
+    public bool ShouldDetectRadiationOnTrigger()
+    {
+        if (Radioactivity == false) return false;
+        
+        float roll = Random.Range(0f, 100f);
+        return roll <= chancesToDetectRadiationOnTrigger;
     }
 }
 
