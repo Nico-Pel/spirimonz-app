@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using Unity.VisualScripting;
 using UnityEngine;
 using Random = UnityEngine.Random;
 
@@ -12,68 +11,101 @@ public class Door : GameBehaviour
     public ActivitySource activitySource;
     public PrintSource[] printSources;
 
-    [Header("Door Settings")] 
-    public float closeAngle = 0;
-    public float openFullAngle = -90;
-
+    [Header("Door Settings")]
     public float autoCloseSpeed = 10f;
     public float checkDelay = 0.2f;
     public float slamAngleDetected = 20;
     public float slamDetectionDuration = 0.2f;
     public float closeAnglePermissiveness = 5f;
-    
-    public bool slamDetected = false;
-
-    private float _lastAngle;
-    private float _almostCloseAngle;
-    private bool _askedForGhostSlam = false;
-    private bool _ghostJustInteracted;
 
     [Header("Door Sounds")]
     public AudioClip openSound;
     public AudioClip closeSound;
     public AudioClip slamSound;
 
-    private float previousAngle = 0f;
     [ReadOnly] public bool isOpen = false;
+    [ReadOnly] public bool opensTowardNegative;
+    [ReadOnly] public float closeAngle;
+    [ReadOnly] public float openFullAngle;
 
-    private bool _isGrabbed = false; // vrai quand le joueur manipule la porte
+    private float _lastAngle;
+    private float _almostCloseAngle;
+    private bool _askedForGhostSlam;
+    private bool _ghostJustInteracted;
+    private bool _isGrabbed;
 
     private void Start()
     {
-        closeAngle = Mathf.Abs(hingeJoint.angle);
-        _almostCloseAngle = closeAngle += closeAnglePermissiveness;
+        if (hingeJoint == null)
+        {
+            Debug.LogError($"{name} : Missing HingeJoint");
+            return;
+        }
+
+        closeAngle = hingeJoint.angle;
+
+        JointLimits limits = hingeJoint.limits;
+        float distToMin = Mathf.Abs(limits.min - closeAngle);
+        float distToMax = Mathf.Abs(limits.max - closeAngle);
+
+        opensTowardNegative = distToMin > distToMax;
+        openFullAngle = opensTowardNegative ? limits.min : limits.max;
+
+        _almostCloseAngle = Mathf.Abs(closeAngle) + closeAnglePermissiveness;
     }
+
+    #region Grab / Release
 
     public void Grab()
     {
-        _lastAngle = Mathf.Abs(hingeJoint.angle);
+        _lastAngle = hingeJoint.angle;
         _isGrabbed = true;
-        this.Invoke(checkDelay, CheckAngle);
+        InvokeRepeating(nameof(CheckAngle), checkDelay, checkDelay);
         _askedForGhostSlam = false;
-    }
-
-    private void StopDoor()
-    {
-        JointMotor motor = hingeJoint.motor;
-        motor.force = 0;
-        motor.targetVelocity = 0;
-        hingeJoint.motor = motor;
-        
-        rb.freezeRotation = true;
     }
 
     public void Release()
     {
         _isGrabbed = false;
-        if (isOpen == true && Mathf.Abs(hingeJoint.angle) < _almostCloseAngle)
-        {
+        CancelInvoke(nameof(CheckAngle));
+
+        if (isOpen && Mathf.Abs(hingeJoint.angle) < _almostCloseAngle)
             CloseDoor(autoCloseSpeed);
-        }
         else
-        {
             StopDoor();
+    }
+
+    #endregion
+
+    #region Door Actions
+
+    public void GhostDoorInteraction(float openPercentage, float moveSpeed, bool slam = false)
+    {
+        rb.freezeRotation = false;
+
+        _ghostJustInteracted = true;
+        _askedForGhostSlam = slam;
+        Invoke(nameof(ResetGhostInteraction), 0.75f);
+
+        float targetAngle = GetTargetedAngle(openPercentage);
+
+        // 🔒 Clamp dans les limits
+        JointLimits limits = hingeJoint.limits;
+        targetAngle = Mathf.Clamp(targetAngle, limits.min, limits.max);
+
+        float delta = targetAngle - hingeJoint.angle;
+
+        // ❌ Empêche le fantôme de pousser dans le mauvais sens
+        if (openPercentage > 0 && Mathf.Sign(delta) != Mathf.Sign(openFullAngle - closeAngle))
+            return;
+
+        if (openPercentage > 0 && !isOpen)
+        {
+            isOpen = true;
+            PlaySound(openSound);
         }
+
+        ForcedHinge(targetAngle, moveSpeed);
     }
 
     public void CloseDoor(float closeSpeed, bool forcedSlam = false)
@@ -81,146 +113,120 @@ public class Door : GameBehaviour
         isOpen = false;
         HingeClose(closeSpeed);
 
-        if (slamDetected || forcedSlam)
-        {
-            PlaySound(slamSound);
-        }
-        else
-        {
-            PlaySound(closeSound);
-        }
+        PlaySound((forcedSlam || IsSlamDetected()) ? slamSound : closeSound);
     }
 
-    public void GhostDoorInteraction(float openPercentage, float moveSpeed, bool slam = false)
-    {
-        rb.freezeRotation = false;
-        
-        _ghostJustInteracted = true;
-        _askedForGhostSlam = slam;
-        this.Invoke(0.75f, () => _ghostJustInteracted = false);
+    #endregion
 
-        if (openPercentage > 0)
-        {
-            isOpen = true;
-            PlaySound(openSound);
-        }
-        
-        float targetAngle = GetTargetedAngle(openPercentage);
-        ForcedHinge(targetAngle, moveSpeed);
-    }
+    #region Hinge Control
 
-    public float GetTargetedAngle(float openPercentage)
-    {
-        // Clamp pour être sûr que openPercentage est entre 0 et 1
-        openPercentage = Mathf.Clamp01(openPercentage);
-
-        float targetAngle = closeAngle + (openFullAngle - closeAngle) * openPercentage;
-        return targetAngle;
-    }
-    
-    private void HingeClose(float closeSpeed)
-    {
-        if (hingeJoint == null) return;
-
-        // On active le moteur
-        hingeJoint.useMotor = true;
-
-        // Calcul du delta d'angle entre la position actuelle et la position cible (0°)
-        float currentAngle = hingeJoint.angle; // angle actuel du HingeJoint
-        float targetAngle = closeAngle;
-
-        // La vitesse du moteur doit être négative si l'angle est positif pour fermer
-        float motorVelocity = (currentAngle > targetAngle) ? -Mathf.Abs(closeSpeed) : Mathf.Abs(closeSpeed);
-
-        JointMotor motor = hingeJoint.motor;
-        motor.force = 100;
-        motor.targetVelocity = motorVelocity;
-        hingeJoint.motor = motor;
-    }
-    
     private void ForcedHinge(float targetAngle, float moveSpeed)
     {
-        if (hingeJoint == null) return;
-
         float currentAngle = hingeJoint.angle;
         float delta = targetAngle - currentAngle;
 
-        // Si on est déjà proche du target → stop
-        if (Mathf.Abs(delta) < 0.5f) // tolérance 0.5°
+        if (Mathf.Abs(delta) < 0.5f)
         {
             hingeJoint.useMotor = false;
             return;
         }
 
-        // Vitesse proportionnelle au delta (pour éviter de rater le target)
-        float motorVelocity = Mathf.Sign(delta) * Mathf.Min(moveSpeed, Mathf.Abs(delta) * 10f);
-
         JointMotor motor = hingeJoint.motor;
-        motor.force = 100;
-        motor.targetVelocity = motorVelocity;
+        motor.force = 100f;
+        motor.targetVelocity = Mathf.Sign(delta) * Mathf.Min(moveSpeed, Mathf.Abs(delta) * 10f);
         hingeJoint.motor = motor;
         hingeJoint.useMotor = true;
     }
 
+    private void HingeClose(float closeSpeed)
+    {
+        JointMotor motor = hingeJoint.motor;
+        motor.force = 100f;
+
+        float delta = closeAngle - hingeJoint.angle;
+        motor.targetVelocity = Mathf.Sign(delta) * Mathf.Abs(closeSpeed);
+
+        hingeJoint.motor = motor;
+        hingeJoint.useMotor = true;
+    }
+
+    private void StopDoor()
+    {
+        hingeJoint.useMotor = false;
+        rb.freezeRotation = true;
+    }
+
+    #endregion
+
+    #region Update / Detection
+
     private void Update()
     {
         if (_isGrabbed)
-        {
-            Debug.Log("ANGLE " + hingeJoint.angle);
-        }
-        else if(isOpen && Mathf.Abs(hingeJoint.angle) < _almostCloseAngle && !_ghostJustInteracted)
-        {
-            CloseDoor(10, _askedForGhostSlam);
-        }
-        else if (isOpen && !_ghostJustInteracted && hingeJoint.velocity < 2)
-        {
+            return;
+
+        if (isOpen && !_ghostJustInteracted && Mathf.Abs(hingeJoint.angle) < _almostCloseAngle)
+            CloseDoor(autoCloseSpeed, _askedForGhostSlam);
+        else if (isOpen && !_ghostJustInteracted && Mathf.Abs(hingeJoint.velocity) < 2f)
             StopDoor();
-        }
     }
 
     private void CheckAngle()
     {
-        if (Mathf.Abs(_lastAngle) - Mathf.Abs(hingeJoint.angle) > slamAngleDetected)
-        {
-            slamDetected = true;
-            this.Invoke(slamDetectionDuration, () => slamDetected = false);
-        }
-            
-        _lastAngle = hingeJoint.angle;
+        float currentAngle = hingeJoint.angle;
 
-        if (isOpen == false && Mathf.Abs(hingeJoint.angle) > _almostCloseAngle)
+        if (Mathf.Abs(_lastAngle - currentAngle) > slamAngleDetected)
+        {
+            Invoke(nameof(ResetSlam), slamDetectionDuration);
+        }
+
+        if (!isOpen && Mathf.Abs(currentAngle) > _almostCloseAngle)
         {
             isOpen = true;
             PlaySound(openSound);
         }
 
-        if (!_isGrabbed)
-            return;
+        _lastAngle = currentAngle;
+    }
 
-        this.Invoke(checkDelay, CheckAngle);
+    private bool IsSlamDetected() => IsInvoking(nameof(ResetSlam)) == false;
+
+    private void ResetSlam() { }
+
+    private void ResetGhostInteraction()
+    {
+        _ghostJustInteracted = false;
+    }
+
+    #endregion
+
+    #region Utility
+
+    public float GetTargetedAngle(float openPercentage)
+    {
+        return Mathf.Lerp(closeAngle, openFullAngle, Mathf.Clamp01(openPercentage));
     }
 
     private void PlaySound(AudioClip clip)
     {
-        if (clip == null) return;
-        SoundManager.Instance.PlaySound(clip, transform.position);
+        if (clip != null)
+            SoundManager.Instance.PlaySound(clip, transform.position);
     }
 
-    public bool IsGrabbed()
-    {
-        return _isGrabbed;
-    }
+    public bool IsGrabbed() => _isGrabbed;
 
     public PrintSource GetRandomPrintSource()
     {
-        if (printSources.Length == 0) return null;
-        
-        List<PrintSource> possiblePrintSources = new List<PrintSource>();
-        foreach (PrintSource printSource in printSources)
-        {
-            if(printSource.IsActivated() == false)
-                possiblePrintSources.Add(printSource);
-        }
-        return possiblePrintSources[Random.Range(0, possiblePrintSources.Count)];
+        if (printSources == null || printSources.Length == 0)
+            return null;
+
+        List<PrintSource> available = new List<PrintSource>();
+        foreach (var ps in printSources)
+            if (!ps.IsActivated())
+                available.Add(ps);
+
+        return available.Count > 0 ? available[Random.Range(0, available.Count)] : null;
     }
+
+    #endregion
 }

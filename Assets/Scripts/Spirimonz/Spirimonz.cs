@@ -26,6 +26,7 @@ public class Spirimonz : GameBehaviour, IInteractable
     public bool lookAtPlayerWhileWaiting = true;
     public bool openDoorsOnItsWay = false;
     public bool lookForwardOnDropOnMap;
+    public float lookAtDistanceFromPlayer = 10f;
 
     private bool _baseCanInteract;
 
@@ -98,9 +99,20 @@ public class Spirimonz : GameBehaviour, IInteractable
         {
             SetCurrentRoom(room);
         }
-        else if (other.TryGetComponent(out Door door) && openDoorsOnItsWay)
+    }
+
+    private void OnCollisionEnter(Collision other)
+    {
+        if (openDoorsOnItsWay == true)
         {
-            TryToOpenDoor(door);
+            if (other.gameObject.TryGetComponent(out Door door) && openDoorsOnItsWay)
+            {
+                if (other.gameObject.TryGetComponent(out Collider doorCollider))
+                {
+                    Physics.IgnoreCollision(doorCollider, collider, true);
+                }
+                TryToOpenDoor(door);
+            }
         }
     }
 
@@ -121,7 +133,9 @@ public class Spirimonz : GameBehaviour, IInteractable
     {
         if (openDoorsOnItsWay == false) return;
         
-        Vector3 directionToDoor = (door.transform.position - transform.position).normalized;
+        OpenDoor(door);
+
+        /*Vector3 directionToDoor = (door.transform.position - transform.position).normalized;
         Vector3 moveDirection = agent.velocity.normalized;
 
         float dot = Vector3.Dot(moveDirection, directionToDoor);
@@ -129,18 +143,43 @@ public class Spirimonz : GameBehaviour, IInteractable
         if (dot > 0.6f) // seuil à ajuster
         {
             OpenDoor(door);
-        }
+        }*/
     }
 
     private void OpenDoor(Door door)
     {
         _stopMoving = true;
+        agent.velocity = Vector3.zero;        
         this.Invoke(_waitDoorTime, () => _stopMoving = false);
 
-        door.GhostDoorInteraction(
-            Random.Range(80, 100),
-            Random.Range(80, 100)
-        );
+        // 1️⃣ Récupère l'angle cible complet
+        float fullOpen = door.openFullAngle;
+        float currentAngle = door.hingeJoint.angle;
+
+        // 2️⃣ Vérifie la distance restante
+        float delta = Mathf.Abs(fullOpen - currentAngle);
+
+        float targetPercentage;
+
+        if (delta < 10f) 
+        {
+            // La porte est à peine ouverte → on force un peu plus
+            // Par exemple, on vise entre 80 et 100%
+            targetPercentage = Mathf.Lerp(
+                currentAngle, fullOpen, Random.Range(0.8f, 1f)
+            );
+        }
+        else
+        {
+            // Porte fermée ou partiellement ouverte → ouverture normale
+            targetPercentage = Random.Range(0.8f, 1f);
+        }
+
+        // 3️⃣ Définir la vitesse raisonnable
+        float speed = 50f;
+
+        // 4️⃣ Interaction fantôme
+        door.GhostDoorInteraction(targetPercentage, speed);
     }
 
     private void Update()
@@ -157,13 +196,17 @@ public class Spirimonz : GameBehaviour, IInteractable
 
     private void UpdateMovementBehaviour()
     {
-        if (isOnTheMap == false)
+        if (isOnTheMap == false || _stopMoving)
         {
             agent.speed = 0;
             return;
         }
-        
-        if (_stopMoving == true) return;
+
+        if (_stopMoving == true)
+        {
+            Wait();
+            return;
+        }
         
         switch (_currentBehaviour)
         {
@@ -189,7 +232,21 @@ public class Spirimonz : GameBehaviour, IInteractable
         agent.speed = 0;
         if (lookAtPlayerWhileWaiting)
         {
+            LookAtPlayer();
+        }
+    }
+
+    private void LookAtPlayer()
+    {
+        float dist = Vector3.Distance(transform.position, Player.Instance.transform.position);
+        if (dist < lookAtDistanceFromPlayer)
+        {
             transform.LookAt(House.Instance.currentPlayer.transform.position);
+        }
+        else
+        {
+            Vector3 forwardTarget = transform.forward * 5;
+            transform.LookAt(new Vector3(forwardTarget.x, transform.position.y, forwardTarget.z));
         }
     }
 
@@ -210,7 +267,7 @@ public class Spirimonz : GameBehaviour, IInteractable
         agent.speed = dist > followingDistance ? speed : 0;
         agent.SetDestination(playerPos);
         
-        transform.LookAt(playerPos);
+        LookAtPlayer();
     }
 
     private void Escaping()

@@ -162,6 +162,7 @@ public class InteractionController : GameBehaviour
             objectInHands.Drop(transform.position, Vector3.zero);
         }
         objectInHands = throwableObject;
+        _objectInHandLayerIndex = objectInHands.gameObject.layer;
         Player.Instance.inventoryManager.SetHandsStateNull();
         objectInHands.ChangeLayer(Player.Instance.inventoryManager.fpsMask);
         objectInHands.Grab(handObjectPosition);

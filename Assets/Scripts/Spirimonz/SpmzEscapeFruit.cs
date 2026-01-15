@@ -39,5 +39,7 @@ public class SpmzEscapeFruit : Spirimonz
     {
         //Ignore player while Escape point is not reached
         if (baseBehaviour == SpirimonzBehaviourState.Escape) return;
+        
+        base.InteractionStarted();
     }
 }

@@ -625,6 +625,14 @@ PrefabInstance:
       propertyPath: m_Name
       value: Spmz_LeafBall
       objectReference: {fileID: 0}
+    - target: {fileID: 2398334535009112448, guid: 73b72ad84d9584d7e91279923787a2cc, type: 3}
+      propertyPath: m_Height
+      value: 0.45
+      objectReference: {fileID: 0}
+    - target: {fileID: 2398334535009112448, guid: 73b72ad84d9584d7e91279923787a2cc, type: 3}
+      propertyPath: m_Center.y
+      value: 0.2314268
+      objectReference: {fileID: 0}
     - target: {fileID: 6657164899661425278, guid: 73b72ad84d9584d7e91279923787a2cc, type: 3}
       propertyPath: m_LocalPosition.x
       value: -7.362829
@@ -664,6 +672,10 @@ PrefabInstance:
     - target: {fileID: 6657164899661425278, guid: 73b72ad84d9584d7e91279923787a2cc, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8641687317530957492, guid: 73b72ad84d9584d7e91279923787a2cc, type: 3}
+      propertyPath: m_Height
+      value: 0.45
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -716,6 +728,7 @@ MonoBehaviour:
   lookAtPlayerWhileWaiting: 0
   openDoorsOnItsWay: 1
   lookForwardOnDropOnMap: 1
+  lookAtDistanceFromPlayer: 10
   handPosType: 4
   baseBehaviour: 3
   secondaryBehaviour: 0
@@ -723,7 +736,7 @@ MonoBehaviour:
   followingDistance: 5
   targetedEscapeDistance: 1
   escapingSpeed: 7
-  nbOfWayPointsToConsider: 5
+  nbOfWayPointsToConsider: 4
   agent: {fileID: 1531086371073059197}
   collider: {fileID: 4871323218267024969}
   animator: {fileID: 8079454595788852626}

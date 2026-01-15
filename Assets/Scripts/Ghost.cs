@@ -96,8 +96,8 @@ public class Ghost : GameBehaviour
     public float slamForce = 100;
     public float openForceMin = 15;
     public float openForceMax = 25;
-    public float openAngleMin = 35;
-    public float openAngleMax = 90;
+    public float openAngleMin = 0.5f;
+    public float openAngleMax = 1;
     public LayerMask doorMask;
 
     [Header("Ghost Stats : Activities")] 
@@ -213,8 +213,8 @@ public class Ghost : GameBehaviour
                 this.Invoke(_waitDoorTime, () => _stopMoving = false);
 
                 door.GhostDoorInteraction(
-                    Random.Range(80, 100),
-                    Random.Range(80, 100)
+                    Random.Range(0.8f, 1f),   // 80% à 100% ouvert, propre et clampé
+                    Random.Range(5f, 15f)     // vitesse raisonnable pour le hinge
                 );
             }
         }
@@ -329,18 +329,18 @@ public class Ghost : GameBehaviour
         if (currentWayPoint != null)
         {
             agent.destination = currentWayPoint.transform.position;
+            
+            float dist = Vector3.Distance(transform.position, currentWayPoint.transform.position);
+            if (dist < 1)
+            {
+                //if ghost come back after a hunt, its speed become slow again
+                agent.speed = hidingSpeedBase;
+            
+                SelectNewHidingWaypoint();
+            }
         }
         else
         {
-            SelectNewHidingWaypoint();
-        }
-
-        float dist = Vector3.Distance(transform.position, currentWayPoint.transform.position);
-        if (dist < 1)
-        {
-            //if ghost come back after a hunt, its speed become slow again
-            agent.speed = hidingSpeedBase;
-            
             SelectNewHidingWaypoint();
         }
     }

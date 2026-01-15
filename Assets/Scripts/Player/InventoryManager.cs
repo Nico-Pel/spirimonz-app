@@ -40,6 +40,11 @@ public class InventoryManager : GameBehaviour
         InitializeTeam();
     }
 
+    private void Start()
+    {
+        UseWatchObject();
+    }
+
     private void InitializeTeam()
     {
         foreach (Spirimonz spmz in spirimonzTeamPrefabs)
