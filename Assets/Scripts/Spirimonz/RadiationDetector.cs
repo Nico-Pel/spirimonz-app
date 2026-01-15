@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 using UnityEngine.Events;
 
@@ -10,6 +11,13 @@ public class RadiationDetector : GameBehaviour
     public UnityEvent OnDetectionStart;
     public UnityEvent OnDetectionEnd;
 
+    [Header("Sound settings")] 
+    public bool useSound = true;
+    public AudioClip radiationSoundClip;
+    public float volume = 1f;
+    public float range = 15f;
+    
+    private SoundManager.SoundInstance _radiationSound;
     private float _currentDuration;
     
     public void TriggerDetection(float duration)
@@ -19,6 +27,27 @@ public class RadiationDetector : GameBehaviour
             _currentDuration += duration - _currentDuration;
             _radiation = true;
             OnDetectionStart?.Invoke();
+
+            if (useSound == true && radiationSoundClip != null)
+            {
+                _radiationSound = SoundManager.Instance.PlaySound(
+                    radiationSoundClip,
+                    transform.position,
+                    volume: volume,
+                    range: range,
+                    loop: true,
+                    sourceParent: transform
+                );
+            }
+        }
+    }
+
+    public void StopUsingSound()
+    {
+        useSound = false;
+        if (_radiationSound != null)
+        {
+            _radiationSound.Stop(false);
         }
     }
 
@@ -39,11 +68,21 @@ public class RadiationDetector : GameBehaviour
         _radiation = false;
         _currentDuration = 0;
         OnDetectionEnd?.Invoke();
+
+        if (radiationSoundClip != null && _radiationSound != null)
+        {
+            _radiationSound.Stop(false);
+        }
     }
 
     public bool IsDetectingRadiation()
     {
         return _radiation;
+    }
+
+    private void OnDisable()
+    {
+        EndDetection();
     }
 
     public void SetCurrentRoom(Room room)

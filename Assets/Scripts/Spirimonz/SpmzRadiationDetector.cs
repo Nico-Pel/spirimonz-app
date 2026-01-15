@@ -13,12 +13,16 @@ public class SpmzRadiationDetector : Spirimonz
     {
         radiationDetector.OnDetectionStart.AddListener(TurnOnRadiationFeedback);
         radiationDetector.OnDetectionEnd.AddListener(TurnOffRadiationFeedback);
+
+        radiationDetector.useSound = powerActiveInHands;
     }
 
     private void TurnOnRadiationFeedback()
     {
+        Debug.Log("Radiations Ghost 1 IsOnMap: " + isOnTheMap);
         if (powerActiveInHands == false && isOnTheMap == false) return;
-        
+        Debug.Log("Radiations Ghost 2");
+
         radiationFeedback.SetActive(true);
         
         animator.SetBool("Radiations", true);
@@ -35,5 +39,26 @@ public class SpmzRadiationDetector : Spirimonz
     {
         base.SetCurrentRoom(room);
         radiationDetector.SetCurrentRoom(room);
+    }
+    
+    public override void DroppedOnMap()
+    {
+        base.DroppedOnMap();
+        
+        // If the detector wasn't active in hands, trigger the radiation feedbacks if it's necessary
+        if (powerActiveInHands == false)
+        {
+            radiationDetector.useSound = true;
+            radiationDetector.SetCurrentRoom(currentRoom);
+        }
+    }
+
+    public override void GoBackToHands(Transform handPos)
+    {
+        base.GoBackToHands(handPos);
+        if (powerActiveInHands == false)
+        {
+            radiationDetector.StopUsingSound();
+        }
     }
 }

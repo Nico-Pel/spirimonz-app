@@ -285,7 +285,7 @@ Rigidbody:
   m_UseGravity: 0
   m_IsKinematic: 0
   m_Interpolate: 0
-  m_Constraints: 0
+  m_Constraints: 80
   m_CollisionDetection: 0
 --- !u!59 &5647385760626523807
 HingeJoint:
@@ -340,7 +340,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   hingeJoint: {fileID: 5647385760626523807}
   rb: {fileID: 1388572082184423863}
-  audioSource: {fileID: 6436315715604109456}
   activitySource: {fileID: 3530682131506126043}
   printSources:
   - {fileID: 2134039638148782629}

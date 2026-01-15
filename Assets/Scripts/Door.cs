@@ -4,13 +4,11 @@ using Unity.VisualScripting;
 using UnityEngine;
 using Random = UnityEngine.Random;
 
-[RequireComponent(typeof(AudioSource))]
 public class Door : GameBehaviour
 {
     [Header("Door Components")]
     public HingeJoint hingeJoint;
     public Rigidbody rb;
-    public AudioSource audioSource;
     public ActivitySource activitySource;
     public PrintSource[] printSources;
 
@@ -204,9 +202,8 @@ public class Door : GameBehaviour
 
     private void PlaySound(AudioClip clip)
     {
-        if (clip == null || audioSource == null) return;
-        audioSource.PlayOneShot(clip);
-        Debug.Log("SON " + clip.name);
+        if (clip == null) return;
+        SoundManager.Instance.PlaySound(clip, transform.position);
     }
 
     public bool IsGrabbed()

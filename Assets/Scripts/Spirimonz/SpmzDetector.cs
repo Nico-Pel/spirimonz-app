@@ -37,7 +37,7 @@ public class SpmzDetector : Spirimonz
     public override void UpdateSpirimonzBehaviour()
     {
         base.UpdateSpirimonzBehaviour();
-
+        
         if (_currentActivitySourceDetected != null && _currentActivitySourceDetected.activityValue == 0)
         {
             _currentActivitySourceDetected = null;
@@ -53,7 +53,7 @@ public class SpmzDetector : Spirimonz
             if (dist <= detectionRange)
             {
                 //If its in range but the path is too long, abort mission bro
-                if (IsNearFromMyAgent(agent, activitySource.transform, maxPathRange) == false) return;
+                if (isOnTheMap && IsNearFromMyAgent(agent, activitySource.transform, maxPathRange) == false) return;
                 
                 if (_currentActivitySourceDetected == null || activitySource.activityValue >= _currentActivitySourceDetected.activityValue)
                 {

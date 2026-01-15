@@ -2,10 +2,11 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.AI;
 using UnityEngine.Serialization;
 using Random = UnityEngine.Random;
 
-public class House : MonoBehaviour
+public class House : GameBehaviour
 {
     public static House Instance { get; private set; }
 
@@ -86,6 +87,32 @@ public class House : MonoBehaviour
             foreach (WayPoint w in waypointsToTest)
             {
                 float dist = Vector3.Distance(w.transform.position, pos);
+                if (dist > currentBestDist)
+                {
+                    furthestWayPoint = w;
+                    currentBestDist = dist;
+                }
+            }
+            if (furthestWayPoint == null) break;
+            selectableWayPoints.Add(furthestWayPoint);
+        }
+        return selectableWayPoints[Random.Range(0, selectableWayPoints.Count)];
+    }
+    
+    public WayPoint SelectRandomWaypointFurthestFromPosition(NavMeshAgent agent, int nbOfRandomPossibilities)
+    {
+        List<WayPoint> selectableWayPoints = new List<WayPoint>();
+        
+        while (selectableWayPoints.Count < nbOfRandomPossibilities || selectableWayPoints.Count == wayPoints.Count - 1 || /*ERROR*/wayPoints.Count == 0)
+        {
+            List<WayPoint> waypointsToTest = wayPoints;
+            waypointsToTest.RemoveAll(swp => selectableWayPoints.Contains(swp));
+
+            WayPoint furthestWayPoint = null;
+            float currentBestDist = 0;
+            foreach (WayPoint w in waypointsToTest)
+            {
+                float dist = PathDistanceForAnAgent(agent, w.transform.position);
                 if (dist > currentBestDist)
                 {
                     furthestWayPoint = w;

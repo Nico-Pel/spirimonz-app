@@ -104,6 +104,43 @@ public class GameBehaviour : MonoBehaviour
         // 4. Comparaison
         return pathLength <= maxPathDistance;
     }
+
+    public float PathDistanceForAnAgent(NavMeshAgent mAgent,
+        Vector3 positionToTarget,
+        float sampleRadius = 5f)
+    {
+        if (mAgent == null || !mAgent.isOnNavMesh)
+            return -1f;
+
+        // 1. Projection de la position cible sur le NavMesh
+        if (!NavMesh.SamplePosition(
+                positionToTarget,
+                out NavMeshHit hit,
+                sampleRadius,
+                NavMesh.AllAreas))
+        {
+            return -1f;
+        }
+
+        // 2. Calcul du path
+        NavMeshPath path = new NavMeshPath();
+        if (!mAgent.CalculatePath(hit.position, path))
+            return -1f;
+
+        if (path.status != NavMeshPathStatus.PathComplete)
+            return -1f;
+
+        // 3. Calcul de la longueur du chemin
+        float pathLength = 0f;
+        Vector3[] corners = path.corners;
+
+        for (int i = 1; i < corners.Length; i++)
+        {
+            pathLength += Vector3.Distance(corners[i - 1], corners[i]);
+        }
+
+        return pathLength;
+    }
 }
 
 #region ReadOnly Attribute

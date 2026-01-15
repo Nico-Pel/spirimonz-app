@@ -190,6 +190,7 @@ public class Ghost : GameBehaviour
         }
         else if (ghostParameters.Radioactivity && other.TryGetComponent(out RadiationDetector radiationDetector))
         {
+            Debug.Log("TRIGGER RADIATIONS DETECTOR");
             if (ghostParameters.ShouldDetectRadiationOnTrigger())
             {
                 Debug.Log("TRIGGER RADIATIONS");

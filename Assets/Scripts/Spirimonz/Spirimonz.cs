@@ -223,7 +223,7 @@ public class Spirimonz : GameBehaviour, IInteractable
         if (_targetedTransform == null)
         {
             _targetedTransform =
-                House.Instance.SelectRandomWaypointFurthestFromPosition(transform.position, nbOfWayPointsToConsider).transform;
+                House.Instance.SelectRandomWaypointFurthestFromPosition(agent, nbOfWayPointsToConsider).transform;
         }
 
         if (_targetedTransform == null)
