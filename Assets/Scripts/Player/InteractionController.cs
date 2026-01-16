@@ -252,7 +252,7 @@ public class InteractionController : GameBehaviour
             if (rb != null)
             {
                 Vector3 targetPos = cam.position + cam.forward * _grabDistance;
-                rb.velocity = (targetPos - rb.position) * 20f;
+                rb.velocity = (targetPos - rb.position) * 30f;
             }
 
             if (Input.GetMouseButtonUp(0))

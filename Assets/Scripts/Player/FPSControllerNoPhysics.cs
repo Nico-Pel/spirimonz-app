@@ -96,6 +96,18 @@ public class FPSControllerNoPhysics : GameBehaviour
     private bool _canUseHeadBob;
     
     private Vector3 cameraStartLocalPos;
+    
+    [System.Serializable]
+    public class FootstepSounds
+    {
+        public string groundTag;          // Tag du sol
+        public AudioClip[] stepClips;     // Liste de sons possibles pour ce sol
+        public float volumeMultiplier = 1f;
+    }
+
+    [Header("Footsteps")]
+    public FootstepSounds[] footstepSounds; // Paramétrable dans l'Inspector
+    public float footstepVolume = 0.7f;
 
     void Start()
     {
@@ -257,27 +269,40 @@ public class FPSControllerNoPhysics : GameBehaviour
         playerCamera.transform.localPosition = camPos;
     }
 
+    private float lastStepTimer = 0f;
+
     void HandleHeadbob()
     {
         if (!_canUseHeadBob) return;
-        
+
         if (movementInput.magnitude > 0.1f && controller.isGrounded)
         {
             float stepTime = Input.GetKey(sprintKey)
                 ? stepDuration * sprintStepMultiplier
                 : stepDuration;
 
+            lastStepTimer = stepTimer;
             stepTimer += Time.deltaTime / stepTime;
 
-            if (stepTimer > 1f)
-                stepTimer -= 1f;
+            // Détecte le passage du demi-cycle (0.5) → on joue un pas
+            if (lastStepTimer < 0.5f && stepTimer >= 0.5f)
+            {
+                PlayFootstep();
+            }
 
+            if (stepTimer >= 1f)
+            {
+                stepTimer -= 1f; // reset pour le cycle suivant
+            }
+
+            // Headbob
             float bobOffset = Mathf.Sin(stepTimer * Mathf.PI * 2f) * bobAmplitude;
             playerCamera.transform.localPosition = cameraStartLocalPos + Vector3.up * bobOffset;
         }
         else
         {
             stepTimer = 0f;
+            lastStepTimer = 0f;
             playerCamera.transform.localPosition = Vector3.Lerp(
                 playerCamera.transform.localPosition,
                 cameraStartLocalPos,
@@ -308,6 +333,39 @@ public class FPSControllerNoPhysics : GameBehaviour
             {
                 currentStamina = maxStamina;
                 staminaDepleted = false; // sprint à nouveau autorisé
+            }
+        }
+    }
+    
+    private void PlayFootstep()
+    {
+        if (!controller.isGrounded || movementInput.magnitude < 0.1f)
+            return;
+
+        Ray ray = new Ray(transform.position + Vector3.up * 0.1f, Vector3.down);
+        if (Physics.Raycast(ray, out RaycastHit hit, groundCheckDistance, groundLayers))
+        {
+            // On est sur un layer Ground, maintenant regarde le tag
+            string groundTag = hit.collider.tag;
+
+            // Cherche la liste correspondant au tag
+            foreach (var footstep in footstepSounds)
+            {
+                if (footstep.groundTag == groundTag && footstep.stepClips.Length > 0)
+                {
+                    // Choisit un clip aléatoire
+                    AudioClip clip = footstep.stepClips[Random.Range(0, footstep.stepClips.Length)];
+                    SoundManager.Instance.PlaySound(
+                        clip,
+                        transform.position,
+                        footstepVolume * footstep.volumeMultiplier,
+                        1f,          // pitch
+                        -1f,         // durée (joue tout)
+                        15f,         // range (pour 3D SFX)
+                        false        // loop
+                    );
+                    break;
+                }
             }
         }
     }
