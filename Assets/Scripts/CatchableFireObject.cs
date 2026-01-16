@@ -3,17 +3,21 @@ using System.Collections;
 using System.Collections.Generic;
 using Unity.VisualScripting;
 using UnityEngine;
+using UnityEngine.Serialization;
 
-public class ThrowableFireObject : ThrowableObject
+public class CatchableFireObject : CatchableObject
 {
-    public FireableElement linkedFireableElement;
+    [FormerlySerializedAs("linkedFireableElement")] public FlammableElement linkedFlammableElement;
     
     public bool turnOffFireOnBigRotation = false;
     public float rotationLimitBeforeTurningOff = 60f;
 
     public override void OnThrow()
     {
-        linkedFireableElement.EnableFire(false);
+        if (linkedFlammableElement.turnOffOnThrow)
+        {
+            linkedFlammableElement.EnableFire(false);
+        }
     }
 
     private void Update()
@@ -23,9 +27,9 @@ public class ThrowableFireObject : ThrowableObject
             if (Mathf.Abs(transform.localEulerAngles.normalized.z) > rotationLimitBeforeTurningOff ||
                 Mathf.Abs(transform.localEulerAngles.normalized.x) > rotationLimitBeforeTurningOff)
             {
-                if (linkedFireableElement.IsOnFire())
+                if (linkedFlammableElement.IsOnFire())
                 {
-                    linkedFireableElement.EnableFire(false);
+                    linkedFlammableElement.EnableFire(false);
                 }
             }
         }
@@ -33,17 +37,17 @@ public class ThrowableFireObject : ThrowableObject
 
     public override void OnGrab()
     {
-        linkedFireableElement.canBeTurnedOn = false;
+        linkedFlammableElement.canBeTurnedOn = false;
     }
     
     public override void SpecialActionInHandsOnClick()
     {
         Player.Instance.UseSlashAnimation();
-        linkedFireableElement.canBeTurnedOn = true;
+        linkedFlammableElement.canBeTurnedOn = true;
 
         this.Invoke(0.5f, () =>
         {
-            linkedFireableElement.canBeTurnedOn = false;
+            linkedFlammableElement.canBeTurnedOn = false;
         });
     }
 }

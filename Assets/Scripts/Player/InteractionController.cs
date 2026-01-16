@@ -21,7 +21,7 @@ public class InteractionController : GameBehaviour
     public Transform handObjectDropPosition;
     public float throwForceForward = 5f;
 
-    [ReadOnly] public ThrowableObject objectInHands;
+    [ReadOnly] public CatchableObject objectInHands;
     
     [Header("Doors Settings")] 
     [SerializeField] LayerMask doorLayer;
@@ -94,54 +94,39 @@ public class InteractionController : GameBehaviour
             // Drop
             if (Input.GetKeyDown(Player.Instance.fpsController.dropObject))
             {
-                objectInHands.ChangeLayer(_objectInHandLayerIndex, 0);
-
-                Vector3 dropPos = handObjectDropPosition.position;
-                
-                // Check si un mur est juste devant
-                if (Physics.Raycast(transform.position + Vector3.up * 1.5f, Player.Instance.fpsController.playerCamera.transform.forward, out RaycastHit hit, 0.65f))
-                {
-                    dropPos = hit.point - transform.forward * 0.25f; // recule un peu pour pas clipper
-                }
-    
-                objectInHands.Drop(dropPos, Vector3.zero);
-                objectInHands = null;
+                DropObject();
             }
 
             // Throw
             if (Input.GetKeyDown(Player.Instance.fpsController.throwObject))
             {
-                Vector3 throwDir = Player.Instance.fpsController.playerCamera.transform.forward;
-
-                Vector3 throwForce = throwDir * throwForceForward;
-                Vector3 dropPos = handObjectDropPosition.position;
-                
-                // Check collision avant de lancer
-                if (Physics.Raycast(transform.position + Vector3.up * 1.5f, throwDir, out RaycastHit hit, 0.75f))
+                if (objectInHands != null)
                 {
-                    dropPos = hit.point - transform.forward * 0.25f; // recule un peu pour pas clipper
-                    throwForce = Vector3.zero;
+                    if (objectInHands.canBeThrownByPlayer)
+                    {
+                        ThrowObject();
+                    }
+                    else
+                    {
+                        DropObject();
+                    }
                 }
-
-                objectInHands.ChangeLayer(_objectInHandLayerIndex, 0);
-                objectInHands.Drop(dropPos, throwForce);
-                objectInHands = null;
             }
         }
-        else if (_currentTarget is ThrowableObject targetedThrowable)
+        else if (_currentTarget is CatchableObject targetedCatchable)
         {
             // Grab uniquement si rien en main ni en mode caméra
             if (Player.Instance.inventoryManager.OccupedHands()) return;
             
             if (Input.GetKeyDown(Player.Instance.fpsController.grabObject))
             {
-                if (targetedThrowable.canBeGrabByPlayer && !targetedThrowable.isGrabbed)
+                if (targetedCatchable.canBeGrabByPlayer && !targetedCatchable.isGrabbed)
                 {
                     //If the player has a Spirimonz in hands, unequip it
                     Player.Instance.inventoryManager.ReplaceSpirimonzByAnItem();
                     
                     //Grab item
-                    GrabItem(targetedThrowable);
+                    GrabItem(targetedCatchable);
                 }
             }
         }
@@ -155,13 +140,52 @@ public class InteractionController : GameBehaviour
         }
     }
 
-    public void GrabItem(ThrowableObject throwableObject)
+    private void DropObject()
+    {
+        if (objectInHands == null) return;
+
+        objectInHands.ChangeLayer(_objectInHandLayerIndex, 0);
+
+        Vector3 dropPos = handObjectDropPosition.position;
+                
+        // Check si un mur est juste devant
+        if (Physics.Raycast(transform.position + Vector3.up * 1.5f, Player.Instance.fpsController.playerCamera.transform.forward, out RaycastHit hit, 0.65f))
+        {
+            dropPos = hit.point - transform.forward * 0.25f; // recule un peu pour pas clipper
+        }
+    
+        objectInHands.Drop(dropPos, Vector3.zero);
+        objectInHands = null;
+    }
+
+    private void ThrowObject()
+    {
+        if (objectInHands == null) return;
+        
+        Vector3 throwDir = Player.Instance.fpsController.playerCamera.transform.forward;
+
+        Vector3 throwForce = throwDir * throwForceForward;
+        Vector3 dropPos = handObjectDropPosition.position;
+                
+        // Check collision avant de lancer
+        if (Physics.Raycast(transform.position + Vector3.up * 1.5f, throwDir, out RaycastHit hit, 0.75f))
+        {
+            dropPos = hit.point - transform.forward * 0.25f; // recule un peu pour pas clipper
+            throwForce = Vector3.zero;
+        }
+
+        objectInHands.ChangeLayer(_objectInHandLayerIndex, 0);
+        objectInHands.Drop(dropPos, throwForce);
+        objectInHands = null;
+    }
+
+    public void GrabItem(CatchableObject catchableObject)
     {
         if (objectInHands != null)
         {
             objectInHands.Drop(transform.position, Vector3.zero);
         }
-        objectInHands = throwableObject;
+        objectInHands = catchableObject;
         _objectInHandLayerIndex = objectInHands.gameObject.layer;
         Player.Instance.inventoryManager.SetHandsStateNull();
         objectInHands.ChangeLayer(Player.Instance.inventoryManager.fpsMask);
@@ -171,11 +195,14 @@ public class InteractionController : GameBehaviour
     // =========================
     // UI Handling
     // =========================
+    bool _grabTextVisible;
+
     void UpdateCursorUI()
     {
         bool showCursor = _currentTarget != null;
         UIGame.Instance.EnableCursor(showCursor || _targetedDoor != null);
-        bool showGrabText = _currentTarget is ThrowableObject;
+
+        bool showGrabText = _currentTarget is CatchableObject;
         UIGame.Instance.EnableGrabText(showGrabText);
     }
 
@@ -192,7 +219,8 @@ public class InteractionController : GameBehaviour
         
         // Raycast pour détecter la porte
         RaycastHit hit;
-        Ray ray = Player.Instance.fpsController.playerCamera.ScreenPointToRay(Input.mousePosition);
+        Transform cam = Player.Instance.fpsController.playerCamera.transform;
+        Ray ray = new Ray(cam.position, cam.forward);
 
         if (Physics.Raycast(ray, out hit, interactionDoorsDistance, doorLayer))
         {
@@ -223,7 +251,7 @@ public class InteractionController : GameBehaviour
             Rigidbody rb = _grabbedDoor.GetComponent<Rigidbody>();
             if (rb != null)
             {
-                Vector3 targetPos = Player.Instance.fpsController.playerCamera.transform.position + ray.direction * _grabDistance;
+                Vector3 targetPos = cam.position + cam.forward * _grabDistance;
                 rb.velocity = (targetPos - rb.position) * 20f;
             }
 

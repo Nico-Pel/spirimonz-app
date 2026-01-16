@@ -3,10 +3,11 @@ using UnityEngine.Events;
 using DG.Tweening;
 
 [RequireComponent(typeof(ActivitySource))]
-public class ThrowableObject : GameBehaviour, IInteractable
+public class CatchableObject : GameBehaviour, IInteractable
 {
     public bool canBeGrabByPlayer = true;
     public bool canBeThrownByGhost = true;
+    public bool canBeThrownByPlayer = true;
     public bool setRotZeroOnDrop = true;
 
     public Rigidbody rb;

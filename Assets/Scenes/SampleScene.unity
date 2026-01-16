@@ -1540,7 +1540,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   currentTemperature: 20
   _smoothSpeed: 1
-  minTemperature: -2
+  minNormalTemperature: 1
+  minFreezingTemperature: -2
   maxTemperature: 30
   naturalReequilibriumSpeed: 0.01
   radiationInTheRoom: 0
@@ -2930,7 +2931,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   currentTemperature: 20
   _smoothSpeed: 1
-  minTemperature: -2
+  minNormalTemperature: 1
+  minFreezingTemperature: -2
   maxTemperature: 30
   naturalReequilibriumSpeed: 0.01
   radiationInTheRoom: 0
@@ -7498,7 +7500,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   currentTemperature: 20
   _smoothSpeed: 1
-  minTemperature: -2
+  minNormalTemperature: 1
+  minFreezingTemperature: -2
   maxTemperature: 30
   naturalReequilibriumSpeed: 0.01
   radiationInTheRoom: 0
@@ -9320,7 +9323,7 @@ Transform:
   m_GameObject: {fileID: 668004884}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0.45, y: -0.3, z: 0.75}
+  m_LocalPosition: {x: 0.45, y: -0.355, z: 0.55}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -12516,15 +12519,15 @@ Canvas:
   m_GameObject: {fileID: 867395319}
   m_Enabled: 1
   serializedVersion: 3
-  m_RenderMode: 0
-  m_Camera: {fileID: 0}
-  m_PlaneDistance: 100
+  m_RenderMode: 1
+  m_Camera: {fileID: 963194227}
+  m_PlaneDistance: 1
   m_PixelPerfect: 0
   m_ReceivesEvents: 1
   m_OverrideSorting: 0
   m_OverridePixelPerfect: 0
   m_SortingBucketNormalizedSize: 0
-  m_VertexColorAlwaysGammaSpace: 0
+  m_VertexColorAlwaysGammaSpace: 1
   m_AdditionalShaderChannelsFlag: 25
   m_UpdateRectTransformForStandalone: 0
   m_SortingLayerID: 0
@@ -13260,6 +13263,63 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 3161840162097048671, guid: 905efafb6164a41b2bc386586fec50b0, type: 3}
   m_PrefabInstance: {fileID: 913171842}
   m_PrefabAsset: {fileID: 0}
+--- !u!1001 &913641825
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: 2291613764001267098, guid: 6dede69480a6b452b8aca7d2d8c328d4, type: 3}
+      propertyPath: m_Name
+      value: Candle (2)
+      objectReference: {fileID: 0}
+    - target: {fileID: 7754129337785970131, guid: 6dede69480a6b452b8aca7d2d8c328d4, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: -7.641
+      objectReference: {fileID: 0}
+    - target: {fileID: 7754129337785970131, guid: 6dede69480a6b452b8aca7d2d8c328d4, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0.802
+      objectReference: {fileID: 0}
+    - target: {fileID: 7754129337785970131, guid: 6dede69480a6b452b8aca7d2d8c328d4, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 1.661
+      objectReference: {fileID: 0}
+    - target: {fileID: 7754129337785970131, guid: 6dede69480a6b452b8aca7d2d8c328d4, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7754129337785970131, guid: 6dede69480a6b452b8aca7d2d8c328d4, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7754129337785970131, guid: 6dede69480a6b452b8aca7d2d8c328d4, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7754129337785970131, guid: 6dede69480a6b452b8aca7d2d8c328d4, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7754129337785970131, guid: 6dede69480a6b452b8aca7d2d8c328d4, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7754129337785970131, guid: 6dede69480a6b452b8aca7d2d8c328d4, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7754129337785970131, guid: 6dede69480a6b452b8aca7d2d8c328d4, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 6dede69480a6b452b8aca7d2d8c328d4, type: 3}
 --- !u!1001 &922584772
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -14147,7 +14207,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   currentTemperature: 20
   _smoothSpeed: 1
-  minTemperature: -2
+  minNormalTemperature: 1
+  minFreezingTemperature: -2
   maxTemperature: 30
   naturalReequilibriumSpeed: 0.01
   radiationInTheRoom: 0
@@ -15317,6 +15378,63 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 4145758079817579998, guid: ddfacdc07df0b44a9a65215254d4e170, type: 3}
   m_PrefabInstance: {fileID: 1083705400}
   m_PrefabAsset: {fileID: 0}
+--- !u!1001 &1088841397
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: 2291613764001267098, guid: 6dede69480a6b452b8aca7d2d8c328d4, type: 3}
+      propertyPath: m_Name
+      value: Candle (1)
+      objectReference: {fileID: 0}
+    - target: {fileID: 7754129337785970131, guid: 6dede69480a6b452b8aca7d2d8c328d4, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 7.679
+      objectReference: {fileID: 0}
+    - target: {fileID: 7754129337785970131, guid: 6dede69480a6b452b8aca7d2d8c328d4, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 1.122
+      objectReference: {fileID: 0}
+    - target: {fileID: 7754129337785970131, guid: 6dede69480a6b452b8aca7d2d8c328d4, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 10.25
+      objectReference: {fileID: 0}
+    - target: {fileID: 7754129337785970131, guid: 6dede69480a6b452b8aca7d2d8c328d4, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7754129337785970131, guid: 6dede69480a6b452b8aca7d2d8c328d4, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7754129337785970131, guid: 6dede69480a6b452b8aca7d2d8c328d4, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7754129337785970131, guid: 6dede69480a6b452b8aca7d2d8c328d4, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7754129337785970131, guid: 6dede69480a6b452b8aca7d2d8c328d4, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7754129337785970131, guid: 6dede69480a6b452b8aca7d2d8c328d4, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7754129337785970131, guid: 6dede69480a6b452b8aca7d2d8c328d4, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 6dede69480a6b452b8aca7d2d8c328d4, type: 3}
 --- !u!1001 &1094095743
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -15759,7 +15877,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
-  m_RaycastTarget: 1
+  m_RaycastTarget: 0
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:
@@ -16981,7 +17099,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   currentTemperature: 20
   _smoothSpeed: 1
-  minTemperature: -2
+  minNormalTemperature: 1
+  minFreezingTemperature: -2
   maxTemperature: 30
   naturalReequilibriumSpeed: 0.01
   radiationInTheRoom: 0
@@ -18903,6 +19022,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   canBeGrabByPlayer: 1
   canBeThrownByGhost: 1
+  canBeThrownByPlayer: 1
   setRotZeroOnDrop: 1
   rb: {fileID: 0}
   activitySource: {fileID: 0}
@@ -22316,7 +22436,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   currentTemperature: 20
   _smoothSpeed: 1
-  minTemperature: -2
+  minNormalTemperature: 1
+  minFreezingTemperature: -2
   maxTemperature: 30
   naturalReequilibriumSpeed: 0.01
   radiationInTheRoom: 0
@@ -25062,7 +25183,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   currentTemperature: 20
   _smoothSpeed: 1
-  minTemperature: -2
+  minNormalTemperature: 1
+  minFreezingTemperature: -2
   maxTemperature: 30
   naturalReequilibriumSpeed: 0.01
   radiationInTheRoom: 0
@@ -29814,7 +29936,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1034365385824132042, guid: f2cf75e1c9ef046a5a4f22c2cfa778c4, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 12.476001
+      value: 10.826
       objectReference: {fileID: 0}
     - target: {fileID: 1034365385824132042, guid: f2cf75e1c9ef046a5a4f22c2cfa778c4, type: 3}
       propertyPath: m_LocalPosition.y
@@ -29822,7 +29944,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1034365385824132042, guid: f2cf75e1c9ef046a5a4f22c2cfa778c4, type: 3}
       propertyPath: m_LocalPosition.z
-      value: 8.226
+      value: 8.255
       objectReference: {fileID: 0}
     - target: {fileID: 1034365385824132042, guid: f2cf75e1c9ef046a5a4f22c2cfa778c4, type: 3}
       propertyPath: m_LocalRotation.w
@@ -31864,4 +31986,6 @@ SceneRoots:
   - {fileID: 354615081}
   - {fileID: 1463564270}
   - {fileID: 1778122045141036001}
+  - {fileID: 1088841397}
+  - {fileID: 913641825}
   - {fileID: 843611468}

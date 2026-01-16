@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 using UnityEditor;
+using UnityEngine.Serialization;
 
 [CreateAssetMenu(fileName = "GhostParameters", menuName = "GhostParameters")]
 public class GhostParameters : ScriptableObject
@@ -35,7 +36,7 @@ public class GhostParameters : ScriptableObject
     [Header("Evidences")] 
     public bool SpiritPrints;
     public bool EatFruits;
-    public bool AnswerVocals;
+    [FormerlySerializedAs("AnswerVocals")] public bool BlowUpFlammables;
     public bool FreezingTemperature;
     public bool HighSpiritActivities;
     public bool SpiritOrbs;

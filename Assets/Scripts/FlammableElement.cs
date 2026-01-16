@@ -3,13 +3,19 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class FireableElement : GameBehaviour
+public class FlammableElement : GameBehaviour
 {
     public bool startOnFire;
     public bool turnOffOnThrow;
+    public Room optionalLinkedRoom;
     
     public GameObject[] fireObjects;
     public ParticleSystem[] fireOffParticles;
+
+    [Header("Ghost sound settings")]
+    public AudioClip blowUpByGhostSoundClip;
+    public float ghostVolume = 1f;
+    public float ghostPitch = 1f;
 
     public bool canBeTurnedOn = true;
 
@@ -20,12 +26,7 @@ public class FireableElement : GameBehaviour
         EnableFire(startOnFire, false);
     }
 
-    private void TurnOffFire()
-    {
-        EnableFire(false);
-    }
-
-    public void EnableFire(bool enable, bool useParticlesOff = true)
+    public void EnableFire(bool enable, bool useParticlesOff = true, bool useGhostSoundClip = false)
     {
         if (enable == true && canBeTurnedOn == false) return;
         
@@ -44,6 +45,11 @@ public class FireableElement : GameBehaviour
                 {
                     particles.Play();
                 }
+            }
+
+            if (useGhostSoundClip && blowUpByGhostSoundClip != null)
+            {
+                SoundManager.Instance.PlaySound(blowUpByGhostSoundClip, transform.position, ghostVolume, ghostPitch, -1f, 10f);
             }
         }
     }

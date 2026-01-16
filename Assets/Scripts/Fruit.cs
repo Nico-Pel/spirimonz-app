@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using DG.Tweening;
 
-public class Fruit : ThrowableObject
+public class Fruit : CatchableObject
 {
     public bool disappearAfterEat;
     public MeshFilter meshFilter;

@@ -136,7 +136,7 @@ public class InventoryManager : GameBehaviour
         
         if (selectedSpirimonz.isOnTheMap)
         {
-            handAnimator.SetInteger("HandPos", (int)HandPoses.Null);
+            handAnimator.SetInteger("HandPos", (int)HandPoses.LightAim);
             return;
         }
         
@@ -169,7 +169,7 @@ public class InventoryManager : GameBehaviour
     {
         if (selectedSpirimonz == null) return; //ERROR, no spirimonz selected
         
-        handAnimator.SetInteger("HandPos", (int)HandPoses.Null);
+        handAnimator.SetInteger("HandPos", (int)HandPoses.LightAim);
         Spirimonz spirimonzToDrop = selectedSpirimonz;
         spirimonzToDrop.transform.parent = House.Instance.transform;
         spirimonzToDrop.ChangeLayer(spirimonzMask, 0);

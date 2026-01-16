@@ -30,6 +30,7 @@ public class Ghost : GameBehaviour
         TriggerEvent,
         Hunt,
         PlayWithDoor,
+        BlowOutAFlammable,
         Nothing
     }
     
@@ -460,6 +461,17 @@ public class Ghost : GameBehaviour
                 PlayWithDoor();
                 Debug.Log("Activity triggered : Play With Door " + Time.time);
                 break;
+            
+            case GhostActivities.BlowOutAFlammable:
+                if (ghostParameters.BlowUpFlammables)
+                {
+                    BlowUpARandomFlammable();
+                }
+                else
+                {
+                    TriggerActivity();
+                }
+                break;
 
             default:
                 Debug.Log("Activity triggered : Nothing " + Time.time);
@@ -468,6 +480,15 @@ public class Ghost : GameBehaviour
         }
         
         this.Invoke(nextActivityTime, TriggerActivity);
+    }
+
+    private void BlowUpARandomFlammable()
+    {
+        FlammableElement flammableToBlowUp = GetRandomFlammableElement(true);
+        if (flammableToBlowUp != null)
+        {
+            flammableToBlowUp.EnableFire(false, true, true);
+        }
     }
 
     private void PlayWithDoor()
@@ -671,7 +692,7 @@ public class Ghost : GameBehaviour
         currentWayPoint = house.SelectRandomWayPointFromARoom(room);
     }
 
-    private ThrowableObject GetRandomThrowableObjects()
+    private CatchableObject GetRandomCatchableObject()
     {
         Collider[] hits = Physics.OverlapSphere(
             transform.position,
@@ -679,22 +700,57 @@ public class Ghost : GameBehaviour
             throwableMask
         );
 
-        List<ThrowableObject> throwables = new List<ThrowableObject>();
+        List<CatchableObject> catchables = new List<CatchableObject>();
 
         foreach (var hit in hits)
         {
-            if (hit.TryGetComponent(out ThrowableObject throwable))
+            if (hit.TryGetComponent(out CatchableObject catchable))
             {
                 //Ignore objects from another stair
-                if (throwable.transform.position.y - transform.position.y > 3 || throwable.transform.position.y - transform.position.y < -3) continue;
-                if(!throwable.isGrabbed && throwable.canBeThrownByGhost)
-                    throwables.Add(throwable);
+                if (catchable.transform.position.y - transform.position.y > 3 || catchable.transform.position.y - transform.position.y < -3) continue;
+                if(!catchable.isGrabbed && catchable.canBeThrownByGhost)
+                    catchables.Add(catchable);
             }
         }
 
-        if (throwables.Count == 0) return null;
+        if (catchables.Count == 0) return null;
 
-        return throwables[Random.Range(0, throwables.Count)];
+        return catchables[Random.Range(0, catchables.Count)];
+    }
+    
+    private FlammableElement GetRandomFlammableElement(bool enabledStateWanted)
+    {
+        Collider[] hits = Physics.OverlapSphere(
+            transform.position,
+            throwDetectionRange
+        );
+
+        List<FlammableElement> flammables = new List<FlammableElement>();
+
+        foreach (var hit in hits)
+        {
+            if (hit.TryGetComponent(out FlammableElement flammable))
+            {
+                if (flammable.optionalLinkedRoom != null && flammable.optionalLinkedRoom != currentRoom)
+                {
+                    continue;
+                }
+                //Ignore objects from another stair
+                else if (flammable.optionalLinkedRoom == null &&
+                         flammable.transform.position.y - transform.position.y > 3 ||
+                         flammable.transform.position.y - transform.position.y < -3)
+                {
+                    continue;
+                }
+                
+                if(flammable.IsOnFire() == enabledStateWanted)
+                    flammables.Add(flammable);
+            }
+        }
+
+        if (flammables.Count == 0) return null;
+
+        return flammables[Random.Range(0, flammables.Count)];
     }
     
     private Door GetRandomDoor()
@@ -724,9 +780,9 @@ public class Ghost : GameBehaviour
         return doors[Random.Range(0, doors.Count)];
     }
 
-    public void ThrowObject(ThrowableObject objectToThrow = null)
+    public void ThrowObject(CatchableObject objectToThrow = null)
     {
-        if (objectToThrow == null) objectToThrow = GetRandomThrowableObjects();
+        if (objectToThrow == null) objectToThrow = GetRandomCatchableObject();
 
         if (objectToThrow == null) return; //No object to throw found
         

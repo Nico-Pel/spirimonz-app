@@ -10,7 +10,8 @@ public class Room : MonoBehaviour
     public float currentTemperature = 20f;
     private float _temperatureTarget = 20f;
     public float _smoothSpeed = 1f; // vitesse de transition (°C/sec)
-    public float minTemperature = -2f; // température minimale possible
+    public float minNormalTemperature = 1f; // température minimale possible
+    public float minFreezingTemperature = -2f; // température minimale possible (Freezing)
     public float maxTemperature = 30f; // température maximale possible
     
     public float naturalReequilibriumSpeed = 0.01f;
@@ -104,6 +105,9 @@ public class Room : MonoBehaviour
         // Optional subtle noise
         currentTemperature += Random.Range(-0.02f, 0.02f);
 
+        float minTemperature = house.currentGhost.ghostParameters.FreezingTemperature
+            ? minFreezingTemperature
+            : minNormalTemperature;
         currentTemperature = Mathf.Clamp(currentTemperature, minTemperature, maxTemperature);
 
         //Radiations
@@ -138,6 +142,9 @@ public class Room : MonoBehaviour
     public void AddTemperatureDelta(float delta)
     {
         _temperatureTarget += delta;
+        float minTemperature = house.currentGhost.ghostParameters.FreezingTemperature
+            ? minFreezingTemperature
+            : minNormalTemperature;
         _temperatureTarget = Mathf.Clamp(_temperatureTarget, minTemperature, maxTemperature);
     }
 

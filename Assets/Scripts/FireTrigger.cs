@@ -1,11 +1,12 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 public class FireTrigger : MonoBehaviour
 {
-    [Tooltip("Having a linked fireable object is not an obligation")]
-    public FireableElement linkedFireableObject;
+    [Tooltip("Having a linked flammable object is not an obligation")]
+    public FlammableElement linkedFlammableObject;
 
     public bool canGiveFire = true;
     
@@ -13,12 +14,12 @@ public class FireTrigger : MonoBehaviour
     {
         if (canGiveFire == false) return;
         
-        if (linkedFireableObject != null)
+        if (linkedFlammableObject != null)
         {
-            if (linkedFireableObject.IsOnFire() == false) return;
+            if (linkedFlammableObject.IsOnFire() == false) return;
         }
         
-        if (other.TryGetComponent(out FireableElement otherFire))
+        if (other.TryGetComponent(out FlammableElement otherFire))
         {
             if (otherFire.IsOnFire() == false)
             {
