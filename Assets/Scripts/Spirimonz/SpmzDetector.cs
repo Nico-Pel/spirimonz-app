@@ -25,6 +25,13 @@ public class SpmzDetector : Spirimonz
     public Material detectionMatBase;
     public Material detectionMatFive;
     
+    [Header("Sounds Settings")] 
+    public AudioClip detectionSound;
+    public float soundVolume = 0.8f;
+    public float basePitch = 0.7f;
+    public float bonusPitchPerDetectionLevel = 0.2f;
+    public AudioClip detectionFiveSound;
+    
     private ActivitySource _currentActivitySourceDetected;
     private bool _newActivityReached;
     
@@ -53,9 +60,9 @@ public class SpmzDetector : Spirimonz
             if (dist <= detectionRange)
             {
                 //If its in range but the path is too long, abort mission bro
-                if (isOnTheMap && IsNearFromMyAgent(agent, activitySource.transform, maxPathRange) == false) return;
+                if (isOnTheMap && IsNearFromMyAgent(agent, activitySource.transform, maxPathRange) == false) continue;
                 
-                if (_currentActivitySourceDetected == null || activitySource.activityValue >= _currentActivitySourceDetected.activityValue)
+                if (_currentActivitySourceDetected == null || activitySource.activityValue > _currentActivitySourceDetected.activityValue)
                 {
                     NewActivityDetected(activitySource);
                 }
@@ -77,6 +84,13 @@ public class SpmzDetector : Spirimonz
         _currentActivitySourceDetected = activitySource;
         UpdateDetectionFeedback();
         _newActivityReached = false;
+
+        if (detectionSound != null)
+        {
+            AudioClip clipToUse = activitySource.activityValue == 5 ? detectionFiveSound : detectionSound;
+            float pitch = activitySource.activityValue == 5 ? 1f : basePitch + bonusPitchPerDetectionLevel * (activitySource.activityValue - 1);
+            SoundManager.Instance.PlaySound(clipToUse, transform.position, soundVolume, pitch, -1f, 15f, false, transform);
+        }
     }
 
     private void UpdateDetectionFeedback()
@@ -112,11 +126,11 @@ public class SpmzDetector : Spirimonz
         Vector3 targetPos = _currentActivitySourceDetected.transform.position;
 
         // Cherche le point atteignable le plus proche sur le NavMesh
-        if (NavMesh.SamplePosition(targetPos, out NavMeshHit hit, 2f, NavMesh.AllAreas))
+        if (NavMesh.SamplePosition(targetPos, out NavMeshHit hit, 3.5f, NavMesh.AllAreas))
         {
             float dist = Vector3.Distance(transform.position, hit.position);
 
-            if (dist > activityDistanceToReach)
+            if (agent != null && dist > activityDistanceToReach)
             {
                 agent.speed = detectionWalkSpeed;
                 agent.SetDestination(hit.position);
@@ -125,7 +139,6 @@ public class SpmzDetector : Spirimonz
             {
                 if (_newActivityReached == false)
                 {
-                    transform.DOLookAt(hit.position, 0.5f);
                     ActivityReached();
                 }
             }
@@ -135,6 +148,12 @@ public class SpmzDetector : Spirimonz
     private void ActivityReached()
     {
         _newActivityReached = true;
+
+        //Look at activity source without rotating up or down
+        Vector3 activitySourcePos = _currentActivitySourceDetected.transform.position;
+        Vector3 pointToWatch = new Vector3(activitySourcePos.x, transform.position.y, activitySourcePos.z);
+        transform.DOLookAt(pointToWatch, 0.5f);
+        
         if (animator != null)
         {
             animator.SetTrigger("ActivityReached");
@@ -170,16 +189,18 @@ public class SpmzDetector : Spirimonz
 
     private void BlinkingDetection()
     {
-        bool enableEmission = _currentActivitySourceDetected.activityValue == 5 && _emissionEnabled == false;
+        bool enableEmission = _currentActivitySourceDetected != null && _currentActivitySourceDetected.activityValue == 5 && _emissionEnabled == false;
         foreach (MeshRenderer mr in mRenderers)
         {
             if (enableEmission)
             {
                 mr.material.EnableKeyword("_EMISSION");
+                _emissionEnabled = true;
             }
             else
             {
                 mr.material.DisableKeyword("_EMISSION");
+                _emissionEnabled = false;
             }
         }
 

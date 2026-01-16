@@ -48,17 +48,17 @@ public class SoundManager : GameBehaviour
         // Gestion de la durée
         if (duration > 0f)
         {
-            if (sourceParent != null)
+            if (sourceParent == null)
                 Destroy(go, duration);
             else
-                Destroy(source);
+                Destroy(source, duration);
         }
         else if (!loop)
         {
             float effectivePitch = Mathf.Max(0.01f, Mathf.Abs(pitch));
             this.Invoke(clip.length / effectivePitch, () =>
             {
-                if (sourceParent != null)
+                if (sourceParent == null)
                     Destroy(go);
                 else
                     Destroy(source);

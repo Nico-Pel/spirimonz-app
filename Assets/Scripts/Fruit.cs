@@ -13,8 +13,16 @@ public class Fruit : CatchableObject
     private float elevationMax = 2;
 
     public bool canBeEaten { get; set; } = true;
-    private int _currentStep = 0;
 
+    [Header("Sounds settings")] 
+    public float volume = 0.6f;
+    public float pitchMin = 0.8f;
+    public float pitchMax = 1.2f;
+
+    public AudioClip eatSound;
+    public AudioClip endEatSound;
+    
+    private int _currentStep = 0;
     private Ghost _ghost;
 
     public void EatFruit(Ghost ghost)
@@ -50,10 +58,19 @@ public class Fruit : CatchableObject
                 if (eatSteps.Length >= _currentStep + 1 || disappearAfterEat)
                 {
                     this.Invoke(0.25f, Crunch);
+                    if (eatSound != null)
+                    {
+                        SoundManager.Instance.PlaySound(eatSound, transform.position, volume, Random.Range(pitchMin, pitchMax));
+                    }
                 }
                 else
                 {
                     this.Invoke(0.25f, StopEating);
+                    if (eatSound != null)
+                    {
+                        AudioClip clipToUse = endEatSound != null ? endEatSound : eatSound;
+                        SoundManager.Instance.PlaySound(clipToUse, transform.position, volume);
+                    }
                 }
             }
         });

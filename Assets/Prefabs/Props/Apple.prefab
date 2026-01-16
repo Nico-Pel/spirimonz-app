@@ -49,6 +49,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2f7ff7d213c834367be9c5e1d87d0415, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  canBeGrabByPlayer: 1
+  canBeThrownByGhost: 1
+  canBeThrownByPlayer: 1
+  setRotZeroOnDrop: 1
   rb: {fileID: 7055402289030159528}
   activitySource: {fileID: 3683657692521461788}
   isGrabbed: 0
@@ -58,6 +62,11 @@ MonoBehaviour:
   - {fileID: -2530272266103005814, guid: 25bb645ea70064daba3fe7b042f79378, type: 3}
   - {fileID: 3714331914917792922, guid: 25bb645ea70064daba3fe7b042f79378, type: 3}
   - {fileID: 1211913431425390813, guid: 25bb645ea70064daba3fe7b042f79378, type: 3}
+  volume: 0.4
+  pitchMin: 0.8
+  pitchMax: 1.2
+  eatSound: {fileID: 8300000, guid: 5d4393359dafc4c018cd956d6727e6f5, type: 3}
+  endEatSound: {fileID: 8300000, guid: a5ee26a5035924986aa42ce0d2d2229e, type: 3}
 --- !u!33 &7867104623987860100
 MeshFilter:
   m_ObjectHideFlags: 0
