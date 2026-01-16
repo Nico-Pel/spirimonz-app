@@ -10,6 +10,9 @@ public class House : GameBehaviour
 {
     public static House Instance { get; private set; }
 
+    public AudioClip ambientSound;
+    public float ambientSoundVolume = 0.2f;
+    
     public Room[] rooms;
     public Room[] hauntableRooms;
     public bool electricCurrentEnabled = true;
@@ -29,6 +32,14 @@ public class House : GameBehaviour
     {
         Instance = this;
         InitializeHouse();
+    }
+
+    private void Start()
+    {
+        if (ambientSound != null)
+        {
+            SoundManager.Instance.PlayAmbient(ambientSound, ambientSoundVolume, true);
+        }
     }
 
     private void InitializeHouse()

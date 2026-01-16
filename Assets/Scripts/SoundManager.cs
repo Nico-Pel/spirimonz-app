@@ -5,11 +5,15 @@ using UnityEngine;
 public class SoundManager : GameBehaviour
 {
     public static SoundManager Instance { get; private set; }
-    
+
+    private AudioSource _ambientSource;
+
     private void Awake()
     {
         Instance = this;
     }
+
+    // --- Sound Effects existants
     public SoundInstance PlaySound(
         AudioClip clip,
         Vector3 position,
@@ -41,39 +45,56 @@ public class SoundManager : GameBehaviour
         source.loop = loop;
         source.Play();
 
-        // 🔁 Gestion de la durée
+        // Gestion de la durée
         if (duration > 0f)
         {
             if (sourceParent != null)
-            {
                 Destroy(go, duration);
-            }
             else
-            {
                 Destroy(source);
-            }
         }
         else if (!loop)
         {
-            // Pas de loop et durée indéterminée → jouer une fois
             float effectivePitch = Mathf.Max(0.01f, Mathf.Abs(pitch));
             this.Invoke(clip.length / effectivePitch, () =>
             {
                 if (sourceParent != null)
-                {
-                    Destroy(go, duration);
-                }
+                    Destroy(go);
                 else
-                {
                     Destroy(source);
-                }
             });
         }
-        // else : loop + durée indéterminée → stop manuel uniquement
 
         return new SoundInstance(source, go);
     }
-    
+
+    // --- Nouvelle fonction pour les sons d'ambiance
+    public void PlayAmbient(AudioClip clip, float volume = 1f, bool loop = true)
+    {
+        if (clip == null) return;
+
+        // Crée la source si elle n'existe pas
+        if (_ambientSource == null)
+        {
+            GameObject go = new GameObject("AmbientAudio");
+            go.transform.SetParent(transform);
+            _ambientSource = go.AddComponent<AudioSource>();
+            _ambientSource.spatialBlend = 0f; // 2D
+            _ambientSource.loop = loop;
+        }
+
+        _ambientSource.clip = clip;
+        _ambientSource.volume = volume;
+        _ambientSource.loop = loop;
+        _ambientSource.Play();
+    }
+
+    public void StopAmbient()
+    {
+        if (_ambientSource != null)
+            _ambientSource.Stop();
+    }
+
     public class SoundInstance
     {
         private AudioSource _source;
