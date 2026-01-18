@@ -15267,8 +15267,9 @@ MonoBehaviour:
   canBeTakenBackIntoHands: 1
   powerActiveInHands: 1
   lookAtPlayerWhileWaiting: 1
-  openDoorsOnItsWay: 0
+  openDoorsOnItsWay: 1
   lookForwardOnDropOnMap: 0
+  lookAtDistanceFromPlayer: 10
   handPosType: 5
   baseBehaviour: 1
   secondaryBehaviour: 0
@@ -15330,7 +15331,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bbb32acf3b95949e6a7b2bd6d7727fe2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  linkedFireableObject: {fileID: 0}
+  linkedFlammableObject: {fileID: 0}
   canGiveFire: 1
 --- !u!135 &1661653435779877194
 SphereCollider:
