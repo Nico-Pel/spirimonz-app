@@ -15,9 +15,10 @@ public class SpmzZoneUV : Spirimonz
         base.InitSpirimonz();
         printSources.AddRange(FindObjectsOfType<PrintSource>());
     }
-    public override void UpdateSpirimonzBehaviour()
+    public override bool UpdateSpirimonzBehaviour()
     {
-        base.UpdateSpirimonzBehaviour();
+        if (!base.UpdateSpirimonzBehaviour())
+            return false;
         
         foreach (PrintSource ps in printSources)
         {
@@ -27,6 +28,8 @@ public class SpmzZoneUV : Spirimonz
                 ps.ChargingColor(chargeSpeed * Time.deltaTime);
             }
         }
+
+        return true;
     }
     
     private void OnDrawGizmosSelected()

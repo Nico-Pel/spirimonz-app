@@ -61,4 +61,10 @@ public class SpmzRadiationDetector : Spirimonz
             radiationDetector.StopUsingSound();
         }
     }
+
+    protected override void OnHuntStart()
+    {
+        base.OnHuntStart();
+        radiationDetector.EndDetection();
+    }
 }

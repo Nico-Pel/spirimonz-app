@@ -28,8 +28,11 @@ public class SpmzTemperatureColor : Spirimonz
         SetTemperatureColors(_currentColor);
     }
 
-    public override void UpdateSpirimonzBehaviour()
+    public override bool UpdateSpirimonzBehaviour()
     {
+        if (!base.UpdateSpirimonzBehaviour())
+            return false;
+        
         base.UpdateSpirimonzBehaviour();
         
         float currentTemperature = currentRoom.currentTemperature;
@@ -49,6 +52,8 @@ public class SpmzTemperatureColor : Spirimonz
         );
 
         SetTemperatureColors(_currentColor);
+        
+        return true;
     }
 
     private void SetTemperatureColors(Color colorToSet)

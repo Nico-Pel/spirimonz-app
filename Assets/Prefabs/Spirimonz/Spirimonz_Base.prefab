@@ -31,7 +31,8 @@ Transform:
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
-  m_Children: []
+  m_Children:
+  - {fileID: 4489453831717710807}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!195 &8641687317530957492
@@ -106,3 +107,65 @@ Rigidbody:
   m_Interpolate: 0
   m_Constraints: 0
   m_CollisionDetection: 1
+--- !u!1001 &6977776132779983122
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 6657164899661425278}
+    m_Modifications:
+    - target: {fileID: 6817240463502748357, guid: 2d942aca06e3a43adb4210fc7a54497c, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6817240463502748357, guid: 2d942aca06e3a43adb4210fc7a54497c, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0.4
+      objectReference: {fileID: 0}
+    - target: {fileID: 6817240463502748357, guid: 2d942aca06e3a43adb4210fc7a54497c, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6817240463502748357, guid: 2d942aca06e3a43adb4210fc7a54497c, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 0.7071068
+      objectReference: {fileID: 0}
+    - target: {fileID: 6817240463502748357, guid: 2d942aca06e3a43adb4210fc7a54497c, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: -0.7071068
+      objectReference: {fileID: 0}
+    - target: {fileID: 6817240463502748357, guid: 2d942aca06e3a43adb4210fc7a54497c, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6817240463502748357, guid: 2d942aca06e3a43adb4210fc7a54497c, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6817240463502748357, guid: 2d942aca06e3a43adb4210fc7a54497c, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6817240463502748357, guid: 2d942aca06e3a43adb4210fc7a54497c, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6817240463502748357, guid: 2d942aca06e3a43adb4210fc7a54497c, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6817240463503069269, guid: 2d942aca06e3a43adb4210fc7a54497c, type: 3}
+      propertyPath: m_Name
+      value: Spirimorb
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 2d942aca06e3a43adb4210fc7a54497c, type: 3}
+--- !u!4 &4489453831717710807 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 6817240463502748357, guid: 2d942aca06e3a43adb4210fc7a54497c, type: 3}
+  m_PrefabInstance: {fileID: 6977776132779983122}
+  m_PrefabAsset: {fileID: 0}

@@ -19,6 +19,8 @@ public class Player : MonoBehaviour
 
     public Transform head;
     public Transform body;
+
+    private bool _isDead;
     
     private void Awake()
     {
@@ -54,6 +56,8 @@ public class Player : MonoBehaviour
 
     public void Die()
     {
-        //Game Over!
+        _isDead = true;
     }
+    
+    public bool IsDead() => _isDead;
 }

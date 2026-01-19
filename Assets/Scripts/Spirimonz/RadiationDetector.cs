@@ -63,7 +63,7 @@ public class RadiationDetector : GameBehaviour
         }
     }
 
-    private void EndDetection()
+    public void EndDetection()
     {
         _radiation = false;
         _currentDuration = 0;

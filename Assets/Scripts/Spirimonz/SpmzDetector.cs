@@ -41,9 +41,10 @@ public class SpmzDetector : Spirimonz
         base.InitSpirimonz();
         activitySources.AddRange(FindObjectsOfType<ActivitySource>());
     }
-    public override void UpdateSpirimonzBehaviour()
+    public override bool UpdateSpirimonzBehaviour()
     {
-        base.UpdateSpirimonzBehaviour();
+        if (!base.UpdateSpirimonzBehaviour())
+            return false;
         
         if (_currentActivitySourceDetected != null && _currentActivitySourceDetected.activityValue == 0)
         {
@@ -77,6 +78,8 @@ public class SpmzDetector : Spirimonz
         {
             SwitchBehaviour();
         }
+
+        return true;
     }
 
     private void NewActivityDetected(ActivitySource activitySource)

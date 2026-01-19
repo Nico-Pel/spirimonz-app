@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using Unity.Collections;
 using UnityEngine;
 using UnityEngine.AI;
+using UnityEngine.Events;
 using UnityEngine.Serialization;
 using Random = UnityEngine.Random;
 
@@ -46,9 +47,9 @@ public class Ghost : GameBehaviour
     public Room favoriteRoom;
     public Room currentRoom;
     
-    [Header("Ghost Prints")]
-    public float sprintDurationMin = 6f;
-    public float sprintDurationMax = 15f;
+    [FormerlySerializedAs("sprintDurationMin")] [Header("Ghost Prints")]
+    public float printDurationMin = 6f;
+    [FormerlySerializedAs("sprintDurationMax")] public float printDurationMax = 15f;
     public Sprite[] pawSprites;
     public Sprite fingerSprite;
 
@@ -68,11 +69,13 @@ public class Ghost : GameBehaviour
     public float minimumAngrinessToHunt = 50;
     public float angrinessToAddByTriggeringPlayer = 10f;
     
-    [Header("Ghost Stats : Hunting")] 
-    public float startHuntingStandingTime = 2;
+    [Header("Ghost Stats : Hunting")]
+    public float forecastTimeBeforeAHunt = 5f;
+    public float startHuntingStandingTime = 4;
     public float forcedStartTargetingTime = 4;
     public float averageHuntTime = 10f;
     public float huntTimeVariation = 5f;
+    public float minimumPeaceTime = 60f;
 
     [Header("Ghost Stats : Waypoints Hunting")]
 
@@ -117,10 +120,16 @@ public class Ghost : GameBehaviour
     private bool _targetingPlayer;
 
     [Header("Ghost Components")] 
-    public MeshRenderer renderer;
+    public MeshRenderer[] renderers;
     public NavMeshAgent agent;
     public GameObject ghostModel;
     public GhostVision vision;
+
+    public UnityEvent onGhostStartToHunt;
+    public UnityEvent onGhostCallForAHunt;
+    public UnityEvent onGhostStopToHunt;
+    
+    private bool _canHunt = true;
     
     int agentContacts = 0;
 
@@ -234,12 +243,26 @@ public class Ghost : GameBehaviour
         }
     }
 
-    public void TriggerHunting()
+    private void TriggerHunting()
     {
+        if (_canHunt == false) return;
+        _canHunt = false;
+        
+        onGhostCallForAHunt?.Invoke();
+        this.Invoke(forecastTimeBeforeAHunt, StandingBeforeHunting);
+    }
+
+    private void StandingBeforeHunting()
+    {
+        onGhostStartToHunt?.Invoke();
         currentState = GhostState.standingState;
+        agent.velocity = Vector3.zero;
         
         float startingHuntDelay = DivideByPercentage(startHuntingStandingTime, angrinessPercentage);
         this.Invoke(startingHuntDelay, StartHunting);
+        
+        ghostModel.SetActive(true);
+        SetVisibleRenderer(true);
     }
 
     private void StartHunting()
@@ -247,6 +270,9 @@ public class Ghost : GameBehaviour
         InitWayPoints();
         
         currentState = GhostState.huntingState;
+        
+        //Start blinking
+        SetVisibleRenderer(true);
 
         //Le fantôme va forcément aller vers le joueur durant cette période.
         _forcedStartTargeting = true;
@@ -255,15 +281,16 @@ public class Ghost : GameBehaviour
 
         currentHuntTime = Random.Range(averageHuntTime - huntTimeVariation, averageHuntTime + huntTimeVariation);
         Debug.Log("Starting a HUNT for: " + currentHuntTime + " seconds");
-
-        ghostModel.SetActive(true);
-        
-        SetVisibleRenderer(true);
     }
 
     private void Update()
     {
-        if (currentState == GhostState.huntingState)
+        if (currentState == GhostState.standingState)
+        {
+            agent.speed = 0;
+            LookAtPlayer();
+        }
+        else if (currentState == GhostState.huntingState)
         {
             currentHuntTime -= Time.deltaTime;
             if (currentHuntTime <= 0)
@@ -309,6 +336,32 @@ public class Ghost : GameBehaviour
         }
         #endif
     }
+    
+    private void LookAtPlayer()
+    {
+        Vector3 targetDir;
+        float dist = Vector3.Distance(transform.position, Player.Instance.transform.position);
+
+        if (dist < 10f)
+        {
+            targetDir = House.Instance.currentPlayer.transform.position - transform.position;
+        }
+        else
+        {
+            Vector3 forwardTarget = transform.position + transform.forward * 5f;
+            targetDir = forwardTarget - transform.position;
+        }
+
+        // Optionnel : lock l’axe Y
+        targetDir.y = 0f;
+
+        Quaternion targetRotation = Quaternion.LookRotation(targetDir);
+        transform.rotation = Quaternion.Slerp(
+            transform.rotation,
+            targetRotation,
+            5f * Time.deltaTime
+        );
+    }
 
     private void SetHuntingDestination()
     {
@@ -335,7 +388,10 @@ public class Ghost : GameBehaviour
             if (dist < 1)
             {
                 //if ghost come back after a hunt, its speed become slow again
-                agent.speed = hidingSpeedBase;
+                if (currentState != GhostState.huntingState || currentState != GhostState.standingState)
+                {
+                    agent.speed = hidingSpeedBase;
+                }
             
                 SelectNewHidingWaypoint();
             }
@@ -361,6 +417,13 @@ public class Ghost : GameBehaviour
         {
             currentRoom.StartRadiation(ghostParameters.radiationDurationAfterAttack);
         }
+        
+        onGhostStopToHunt?.Invoke();
+        
+        this.Invoke(minimumPeaceTime, () =>
+        {
+            _canHunt = true;
+        });
     }
 
     private void Kill(Player player)
@@ -370,9 +433,12 @@ public class Ghost : GameBehaviour
 
     private void SetVisibleRenderer(bool enable)
     {
-        if (currentState == GhostState.huntingState || currentState == GhostState.standingState)
+        if (currentState == GhostState.standingState)
         {
-            renderer.enabled = enable;
+            enable = true;
+        }
+        else if (currentState == GhostState.huntingState)
+        {
             float averageChangeTime = enable == true ? averageVisibleTime : averageInvisibleTime;
             float changeTimeVariation = enable == true ? visibleTimeVariation : invisibleTimeVariation;
             float nextChange = Random.Range(averageChangeTime - changeTimeVariation, averageChangeTime + changeTimeVariation);
@@ -381,7 +447,12 @@ public class Ghost : GameBehaviour
         else
         {
             //Stop the loop
-            renderer.enabled = true;
+            enable = false;
+        }
+
+        foreach (Renderer r in renderers)
+        {
+            r.enabled = enable;
         }
     }
     
@@ -441,7 +512,7 @@ public class Ghost : GameBehaviour
             case GhostActivities.Hunt:
                 //Can't attack if not enough angry
                 //Can't attack if Earthbound ghost and not in its favorite room
-                if (angrinessPercentage >= minimumAngrinessToHunt && 
+                if (_canHunt && angrinessPercentage >= minimumAngrinessToHunt && 
                     (ghostParameters.ghostType != GhostParameters.GhostType.Earthbound || 
                      (ghostParameters.ghostType == GhostParameters.GhostType.Earthbound && currentRoom == favoriteRoom)))
                 {
@@ -547,7 +618,7 @@ public class Ghost : GameBehaviour
 
     private void ActivatePrint(PrintSource printSource, PrintTypes printType)
     {
-        float duration = Random.Range(sprintDurationMin, sprintDurationMax);
+        float duration = Random.Range(printDurationMin, printDurationMax);
         Sprite spriteToUse =
             printType == PrintTypes.Paw ? pawSprites[Random.Range(0, pawSprites.Length)] : fingerSprite;
         printSource.Activate(duration, spriteToUse);
@@ -835,5 +906,10 @@ public class Ghost : GameBehaviour
         
         //Activate refreshment
         currentRoom.AddTemperatureDelta(ghostParameters.GetRandomRefreshment());
+    }
+
+    public bool IsHunting()
+    {
+        return currentState == GhostState.huntingState || currentState == GhostState.standingState;
     }
 }
