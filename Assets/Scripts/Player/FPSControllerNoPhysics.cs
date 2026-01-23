@@ -80,6 +80,22 @@ public class FPSControllerNoPhysics : GameBehaviour
     [Tooltip("Temps pour recharger complètement la stamina (en secondes)")]
     public float staminaRegenTime = 6f;
     
+    [Header("Arms Bob")]
+    public Transform armsTransform;
+
+    public float armsBobAmplitudeY = 0.02f;
+    public float armsBobAmplitudeX = 0.015f;
+    public float armsBobRotation = 1.5f;
+    public float armsResetSpeed = 10f;
+    
+    [Header("Arm Sway")]
+    public float swayAmountX = 1.5f; // Rotation sway sur X (pitch)
+    public float swayAmountY = 2.5f; // Rotation sway sur Y (yaw)
+    public float swaySmooth = 8f;    // Lerp de la rotation
+
+    private Vector3 armsStartLocalPos;
+    private Quaternion armsStartLocalRot;
+    
     [Header("Layers")]
     public LayerMask groundLayers;
 
@@ -98,6 +114,7 @@ public class FPSControllerNoPhysics : GameBehaviour
     private bool _canUseHeadBob;
     
     private Vector3 cameraStartLocalPos;
+    private Vector3 lastPlayerForward;
 
     void Start()
     {
@@ -114,11 +131,20 @@ public class FPSControllerNoPhysics : GameBehaviour
         cameraStandingPos = playerCamera.transform.localPosition;
 
         UIGame.Instance.InitControlTexts(this);
+        
+        if (armsTransform != null)
+        {
+            armsStartLocalPos = armsTransform.localPosition;
+            armsStartLocalRot = armsTransform.localRotation;
+        }
+
+        lastPlayerForward = transform.forward; // initialisation pour lag
     }
 
     void Update()
     {
         HandleLook();
+        HandleArmSway();
         HandleMove();
         ApplyGravity();
         HandleHeadbob();
@@ -285,9 +311,12 @@ public class FPSControllerNoPhysics : GameBehaviour
                 stepTimer -= 1f; // reset pour le cycle suivant
             }
 
-            // Headbob
+            // Headbob caméra
             float bobOffset = Mathf.Sin(stepTimer * Mathf.PI * 2f) * bobAmplitude;
             playerCamera.transform.localPosition = cameraStartLocalPos + Vector3.up * bobOffset;
+
+            // Headbob + arm lag
+            HandleArmsBob();
         }
         else
         {
@@ -299,6 +328,69 @@ public class FPSControllerNoPhysics : GameBehaviour
                 Time.deltaTime * bobResetSpeed
             );
         }
+    }
+    
+    void HandleArmsBob()
+    {
+        if (armsTransform == null) return;
+
+        // --- Headbob position ---
+        float sin = Mathf.Sin(stepTimer * Mathf.PI * 2f);
+        float cos = Mathf.Cos(stepTimer * Mathf.PI * 2f);
+
+        Vector3 targetPos = armsStartLocalPos;
+        targetPos.y += sin * armsBobAmplitudeY;
+        targetPos.x += cos * armsBobAmplitudeX;
+
+        armsTransform.localPosition = Vector3.Lerp(
+            armsTransform.localPosition,
+            targetPos,
+            Time.deltaTime * armsResetSpeed
+        );
+
+        // --- Headbob rotation ---
+        Quaternion bobRot = Quaternion.Euler(sin * armsBobRotation, cos * armsBobRotation, 0f);
+        armsTransform.localRotation = Quaternion.Slerp(
+            armsTransform.localRotation,
+            armsTransform.localRotation * bobRot,
+            Time.deltaTime * armsResetSpeed
+        );
+
+        // --- Movement sway ---
+        Vector3 moveDelta = transform.InverseTransformDirection(currentMove);
+        Quaternion moveSway = Quaternion.Euler(
+            -moveDelta.z * 0.5f,   // avant/recul
+            moveDelta.x * 0.5f,    // gauche/droite
+            0f
+        );
+        armsTransform.localRotation = Quaternion.Slerp(
+            armsTransform.localRotation,
+            armsTransform.localRotation * moveSway,
+            Time.deltaTime * swaySmooth
+        );
+    }
+    
+    void HandleArmSway()
+    {
+        if (armsTransform == null) return;
+
+        // Récupérer les inputs souris
+        float mouseX = Input.GetAxis("Mouse X");
+        float mouseY = Input.GetAxis("Mouse Y");
+
+        // Rotation cible pour le sway (inverse pour effet "lag")
+        Quaternion targetRotation = Quaternion.Euler(
+            -mouseY * swayAmountX,  // Pitch
+            mouseX * swayAmountY,   // Yaw
+            0f                      // Roll (optionnel)
+        );
+
+        // Lerp smooth vers la rotation target
+        armsTransform.localRotation = Quaternion.Slerp(
+            armsTransform.localRotation,
+            armsStartLocalRot * targetRotation,
+            Time.deltaTime * swaySmooth
+        );
     }
     
     void HandleStamina(bool isTryingToSprint)

@@ -47,7 +47,32 @@ AnimationClip:
       m_PreInfinity: 2
       m_PostInfinity: 2
       m_RotationOrder: 4
-    path: HandL
+    path: ArmsTransforms/HandL
+  - curve:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: {x: -17.562, y: 1.931, z: -56.991}
+        inSlope: {x: 0, y: 0, z: 0}
+        outSlope: {x: 0, y: 0, z: 0}
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: {x: 0.33333334, y: 0.33333334, z: 0.33333334}
+        outWeight: {x: 0.33333334, y: 0.33333334, z: 0.33333334}
+      - serializedVersion: 3
+        time: 4
+        value: {x: -17.562, y: 1.931, z: -56.991}
+        inSlope: {x: 0, y: 0, z: 0}
+        outSlope: {x: 0, y: 0, z: 0}
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: {x: 0.33333334, y: 0.33333334, z: 0.33333334}
+        outWeight: {x: 0.33333334, y: 0.33333334, z: 0.33333334}
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    path: ArmsTransforms/HandL/Armature/Arm/Forearm/Wrist/Thumb01
   - curve:
       serializedVersion: 2
       m_Curve:
@@ -81,7 +106,7 @@ AnimationClip:
       m_PreInfinity: 2
       m_PostInfinity: 2
       m_RotationOrder: 4
-    path: HandR
+    path: ArmsTransforms/HandR
   - curve:
       serializedVersion: 2
       m_Curve:
@@ -106,32 +131,7 @@ AnimationClip:
       m_PreInfinity: 2
       m_PostInfinity: 2
       m_RotationOrder: 4
-    path: HandR/Armature/Arm/Forearm
-  - curve:
-      serializedVersion: 2
-      m_Curve:
-      - serializedVersion: 3
-        time: 0
-        value: {x: 0, y: 0, z: -90}
-        inSlope: {x: 0, y: 0, z: 0}
-        outSlope: {x: 0, y: 0, z: 0}
-        tangentMode: 0
-        weightedMode: 0
-        inWeight: {x: 0.33333334, y: 0.33333334, z: 0.33333334}
-        outWeight: {x: 0.33333334, y: 0.33333334, z: 0.33333334}
-      - serializedVersion: 3
-        time: 4
-        value: {x: 0, y: 0, z: -90}
-        inSlope: {x: 0, y: 0, z: 0}
-        outSlope: {x: 0, y: 0, z: 0}
-        tangentMode: 0
-        weightedMode: 0
-        inWeight: {x: 0.33333334, y: 0.33333334, z: 0.33333334}
-        outWeight: {x: 0.33333334, y: 0.33333334, z: 0.33333334}
-      m_PreInfinity: 2
-      m_PostInfinity: 2
-      m_RotationOrder: 4
-    path: HandR/Armature/Arm/Forearm/Wrist/Watch/Watch_Camera
+    path: ArmsTransforms/HandR/Armature/Arm/Forearm
   - curve:
       serializedVersion: 2
       m_Curve:
@@ -156,7 +156,7 @@ AnimationClip:
       m_PreInfinity: 2
       m_PostInfinity: 2
       m_RotationOrder: 4
-    path: HandR/Armature/Arm/Forearm/Wrist/SpirimonzHandPos
+    path: ArmsTransforms/HandR/Armature/Arm/Forearm/Wrist/SpirimonzHandPos
   - curve:
       serializedVersion: 2
       m_Curve:
@@ -181,7 +181,7 @@ AnimationClip:
       m_PreInfinity: 2
       m_PostInfinity: 2
       m_RotationOrder: 4
-    path: HandR/Armature/Arm/Forearm/Wrist/Thumb01
+    path: ArmsTransforms/HandR/Armature/Arm/Forearm/Wrist/Thumb01
   - curve:
       serializedVersion: 2
       m_Curve:
@@ -206,13 +206,13 @@ AnimationClip:
       m_PreInfinity: 2
       m_PostInfinity: 2
       m_RotationOrder: 4
-    path: HandR/Armature/Arm/Forearm/Wrist/Thumb01/Thumb02
+    path: ArmsTransforms/HandR/Armature/Arm/Forearm/Wrist/Thumb01/Thumb02
   - curve:
       serializedVersion: 2
       m_Curve:
       - serializedVersion: 3
         time: 0
-        value: {x: -17.562, y: 1.931, z: -56.991}
+        value: {x: 0, y: 0, z: -90}
         inSlope: {x: 0, y: 0, z: 0}
         outSlope: {x: 0, y: 0, z: 0}
         tangentMode: 0
@@ -221,7 +221,7 @@ AnimationClip:
         outWeight: {x: 0.33333334, y: 0.33333334, z: 0.33333334}
       - serializedVersion: 3
         time: 4
-        value: {x: -17.562, y: 1.931, z: -56.991}
+        value: {x: 0, y: 0, z: -90}
         inSlope: {x: 0, y: 0, z: 0}
         outSlope: {x: 0, y: 0, z: 0}
         tangentMode: 0
@@ -231,7 +231,7 @@ AnimationClip:
       m_PreInfinity: 2
       m_PostInfinity: 2
       m_RotationOrder: 4
-    path: HandL/Armature/Arm/Forearm/Wrist/Thumb01
+    path: ArmsTransforms/HandR/Armature/Arm/Forearm/Wrist/Watch/Watch_Camera
   m_PositionCurves:
   - curve:
       serializedVersion: 2
@@ -257,7 +257,7 @@ AnimationClip:
       m_PreInfinity: 2
       m_PostInfinity: 2
       m_RotationOrder: 4
-    path: HandR
+    path: ArmsTransforms/HandR
   - curve:
       serializedVersion: 2
       m_Curve:
@@ -282,7 +282,7 @@ AnimationClip:
       m_PreInfinity: 2
       m_PostInfinity: 2
       m_RotationOrder: 4
-    path: HandR/Armature/Arm
+    path: ArmsTransforms/HandR/Armature/Arm
   - curve:
       serializedVersion: 2
       m_Curve:
@@ -307,7 +307,7 @@ AnimationClip:
       m_PreInfinity: 2
       m_PostInfinity: 2
       m_RotationOrder: 4
-    path: HandR/Armature/Arm/Forearm/Wrist/SpirimonzHandPos
+    path: ArmsTransforms/HandR/Armature/Arm/Forearm/Wrist/SpirimonzHandPos
   m_ScaleCurves: []
   m_FloatCurves: []
   m_PPtrCurves: []
@@ -319,7 +319,7 @@ AnimationClip:
   m_ClipBindingConstant:
     genericBindings:
     - serializedVersion: 2
-      path: 294203841
+      path: 2235094795
       attribute: 4
       script: {fileID: 0}
       typeID: 4
@@ -328,7 +328,7 @@ AnimationClip:
       isIntCurve: 0
       isSerializeReferenceCurve: 0
     - serializedVersion: 2
-      path: 3951430818
+      path: 2134370920
       attribute: 4
       script: {fileID: 0}
       typeID: 4
@@ -337,7 +337,7 @@ AnimationClip:
       isIntCurve: 0
       isSerializeReferenceCurve: 0
     - serializedVersion: 2
-      path: 3951430818
+      path: 2134370920
       attribute: 1
       script: {fileID: 0}
       typeID: 4
@@ -346,7 +346,7 @@ AnimationClip:
       isIntCurve: 0
       isSerializeReferenceCurve: 0
     - serializedVersion: 2
-      path: 4187367333
+      path: 801364711
       attribute: 1
       script: {fileID: 0}
       typeID: 4
@@ -355,7 +355,7 @@ AnimationClip:
       isIntCurve: 0
       isSerializeReferenceCurve: 0
     - serializedVersion: 2
-      path: 3603352851
+      path: 3833599486
       attribute: 1
       script: {fileID: 0}
       typeID: 4
@@ -364,7 +364,7 @@ AnimationClip:
       isIntCurve: 0
       isSerializeReferenceCurve: 0
     - serializedVersion: 2
-      path: 357853391
+      path: 3395555910
       attribute: 4
       script: {fileID: 0}
       typeID: 4
@@ -373,7 +373,7 @@ AnimationClip:
       isIntCurve: 0
       isSerializeReferenceCurve: 0
     - serializedVersion: 2
-      path: 2441844511
+      path: 565437947
       attribute: 4
       script: {fileID: 0}
       typeID: 4
@@ -382,7 +382,7 @@ AnimationClip:
       isIntCurve: 0
       isSerializeReferenceCurve: 0
     - serializedVersion: 2
-      path: 3603352851
+      path: 3833599486
       attribute: 4
       script: {fileID: 0}
       typeID: 4
@@ -391,7 +391,7 @@ AnimationClip:
       isIntCurve: 0
       isSerializeReferenceCurve: 0
     - serializedVersion: 2
-      path: 1674013431
+      path: 2454009544
       attribute: 4
       script: {fileID: 0}
       typeID: 4
@@ -400,7 +400,7 @@ AnimationClip:
       isIntCurve: 0
       isSerializeReferenceCurve: 0
     - serializedVersion: 2
-      path: 3672308277
+      path: 1146549273
       attribute: 4
       script: {fileID: 0}
       typeID: 4
@@ -409,7 +409,7 @@ AnimationClip:
       isIntCurve: 0
       isSerializeReferenceCurve: 0
     - serializedVersion: 2
-      path: 1004949113
+      path: 4065554974
       attribute: 4
       script: {fileID: 0}
       typeID: 4
@@ -474,10 +474,10 @@ AnimationClip:
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: localEulerAnglesRaw.x
-    path: HandL
+    path: ArmsTransforms/HandL
     classID: 4
     script: {fileID: 0}
-    flags: 16
+    flags: 0
   - serializedVersion: 2
     curve:
       serializedVersion: 2
@@ -513,10 +513,10 @@ AnimationClip:
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: localEulerAnglesRaw.y
-    path: HandL
+    path: ArmsTransforms/HandL
     classID: 4
     script: {fileID: 0}
-    flags: 16
+    flags: 0
   - serializedVersion: 2
     curve:
       serializedVersion: 2
@@ -552,10 +552,190 @@ AnimationClip:
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: localEulerAnglesRaw.z
-    path: HandL
+    path: ArmsTransforms/HandL
     classID: 4
     script: {fileID: 0}
-    flags: 16
+    flags: 0
+  - serializedVersion: 2
+    curve:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: -17.562
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 136
+        weightedMode: 0
+        inWeight: 0.33333334
+        outWeight: 0.33333334
+      - serializedVersion: 3
+        time: 4
+        value: -17.562
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 136
+        weightedMode: 0
+        inWeight: 0.33333334
+        outWeight: 0.33333334
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    attribute: localEulerAnglesRaw.x
+    path: ArmsTransforms/HandL/Armature/Arm/Forearm/Wrist/Thumb01
+    classID: 4
+    script: {fileID: 0}
+    flags: 0
+  - serializedVersion: 2
+    curve:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 1.931
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 136
+        weightedMode: 0
+        inWeight: 0.33333334
+        outWeight: 0.33333334
+      - serializedVersion: 3
+        time: 4
+        value: 1.931
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 136
+        weightedMode: 0
+        inWeight: 0.33333334
+        outWeight: 0.33333334
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    attribute: localEulerAnglesRaw.y
+    path: ArmsTransforms/HandL/Armature/Arm/Forearm/Wrist/Thumb01
+    classID: 4
+    script: {fileID: 0}
+    flags: 0
+  - serializedVersion: 2
+    curve:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: -56.991
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 136
+        weightedMode: 0
+        inWeight: 0.33333334
+        outWeight: 0.33333334
+      - serializedVersion: 3
+        time: 4
+        value: -56.991
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 136
+        weightedMode: 0
+        inWeight: 0.33333334
+        outWeight: 0.33333334
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    attribute: localEulerAnglesRaw.z
+    path: ArmsTransforms/HandL/Armature/Arm/Forearm/Wrist/Thumb01
+    classID: 4
+    script: {fileID: 0}
+    flags: 0
+  - serializedVersion: 2
+    curve:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 0.477
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 136
+        weightedMode: 0
+        inWeight: 0.33333334
+        outWeight: 0.33333334
+      - serializedVersion: 3
+        time: 4
+        value: 0.477
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 136
+        weightedMode: 0
+        inWeight: 0.33333334
+        outWeight: 0.33333334
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    attribute: m_LocalPosition.x
+    path: ArmsTransforms/HandR
+    classID: 4
+    script: {fileID: 0}
+    flags: 0
+  - serializedVersion: 2
+    curve:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: -0.531
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 136
+        weightedMode: 0
+        inWeight: 0.33333334
+        outWeight: 0.33333334
+      - serializedVersion: 3
+        time: 4
+        value: -0.531
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 136
+        weightedMode: 0
+        inWeight: 0.33333334
+        outWeight: 0.33333334
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    attribute: m_LocalPosition.y
+    path: ArmsTransforms/HandR
+    classID: 4
+    script: {fileID: 0}
+    flags: 0
+  - serializedVersion: 2
+    curve:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: -0.073
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 136
+        weightedMode: 0
+        inWeight: 0.33333334
+        outWeight: 0.33333334
+      - serializedVersion: 3
+        time: 4
+        value: -0.073
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 136
+        weightedMode: 0
+        inWeight: 0.33333334
+        outWeight: 0.33333334
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    attribute: m_LocalPosition.z
+    path: ArmsTransforms/HandR
+    classID: 4
+    script: {fileID: 0}
+    flags: 0
   - serializedVersion: 2
     curve:
       serializedVersion: 2
@@ -591,7 +771,7 @@ AnimationClip:
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: localEulerAnglesRaw.x
-    path: HandR
+    path: ArmsTransforms/HandR
     classID: 4
     script: {fileID: 0}
     flags: 0
@@ -630,7 +810,7 @@ AnimationClip:
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: localEulerAnglesRaw.y
-    path: HandR
+    path: ArmsTransforms/HandR
     classID: 4
     script: {fileID: 0}
     flags: 0
@@ -669,187 +849,7 @@ AnimationClip:
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: localEulerAnglesRaw.z
-    path: HandR
-    classID: 4
-    script: {fileID: 0}
-    flags: 0
-  - serializedVersion: 2
-    curve:
-      serializedVersion: 2
-      m_Curve:
-      - serializedVersion: 3
-        time: 0
-        value: 11.271
-        inSlope: 0
-        outSlope: 0
-        tangentMode: 136
-        weightedMode: 0
-        inWeight: 0.33333334
-        outWeight: 0.33333334
-      - serializedVersion: 3
-        time: 4
-        value: 11.271
-        inSlope: 0
-        outSlope: 0
-        tangentMode: 136
-        weightedMode: 0
-        inWeight: 0.33333334
-        outWeight: 0.33333334
-      m_PreInfinity: 2
-      m_PostInfinity: 2
-      m_RotationOrder: 4
-    attribute: localEulerAnglesRaw.x
-    path: HandR/Armature/Arm/Forearm
-    classID: 4
-    script: {fileID: 0}
-    flags: 16
-  - serializedVersion: 2
-    curve:
-      serializedVersion: 2
-      m_Curve:
-      - serializedVersion: 3
-        time: 0
-        value: 52.014
-        inSlope: 0
-        outSlope: 0
-        tangentMode: 136
-        weightedMode: 0
-        inWeight: 0.33333334
-        outWeight: 0.33333334
-      - serializedVersion: 3
-        time: 4
-        value: 52.014
-        inSlope: 0
-        outSlope: 0
-        tangentMode: 136
-        weightedMode: 0
-        inWeight: 0.33333334
-        outWeight: 0.33333334
-      m_PreInfinity: 2
-      m_PostInfinity: 2
-      m_RotationOrder: 4
-    attribute: localEulerAnglesRaw.y
-    path: HandR/Armature/Arm/Forearm
-    classID: 4
-    script: {fileID: 0}
-    flags: 16
-  - serializedVersion: 2
-    curve:
-      serializedVersion: 2
-      m_Curve:
-      - serializedVersion: 3
-        time: 0
-        value: -4.642
-        inSlope: 0
-        outSlope: 0
-        tangentMode: 136
-        weightedMode: 0
-        inWeight: 0.33333334
-        outWeight: 0.33333334
-      - serializedVersion: 3
-        time: 4
-        value: -4.642
-        inSlope: 0
-        outSlope: 0
-        tangentMode: 136
-        weightedMode: 0
-        inWeight: 0.33333334
-        outWeight: 0.33333334
-      m_PreInfinity: 2
-      m_PostInfinity: 2
-      m_RotationOrder: 4
-    attribute: localEulerAnglesRaw.z
-    path: HandR/Armature/Arm/Forearm
-    classID: 4
-    script: {fileID: 0}
-    flags: 16
-  - serializedVersion: 2
-    curve:
-      serializedVersion: 2
-      m_Curve:
-      - serializedVersion: 3
-        time: 0
-        value: 0.477
-        inSlope: 0
-        outSlope: 0
-        tangentMode: 136
-        weightedMode: 0
-        inWeight: 0.33333334
-        outWeight: 0.33333334
-      - serializedVersion: 3
-        time: 4
-        value: 0.477
-        inSlope: 0
-        outSlope: 0
-        tangentMode: 136
-        weightedMode: 0
-        inWeight: 0.33333334
-        outWeight: 0.33333334
-      m_PreInfinity: 2
-      m_PostInfinity: 2
-      m_RotationOrder: 4
-    attribute: m_LocalPosition.x
-    path: HandR
-    classID: 4
-    script: {fileID: 0}
-    flags: 0
-  - serializedVersion: 2
-    curve:
-      serializedVersion: 2
-      m_Curve:
-      - serializedVersion: 3
-        time: 0
-        value: -0.531
-        inSlope: 0
-        outSlope: 0
-        tangentMode: 136
-        weightedMode: 0
-        inWeight: 0.33333334
-        outWeight: 0.33333334
-      - serializedVersion: 3
-        time: 4
-        value: -0.531
-        inSlope: 0
-        outSlope: 0
-        tangentMode: 136
-        weightedMode: 0
-        inWeight: 0.33333334
-        outWeight: 0.33333334
-      m_PreInfinity: 2
-      m_PostInfinity: 2
-      m_RotationOrder: 4
-    attribute: m_LocalPosition.y
-    path: HandR
-    classID: 4
-    script: {fileID: 0}
-    flags: 0
-  - serializedVersion: 2
-    curve:
-      serializedVersion: 2
-      m_Curve:
-      - serializedVersion: 3
-        time: 0
-        value: -0.073
-        inSlope: 0
-        outSlope: 0
-        tangentMode: 136
-        weightedMode: 0
-        inWeight: 0.33333334
-        outWeight: 0.33333334
-      - serializedVersion: 3
-        time: 4
-        value: -0.073
-        inSlope: 0
-        outSlope: 0
-        tangentMode: 136
-        weightedMode: 0
-        inWeight: 0.33333334
-        outWeight: 0.33333334
-      m_PreInfinity: 2
-      m_PostInfinity: 2
-      m_RotationOrder: 4
-    attribute: m_LocalPosition.z
-    path: HandR
+    path: ArmsTransforms/HandR
     classID: 4
     script: {fileID: 0}
     flags: 0
@@ -879,7 +879,7 @@ AnimationClip:
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: m_LocalPosition.x
-    path: HandR/Armature/Arm
+    path: ArmsTransforms/HandR/Armature/Arm
     classID: 4
     script: {fileID: 0}
     flags: 0
@@ -909,7 +909,7 @@ AnimationClip:
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: m_LocalPosition.y
-    path: HandR/Armature/Arm
+    path: ArmsTransforms/HandR/Armature/Arm
     classID: 4
     script: {fileID: 0}
     flags: 0
@@ -939,7 +939,7 @@ AnimationClip:
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: m_LocalPosition.z
-    path: HandR/Armature/Arm
+    path: ArmsTransforms/HandR/Armature/Arm
     classID: 4
     script: {fileID: 0}
     flags: 0
@@ -949,7 +949,7 @@ AnimationClip:
       m_Curve:
       - serializedVersion: 3
         time: 0
-        value: 0
+        value: 11.271
         inSlope: 0
         outSlope: 0
         tangentMode: 136
@@ -958,7 +958,7 @@ AnimationClip:
         outWeight: 0.33333334
       - serializedVersion: 3
         time: 4
-        value: 0
+        value: 11.271
         inSlope: 0
         outSlope: 0
         tangentMode: 136
@@ -969,17 +969,17 @@ AnimationClip:
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: localEulerAnglesRaw.x
-    path: HandR/Armature/Arm/Forearm/Wrist/Watch/Watch_Camera
+    path: ArmsTransforms/HandR/Armature/Arm/Forearm
     classID: 4
     script: {fileID: 0}
-    flags: 16
+    flags: 0
   - serializedVersion: 2
     curve:
       serializedVersion: 2
       m_Curve:
       - serializedVersion: 3
         time: 0
-        value: 0
+        value: 52.014
         inSlope: 0
         outSlope: 0
         tangentMode: 136
@@ -988,7 +988,7 @@ AnimationClip:
         outWeight: 0.33333334
       - serializedVersion: 3
         time: 4
-        value: 0
+        value: 52.014
         inSlope: 0
         outSlope: 0
         tangentMode: 136
@@ -999,17 +999,17 @@ AnimationClip:
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: localEulerAnglesRaw.y
-    path: HandR/Armature/Arm/Forearm/Wrist/Watch/Watch_Camera
+    path: ArmsTransforms/HandR/Armature/Arm/Forearm
     classID: 4
     script: {fileID: 0}
-    flags: 16
+    flags: 0
   - serializedVersion: 2
     curve:
       serializedVersion: 2
       m_Curve:
       - serializedVersion: 3
         time: 0
-        value: -90
+        value: -4.642
         inSlope: 0
         outSlope: 0
         tangentMode: 136
@@ -1018,7 +1018,7 @@ AnimationClip:
         outWeight: 0.33333334
       - serializedVersion: 3
         time: 4
-        value: -90
+        value: -4.642
         inSlope: 0
         outSlope: 0
         tangentMode: 136
@@ -1029,10 +1029,10 @@ AnimationClip:
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: localEulerAnglesRaw.z
-    path: HandR/Armature/Arm/Forearm/Wrist/Watch/Watch_Camera
+    path: ArmsTransforms/HandR/Armature/Arm/Forearm
     classID: 4
     script: {fileID: 0}
-    flags: 16
+    flags: 0
   - serializedVersion: 2
     curve:
       serializedVersion: 2
@@ -1059,7 +1059,7 @@ AnimationClip:
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: m_LocalPosition.x
-    path: HandR/Armature/Arm/Forearm/Wrist/SpirimonzHandPos
+    path: ArmsTransforms/HandR/Armature/Arm/Forearm/Wrist/SpirimonzHandPos
     classID: 4
     script: {fileID: 0}
     flags: 0
@@ -1089,7 +1089,7 @@ AnimationClip:
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: m_LocalPosition.y
-    path: HandR/Armature/Arm/Forearm/Wrist/SpirimonzHandPos
+    path: ArmsTransforms/HandR/Armature/Arm/Forearm/Wrist/SpirimonzHandPos
     classID: 4
     script: {fileID: 0}
     flags: 0
@@ -1119,7 +1119,7 @@ AnimationClip:
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: m_LocalPosition.z
-    path: HandR/Armature/Arm/Forearm/Wrist/SpirimonzHandPos
+    path: ArmsTransforms/HandR/Armature/Arm/Forearm/Wrist/SpirimonzHandPos
     classID: 4
     script: {fileID: 0}
     flags: 0
@@ -1149,7 +1149,7 @@ AnimationClip:
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: localEulerAnglesRaw.x
-    path: HandR/Armature/Arm/Forearm/Wrist/SpirimonzHandPos
+    path: ArmsTransforms/HandR/Armature/Arm/Forearm/Wrist/SpirimonzHandPos
     classID: 4
     script: {fileID: 0}
     flags: 0
@@ -1179,7 +1179,7 @@ AnimationClip:
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: localEulerAnglesRaw.y
-    path: HandR/Armature/Arm/Forearm/Wrist/SpirimonzHandPos
+    path: ArmsTransforms/HandR/Armature/Arm/Forearm/Wrist/SpirimonzHandPos
     classID: 4
     script: {fileID: 0}
     flags: 0
@@ -1209,7 +1209,7 @@ AnimationClip:
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: localEulerAnglesRaw.z
-    path: HandR/Armature/Arm/Forearm/Wrist/SpirimonzHandPos
+    path: ArmsTransforms/HandR/Armature/Arm/Forearm/Wrist/SpirimonzHandPos
     classID: 4
     script: {fileID: 0}
     flags: 0
@@ -1239,7 +1239,7 @@ AnimationClip:
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: localEulerAnglesRaw.x
-    path: HandR/Armature/Arm/Forearm/Wrist/Thumb01
+    path: ArmsTransforms/HandR/Armature/Arm/Forearm/Wrist/Thumb01
     classID: 4
     script: {fileID: 0}
     flags: 0
@@ -1269,7 +1269,7 @@ AnimationClip:
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: localEulerAnglesRaw.y
-    path: HandR/Armature/Arm/Forearm/Wrist/Thumb01
+    path: ArmsTransforms/HandR/Armature/Arm/Forearm/Wrist/Thumb01
     classID: 4
     script: {fileID: 0}
     flags: 0
@@ -1299,7 +1299,7 @@ AnimationClip:
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: localEulerAnglesRaw.z
-    path: HandR/Armature/Arm/Forearm/Wrist/Thumb01
+    path: ArmsTransforms/HandR/Armature/Arm/Forearm/Wrist/Thumb01
     classID: 4
     script: {fileID: 0}
     flags: 0
@@ -1329,7 +1329,7 @@ AnimationClip:
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: localEulerAnglesRaw.x
-    path: HandR/Armature/Arm/Forearm/Wrist/Thumb01/Thumb02
+    path: ArmsTransforms/HandR/Armature/Arm/Forearm/Wrist/Thumb01/Thumb02
     classID: 4
     script: {fileID: 0}
     flags: 0
@@ -1359,7 +1359,7 @@ AnimationClip:
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: localEulerAnglesRaw.y
-    path: HandR/Armature/Arm/Forearm/Wrist/Thumb01/Thumb02
+    path: ArmsTransforms/HandR/Armature/Arm/Forearm/Wrist/Thumb01/Thumb02
     classID: 4
     script: {fileID: 0}
     flags: 0
@@ -1389,7 +1389,7 @@ AnimationClip:
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: localEulerAnglesRaw.z
-    path: HandR/Armature/Arm/Forearm/Wrist/Thumb01/Thumb02
+    path: ArmsTransforms/HandR/Armature/Arm/Forearm/Wrist/Thumb01/Thumb02
     classID: 4
     script: {fileID: 0}
     flags: 0
@@ -1399,7 +1399,7 @@ AnimationClip:
       m_Curve:
       - serializedVersion: 3
         time: 0
-        value: -17.562
+        value: 0
         inSlope: 0
         outSlope: 0
         tangentMode: 136
@@ -1408,7 +1408,7 @@ AnimationClip:
         outWeight: 0.33333334
       - serializedVersion: 3
         time: 4
-        value: -17.562
+        value: 0
         inSlope: 0
         outSlope: 0
         tangentMode: 136
@@ -1419,17 +1419,17 @@ AnimationClip:
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: localEulerAnglesRaw.x
-    path: HandL/Armature/Arm/Forearm/Wrist/Thumb01
+    path: ArmsTransforms/HandR/Armature/Arm/Forearm/Wrist/Watch/Watch_Camera
     classID: 4
     script: {fileID: 0}
-    flags: 16
+    flags: 0
   - serializedVersion: 2
     curve:
       serializedVersion: 2
       m_Curve:
       - serializedVersion: 3
         time: 0
-        value: 1.931
+        value: 0
         inSlope: 0
         outSlope: 0
         tangentMode: 136
@@ -1438,7 +1438,7 @@ AnimationClip:
         outWeight: 0.33333334
       - serializedVersion: 3
         time: 4
-        value: 1.931
+        value: 0
         inSlope: 0
         outSlope: 0
         tangentMode: 136
@@ -1449,17 +1449,17 @@ AnimationClip:
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: localEulerAnglesRaw.y
-    path: HandL/Armature/Arm/Forearm/Wrist/Thumb01
+    path: ArmsTransforms/HandR/Armature/Arm/Forearm/Wrist/Watch/Watch_Camera
     classID: 4
     script: {fileID: 0}
-    flags: 16
+    flags: 0
   - serializedVersion: 2
     curve:
       serializedVersion: 2
       m_Curve:
       - serializedVersion: 3
         time: 0
-        value: -56.991
+        value: -90
         inSlope: 0
         outSlope: 0
         tangentMode: 136
@@ -1468,7 +1468,7 @@ AnimationClip:
         outWeight: 0.33333334
       - serializedVersion: 3
         time: 4
-        value: -56.991
+        value: -90
         inSlope: 0
         outSlope: 0
         tangentMode: 136
@@ -1479,10 +1479,10 @@ AnimationClip:
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: localEulerAnglesRaw.z
-    path: HandL/Armature/Arm/Forearm/Wrist/Thumb01
+    path: ArmsTransforms/HandR/Armature/Arm/Forearm/Wrist/Watch/Watch_Camera
     classID: 4
     script: {fileID: 0}
-    flags: 16
+    flags: 0
   m_EulerEditorCurves:
   - serializedVersion: 2
     curve:
@@ -1492,7 +1492,7 @@ AnimationClip:
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: m_LocalEulerAngles.z
-    path: HandR/Armature/Arm/Forearm/Wrist/SpirimonzHandPos
+    path: ArmsTransforms/HandR/Armature/Arm/Forearm
     classID: 4
     script: {fileID: 0}
     flags: 0
@@ -1504,7 +1504,7 @@ AnimationClip:
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: m_LocalEulerAngles.y
-    path: HandR/Armature/Arm/Forearm/Wrist/SpirimonzHandPos
+    path: ArmsTransforms/HandR/Armature/Arm/Forearm
     classID: 4
     script: {fileID: 0}
     flags: 0
@@ -1516,7 +1516,7 @@ AnimationClip:
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: m_LocalEulerAngles.x
-    path: HandR/Armature/Arm/Forearm/Wrist/SpirimonzHandPos
+    path: ArmsTransforms/HandR/Armature/Arm/Forearm
     classID: 4
     script: {fileID: 0}
     flags: 0
@@ -1528,7 +1528,7 @@ AnimationClip:
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: m_LocalEulerAngles.z
-    path: HandL
+    path: ArmsTransforms/HandR/Armature/Arm/Forearm/Wrist/Thumb01/Thumb02
     classID: 4
     script: {fileID: 0}
     flags: 0
@@ -1540,7 +1540,7 @@ AnimationClip:
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: m_LocalEulerAngles.y
-    path: HandL
+    path: ArmsTransforms/HandR/Armature/Arm/Forearm/Wrist/Thumb01/Thumb02
     classID: 4
     script: {fileID: 0}
     flags: 0
@@ -1552,7 +1552,7 @@ AnimationClip:
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: m_LocalEulerAngles.x
-    path: HandL
+    path: ArmsTransforms/HandR/Armature/Arm/Forearm/Wrist/Thumb01/Thumb02
     classID: 4
     script: {fileID: 0}
     flags: 0
@@ -1564,7 +1564,7 @@ AnimationClip:
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: m_LocalEulerAngles.z
-    path: HandR/Armature/Arm/Forearm/Wrist/Thumb01/Thumb02
+    path: ArmsTransforms/HandR/Armature/Arm/Forearm/Wrist/Thumb01
     classID: 4
     script: {fileID: 0}
     flags: 0
@@ -1576,7 +1576,7 @@ AnimationClip:
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: m_LocalEulerAngles.y
-    path: HandR/Armature/Arm/Forearm/Wrist/Thumb01/Thumb02
+    path: ArmsTransforms/HandR/Armature/Arm/Forearm/Wrist/Thumb01
     classID: 4
     script: {fileID: 0}
     flags: 0
@@ -1588,7 +1588,7 @@ AnimationClip:
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: m_LocalEulerAngles.x
-    path: HandR/Armature/Arm/Forearm/Wrist/Thumb01/Thumb02
+    path: ArmsTransforms/HandR/Armature/Arm/Forearm/Wrist/Thumb01
     classID: 4
     script: {fileID: 0}
     flags: 0
@@ -1600,7 +1600,7 @@ AnimationClip:
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: m_LocalEulerAngles.z
-    path: HandR
+    path: ArmsTransforms/HandL/Armature/Arm/Forearm/Wrist/Thumb01
     classID: 4
     script: {fileID: 0}
     flags: 0
@@ -1612,7 +1612,7 @@ AnimationClip:
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: m_LocalEulerAngles.y
-    path: HandR
+    path: ArmsTransforms/HandL/Armature/Arm/Forearm/Wrist/Thumb01
     classID: 4
     script: {fileID: 0}
     flags: 0
@@ -1624,7 +1624,7 @@ AnimationClip:
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: m_LocalEulerAngles.x
-    path: HandR
+    path: ArmsTransforms/HandL/Armature/Arm/Forearm/Wrist/Thumb01
     classID: 4
     script: {fileID: 0}
     flags: 0
@@ -1636,7 +1636,7 @@ AnimationClip:
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: m_LocalEulerAngles.z
-    path: HandR/Armature/Arm/Forearm/Wrist/Thumb01
+    path: ArmsTransforms/HandR/Armature/Arm/Forearm/Wrist/SpirimonzHandPos
     classID: 4
     script: {fileID: 0}
     flags: 0
@@ -1648,7 +1648,7 @@ AnimationClip:
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: m_LocalEulerAngles.y
-    path: HandR/Armature/Arm/Forearm/Wrist/Thumb01
+    path: ArmsTransforms/HandR/Armature/Arm/Forearm/Wrist/SpirimonzHandPos
     classID: 4
     script: {fileID: 0}
     flags: 0
@@ -1660,7 +1660,7 @@ AnimationClip:
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: m_LocalEulerAngles.x
-    path: HandR/Armature/Arm/Forearm/Wrist/Thumb01
+    path: ArmsTransforms/HandR/Armature/Arm/Forearm/Wrist/SpirimonzHandPos
     classID: 4
     script: {fileID: 0}
     flags: 0
@@ -1672,7 +1672,7 @@ AnimationClip:
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: m_LocalEulerAngles.z
-    path: HandL/Armature/Arm/Forearm/Wrist/Thumb01
+    path: ArmsTransforms/HandL
     classID: 4
     script: {fileID: 0}
     flags: 0
@@ -1684,7 +1684,7 @@ AnimationClip:
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: m_LocalEulerAngles.y
-    path: HandL/Armature/Arm/Forearm/Wrist/Thumb01
+    path: ArmsTransforms/HandL
     classID: 4
     script: {fileID: 0}
     flags: 0
@@ -1696,7 +1696,7 @@ AnimationClip:
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: m_LocalEulerAngles.x
-    path: HandL/Armature/Arm/Forearm/Wrist/Thumb01
+    path: ArmsTransforms/HandL
     classID: 4
     script: {fileID: 0}
     flags: 0
@@ -1708,7 +1708,7 @@ AnimationClip:
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: m_LocalEulerAngles.z
-    path: HandR/Armature/Arm/Forearm
+    path: ArmsTransforms/HandR
     classID: 4
     script: {fileID: 0}
     flags: 0
@@ -1720,7 +1720,7 @@ AnimationClip:
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: m_LocalEulerAngles.y
-    path: HandR/Armature/Arm/Forearm
+    path: ArmsTransforms/HandR
     classID: 4
     script: {fileID: 0}
     flags: 0
@@ -1732,7 +1732,7 @@ AnimationClip:
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: m_LocalEulerAngles.x
-    path: HandR/Armature/Arm/Forearm
+    path: ArmsTransforms/HandR
     classID: 4
     script: {fileID: 0}
     flags: 0
@@ -1744,7 +1744,7 @@ AnimationClip:
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: m_LocalEulerAngles.x
-    path: HandR/Armature/Arm/Forearm/Wrist/Watch/Watch_Camera
+    path: ArmsTransforms/HandR/Armature/Arm/Forearm/Wrist/Watch/Watch_Camera
     classID: 4
     script: {fileID: 0}
     flags: 0
@@ -1756,7 +1756,7 @@ AnimationClip:
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: m_LocalEulerAngles.y
-    path: HandR/Armature/Arm/Forearm/Wrist/Watch/Watch_Camera
+    path: ArmsTransforms/HandR/Armature/Arm/Forearm/Wrist/Watch/Watch_Camera
     classID: 4
     script: {fileID: 0}
     flags: 0
@@ -1768,7 +1768,7 @@ AnimationClip:
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: m_LocalEulerAngles.z
-    path: HandR/Armature/Arm/Forearm/Wrist/Watch/Watch_Camera
+    path: ArmsTransforms/HandR/Armature/Arm/Forearm/Wrist/Watch/Watch_Camera
     classID: 4
     script: {fileID: 0}
     flags: 0
