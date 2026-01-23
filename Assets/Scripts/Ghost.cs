@@ -47,6 +47,13 @@ public class Ghost : GameBehaviour
     public Room favoriteRoom;
     public Room currentRoom;
     
+    public Animator animator;
+    public ParticleSystem fxApparition;
+
+    public AudioClip huntingSound;
+
+    public bool isBlinkingGhost;
+    
     [FormerlySerializedAs("sprintDurationMin")] [Header("Ghost Prints")]
     public float printDurationMin = 6f;
     [FormerlySerializedAs("sprintDurationMax")] public float printDurationMax = 15f;
@@ -120,7 +127,7 @@ public class Ghost : GameBehaviour
     private bool _targetingPlayer;
 
     [Header("Ghost Components")] 
-    public MeshRenderer[] renderers;
+    public Renderer[] renderers;
     public NavMeshAgent agent;
     public GameObject ghostModel;
     public GhostVision vision;
@@ -130,6 +137,8 @@ public class Ghost : GameBehaviour
     public UnityEvent onGhostStopToHunt;
     
     private bool _canHunt = true;
+
+    private SoundManager.SoundInstance _huntingSound;
     
     int agentContacts = 0;
 
@@ -243,9 +252,9 @@ public class Ghost : GameBehaviour
         }
     }
 
-    private void TriggerHunting()
+    private void TriggerHunting(bool forceHunting = false)
     {
-        if (_canHunt == false) return;
+        if (_canHunt == false && forceHunting == false) return;
         _canHunt = false;
         
         onGhostCallForAHunt?.Invoke();
@@ -254,6 +263,8 @@ public class Ghost : GameBehaviour
 
     private void StandingBeforeHunting()
     {
+        fxApparition.Play();
+        
         onGhostStartToHunt?.Invoke();
         currentState = GhostState.standingState;
         agent.velocity = Vector3.zero;
@@ -263,11 +274,13 @@ public class Ghost : GameBehaviour
         
         ghostModel.SetActive(true);
         SetVisibleRenderer(true);
+        animator.SetTrigger("Apparition");
     }
 
     private void StartHunting()
     {
         InitWayPoints();
+        _huntingSound = SoundManager.Instance.PlaySound(huntingSound, transform.position, 1f, 1, -1f, 20f, true, this.transform);
         
         currentState = GhostState.huntingState;
         
@@ -311,10 +324,14 @@ public class Ghost : GameBehaviour
             if (_stopMoving)
             {
                 agent.speed = 0;
+                animator.SetBool("Walk", false);
             }
             else
             {
-                agent.speed = currentState == GhostState.huntingState && vision.CanSeePlayer(house.currentPlayer) ? targetingSpeedBase : normalSpeedBase;
+                bool canSeePlayer = vision.CanSeePlayer(house.currentPlayer);
+                agent.speed = currentState == GhostState.huntingState && canSeePlayer ? targetingSpeedBase : normalSpeedBase;
+                animator.SetBool("Walk", true);
+                animator.SetBool("Targeting", canSeePlayer);
             }
         }
         else
@@ -327,7 +344,7 @@ public class Ghost : GameBehaviour
         {
             if (currentState == GhostState.hideState)
             {
-                TriggerHunting();
+                TriggerHunting(true);
             }
             else if (currentState == GhostState.huntingState)
             {
@@ -404,6 +421,11 @@ public class Ghost : GameBehaviour
 
     public void StopHunting()
     {
+        if (huntingSound != null)
+        {
+            _huntingSound.Stop(false);
+        }
+
         currentState = GhostState.hideState;
         ghostModel.SetActive(false);
 
@@ -424,6 +446,8 @@ public class Ghost : GameBehaviour
         {
             _canHunt = true;
         });
+
+        SetVisibleRenderer(false);
     }
 
     private void Kill(Player player)
@@ -439,10 +463,13 @@ public class Ghost : GameBehaviour
         }
         else if (currentState == GhostState.huntingState)
         {
-            float averageChangeTime = enable == true ? averageVisibleTime : averageInvisibleTime;
-            float changeTimeVariation = enable == true ? visibleTimeVariation : invisibleTimeVariation;
-            float nextChange = Random.Range(averageChangeTime - changeTimeVariation, averageChangeTime + changeTimeVariation);
-            this.Invoke(nextChange, () => SetVisibleRenderer(!enable));
+            if (isBlinkingGhost)
+            {
+                float averageChangeTime = enable == true ? averageVisibleTime : averageInvisibleTime;
+                float changeTimeVariation = enable == true ? visibleTimeVariation : invisibleTimeVariation;
+                float nextChange = Random.Range(averageChangeTime - changeTimeVariation, averageChangeTime + changeTimeVariation);
+                this.Invoke(nextChange, () => SetVisibleRenderer(!enable));
+            }
         }
         else
         {

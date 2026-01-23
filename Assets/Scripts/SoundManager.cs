@@ -49,9 +49,13 @@ public class SoundManager : GameBehaviour
         if (duration > 0f)
         {
             if (sourceParent == null)
+            {
                 Destroy(go, duration);
+            }
             else
+            {
                 Destroy(source, duration);
+            }
         }
         else if (!loop)
         {
@@ -59,9 +63,13 @@ public class SoundManager : GameBehaviour
             this.Invoke(clip.length / effectivePitch, () =>
             {
                 if (sourceParent == null)
+                {
                     Destroy(go);
+                }
                 else
+                {
                     Destroy(source);
+                }
             });
         }
 

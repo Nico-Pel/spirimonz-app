@@ -3,6 +3,8 @@ using UnityEngine;
 [RequireComponent(typeof(CharacterController))]
 public class FPSControllerNoPhysics : GameBehaviour
 {
+    public FootstepsListener footstepsListener;
+    
     [Header("Références")]
     public Camera playerCamera;
     public Light mLight;
@@ -96,18 +98,6 @@ public class FPSControllerNoPhysics : GameBehaviour
     private bool _canUseHeadBob;
     
     private Vector3 cameraStartLocalPos;
-    
-    [System.Serializable]
-    public class FootstepSounds
-    {
-        public string groundTag;          // Tag du sol
-        public AudioClip[] stepClips;     // Liste de sons possibles pour ce sol
-        public float volumeMultiplier = 1f;
-    }
-
-    [Header("Footsteps")]
-    public FootstepSounds[] footstepSounds; // Paramétrable dans l'Inspector
-    public float footstepVolume = 0.7f;
 
     void Start()
     {
@@ -342,31 +332,9 @@ public class FPSControllerNoPhysics : GameBehaviour
         if (!controller.isGrounded || movementInput.magnitude < 0.1f)
             return;
 
-        Ray ray = new Ray(transform.position + Vector3.up * 0.1f, Vector3.down);
-        if (Physics.Raycast(ray, out RaycastHit hit, groundCheckDistance, groundLayers))
+        if (footstepsListener != null)
         {
-            // On est sur un layer Ground, maintenant regarde le tag
-            string groundTag = hit.collider.tag;
-
-            // Cherche la liste correspondant au tag
-            foreach (var footstep in footstepSounds)
-            {
-                if (footstep.groundTag == groundTag && footstep.stepClips.Length > 0)
-                {
-                    // Choisit un clip aléatoire
-                    AudioClip clip = footstep.stepClips[Random.Range(0, footstep.stepClips.Length)];
-                    SoundManager.Instance.PlaySound(
-                        clip,
-                        transform.position,
-                        footstepVolume * footstep.volumeMultiplier,
-                        1f,          // pitch
-                        -1f,         // durée (joue tout)
-                        15f,         // range (pour 3D SFX)
-                        false        // loop
-                    );
-                    break;
-                }
-            }
+            footstepsListener.PlayFootstep();
         }
     }
 }
