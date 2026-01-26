@@ -28,7 +28,7 @@ public class ActivableObject : MonoBehaviour
                 Deactivate();
     }
     
-    private void Start()
+    protected virtual void Start()
     {
         if (isActivated)
         {

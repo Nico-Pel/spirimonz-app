@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using DG.Tweening;
+using UnityEngine.Events;
 
 public class PrintSource : GameBehaviour
 {
@@ -14,6 +15,9 @@ public class PrintSource : GameBehaviour
     private float _colorPower;
     private float _powerMax = 3; //Full color is 1.5f
     private float invisibleMarge = 0.25f;
+    
+    public UnityEvent OnActivate;
+    public UnityEvent OnDeactivate;
 
     public void Activate(float duration, Sprite sprite)
     {
@@ -21,8 +25,6 @@ public class PrintSource : GameBehaviour
         _colorPower = 0;
         _activated = true;
         _currentDuration = duration;
-        
-        Debug.Log("POUET UV PRINT: ", gameObject);
     }
 
     private void Update()
@@ -70,10 +72,12 @@ public class PrintSource : GameBehaviour
     {
         _activated = false;
         spriteRenderer.material.DOColor(new Color(1, 1, 1, 0), 1).SetSpeedBased();
+        OnDeactivate?.Invoke();
     }
 
     public bool IsActivated()
     {
         return _activated;
+        OnActivate?.Invoke();
     }
 }

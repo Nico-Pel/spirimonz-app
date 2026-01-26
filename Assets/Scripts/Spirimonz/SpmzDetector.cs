@@ -207,7 +207,7 @@ public class SpmzDetector : Spirimonz
             }
         }
 
-        if (_currentActivitySourceDetected.activityValue == 5)
+        if (_currentActivitySourceDetected != null && _currentActivitySourceDetected.activityValue == 5)
         {
             this.Invoke(blinkInterval, BlinkingDetection);
         }

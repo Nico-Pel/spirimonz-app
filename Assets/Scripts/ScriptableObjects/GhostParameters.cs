@@ -1,9 +1,11 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
 using UnityEditor;
 using UnityEngine.Serialization;
+using Random = UnityEngine.Random;
 
 [CreateAssetMenu(fileName = "GhostParameters", menuName = "GhostParameters")]
 public class GhostParameters : ScriptableObject
@@ -36,7 +38,7 @@ public class GhostParameters : ScriptableObject
     [Header("Evidences")] 
     public bool SpiritPrints;
     public bool EatFruits;
-    [FormerlySerializedAs("AnswerVocals")] public bool BlowUpFlammables;
+    public bool BlowUpFlammables;
     public bool FreezingTemperature;
     public bool HighSpiritActivities;
     public bool SpiritOrbs;
@@ -44,6 +46,7 @@ public class GhostParameters : ScriptableObject
 
     [Header("Spirit Prints")] 
     public float chancesToPutPrintOnDoors = 33;
+    public float chancesToPutPrintOnPrintTriggers = 33;
     public float chancesToPutPrintOnSwitch = 33;
     public float chancesToPutPrintOnGround = 33;
 
@@ -103,7 +106,8 @@ public class GhostParameters : ScriptableObject
 
     public float GetRandomRefreshment()
     {
-        return Random.Range(refreshmentAfterActivityMin, refreshmentAfterActivityMax);
+        float refreshment = Random.Range(refreshmentAfterActivityMin, refreshmentAfterActivityMax);
+        return -Math.Abs(refreshment);
     }
 
     public bool ShouldEatFruit()

@@ -30,6 +30,8 @@ public class FPSControllerNoPhysics : GameBehaviour
     public KeyCode grabObject = KeyCode.E;
     public KeyCode dropObject = KeyCode.D;
     public KeyCode throwObject = KeyCode.G;
+    public KeyCode openJournal = KeyCode.J;
+    public KeyCode exitMenus = KeyCode.Escape;
     
     [Header("Crouch")]
     public KeyCode crouchKey = KeyCode.C;
@@ -150,6 +152,8 @@ public class FPSControllerNoPhysics : GameBehaviour
         HandleHeadbob();
         HandleCrouch();
         HandleLight();
+        HandleJournal();
+        HandleExitMenu();
     }
 
     void HandleLight()
@@ -157,6 +161,22 @@ public class FPSControllerNoPhysics : GameBehaviour
         if (Input.GetKeyDown(turnLight) && mLight != null)
         {
             ChangeLightState();
+        }
+    }
+    
+    void HandleJournal()
+    {
+        if (Input.GetKeyDown(openJournal))
+        {
+            UIGame.Instance.EnableJournal(!UIGame.Instance.GetJournalState());
+        }
+    }
+    
+    void HandleExitMenu()
+    {
+        if (Input.GetKeyDown(exitMenus))
+        {
+            UIGame.Instance.ExitLastMenu();
         }
     }
 

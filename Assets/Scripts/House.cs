@@ -10,6 +10,8 @@ public class House : GameBehaviour
 {
     public static House Instance { get; private set; }
 
+    public GhostParameters[] possibleGhostParameters;
+
     public AudioClip ambientSound;
     public float ambientSoundVolume = 0.2f;
     

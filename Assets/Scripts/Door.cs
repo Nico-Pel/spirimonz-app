@@ -18,7 +18,8 @@ public class Door : GameBehaviour
     public float slamDetectionDuration = 0.2f;
     public float closeAnglePermissiveness = 5f;
 
-    [Header("Door Sounds")]
+    [Header("Door Sounds")] 
+    public float volume = 0.7f;
     public AudioClip openSound;
     public AudioClip closeSound;
     public AudioClip slamSound;
@@ -210,7 +211,7 @@ public class Door : GameBehaviour
     private void PlaySound(AudioClip clip)
     {
         if (clip != null)
-            SoundManager.Instance.PlaySound(clip, transform.position);
+            SoundManager.Instance.PlaySound(clip, transform.position, volume: volume);
     }
 
     public bool IsGrabbed() => _isGrabbed;

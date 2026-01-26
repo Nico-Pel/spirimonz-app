@@ -5,6 +5,7 @@ public class UIGame : MonoBehaviour
 {
     public GameObject cursorON;
     public TextMeshProUGUI tGrab;
+    public UIJournal Journal;
     public static UIGame Instance { get; private set; }
 
     private void Awake()
@@ -31,5 +32,23 @@ public class UIGame : MonoBehaviour
     public void EnableGrabText(bool enable)
     {
         tGrab.gameObject.SetActive(enable);
+    }
+
+    public void EnableJournal(bool enable)
+    {
+        Journal.gameObject.SetActive(enable);
+    }
+
+    public bool GetJournalState()
+    {
+        return Journal.gameObject.activeSelf;
+    }
+
+    public void ExitLastMenu()
+    {
+        if (GetJournalState() == true)
+        {
+            EnableJournal(false);
+        }
     }
 }

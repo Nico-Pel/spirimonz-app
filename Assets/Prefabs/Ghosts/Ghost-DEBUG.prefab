@@ -50,6 +50,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   ghostParameters: {fileID: 11400000, guid: 8bc19d300597f4977b3b400a60ce14ed, type: 2}
+  forcedGhostParameters: {fileID: 0}
   forcedGhostActivity: 7
   currentState: 0
   house: {fileID: 0}
@@ -57,8 +58,9 @@ MonoBehaviour:
   currentRoom: {fileID: 0}
   animator: {fileID: 4239653913621680343}
   fxApparition: {fileID: 3177045233476871603}
-  huntingSound: {fileID: 8300000, guid: beac21c62f9184b84bdf2cc610cfba73, type: 3}
   isBlinkingGhost: 0
+  apparitionSound: {fileID: 8300000, guid: 4426ed9142f01424bba41462bfbbcde4, type: 3}
+  huntingSound: {fileID: 8300000, guid: beac21c62f9184b84bdf2cc610cfba73, type: 3}
   printDurationMin: 6
   printDurationMax: 25
   pawSprites:
@@ -70,11 +72,12 @@ MonoBehaviour:
   normalSpeedBase: 1
   targetingSpeedBase: 1.5
   angrinessPercentage: 0
-  minimumAngrinessToHunt: 80
+  minimumAngrinessToHunt: 50
   angrinessToAddByTriggeringPlayer: 10
   forecastTimeBeforeAHunt: 5
   startHuntingStandingTime: 4
   forcedStartTargetingTime: 4
+  delayBeforeLosingPlayerTargeting: 4
   averageHuntTime: 10
   huntTimeVariation: 5
   minimumPeaceTime: 60
@@ -102,8 +105,8 @@ MonoBehaviour:
   doorMask:
     serializedVersion: 2
     m_Bits: 1024
-  averageActivityTime: 10
-  activityTimeVariation: 5
+  averageActivityTime: 20
+  activityTimeVariation: 10
   chancesToRoamInAnotherRoom: 25
   averageVisibleTime: 1
   visibleTimeVariation: 0.5
@@ -185,10 +188,10 @@ CapsuleCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 2
-  m_Radius: 0.38840783
+  m_Radius: 0.69713366
   m_Height: 2.5786262
   m_Direction: 1
-  m_Center: {x: 0, y: 1.28, z: 0}
+  m_Center: {x: 0, y: 1.28, z: 0.30872583}
 --- !u!54 &376679346949526051
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -224,6 +227,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 297663509295575335}
     m_Modifications:
+    - target: {fileID: 7858423955098521608, guid: 858c7956b673f42f4875cb180df3574b, type: 3}
+      propertyPath: m_Materials.Array.data[0]
+      value: 
+      objectReference: {fileID: 2100000, guid: 17152e19d97d4412fb8c03aaf263c1a4, type: 2}
     - target: {fileID: 7858423955116296086, guid: 858c7956b673f42f4875cb180df3574b, type: 3}
       propertyPath: m_Name
       value: GhostSmoke

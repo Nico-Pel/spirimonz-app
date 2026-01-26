@@ -1,5 +1,6 @@
-using System;
 using System.Collections;
+using System.Collections.Generic;
+using System;
 using UnityEngine;
 using UnityEngine.AI;
 
@@ -9,18 +10,40 @@ using UnityEditor;
 
 public class GameBehaviour : MonoBehaviour
 {
-    /// <summary>
-    /// Exécute une action après un délai en secondes
-    /// </summary>
+    private Dictionary<string, Coroutine> _invokes = new Dictionary<string, Coroutine>();
+
+    // Invoke avec nom optionnel
     public void Invoke(float delay, Action action)
     {
-        StartCoroutine(InvokeCoroutine(delay, action));
+        // Générer un nom unique pour cet invoke interne (on ne pourra pas l'annuler de l'extérieur)
+        string uniqueName = Guid.NewGuid().ToString();
+        Invoke(uniqueName, delay, action);
     }
 
-    private IEnumerator InvokeCoroutine(float delay, Action action)
+    // Invoke avec nom fourni
+    public void Invoke(string name, float delay, Action action)
+    {
+        // Si un invoke du même nom existe, on l'annule
+        CancelInvoke(name);
+
+        Coroutine coroutine = StartCoroutine(InvokeCoroutine(delay, action, name));
+        _invokes[name] = coroutine;
+    }
+
+    private IEnumerator InvokeCoroutine(float delay, Action action, string name)
     {
         yield return new WaitForSeconds(delay);
+        _invokes.Remove(name); // Supprime après exécution
         action?.Invoke();
+    }
+
+    public void CancelInvoke(string name)
+    {
+        if (_invokes.TryGetValue(name, out Coroutine coroutine))
+        {
+            StopCoroutine(coroutine);
+            _invokes.Remove(name);
+        }
     }
     
     public static int LayerMaskToLayer(LayerMask mask)

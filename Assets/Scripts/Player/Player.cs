@@ -13,18 +13,35 @@ public class Player : MonoBehaviour
     public InventoryManager inventoryManager;
     
     [Header("Player Settings")]
-    public float sanity = 100f;
     public Room currentRoom;
     public House house;
 
     public Transform head;
     public Transform body;
 
+    //Heart beating
+    public AudioClip heartBeating;
+    private bool _detectHeartBeat;
+    private float _heartBeatMaxDelay = 1.5f;
+    private float _heartBeatMinDelay = 0.4f;
+    private float _heartBeatMaxVolume = 1f;
+    private float _heartBeatMinVolume = 0.1f;
+    private float _minDistanceFromGhostToEarHeartBeating = 15f;
+    private float _delayBeforeNextBeat;
+    
     private bool _isDead;
+    private Ghost _ghost;
     
     private void Awake()
     {
         Instance = this;
+    }
+
+    private void Start()
+    {
+        _ghost = House.Instance.currentGhost;
+        _ghost.onGhostStartToHunt.AddListener(() => _detectHeartBeat = true);
+        _ghost.onGhostStopToHunt.AddListener(() => _detectHeartBeat = false);
     }
 
     private void OnTriggerEnter(Collider other)
@@ -52,6 +69,42 @@ public class Player : MonoBehaviour
         {
             house.currentGhost.ForceNewWaypoint(currentRoom);
         }
+    }
+
+    private void Update()
+    {
+        HandleHeartBeat();
+
+        if (_delayBeforeNextBeat > 0)
+        {
+            _delayBeforeNextBeat -= Time.deltaTime;
+        }
+    }
+
+    private void HandleHeartBeat()
+    {
+        if (!_detectHeartBeat) return; // Ghost is not hunting
+
+        float distFromGhost = Vector3.Distance(transform.position, _ghost.transform.position);
+
+        if (distFromGhost <= _minDistanceFromGhostToEarHeartBeating && _delayBeforeNextBeat <= 0f)
+        {
+            // Calcul du volume et du délai entre battements
+            float volume = Mathf.Lerp(_heartBeatMaxVolume, _heartBeatMinVolume, distFromGhost / _minDistanceFromGhostToEarHeartBeating);
+            float nextBeatDelay = Mathf.Lerp(_heartBeatMinDelay, _heartBeatMaxDelay, distFromGhost / _minDistanceFromGhostToEarHeartBeating);
+
+            // Jouer le battement
+            PlayHeartBeat(volume);
+
+            // Préparer le prochain battement
+            _delayBeforeNextBeat = nextBeatDelay;
+        }
+    }
+
+    private void PlayHeartBeat(float volume)
+    {
+        SoundManager.Instance.PlaySound(
+            heartBeating, transform.position, volume, sourceParent: transform, duration: -1f, loop: false);
     }
 
     public void Die()

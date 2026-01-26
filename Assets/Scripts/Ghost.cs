@@ -10,8 +10,12 @@ using Random = UnityEngine.Random;
 
 public class Ghost : GameBehaviour
 {
-   public GhostParameters ghostParameters;
+   [ReadOnly] public GhostParameters ghostParameters;
+   
+   [Space]
+   
     # if UNITY_EDITOR
+        public GhostParameters forcedGhostParameters;
         public GhostActivities forcedGhostActivity = GhostActivities.Nothing;
     #endif
 
@@ -50,9 +54,11 @@ public class Ghost : GameBehaviour
     public Animator animator;
     public ParticleSystem fxApparition;
 
-    public AudioClip huntingSound;
-
     public bool isBlinkingGhost;
+
+    [Header("Sounds")]
+    public AudioClip apparitionSound;
+    public AudioClip huntingSound;
     
     [FormerlySerializedAs("sprintDurationMin")] [Header("Ghost Prints")]
     public float printDurationMin = 6f;
@@ -80,9 +86,14 @@ public class Ghost : GameBehaviour
     public float forecastTimeBeforeAHunt = 5f;
     public float startHuntingStandingTime = 4;
     public float forcedStartTargetingTime = 4;
+    public float delayBeforeLosingPlayerTargeting = 4f;
     public float averageHuntTime = 10f;
     public float huntTimeVariation = 5f;
     public float minimumPeaceTime = 60f;
+    
+    private bool _forcedStartTargeting = false;
+    private bool _targetingPlayer;
+    private bool _losingPlayer;
 
     [Header("Ghost Stats : Waypoints Hunting")]
 
@@ -91,7 +102,7 @@ public class Ghost : GameBehaviour
     public List<WayPoint> huntingWayPoints = new List<WayPoint>();
     [ReadOnly] public float currentHuntingWayPointDistanceTargeted;
     public float chancesPercentageToIgnoreAWayPoint = 40f;
-    public float detectPlayerActivityRange = 50f;
+    public float detectPlayerActivityRange = 20f;
 
     [Header("Ghost Stats : Throwing")] 
     public float throwDetectionRange = 5;
@@ -123,9 +134,6 @@ public class Ghost : GameBehaviour
     public float averageInvisibleTime = 1;
     public float invisibleTimeVariation = 0.5f;
 
-    private bool _forcedStartTargeting = false;
-    private bool _targetingPlayer;
-
     [Header("Ghost Components")] 
     public Renderer[] renderers;
     public NavMeshAgent agent;
@@ -145,6 +153,19 @@ public class Ghost : GameBehaviour
     public void Initialize(House h)
     {
         house = h;
+
+        if (house.possibleGhosts.Length > 0)
+        {
+            ghostParameters = house.possibleGhostParameters[Random.Range(0, house.possibleGhostParameters.Length)];
+        }
+        
+        # if UNITY_EDITOR
+        if (forcedGhostParameters != null)
+        {
+            ghostParameters = forcedGhostParameters;
+        }
+        # endif
+        
         favoriteRoom = house.hauntableRooms[Random.Range(0, house.hauntableRooms.Length)];
         currentRoom = favoriteRoom;
 
@@ -221,20 +242,33 @@ public class Ghost : GameBehaviour
             if (currentState != GhostState.huntingState /*|| door.isOpen*/)
                 return;
 
+
             Vector3 directionToDoor = (door.transform.position - transform.position).normalized;
             Vector3 moveDirection = agent.velocity.normalized;
 
             float dot = Vector3.Dot(moveDirection, directionToDoor);
 
-            if (dot > 0.6f) // seuil à ajuster
+            if (dot > 0.15f) // seuil à ajuster
             {
                 _stopMoving = true;
                 this.Invoke(_waitDoorTime, () => _stopMoving = false);
 
                 door.GhostDoorInteraction(
                     Random.Range(0.8f, 1f),   // 80% à 100% ouvert, propre et clampé
-                    Random.Range(5f, 15f)     // vitesse raisonnable pour le hinge
+                    Random.Range(50f, 65f)     // vitesse raisonnable pour le hinge
                 );
+            }
+        }
+        else if (ghostParameters.SpiritPrints && currentState == GhostState.hideState && other.TryGetComponent(out PrintTrigger printTrigger))
+        {
+            float roll = Random.Range(0f, 100f);
+            if (roll <= ghostParameters.chancesToPutPrintOnPrintTriggers)
+            {
+                PrintSource printSourceToUse = printTrigger.GetRandomPrintSource();
+                if (printSourceToUse != null)
+                {
+                    ActivatePrint(printSourceToUse, PrintTypes.Paw);
+                }
             }
         }
     }
@@ -264,6 +298,7 @@ public class Ghost : GameBehaviour
     private void StandingBeforeHunting()
     {
         fxApparition.Play();
+        SoundManager.Instance.PlaySound(apparitionSound, transform.position, 1f, 1f, -1f, 25f);
         
         onGhostStartToHunt?.Invoke();
         currentState = GhostState.standingState;
@@ -313,14 +348,27 @@ public class Ghost : GameBehaviour
 
             if (!_forcedStartTargeting && !vision.CanSeePlayer(house.currentPlayer))
             {
-                _targetingPlayer = false;
+                if (_targetingPlayer && _losingPlayer == false)
+                {
+                    _losingPlayer = true;
+                    this.Invoke("LosingTarget", delayBeforeLosingPlayerTargeting, () =>
+                    {
+                        if (vision.CanSeePlayer(house.currentPlayer) == false)
+                        {
+                            LosePlayer();
+                        }
+                    });
+                }
             }
             else if(_forcedStartTargeting || vision.CanSeePlayer(house.currentPlayer))
             {
                 _targetingPlayer = true;
+                _losingPlayer = false;
+                this.CancelInvoke("LosingTarget");
             }
             
             SetHuntingDestination();
+            
             if (_stopMoving)
             {
                 agent.speed = 0;
@@ -352,6 +400,15 @@ public class Ghost : GameBehaviour
             }
         }
         #endif
+    }
+
+    private void LosePlayer()
+    {
+        ResetWaypoints();
+        _targetingPlayer = false;
+        
+        //Consider that Ghost don't know where is the player but know where he moved before losing him
+        ForceNewWaypoint(Player.Instance.currentRoom);
     }
     
     private void LookAtPlayer()
@@ -568,6 +625,7 @@ public class Ghost : GameBehaviour
                 else
                 {
                     TriggerActivity();
+                    return;
                 }
                 break;
 
@@ -627,6 +685,7 @@ public class Ghost : GameBehaviour
             float openAngle = Random.Range(openAngleMin, openAngleMax);
             selectedDoor.GhostDoorInteraction(openAngle, openForce);
         }
+        
         ActivateActivitySource(selectedDoor.activitySource);
 
         if (ghostParameters.SpiritPrints)
@@ -734,6 +793,11 @@ public class Ghost : GameBehaviour
 
     private void InitWayPoints()
     {
+        huntingWayPoints.AddRange(house.wayPoints);
+    }
+
+    private void ResetWaypoints()
+    {
         huntingWayPoints.Clear();
         huntingWayPoints.AddRange(house.wayPoints);
     }
@@ -767,7 +831,7 @@ public class Ghost : GameBehaviour
     private WayPoint SelectNearestWayPoint()
     {
         if(huntingWayPoints.Count == 0)
-            InitWayPoints();
+            ResetWaypoints();
         
         WayPoint selectedWaypoint = huntingWayPoints[0];
         float bestDist = 1000;
