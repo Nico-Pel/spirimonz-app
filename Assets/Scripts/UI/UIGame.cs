@@ -46,6 +46,8 @@ public class UIGame : MonoBehaviour
 
     public void EnablePointer(bool enable)
     {
+        if (Player.Instance != null && Player.Instance.IsDead()) enable = false;
+        
         pointerBase.SetActive(enable);
     }
 
@@ -77,7 +79,7 @@ public class UIGame : MonoBehaviour
         }
     }
 
-    private void CloseAllWindows()
+    public void CloseAllWindows()
     {
         EnableJournal(false);
     }

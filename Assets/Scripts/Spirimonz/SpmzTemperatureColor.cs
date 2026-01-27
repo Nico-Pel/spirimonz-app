@@ -24,6 +24,9 @@ public class SpmzTemperatureColor : Spirimonz
     public override void InitSpirimonz()
     {
         base.InitSpirimonz();
+
+        if (IsLocked()) return;
+        
         _currentColor = gradientColor.Evaluate(0);
         SetTemperatureColors(_currentColor);
     }

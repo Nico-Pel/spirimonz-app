@@ -65,6 +65,7 @@ public class Spirimonz : GameBehaviour, IInteractable
     private bool _hidingFromAGhost;
 
     private bool _isLocked;
+    private bool _initialized;
 
     private void Start()
     {
@@ -82,27 +83,57 @@ public class Spirimonz : GameBehaviour, IInteractable
         House.Instance.currentGhost.onGhostCallForAHunt.AddListener(StartDelayBeforeFeelingAHunt);
         House.Instance.currentGhost.onGhostStartToHunt.AddListener(OnHuntStart);
         House.Instance.currentGhost.onGhostStopToHunt.AddListener(OnHuntEnd);
+        
+        EnableSpirimonz(false);
+        _initialized = true;
     }
 
     private void OnEnable()
     {
-        SetSpiritHideMode(_hidingFromAGhost);
+        if (_initialized)
+        {
+            SetSpiritHideMode(_hidingFromAGhost);
+
+            // Si le Spirimonz était désactivé pendant le forecast, on applique la fuite maintenant
+            if (_shouldFeelAHunt)
+            {
+                _shouldFeelAHunt = false;
+                FeelAHunt();
+            }
+        }
     }
 
     private void SetSpiritHideMode(bool hide)
     {
         spirimonzGameObject.SetActive(!hide);
         hidingGameObject.SetActive(hide);
+
+        if (isOnTheMap && hide == false)
+        {
+            collider.enabled = true;
+        }
+
+        if (hide)
+        {
+            collider.enabled = false;
+        }
     }
 
+    private bool _shouldFeelAHunt;
     private void StartDelayBeforeFeelingAHunt()
     {
-        if (this.gameObject.activeSelf == false) return;
-        
         float timeBeforeDisappearing = House.Instance.currentGhost.forecastTimeBeforeAHunt - forecastTimeBeforeAHunt;
         if (timeBeforeDisappearing <= 0)
             timeBeforeDisappearing = 0.1f;
-        this.Invoke(timeBeforeDisappearing, FeelAHunt);
+
+        if (gameObject.activeSelf)
+        {
+            this.Invoke(timeBeforeDisappearing, FeelAHunt);
+        }
+        else
+        {
+            _shouldFeelAHunt = true;
+        }
     }
 
     private void FeelAHunt()
@@ -123,6 +154,7 @@ public class Spirimonz : GameBehaviour, IInteractable
     {
         if (!Player.Instance.IsDead())
         {
+            _shouldFeelAHunt = false;
             _hidingFromAGhost = false;
             SetSpiritHideMode(false);
         }
@@ -137,6 +169,11 @@ public class Spirimonz : GameBehaviour, IInteractable
         if (baseBehaviour == SpirimonzBehaviourState.Escape)
         {
             _escaping = true;
+        }
+
+        if (House.Instance.currentGhost.IsHunting())
+        {
+            collider.enabled = false;
         }
     }
 
@@ -468,4 +505,6 @@ public class Spirimonz : GameBehaviour, IInteractable
     {
         _isLocked = true;
     }
+    
+    public bool IsLocked() => _isLocked;
 }

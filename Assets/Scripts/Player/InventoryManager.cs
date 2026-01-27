@@ -52,7 +52,6 @@ public class InventoryManager : GameBehaviour
             if (spmz == null) continue;
             
             Spirimonz newSpirimonz = Instantiate(spmz, spirimonzHandPos);
-            newSpirimonz.EnableSpirimonz(false);
             spirimonzTeam.Add(newSpirimonz);
             newSpirimonz.transform.localPosition = Vector3.zero;
             newSpirimonz.transform.localEulerAngles = Vector3.zero;
@@ -124,13 +123,16 @@ public class InventoryManager : GameBehaviour
     {
         //You can't select a Spirimonz if an object in hands
         if (Player.Instance.interactionController.objectInHands != null) return;
+
+        if (spirimonzTeam[teamIndex] == null) return;
         
         if (selectedSpirimonz != null && selectedSpirimonz.isOnTheMap == false)
         {
+            //Spirimonz is already selected
+            if(spirimonzTeam[teamIndex] == selectedSpirimonz) return;
+            
             selectedSpirimonz.gameObject.SetActive(false);
         }
-
-        if (spirimonzTeam[teamIndex] == null) return;
         
         selectedSpirimonz = spirimonzTeam[teamIndex];
         

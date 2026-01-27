@@ -8,6 +8,9 @@ public class CaptureScene : GameBehaviour
     public AudioClip victorySound;
     public float victoryVolume = 1f;
     
+    public AudioClip loseSound;
+    public float loseVolume = 1f;
+    
     public AudioClip heartBeatingClip;
     public float heartBeatVolume = 1f;
     
@@ -42,6 +45,7 @@ public class CaptureScene : GameBehaviour
     {
         ghostModel.SetActive(false);
         _capturedSpirimonz = Instantiate(House.Instance.GetSpirimonzPrefab(), transform.position, Quaternion.identity);
+        _capturedSpirimonz.hidingGameObject.SetActive(false);
         _capturedSpirimonz.Lock();
         this.Invoke(delayBeforeStartingWinAnimation, PlayWinAnimation);
     }
@@ -55,6 +59,8 @@ public class CaptureScene : GameBehaviour
     private void Lose()
     {
         ghostAnimator.SetTrigger("Attack");
+        PlayLoseSound();
+        this.Invoke(0.5f, () => UIGame.Instance.EnableOverlay(true, 0));
     }
 
     public void PlayerFakeHeartBeating()
@@ -67,5 +73,11 @@ public class CaptureScene : GameBehaviour
     {
         SoundManager.Instance.PlaySound(
             victorySound, transform.position, victoryVolume, sourceParent: transform, duration: -1f, loop: false);
+    }
+    
+    private void PlayLoseSound()
+    {
+        SoundManager.Instance.PlaySound(
+            loseSound, transform.position, loseVolume, sourceParent: transform, duration: -1f, loop: false);
     }
 }

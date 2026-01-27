@@ -11,7 +11,7 @@ public class BlinkingLight : MonoBehaviour
     private float blinkMultiplier = 0.5f; // fraction d'intensité lors du blink
     private float blinkSpeed = 0.1f; // vitesse du blink en secondes
     private float blinkSpeedVoltaic = 0.08f; // vitesse du clignotement en secondes si le fantome est voltaic
-    private float blinkDistance = 15f; // distance du ghost pour déclencher le blink
+    private float blinkDistance = 10f; // distance du ghost pour déclencher le blink
 
     private Ghost _ghost;
     private bool _isBlinking;

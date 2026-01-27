@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Player : MonoBehaviour
+public class Player : GameBehaviour
 {
     public static Player Instance { get; private set; }
 
@@ -21,7 +21,16 @@ public class Player : MonoBehaviour
     public Transform head;
     public Transform body;
 
+    [Header("Sounds")] 
+    public AudioClip deathSound;
+    public float deathVolume = 1f;
+    public float deathSoundDelay = 1f;
+    public AudioClip groundFallSound;
+    public float groundFallVolume = 3f;
+    public float groundFallDelay = 1.5f;
+        
     //Heart beating
+    [Header("Sounds : HeartBeating")]
     public AudioClip heartBeating;
     private bool _detectHeartBeat;
     private float _heartBeatMaxDelay = 1.5f;
@@ -75,6 +84,8 @@ public class Player : MonoBehaviour
 
     private void Update()
     {
+        if (_isDead) return;
+        
         HandleHeartBeat();
 
         if (_delayBeforeNextBeat > 0)
@@ -112,14 +123,51 @@ public class Player : MonoBehaviour
     public void Die()
     {
         _isDead = true;
+        LockControls(true);
+        House.Instance.currentGhost.LockGhost();
+        
+        //Sounds
+        SoundManager soundManager = SoundManager.Instance;
+        soundManager.PlaySound(House.Instance.currentGhost.killSound, transform.position, 1f, sourceParent: transform, duration: -1f, loop: false);
+        
+        this.Invoke(deathSoundDelay, () => PlayDeathSound(soundManager));
+        this.Invoke(groundFallDelay, () => PlayerFallGroundSound(soundManager));
+        this.Invoke(groundFallDelay, () => StopAmbientSound(soundManager));
+        
+        //Animation
+        inventoryManager.handAnimator.SetBool("IsDead", true);
+        inventoryManager.handAnimator.SetTrigger("Death");
+        
+        //UI
+        UIGame uiGame = UIGame.Instance;
+        uiGame.CloseAllWindows();
+        uiGame.EnablePointer(false);
+        uiGame.EnableOverlay(true, 7);
     }
     
     public bool IsDead() => _isDead;
 
     public void LockControls(bool enable)
     {
+        if (_isDead == true) enable = true;
+        
         lockControls = enable;
     }
     
     public bool AreControlsLocked() => lockControls;
+
+    private void PlayDeathSound(SoundManager soundManager)
+    {
+        soundManager.PlaySound(deathSound, transform.position, deathVolume, sourceParent: transform, duration: -1f, loop: false);
+    }
+
+    private void PlayerFallGroundSound(SoundManager soundManager)
+    {
+        soundManager.PlaySound(groundFallSound, transform.position, groundFallVolume, sourceParent: transform, duration: -1f, loop: false);
+    }
+
+    private void StopAmbientSound(SoundManager soundManager)
+    {
+        soundManager.StopAmbient(2f);
+    }
 }

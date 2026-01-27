@@ -39,6 +39,9 @@ public class SpmzDetector : Spirimonz
     public override void InitSpirimonz()
     {
         base.InitSpirimonz();
+        
+        if (IsLocked()) return;
+
         activitySources.AddRange(FindObjectsOfType<ActivitySource>());
     }
     public override bool UpdateSpirimonzBehaviour()

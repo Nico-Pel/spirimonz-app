@@ -13,6 +13,9 @@ public class SpmzZoneUV : Spirimonz
     public override void InitSpirimonz()
     {
         base.InitSpirimonz();
+        
+        if (IsLocked()) return;
+
         printSources.AddRange(FindObjectsOfType<PrintSource>());
     }
     public override bool UpdateSpirimonzBehaviour()

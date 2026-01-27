@@ -59,6 +59,7 @@ public class Ghost : GameBehaviour
     [Header("Sounds")]
     public AudioClip apparitionSound;
     public AudioClip huntingSound;
+    public AudioClip killSound;
     
     [FormerlySerializedAs("sprintDurationMin")] [Header("Ghost Prints")]
     public float printDurationMin = 6f;
@@ -207,6 +208,8 @@ public class Ghost : GameBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
+        if (_isLocked) return;
+
         if (other.GetComponent<NavMeshAgent>())
         {
             agentContacts++;
@@ -287,9 +290,12 @@ public class Ghost : GameBehaviour
         }
     }
 
+    private bool _willHunt;
     private void TriggerHunting(bool forceHunting = false)
     {
         if (_canHunt == false && forceHunting == false) return;
+
+        _willHunt = true;
         _canHunt = false;
         
         onGhostCallForAHunt?.Invoke();
@@ -481,6 +487,8 @@ public class Ghost : GameBehaviour
 
     public void StopHunting()
     {
+        _willHunt = false;
+        
         if (huntingSound != null)
         {
             _huntingSound.Stop(false);
@@ -512,6 +520,8 @@ public class Ghost : GameBehaviour
 
     private void Kill(Player player)
     {
+        if (_isLocked) return;
+
         player.Die();
     }
 
@@ -1006,7 +1016,7 @@ public class Ghost : GameBehaviour
 
     public bool IsHunting()
     {
-        return currentState == GhostState.huntingState || currentState == GhostState.standingState;
+        return currentState == GhostState.huntingState || currentState == GhostState.standingState || _willHunt;
     }
 
     public void LockGhost()
