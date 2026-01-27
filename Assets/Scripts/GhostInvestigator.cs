@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Events;
+using Random = UnityEngine.Random;
 
 [ExecuteAlways] // Permet d’exécuter OnValidate même hors playmode
 public class GhostInvestigator : GameBehaviour
@@ -42,7 +44,9 @@ public class GhostInvestigator : GameBehaviour
     public List<GhostParameters> possibleSuspects = new List<GhostParameters>();
     
     private Dictionary<EvidenceType, EvidenceState> evidences = new();
-
+    
+    public UnityEvent<EvidenceType> OnInvestigationDatasChange;
+    
     private void Awake()
     {
         Instance = this;
@@ -94,6 +98,8 @@ public class GhostInvestigator : GameBehaviour
     {
         evidences[type] = state;
         UpdatePossibleSuspects();
+        
+        OnInvestigationDatasChange?.Invoke(type);
     }
     
     private void OnEnable()
@@ -111,5 +117,37 @@ public class GhostInvestigator : GameBehaviour
             if (!evidences.ContainsKey(type))
                 evidences[type] = EvidenceState.Unknown;
         }
+    }
+    
+    public int GetCaptureChancePercentage(int selectedSlotsCount)
+    {
+        switch (selectedSlotsCount)
+        {
+            case 1:
+                return 100;
+            case 2:
+                return 45;
+            case 3:
+                return 10;
+            default:
+                return 0;
+        }
+    }
+
+    private bool IsCaptureSuccessful(List<GhostParameters> selectedGhosts)
+    {
+        GhostParameters answer = House.Instance.currentGhost.ghostParameters;
+        if (!selectedGhosts.Contains(answer)) return false;
+
+        float percentageChances = GetCaptureChancePercentage(selectedGhosts.Count);
+        float chanceRoll = Random.Range(0f, 100f);
+        
+        return chanceRoll <= percentageChances;
+    }
+
+    public void TryToCapture(List<GhostParameters> selectedGhosts)
+    {
+        bool successful = IsCaptureSuccessful(selectedGhosts);
+        Debug.Log(successful ? "Successfully captured" : "Failed to capture");
     }
 }

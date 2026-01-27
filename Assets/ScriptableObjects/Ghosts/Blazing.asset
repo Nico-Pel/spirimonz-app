@@ -13,10 +13,30 @@ MonoBehaviour:
   m_Name: Blazing
   m_EditorClassIdentifier: 
   ghostType: 0
+  ghostSprite: {fileID: -783055803, guid: 74c689d92d0d94e98b84c1655d246fb2, type: 3}
   SpiritPrints: 0
   EatFruits: 1
-  AnswerVocals: 0
+  BlowUpFlammables: 0
   FreezingTemperature: 0
   HighSpiritActivities: 1
   SpiritOrbs: 1
   Radioactivity: 0
+  chancesToPutPrintOnDoors: 33
+  chancesToPutPrintOnPrintTriggers: 33
+  chancesToPutPrintOnSwitch: 33
+  chancesToPutPrintOnGround: 33
+  chancesToEatFruitInsteadOfThrowingIt: 70
+  activityOneChances: 35
+  activityTwoChances: 35
+  activityThreeChances: 20
+  activityFourChances: 10
+  chancesToChangeThreeOrFourActivityIntoFive: 30
+  activityTimeMin: 10
+  activityTimeMax: 20
+  refreshmentAfterActivityMin: -1
+  refreshmentAfterActivityMax: -5
+  nextOrbsDelayMin: 3
+  nextOrbsDelayMax: 10
+  chancesToDetectRadiationOnTrigger: 10
+  radiationDurationOnTrigger: 5
+  radiationDurationAfterAttack: 15

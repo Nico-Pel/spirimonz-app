@@ -200,7 +200,7 @@ public class InteractionController : GameBehaviour
     void UpdateCursorUI()
     {
         bool showCursor = _currentTarget != null;
-        UIGame.Instance.EnableCursor(showCursor || _targetedDoor != null);
+        UIGame.Instance.EnablePointer(showCursor || _targetedDoor != null);
 
         bool showGrabText = _currentTarget is CatchableObject;
         UIGame.Instance.EnableGrabText(showGrabText);

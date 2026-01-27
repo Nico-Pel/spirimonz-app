@@ -32,6 +32,7 @@ public class GhostParameters : ScriptableObject
     }
 
     public GhostType ghostType;
+    public Sprite ghostSprite;
     
     [Space]
     
@@ -124,6 +125,21 @@ public class GhostParameters : ScriptableObject
         
         float roll = Random.Range(0f, 100f);
         return roll <= chancesToDetectRadiationOnTrigger;
+    }
+    
+    public bool HasEvidence(GhostInvestigator.EvidenceType type)
+    {
+        return type switch
+        {
+            GhostInvestigator.EvidenceType.SpiritPrints => SpiritPrints,
+            GhostInvestigator.EvidenceType.EatFruits => EatFruits,
+            GhostInvestigator.EvidenceType.BlowUpFlammables => BlowUpFlammables,
+            GhostInvestigator.EvidenceType.FreezingTemperature => FreezingTemperature,
+            GhostInvestigator.EvidenceType.HighSpiritActivities => HighSpiritActivities,
+            GhostInvestigator.EvidenceType.SpiritOrbs => SpiritOrbs,
+            GhostInvestigator.EvidenceType.Radioactivity => Radioactivity,
+            _ => false
+        };
     }
 }
 

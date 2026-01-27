@@ -6,6 +6,8 @@ using UnityEngine;
 public class Player : MonoBehaviour
 {
     public static Player Instance { get; private set; }
+
+    [ReadOnly] private bool lockControls;
     
     [Header("Player Components")]
     public InteractionController interactionController;
@@ -113,4 +115,11 @@ public class Player : MonoBehaviour
     }
     
     public bool IsDead() => _isDead;
+
+    public void LockControls(bool enable)
+    {
+        lockControls = enable;
+    }
+    
+    public bool AreControlsLocked() => lockControls;
 }

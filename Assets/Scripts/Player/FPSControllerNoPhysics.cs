@@ -145,6 +145,13 @@ public class FPSControllerNoPhysics : GameBehaviour
 
     void Update()
     {
+        //UI controls
+        HandleJournal();
+        HandleExitMenu();
+        
+        if (Player.Instance.AreControlsLocked()) return;
+        
+        //Player controls
         HandleLook();
         HandleArmSway();
         HandleMove();
@@ -152,8 +159,6 @@ public class FPSControllerNoPhysics : GameBehaviour
         HandleHeadbob();
         HandleCrouch();
         HandleLight();
-        HandleJournal();
-        HandleExitMenu();
     }
 
     void HandleLight()

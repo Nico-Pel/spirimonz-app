@@ -176,7 +176,7 @@ public class Ghost : GameBehaviour
         
         ghostModel.SetActive(false);
 
-        if (ghostParameters.SpiritOrbs)
+        if (ghostParameters.HasEvidence(GhostInvestigator.EvidenceType.SpiritOrbs))
         {
             float delayBeforeNextGhostOrbs = Random.Range(ghostParameters.nextOrbsDelayMin, ghostParameters.nextOrbsDelayMax);
             this.Invoke(delayBeforeNextGhostOrbs, () =>
@@ -228,7 +228,7 @@ public class Ghost : GameBehaviour
                 ImproveAngriness(angrinessToAddByTriggeringPlayer);
             }
         }
-        else if (ghostParameters.Radioactivity && other.TryGetComponent(out RadiationDetector radiationDetector))
+        else if (ghostParameters.HasEvidence(GhostInvestigator.EvidenceType.Radioactivity) && other.TryGetComponent(out RadiationDetector radiationDetector))
         {
             Debug.Log("TRIGGER RADIATIONS DETECTOR");
             if (ghostParameters.ShouldDetectRadiationOnTrigger())
@@ -259,7 +259,7 @@ public class Ghost : GameBehaviour
                 );
             }
         }
-        else if (ghostParameters.SpiritPrints && currentState == GhostState.hideState && other.TryGetComponent(out PrintTrigger printTrigger))
+        else if (ghostParameters.HasEvidence(GhostInvestigator.EvidenceType.SpiritPrints) && currentState == GhostState.hideState && other.TryGetComponent(out PrintTrigger printTrigger))
         {
             float roll = Random.Range(0f, 100f);
             if (roll <= ghostParameters.chancesToPutPrintOnPrintTriggers)
@@ -492,7 +492,7 @@ public class Ghost : GameBehaviour
         float nextActivityTime = Random.Range(averageActivityTime - activityTimeVariation, averageActivityTime + activityTimeVariation);
         this.Invoke(nextActivityTime, TriggerActivity);
 
-        if (ghostParameters.Radioactivity)
+        if (ghostParameters.HasEvidence(GhostInvestigator.EvidenceType.Radioactivity))
         {
             currentRoom.StartRadiation(ghostParameters.radiationDurationAfterAttack);
         }
@@ -618,7 +618,7 @@ public class Ghost : GameBehaviour
                 break;
             
             case GhostActivities.BlowOutAFlammable:
-                if (ghostParameters.BlowUpFlammables)
+                if (ghostParameters.HasEvidence(GhostInvestigator.EvidenceType.BlowUpFlammables))
                 {
                     BlowUpARandomFlammable();
                 }
@@ -688,7 +688,7 @@ public class Ghost : GameBehaviour
         
         ActivateActivitySource(selectedDoor.activitySource);
 
-        if (ghostParameters.SpiritPrints)
+        if (ghostParameters.HasEvidence(GhostInvestigator.EvidenceType.SpiritPrints))
         {
             float roll = Random.Range(0f, 100f);
             if (roll <= ghostParameters.chancesToPutPrintOnDoors)
@@ -743,7 +743,7 @@ public class Ghost : GameBehaviour
             ActivateActivitySource(switchLightObject.activitySource);
         }
         
-        if (ghostParameters.SpiritPrints)
+        if (ghostParameters.HasEvidence(GhostInvestigator.EvidenceType.SpiritPrints))
         {
             float roll = Random.Range(0f, 100f);
             if (roll <= ghostParameters.chancesToPutPrintOnSwitch)
