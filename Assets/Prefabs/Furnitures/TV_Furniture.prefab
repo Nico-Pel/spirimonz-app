@@ -136,7 +136,8 @@ GameObject:
   - component: {fileID: 996427496653173872}
   - component: {fileID: 1825069811707310133}
   - component: {fileID: 5341235769081749686}
-  - component: {fileID: 4876510888696572528}
+  - component: {fileID: 5407460414014518531}
+  - component: {fileID: 5315431860797396517}
   m_Layer: 15
   m_Name: Drawer
   m_TagString: Untagged
@@ -237,8 +238,13 @@ MonoBehaviour:
   rotateBackSpeed: 150
   rotateEase: 27
   rotateBackEase: 1
---- !u!65 &4876510888696572528
-BoxCollider:
+  moveSound: {fileID: 8300000, guid: 540d644b26cd64863b38080c3f62a064, type: 3}
+  moveSoundBack: {fileID: 0}
+  volume: 0.5
+  pitchMin: 0.9
+  pitchMax: 1.1
+--- !u!64 &5407460414014518531
+MeshCollider:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
@@ -255,9 +261,37 @@ BoxCollider:
   m_IsTrigger: 0
   m_ProvidesContacts: 0
   m_Enabled: 1
-  serializedVersion: 3
-  m_Size: {x: 0.7930168, y: 0.2702093, z: 0.92744213}
-  m_Center: {x: -0.46745986, y: 0.30958414, z: 0.10023126}
+  serializedVersion: 5
+  m_Convex: 0
+  m_CookingOptions: 30
+  m_Mesh: {fileID: -2563118434042383424, guid: 25bb645ea70064daba3fe7b042f79378, type: 3}
+--- !u!54 &5315431860797396517
+Rigidbody:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7144900432672843315}
+  serializedVersion: 4
+  m_Mass: 1
+  m_Drag: 0
+  m_AngularDrag: 0.05
+  m_CenterOfMass: {x: 0, y: 0, z: 0}
+  m_InertiaTensor: {x: 1, y: 1, z: 1}
+  m_InertiaRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ImplicitCom: 1
+  m_ImplicitTensor: 1
+  m_UseGravity: 1
+  m_IsKinematic: 1
+  m_Interpolate: 0
+  m_Constraints: 0
+  m_CollisionDetection: 2
 --- !u!1 &7276708427691729573
 GameObject:
   m_ObjectHideFlags: 0
@@ -461,6 +495,11 @@ MonoBehaviour:
   rotateBackSpeed: 250
   rotateEase: 27
   rotateBackEase: 1
+  moveSound: {fileID: 8300000, guid: ab5894f83c9184e9185071aab1c08605, type: 3}
+  moveSoundBack: {fileID: 8300000, guid: 0c292ec35b5704c4590a6d2a28a380fb, type: 3}
+  volume: 0.5
+  pitchMin: 0.9
+  pitchMax: 1.1
 --- !u!65 &1687887607164512322
 BoxCollider:
   m_ObjectHideFlags: 0

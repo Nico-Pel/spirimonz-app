@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using DG.Tweening;
+using Random = UnityEngine.Random;
 
 public class MovableObject : ClickableObject
 {
@@ -21,9 +22,16 @@ public class MovableObject : ClickableObject
     [Header("Rotate on click!")]
     public Vector3 offsetRotation;
     public float rotateSpeed = 100f;
-    public float rotateBackSpeed = 150f;
+    public float rotateBackSpeed = 250f;
     public Ease rotateEase = Ease.OutBack;
     public Ease rotateBackEase = Ease.Linear;
+
+    [Header("Sounds")] 
+    public AudioClip moveSound;
+    public AudioClip moveSoundBack;
+    public float volume = 0.5f;
+    public float pitchMin = 0.9f;
+    public float pitchMax = 1.1f;
     
     private bool _isActivated;
     
@@ -56,7 +64,17 @@ public class MovableObject : ClickableObject
             Ease ease = _isActivated ? rotateBackEase : rotateEase;
             transform.DOLocalRotate(newPos, speed).SetSpeedBased().SetEase(ease);
         }
+        
+        PlaySound();
 
         _isActivated = !_isActivated;
+    }
+
+    private void PlaySound()
+    {
+        if (moveSound == null) return;
+        
+        AudioClip clip = _isActivated && moveSoundBack != null ? moveSoundBack : moveSound;
+        SoundManager.Instance?.PlaySound(clip, activitySource.transform.position, volume, Random.Range(pitchMin, pitchMax));
     }
 }

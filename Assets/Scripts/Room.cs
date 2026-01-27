@@ -74,9 +74,9 @@ public class Room : MonoBehaviour
     public Switch SelectSpecialSwitchObject(ActivableObject.ActivationSpecialType targetedType)
     {
         List<Switch> selectableObjects = new List<Switch>();
-        foreach (Switch s in clickableObjects)
+        foreach (ClickableObject co in clickableObjects)
         {
-            if(s.activableObject.activationType == targetedType)
+            if(co.TryGetComponent(out Switch s) && s.activableObject.activationType == targetedType))
                 selectableObjects.Add(s);
         }
 

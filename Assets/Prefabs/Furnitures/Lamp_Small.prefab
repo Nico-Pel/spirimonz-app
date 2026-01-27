@@ -306,6 +306,11 @@ MonoBehaviour:
   activableObject: {fileID: 2805580607180560246}
   animator: {fileID: 0}
   isLocked: 0
+  TurnOnSound: {fileID: 8300000, guid: 5ec18035d33f74ff08b7490afbf08183, type: 3}
+  TurnOffSound: {fileID: 8300000, guid: 5ec18035d33f74ff08b7490afbf08183, type: 3}
+  volume: 0.15
+  pitchMin: 0.6
+  pitchMax: 0.8
 --- !u!64 &7401345498061517891
 MeshCollider:
   m_ObjectHideFlags: 0
@@ -448,6 +453,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 113d3c17f5dc1480ca96051011935db1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  isLinkedToPlayer: 0
   light: {fileID: 2005434726344010959}
 --- !u!1001 &1399272331592167578
 PrefabInstance:

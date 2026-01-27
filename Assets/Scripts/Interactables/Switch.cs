@@ -8,6 +8,13 @@ public class Switch : ClickableObject
     public ActivableObject activableObject;
     public Animator animator;
     public bool isLocked;
+    
+    [Header("Sounds")] 
+    public AudioClip TurnOnSound;
+    public AudioClip TurnOffSound;
+    public float volume = 0.5f;
+    public float pitchMin = 0.9f;
+    public float pitchMax = 1.1f;
 
     private int _state = 0;
 
@@ -25,6 +32,12 @@ public class Switch : ClickableObject
             animator.SetInteger("State", newState);
             _state = newState;
         }
+        
+        //Play sound
+        if (TurnOnSound == null || TurnOffSound == null) return;
+            
+        AudioClip clip = _state == 1 ? TurnOnSound : TurnOffSound;
+        PlaySound(clip);
     }
 
     public void LockObject()
@@ -49,5 +62,10 @@ public class Switch : ClickableObject
         
         if (possiblePrintSources.Count == 0) return null;
         return possiblePrintSources[Random.Range(0, possiblePrintSources.Count)];
+    }
+    
+    private void PlaySound(AudioClip sound)
+    {
+        SoundManager.Instance?.PlaySound(sound, activitySource.transform.position, volume, Random.Range(pitchMin, pitchMax));
     }
 }
