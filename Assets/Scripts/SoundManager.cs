@@ -27,11 +27,24 @@ public class SoundManager : GameBehaviour
     {
         if (clip == null)
             return null;
+        
+        if (sourceParent != null)
+        {
+            AudioSource[] sources = sourceParent.GetComponentsInChildren<AudioSource>();
+            foreach (var s in sources)
+            {
+                if (s.clip == clip && s.isPlaying)
+                    return null; // on bloque
+            }
+        }
 
-        GameObject go = sourceParent == null ? new GameObject($"Sound_{clip.name}") : sourceParent.gameObject;
+        GameObject go = new GameObject($"Sound_{clip.name}");
+        if (sourceParent != null)
+            go.transform.SetParent(sourceParent);
+
         go.transform.position = position;
 
-        AudioSource source = go.TryGetComponent(out AudioSource audioSource) ? audioSource : go.AddComponent<AudioSource>();
+        AudioSource source = go.AddComponent<AudioSource>();
         
         source.clip = clip;
         source.volume = volume;
@@ -97,10 +110,39 @@ public class SoundManager : GameBehaviour
         _ambientSource.Play();
     }
 
-    public void StopAmbient()
+    private Coroutine _ambientFadeCoroutine;
+
+    public void StopAmbient(float fadeDuration = 0f)
     {
-        if (_ambientSource != null)
+        if (_ambientSource == null)
+            return;
+
+        if (_ambientFadeCoroutine != null)
+            StopCoroutine(_ambientFadeCoroutine);
+
+        if (fadeDuration <= 0f)
+        {
             _ambientSource.Stop();
+            return;
+        }
+
+        _ambientFadeCoroutine = StartCoroutine(FadeOutAmbient(fadeDuration));
+    }
+    
+    private IEnumerator FadeOutAmbient(float duration)
+    {
+        float startVolume = _ambientSource.volume;
+        float time = 0f;
+
+        while (time < duration)
+        {
+            time += Time.deltaTime;
+            _ambientSource.volume = Mathf.Lerp(startVolume, 0f, time / duration);
+            yield return null;
+        }
+
+        _ambientSource.Stop();
+        _ambientSource.volume = startVolume; // reset pour la prochaine fois
     }
 
     public class SoundInstance

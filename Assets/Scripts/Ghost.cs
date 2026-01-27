@@ -94,6 +94,7 @@ public class Ghost : GameBehaviour
     private bool _forcedStartTargeting = false;
     private bool _targetingPlayer;
     private bool _losingPlayer;
+    private bool _isLocked;
 
     [Header("Ghost Stats : Waypoints Hunting")]
 
@@ -297,6 +298,8 @@ public class Ghost : GameBehaviour
 
     private void StandingBeforeHunting()
     {
+        if (_isLocked) return;
+        
         fxApparition.Play();
         SoundManager.Instance.PlaySound(apparitionSound, transform.position, 1f, 1f, -1f, 25f);
         
@@ -554,6 +557,8 @@ public class Ghost : GameBehaviour
 
     private void TriggerActivity()
     {
+        if (_isLocked) return;
+        
         GhostActivities randomActivity =
             (GhostActivities)Enum.GetValues(typeof(GhostActivities))
                 .GetValue(Random.Range(0,
@@ -1003,4 +1008,11 @@ public class Ghost : GameBehaviour
     {
         return currentState == GhostState.huntingState || currentState == GhostState.standingState;
     }
+
+    public void LockGhost()
+    {
+        _isLocked = true;
+    }
+    
+    public bool IsLocked() => _isLocked;
 }

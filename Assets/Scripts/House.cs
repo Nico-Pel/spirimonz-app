@@ -10,6 +10,7 @@ public class House : GameBehaviour
 {
     public static House Instance { get; private set; }
 
+    public HouseBiome biome;
     public GhostParameters[] possibleGhostParameters;
 
     public AudioClip ambientSound;
@@ -136,5 +137,10 @@ public class House : GameBehaviour
             selectableWayPoints.Add(furthestWayPoint);
         }
         return selectableWayPoints[Random.Range(0, selectableWayPoints.Count)];
+    }
+
+    public Spirimonz GetSpirimonzPrefab()
+    {
+        return biome.GetSpirimonzPrefab(currentGhost.ghostParameters.ghostType);
     }
 }

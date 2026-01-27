@@ -31,6 +31,8 @@ public class UIJournal : GameBehaviour
         SetCaptureButtonState();
         
         captureButton.onClick.AddListener(StartCapture);
+        
+        House.Instance.currentGhost.onGhostStartToHunt.AddListener(SetCaptureButtonState);
     }
     
     private void OnEnable()
@@ -65,7 +67,7 @@ public class UIJournal : GameBehaviour
     {
         int selectedSlotsCount = GetSelectedGhosts().Count;
         float percentageChances = GhostInvestigator.Instance.GetCaptureChancePercentage(selectedSlotsCount);
-        captureButton.interactable = selectedSlotsCount > 0 && percentageChances > 0;
+        captureButton.interactable = selectedSlotsCount > 0 && percentageChances > 0 && House.Instance.currentGhost.IsHunting() == false;
         percentageText.text = percentageChances + "%";
     }
 

@@ -8,7 +8,12 @@ using Random = UnityEngine.Random;
 public class GhostInvestigator : GameBehaviour
 {
     public static GhostInvestigator Instance { get; private set; }
-
+    
+    [Header("CaptureScene")]
+    public CaptureScene captureScene;
+    public float delayBeforeActivatingCaptureScene = 3f;
+    public float fadeDuration = 2f;
+    
     public enum EvidenceType
     {
         SpiritPrints,
@@ -46,10 +51,13 @@ public class GhostInvestigator : GameBehaviour
     private Dictionary<EvidenceType, EvidenceState> evidences = new();
     
     public UnityEvent<EvidenceType> OnInvestigationDatasChange;
+
+    private bool _success;
     
     private void Awake()
     {
         Instance = this;
+        captureScene.gameObject.SetActive(false);
     }
     
     private void Start()
@@ -147,7 +155,19 @@ public class GhostInvestigator : GameBehaviour
 
     public void TryToCapture(List<GhostParameters> selectedGhosts)
     {
-        bool successful = IsCaptureSuccessful(selectedGhosts);
-        Debug.Log(successful ? "Successfully captured" : "Failed to capture");
+        _success = IsCaptureSuccessful(selectedGhosts);
+        Player.Instance.LockControls(true);
+        House.Instance.currentGhost.LockGhost();
+
+        UIGame uiGame = UIGame.Instance;
+        uiGame.EnablePointer(false);
+        uiGame.EnableOverlay(true, fadeDuration);
+        
+        this.Invoke(delayBeforeActivatingCaptureScene, () =>
+        {
+            captureScene.gameObject.SetActive(true);
+        });
     }
+    
+    public bool IsSuccess() => _success;
 }

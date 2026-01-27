@@ -2,9 +2,14 @@ using System;
 using UnityEngine;
 using TMPro;
 using UnityEngine.Serialization;
+using UnityEngine.UI;
+using DG.Tweening;
 
 public class UIGame : MonoBehaviour
 {
+    public Image overlay;
+
+    public GameObject pointerBase;
     public GameObject pointerON;
     public TextMeshProUGUI tGrab;
     public UIJournal Journal;
@@ -40,6 +45,11 @@ public class UIGame : MonoBehaviour
     }
 
     public void EnablePointer(bool enable)
+    {
+        pointerBase.SetActive(enable);
+    }
+
+    public void EnableBigPointer(bool enable)
     {
         pointerON.SetActive(enable);
     }
@@ -96,5 +106,18 @@ public class UIGame : MonoBehaviour
         
         if(_showCursorsActivatedCount <= 0)
             ShowCursor(false);
+    }
+    
+    public void EnableOverlay(bool enable, float fadeDuration)
+    {
+        Color colorToUse = enable ? Color.black : new Color(0, 0, 0, 0);
+        if (fadeDuration <= 0)
+        {
+            overlay.color = colorToUse;
+        }
+        else
+        {
+            overlay.DOColor(colorToUse, fadeDuration);
+        }
     }
 }

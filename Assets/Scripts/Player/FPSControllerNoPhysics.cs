@@ -132,7 +132,9 @@ public class FPSControllerNoPhysics : GameBehaviour
         standingHeight = controller.height;
         cameraStandingPos = playerCamera.transform.localPosition;
 
-        UIGame.Instance.InitControlTexts(this);
+        UIGame uiGame = UIGame.Instance;
+        uiGame.EnablePointer(true);
+        uiGame.InitControlTexts(this);
         
         if (armsTransform != null)
         {
@@ -145,6 +147,8 @@ public class FPSControllerNoPhysics : GameBehaviour
 
     void Update()
     {
+        if (House.Instance.currentGhost.IsLocked()) return;
+        
         //UI controls
         HandleJournal();
         HandleExitMenu();

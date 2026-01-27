@@ -64,6 +64,8 @@ public class Spirimonz : GameBehaviour, IInteractable
     
     private bool _hidingFromAGhost;
 
+    private bool _isLocked;
+
     private void Start()
     {
         InitSpirimonz();
@@ -71,6 +73,8 @@ public class Spirimonz : GameBehaviour, IInteractable
 
     public virtual void InitSpirimonz()
     {
+        if (_isLocked) return;
+        
         _baseCanInteract = canInteract;
         _currentBehaviour = SpirimonzBehaviourState.Wait;
         hidingGameObject.SetActive(false);
@@ -255,6 +259,8 @@ public class Spirimonz : GameBehaviour, IInteractable
 
     private void Update()
     {
+        if (_isLocked) return;
+        
         UpdateSpirimonzBehaviour();
         
         if (animator != null)
@@ -340,6 +346,8 @@ public class Spirimonz : GameBehaviour, IInteractable
 
     public virtual bool UpdateSpirimonzBehaviour()
     {
+        if (_isLocked) return false;
+        
         if ((isOnTheMap == false && powerActiveInHands == false) || _hidingFromAGhost)
             return false;
 
@@ -454,5 +462,10 @@ public class Spirimonz : GameBehaviour, IInteractable
     public SpirimonzBehaviourState CurrentBehaviour()
     {
         return _currentBehaviour;
+    }
+
+    public void Lock()
+    {
+        _isLocked = true;
     }
 }
