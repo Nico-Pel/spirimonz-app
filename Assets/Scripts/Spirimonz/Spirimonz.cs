@@ -101,6 +101,13 @@ public class Spirimonz : GameBehaviour, IInteractable
                 FeelAHunt();
             }
         }
+
+        ActionOnEnabled();
+    }
+
+    public virtual void ActionOnEnabled()
+    {
+        
     }
 
     private void SetSpiritHideMode(bool hide)
@@ -297,6 +304,11 @@ public class Spirimonz : GameBehaviour, IInteractable
     private void Update()
     {
         if (_isLocked) return;
+
+        if (Input.GetMouseButtonDown(1) && !isOnTheMap)
+        {
+            OnClickInHands();
+        }
         
         UpdateSpirimonzBehaviour();
         
@@ -507,4 +519,9 @@ public class Spirimonz : GameBehaviour, IInteractable
     }
     
     public bool IsLocked() => _isLocked;
+
+    public virtual void OnClickInHands()
+    {
+        
+    }
 }
