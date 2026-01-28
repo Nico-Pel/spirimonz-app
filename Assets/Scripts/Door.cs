@@ -35,8 +35,12 @@ public class Door : GameBehaviour
     private bool _ghostJustInteracted;
     private bool _isGrabbed;
 
+    private Vector3 _basePosition;
+
     private void Start()
     {
+        _basePosition = transform.position;
+        
         if (hingeJoint == null)
         {
             Debug.LogError($"{name} : Missing HingeJoint");
@@ -170,6 +174,11 @@ public class Door : GameBehaviour
             CloseDoor(autoCloseSpeed, _askedForGhostSlam);
         else if (isOpen && !_ghostJustInteracted && Mathf.Abs(hingeJoint.velocity) < 2f)
             StopDoor();
+    }
+
+    private void FixedUpdate()
+    {
+        transform.position = _basePosition;
     }
 
     private void CheckAngle()

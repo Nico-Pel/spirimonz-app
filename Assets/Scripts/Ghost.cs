@@ -69,11 +69,6 @@ public class Ghost : GameBehaviour
 
     [Header("Spirit Orbs")] 
     public GameObject ghostOrbsPrefab;
-    
-    [Header("Ghost Stats : Speed")] 
-    public float hidingSpeedBase = 0.75f;
-    public float normalSpeedBase = 1f;
-    public float targetingSpeedBase = 2f;
 
     private float _waitDoorTime = 1f;
     private bool _stopMoving = false;
@@ -386,7 +381,7 @@ public class Ghost : GameBehaviour
             else
             {
                 bool canSeePlayer = vision.CanSeePlayer(house.currentPlayer);
-                agent.speed = currentState == GhostState.huntingState && canSeePlayer ? targetingSpeedBase : normalSpeedBase;
+                agent.speed = currentState == GhostState.huntingState && canSeePlayer ? ghostParameters.targetingSpeedBase : ghostParameters.normalSpeedBase;
                 animator.SetBool("Walk", true);
                 animator.SetBool("Targeting", canSeePlayer);
             }
@@ -473,7 +468,7 @@ public class Ghost : GameBehaviour
                 //if ghost come back after a hunt, its speed become slow again
                 if (currentState != GhostState.huntingState || currentState != GhostState.standingState)
                 {
-                    agent.speed = hidingSpeedBase;
+                    agent.speed = ghostParameters.hidingSpeedBase;
                 }
             
                 SelectNewHidingWaypoint();
@@ -498,7 +493,7 @@ public class Ghost : GameBehaviour
         ghostModel.SetActive(false);
 
         //Ghost go back to its room
-        agent.speed = normalSpeedBase;
+        agent.speed = ghostParameters.normalSpeedBase;
         
         float nextActivityTime = Random.Range(averageActivityTime - activityTimeVariation, averageActivityTime + activityTimeVariation);
         this.Invoke(nextActivityTime, TriggerActivity);

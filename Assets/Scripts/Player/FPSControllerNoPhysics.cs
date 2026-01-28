@@ -332,7 +332,8 @@ public class FPSControllerNoPhysics : GameBehaviour
             // Détecte le passage du demi-cycle (0.5) → on joue un pas
             if (lastStepTimer < 0.5f && stepTimer >= 0.5f)
             {
-                PlayFootstep();
+                float volumeMultiplier = Input.GetKeyDown(sprintKey) ? 2f : 1f;
+                PlayFootstep(volumeMultiplier);
             }
 
             if (stepTimer >= 1f)
@@ -448,14 +449,14 @@ public class FPSControllerNoPhysics : GameBehaviour
         }
     }
     
-    private void PlayFootstep()
+    private void PlayFootstep(float volumeMultiplier = 1f)
     {
         if (!controller.isGrounded || movementInput.magnitude < 0.1f)
             return;
 
         if (footstepsListener != null)
         {
-            footstepsListener.PlayFootstep();
+            footstepsListener.PlayFootstep(volumeMultiplier);
         }
     }
 }

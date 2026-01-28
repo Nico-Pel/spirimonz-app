@@ -25,7 +25,7 @@ public class FootstepsListener : GameBehaviour
     
     public Collider[] ignoredColliders;
     
-    public void PlayFootstep()
+    public void PlayFootstep(float volumeMultiplier = 1f)
     {
         Ray ray = new Ray(transform.position + Vector3.up * 0.25f, Vector3.down);
 
@@ -61,7 +61,7 @@ public class FootstepsListener : GameBehaviour
                     SoundManager.Instance.PlaySound(
                         clip,
                         transform.position,
-                        footstepVolume * footstep.volumeMultiplier,
+                        footstepVolume * footstep.volumeMultiplier * volumeMultiplier,
                         Random.Range(footstep.pitchMin, footstep.pitchMax),
                         -1f,
                         range,

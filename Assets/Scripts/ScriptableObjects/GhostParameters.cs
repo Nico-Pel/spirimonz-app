@@ -35,6 +35,13 @@ public class GhostParameters : ScriptableObject
     public Sprite ghostSprite;
     
     [Space]
+
+    [Header("Ghost Stats : Speed")] 
+    public float hidingSpeedBase = 0.75f;
+    public float normalSpeedBase = 1f;
+    public float targetingSpeedBase = 2f;
+    
+    [Space]
     
     [Header("Evidences")] 
     public bool SpiritPrints;
