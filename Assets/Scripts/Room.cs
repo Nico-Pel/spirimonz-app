@@ -76,8 +76,24 @@ public class Room : MonoBehaviour
         List<Switch> selectableObjects = new List<Switch>();
         foreach (ClickableObject co in clickableObjects)
         {
-            if(co.TryGetComponent(out Switch s) && s.activableObject.activationType == targetedType))
+            if(co.TryGetComponent(out Switch s) && s.activableObject.activationType == targetedType)
                 selectableObjects.Add(s);
+        }
+
+        if (selectableObjects.Count == 0)
+            return null;
+
+        return selectableObjects[Random.Range(0, selectableObjects.Count)];
+    }
+
+    public ClickableObject SelectRandomClickableObject(bool ignoreSwitch = false)
+    {
+        List<ClickableObject> selectableObjects = new List<ClickableObject>();
+        foreach (ClickableObject co in clickableObjects)
+        {
+            if (ignoreSwitch && co.TryGetComponent(out Switch s)) continue;
+            
+            selectableObjects.Add(co);
         }
 
         if (selectableObjects.Count == 0)

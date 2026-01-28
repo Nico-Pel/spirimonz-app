@@ -30,16 +30,21 @@ public class RadiationDetector : GameBehaviour
 
             if (useSound == true && radiationSoundClip != null)
             {
-                _radiationSound = SoundManager.Instance.PlaySound(
-                    radiationSoundClip,
-                    transform.position,
-                    volume: volume,
-                    range: range,
-                    loop: true,
-                    sourceParent: transform
-                );
+                PlaySound();
             }
         }
+    }
+
+    private void PlaySound()
+    {
+        _radiationSound = SoundManager.Instance.PlaySound(
+            radiationSoundClip,
+            transform.position,
+            volume: volume,
+            range: range,
+            loop: true,
+            sourceParent: transform
+        );
     }
 
     public void StopUsingSound()
@@ -92,13 +97,15 @@ public class RadiationDetector : GameBehaviour
             _currentRoom.OnRadiationStart.RemoveListener(TriggerDetection);
             _currentRoom.OnRadiationEnd.RemoveListener(EndDetection);
         }
+        
         _currentRoom = room;
-        if (_currentRoom.radiationInTheRoom)
+        
+        _currentRoom.OnRadiationStart.AddListener(TriggerDetection);
+        _currentRoom.OnRadiationEnd.AddListener(EndDetection);
+        
+        if (_currentRoom.radiationDuration > 1f)
         {
             TriggerDetection(_currentRoom.radiationDuration);
         }
-
-        _currentRoom.OnRadiationStart.AddListener(TriggerDetection);
-        _currentRoom.OnRadiationEnd.AddListener(EndDetection);
     }
 }

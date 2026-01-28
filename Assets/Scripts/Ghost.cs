@@ -645,12 +645,29 @@ public class Ghost : GameBehaviour
                 break;
 
             default:
-                Debug.Log("Activity triggered : Nothing " + Time.time);
-                nextActivityTime = nextActivityTime / 2;
+                if (ghostParameters.ShouldInteractWithClickableInsteadOfNothing())
+                {
+                    InteractWithAStandardClickable();
+                }
+                else
+                {
+                    Debug.Log("Activity triggered : Nothing " + Time.time);
+                    nextActivityTime = nextActivityTime / 2;
+                }
                 break;
         }
         
         this.Invoke(nextActivityTime, TriggerActivity);
+    }
+
+    private void InteractWithAStandardClickable()
+    {
+        ClickableObject clickable = currentRoom.SelectRandomClickableObject(true);
+        if (clickable != null)
+        {
+            ActivateActivitySource(clickable.activitySource);
+            clickable.OnClick();
+        }
     }
 
     private void BlowUpARandomFlammable()

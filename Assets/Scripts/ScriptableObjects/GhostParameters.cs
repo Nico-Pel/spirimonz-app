@@ -78,6 +78,10 @@ public class GhostParameters : ScriptableObject
     public float chancesToDetectRadiationOnTrigger = 10f;
     public float radiationDurationOnTrigger = 5f;
     public float radiationDurationAfterAttack = 15f;
+
+    [Header("Other settings")] 
+    [Tooltip("Ignore electronic and lights (Switch)")]
+    public float chancesToInteractWithAClickableInstedOfNothing = 50f;
     
     public int GetRandomActivityValue()
     {
@@ -140,6 +144,13 @@ public class GhostParameters : ScriptableObject
             GhostInvestigator.EvidenceType.Radioactivity => Radioactivity,
             _ => false
         };
+    }
+
+    //Ignore electronic and lights (Switch)
+    public bool ShouldInteractWithClickableInsteadOfNothing()
+    {
+        float roll = Random.Range(0f, 100f);
+        return roll <= chancesToInteractWithAClickableInstedOfNothing;
     }
 }
 

@@ -16,6 +16,12 @@ public class ActivableObject : MonoBehaviour
     
     public bool isActivated;
     public bool isLocked;
+    
+    [Header("Sound")]
+    public AudioClip loopSound;
+    public float volume = 1f;
+    public float range = 10f;
+    private SoundManager.SoundInstance _loopSound;
 
     public House house { get; set; }
 
@@ -57,11 +63,29 @@ public class ActivableObject : MonoBehaviour
             if (house != null && !house.electricCurrentEnabled)
                 return;
         
+        PlayLoopSound();
         isActivated = true;
+    }
+    
+    private void PlayLoopSound()
+    {
+        if (loopSound == null) return;
+        
+        _loopSound = SoundManager.Instance.PlaySound(
+            loopSound,
+            transform.position,
+            volume: volume,
+            loop: true,
+            range: range,
+            sourceParent: transform
+        );
     }
 
     public virtual void Deactivate()
     {
+        if(_loopSound != null)
+            _loopSound.Stop(false);
+        
         isActivated = false;
     }
 }

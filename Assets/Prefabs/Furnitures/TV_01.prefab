@@ -107,6 +107,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 113d3c17f5dc1480ca96051011935db1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  isLinkedToPlayer: 0
   light: {fileID: 7027903585378383279}
 --- !u!1 &2370034553852500407
 GameObject:
@@ -454,6 +455,9 @@ MonoBehaviour:
   activationType: 2
   isActivated: 0
   isLocked: 0
+  loopSound: {fileID: 8300000, guid: 35730f81bedde42e5bc30b2f53770a34, type: 3}
+  volume: 0.075
+  range: 10
 --- !u!114 &2901560844691527000
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -474,6 +478,11 @@ MonoBehaviour:
   activableObject: {fileID: 9096095472690554412}
   animator: {fileID: 6718527607027647998}
   isLocked: 0
+  TurnOnSound: {fileID: 8300000, guid: 5ec18035d33f74ff08b7490afbf08183, type: 3}
+  TurnOffSound: {fileID: 8300000, guid: 5ec18035d33f74ff08b7490afbf08183, type: 3}
+  volume: 0.2
+  pitchMin: 0.6
+  pitchMax: 0.8
 --- !u!114 &6983235608434038108
 MonoBehaviour:
   m_ObjectHideFlags: 0
