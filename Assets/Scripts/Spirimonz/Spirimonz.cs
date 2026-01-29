@@ -31,6 +31,7 @@ public class Spirimonz : GameBehaviour, IInteractable
     public bool lookForwardOnDropOnMap;
     public float lookAtDistanceFromPlayer = 10f;
     public float forecastTimeBeforeAHunt = 1f;
+    public float jumpForceMultiplier = 1f;
 
     private bool _baseCanInteract;
 

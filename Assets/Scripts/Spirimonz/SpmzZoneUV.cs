@@ -97,6 +97,8 @@ public class SpmzZoneUV : Spirimonz
 
     private void UpdateEnergyFeedback()
     {
+        if (_isUsingEnergy == false) return;
+        
         if (energyFeedbackObject != null)
         {
             float t = Mathf.Clamp01(currentEnergy / _maxEnergy);
@@ -120,8 +122,9 @@ public class SpmzZoneUV : Spirimonz
         
         float chargingTime = Time.time - _lastUtilisationTime;
         currentEnergy += (_maxEnergy / rechargeMaxSec) * chargingTime;
-        
-        TryToActivate();
+
+        StopUsingEnergy();
+        //TryToActivate();
     }
 
     private void TryToActivate()
@@ -138,6 +141,7 @@ public class SpmzZoneUV : Spirimonz
         
         if ((currentEnergy / _maxEnergy) >= percentageEnergyToStartUsingIt / 100f)
         {
+            energyFeedbackObject.SetActive(true);
             animator.SetBool("CanUsePower", true);
             _isUsingEnergy = true;
         }
@@ -149,8 +153,8 @@ public class SpmzZoneUV : Spirimonz
 
     private void OnDisable()
     {
-        _isUsingEnergy = false;
-        animator.SetBool("CanUsePower", false);
+        StopUsingEnergy();
+
         _lastUtilisationTime = Time.time;
     }
 
@@ -161,12 +165,29 @@ public class SpmzZoneUV : Spirimonz
             Gizmos.DrawWireSphere(UVsourceTransform.position, range);
     }
 
+    private void StopUsingEnergy()
+    {
+        animator.SetBool("CanUsePower", false);
+        _isUsingEnergy = false;
+        
+        if(energyFeedbackObject != null)
+            energyFeedbackObject.SetActive(false);
+        
+        if(energyFeedbackLight != null)
+            energyFeedbackLight.intensity = 0;
+    }
+
     public override void OnClickInHands()
     {
         base.OnClickInHands();
 
-        if (_isUsingEnergy) return;
-        
-        TryToActivate();
+        if (_isUsingEnergy)
+        {
+            StopUsingEnergy();
+        }
+        else
+        {
+            TryToActivate();
+        }
     }
 }

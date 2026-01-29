@@ -1,3 +1,4 @@
+using System;
 using Unity.Collections;
 using UnityEngine;
 
@@ -31,20 +32,31 @@ public class InteractionController : GameBehaviour
     private float _grabDistance;
 
     private IInteractable _currentTarget;
+    
+    private Camera _cam;
+    private Player _player;
+
+    void Awake()
+    {
+        _cam = Camera.main;
+    }
+
+    private void Start()
+    {
+        _player = Player.Instance;
+    }
 
     void Update()
     {
         HandleDoor();
-        DetectInteractable();
+
+        if (objectInHands == null)
+        {
+            DetectInteractable();
+        }
+        
         HandleInput();
         UpdateCursorUI();
-
-        /*
-        bool detectWall = DetectCollisionForward();
-        if(detectWall)
-            Debug.Log("Detect wall");
-            
-            */
     }
 
     // =========================
@@ -52,8 +64,8 @@ public class InteractionController : GameBehaviour
     // =========================
     void DetectInteractable()
     {
-        Vector3 rayOrigin = Camera.main.transform.position + Camera.main.transform.forward * rayOffset;
-        Ray ray = new Ray(rayOrigin, Camera.main.transform.forward);
+        Vector3 rayOrigin = _cam.transform.position + _cam.transform.forward * rayOffset;
+        Ray ray = new Ray(rayOrigin, _cam.transform.forward);
 
         if (Physics.SphereCast(ray, sphereRadius, out RaycastHit hit, interactionDistance, interactableLayer, QueryTriggerInteraction.Ignore))
         {
@@ -99,13 +111,13 @@ public class InteractionController : GameBehaviour
             }
             
             // Drop
-            if (Input.GetKeyDown(Player.Instance.fpsController.dropObject))
+            if (Input.GetKeyDown(_player.fpsController.dropObject))
             {
                 DropObject();
             }
 
             // Throw
-            if (Input.GetKeyDown(Player.Instance.fpsController.throwObject))
+            if (Input.GetKeyDown(_player.fpsController.throwObject))
             {
                 if (objectInHands != null)
                 {
@@ -123,14 +135,14 @@ public class InteractionController : GameBehaviour
         else if (_currentTarget is CatchableObject targetedCatchable)
         {
             // Grab uniquement si rien en main ni en mode caméra
-            if (Player.Instance.inventoryManager.OccupedHands()) return;
+            if (_player.inventoryManager.OccupedHands()) return;
             
-            if (Input.GetKeyDown(Player.Instance.fpsController.grabObject))
+            if (Input.GetKeyDown(_player.fpsController.grabObject))
             {
                 if (targetedCatchable.canBeGrabByPlayer && !targetedCatchable.isGrabbed)
                 {
                     //If the player has a Spirimonz in hands, unequip it
-                    Player.Instance.inventoryManager.ReplaceSpirimonzByAnItem();
+                    _player.inventoryManager.ReplaceSpirimonzByAnItem();
                     
                     //Grab item
                     GrabItem(targetedCatchable);
@@ -140,9 +152,9 @@ public class InteractionController : GameBehaviour
         else if (_currentTarget is Spirimonz spirimonz && spirimonz.isOnTheMap == true && spirimonz.canBeTakenBackIntoHands)
         {
             // Grab uniquement si rien en main
-            if (Input.GetKeyDown(Player.Instance.fpsController.grabObject))
+            if (Input.GetKeyDown(_player.fpsController.grabObject))
             {
-                Player.Instance.inventoryManager.SpirimonzGoBackToHands(spirimonz);
+                _player.inventoryManager.SpirimonzGoBackToHands(spirimonz);
             }
         }
     }
@@ -156,7 +168,7 @@ public class InteractionController : GameBehaviour
         Vector3 dropPos = handObjectDropPosition.position;
                 
         // Check si un mur est juste devant
-        if (Physics.Raycast(transform.position + Vector3.up * 1.5f, Player.Instance.fpsController.playerCamera.transform.forward, out RaycastHit hit, 0.65f))
+        if (Physics.Raycast(transform.position + Vector3.up * 1.5f, _player.fpsController.playerCamera.transform.forward, out RaycastHit hit, 0.65f))
         {
             dropPos = hit.point - transform.forward * 0.25f; // recule un peu pour pas clipper
         }
@@ -169,7 +181,7 @@ public class InteractionController : GameBehaviour
     {
         if (objectInHands == null) return;
 
-        Vector3 forward = Player.Instance.GetForward();
+        Vector3 forward = _player.GetForward();
         Vector3 throwForce = forward * throwForceForward;
         Vector3 dropPos = handObjectDropPosition.position;
                 
@@ -188,7 +200,7 @@ public class InteractionController : GameBehaviour
     private Vector3 _lastWallHitPos;
     public bool DetectCollisionForward()
     {
-        Player player = Player.Instance;
+        Player player = _player;
         Vector3 origin = player.fpsController.playerCamera.transform.position;
         Vector3 direction = player.GetForward().normalized;
         float distance = 1f;
@@ -200,7 +212,6 @@ public class InteractionController : GameBehaviour
         if (Physics.Raycast(ray, out RaycastHit hit, distance, ~0, QueryTriggerInteraction.Ignore))
         {
             _lastWallHitPos = hit.point;
-            Debug.Log("WALL DETECTED: " + hit.collider.name + " : " + hit.collider.GetType() + " IsTrigger: " + hit.collider.isTrigger);
             return true;
         }
 
@@ -218,8 +229,8 @@ public class InteractionController : GameBehaviour
         }
         objectInHands = catchableObject;
         _objectInHandLayerIndex = objectInHands.gameObject.layer;
-        Player.Instance.inventoryManager.SetHandsStateNull();
-        objectInHands.ChangeLayer(Player.Instance.inventoryManager.fpsMask);
+        _player.inventoryManager.SetHandsStateNull();
+        objectInHands.ChangeLayer(_player.inventoryManager.fpsMask);
         objectInHands.Grab(handObjectPosition);
     }
     
@@ -228,14 +239,24 @@ public class InteractionController : GameBehaviour
     // =========================
     bool _grabTextVisible;
 
+    bool _lastShowCursor;
+    bool _lastShowGrab;
+
     void UpdateCursorUI()
     {
-        bool showCursor = _currentTarget != null;
-        UIGame.Instance.EnableBigPointer(showCursor || _targetedDoor != null);
+        bool showCursor = _currentTarget != null || _targetedDoor != null;
+        if (showCursor != _lastShowCursor)
+        {
+            UIGame.Instance.EnableBigPointer(showCursor);
+            _lastShowCursor = showCursor;
+        }
 
-        CatchableObject catchableObject = _currentTarget as CatchableObject;
-        bool showGrabText = catchableObject != null && catchableObject.canBeGrabByPlayer;
-        UIGame.Instance.EnableGrabText(showGrabText);
+        bool showGrab = _currentTarget is CatchableObject c && c.canBeGrabByPlayer;
+        if (showGrab != _lastShowGrab)
+        {
+            UIGame.Instance.EnableGrabText(showGrab);
+            _lastShowGrab = showGrab;
+        }
     }
 
     private void HandleDoor()
@@ -251,8 +272,7 @@ public class InteractionController : GameBehaviour
         
         // Raycast pour détecter la porte
         RaycastHit hit;
-        Transform cam = Player.Instance.fpsController.playerCamera.transform;
-        Ray ray = new Ray(cam.position, cam.forward);
+        Ray ray = new Ray(_cam.transform.position, _cam.transform.forward);
 
         if (Physics.Raycast(ray, out hit, interactionDoorsDistance, doorLayer))
         {
@@ -267,7 +287,7 @@ public class InteractionController : GameBehaviour
                 {
                     _grabbedDoor = _targetedDoor.gameObject;
                     _targetedDoor.Grab();
-                    _grabDistance = Vector3.Distance(Player.Instance.fpsController.playerCamera.transform.position, _grabbedDoor.transform.position);
+                    _grabDistance = Vector3.Distance(_player.fpsController.playerCamera.transform.position, _grabbedDoor.transform.position);
                     rb.useGravity = false;          // on désactive la gravité pendant qu’on tire
                     rb.freezeRotation = false;      // on autorise le Hinge à tourner
                 }
@@ -283,7 +303,7 @@ public class InteractionController : GameBehaviour
             Rigidbody rb = _grabbedDoor.GetComponent<Rigidbody>();
             if (rb != null)
             {
-                Vector3 targetPos = cam.position + cam.forward * _grabDistance;
+                Vector3 targetPos = _cam.transform.position + _cam.transform.forward * _grabDistance;
                 rb.velocity = (targetPos - rb.position) * 30f;
             }
 
@@ -307,5 +327,10 @@ public class InteractionController : GameBehaviour
             return Vector3.zero;
         
         return _lastGroundPosTargeted;
+    }
+
+    public bool HasTarget()
+    {
+        return _currentTarget != null;
     }
 }

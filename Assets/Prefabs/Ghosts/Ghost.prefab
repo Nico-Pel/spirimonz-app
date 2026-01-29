@@ -50,8 +50,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   ghostParameters: {fileID: 11400000, guid: 8bc19d300597f4977b3b400a60ce14ed, type: 2}
-  forcedGhostParameters: {fileID: 0}
-  forcedGhostActivity: 7
+  forcedGhostParameters: {fileID: 11400000, guid: 349a6494c90b04ac48863433d25a2e07, type: 2}
+  forcedGhostActivity: 6
   currentState: 0
   house: {fileID: 0}
   favoriteRoom: {fileID: 0}
@@ -69,19 +69,13 @@ MonoBehaviour:
   - {fileID: 1823777000, guid: d168312f7a8ed4d04affb3dc767d28b2, type: 3}
   fingerSprite: {fileID: 1826102752, guid: d168312f7a8ed4d04affb3dc767d28b2, type: 3}
   ghostOrbsPrefab: {fileID: 3284545253612410956, guid: 0d83704208b7a4c508365acb041a999a, type: 3}
-  hidingSpeedBase: 0.75
-  normalSpeedBase: 1
-  targetingSpeedBase: 1.5
   angrinessPercentage: 0
-  minimumAngrinessToHunt: 50
   angrinessToAddByTriggeringPlayer: 10
   forecastTimeBeforeAHunt: 5
   startHuntingStandingTime: 4
   forcedStartTargetingTime: 4
   delayBeforeLosingPlayerTargeting: 4
-  averageHuntTime: 10
   huntTimeVariation: 5
-  minimumPeaceTime: 60
   currentHuntTime: 0
   currentWayPoint: {fileID: 0}
   huntingWayPoints: []
@@ -89,13 +83,10 @@ MonoBehaviour:
   chancesPercentageToIgnoreAWayPoint: 40
   detectPlayerActivityRange: 20
   throwDetectionRange: 3
-  throwForceMin: 0.5
-  throwForceMax: 4
   throwTorqueMax: 90
   throwableMask:
     serializedVersion: 2
     m_Bits: 512
-  slamChances: 50
   doorDetectionRange: 5
   closeForce: 10
   slamForce: 100

@@ -192,7 +192,7 @@ public class InventoryManager : GameBehaviour
 
     private void DropSpirimonz(Vector3 dropPos)
     {
-        if (selectedSpirimonz == null) return; //ERROR, no spirimonz selected
+        if (selectedSpirimonz == null || Player.Instance.interactionController.HasTarget()) return; //ERROR, no spirimonz selected or Interaction controller target something (door?)
 
         if (House.Instance.currentGhost.IsHunting()) return; //Can't drop Spirimonz during a hunt
         
@@ -225,7 +225,7 @@ public class InventoryManager : GameBehaviour
         float t = camX / 80f; // 0..1
         float maxJump = 2f;
         float minJump = 0f;
-        float jumpPower = Mathf.Lerp(maxJump, minJump, t);
+        float jumpPower = Mathf.Lerp(maxJump, minJump, t) * spirimonzToDrop.jumpForceMultiplier;
         
         // JumpDuration (vitesse) : 0 = lent, 1 = rapide
         float minDuration = 1f;  // regarde horizontale = lent
