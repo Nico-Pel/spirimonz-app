@@ -170,4 +170,9 @@ public class Player : GameBehaviour
     {
         soundManager.StopAmbient(2f);
     }
+    
+    public Vector3 GetForward()
+    {
+        return fpsController.playerCamera.transform.forward;
+    }
 }

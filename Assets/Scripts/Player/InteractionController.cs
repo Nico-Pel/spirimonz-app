@@ -38,6 +38,13 @@ public class InteractionController : GameBehaviour
         DetectInteractable();
         HandleInput();
         UpdateCursorUI();
+
+        /*
+        bool detectWall = DetectCollisionForward();
+        if(detectWall)
+            Debug.Log("Detect wall");
+            
+            */
     }
 
     // =========================
@@ -161,22 +168,46 @@ public class InteractionController : GameBehaviour
     private void ThrowObject()
     {
         if (objectInHands == null) return;
-        
-        Vector3 throwDir = Player.Instance.fpsController.playerCamera.transform.forward;
 
-        Vector3 throwForce = throwDir * throwForceForward;
+        Vector3 forward = Player.Instance.GetForward();
+        Vector3 throwForce = forward * throwForceForward;
         Vector3 dropPos = handObjectDropPosition.position;
                 
         // Check collision avant de lancer
-        if (Physics.Raycast(transform.position + Vector3.up * 1.5f, throwDir, out RaycastHit hit, 0.75f))
+        if (DetectCollisionForward())
         {
-            dropPos = hit.point - transform.forward * 0.25f; // recule un peu pour pas clipper
+            dropPos = _lastWallHitPos - transform.forward * 0.5f; // recule un peu pour pas clipper
             throwForce = Vector3.zero;
         }
 
         objectInHands.ChangeLayer(_objectInHandLayerIndex, 0);
         objectInHands.Drop(dropPos, throwForce);
         objectInHands = null;
+    }
+
+    private Vector3 _lastWallHitPos;
+    public bool DetectCollisionForward()
+    {
+        Player player = Player.Instance;
+        Vector3 origin = player.fpsController.playerCamera.transform.position;
+        Vector3 direction = player.GetForward().normalized;
+        float distance = 1f;
+
+        // Crée le Ray
+        Ray ray = new Ray(origin, direction);
+
+        // Détecte le mur
+        if (Physics.Raycast(ray, out RaycastHit hit, distance, ~0, QueryTriggerInteraction.Ignore))
+        {
+            _lastWallHitPos = hit.point;
+            Debug.Log("WALL DETECTED: " + hit.collider.name + " : " + hit.collider.GetType() + " IsTrigger: " + hit.collider.isTrigger);
+            return true;
+        }
+
+        // Debug du ray
+        //Debug.DrawRay(origin, direction * distance, Color.magenta, 1f); // couleur rouge, durée 1 sec
+
+        return false;
     }
 
     public void GrabItem(CatchableObject catchableObject)

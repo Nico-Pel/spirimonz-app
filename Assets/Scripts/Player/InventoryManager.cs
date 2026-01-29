@@ -143,11 +143,19 @@ public class InventoryManager : GameBehaviour
             return;
         }
         
-        selectedSpirimonz.gameObject.SetActive(true);
-        selectedSpirimonz.transform.localScale = Vector3.zero;
-        selectedSpirimonz.transform.DOScale(1, 0.5f).SetEase(Ease.OutBack);
+        SetHandsStateNull();
+        CancelInvoke(nameof(SetSpirimonzHandPos));
+        Invoke(nameof(SetSpirimonzHandPos), 0.25f);
+    }
+
+    private void SetSpirimonzHandPos()
+    {
+        Spirimonz spirimonzToUse = spirimonzTeam[currentSelectedIndex - 1];
+        handAnimator.SetInteger("HandPos", (int)spirimonzToUse.handPosType);
         
-        handAnimator.SetInteger("HandPos", (int)selectedSpirimonz.handPosType);
+        spirimonzToUse.gameObject.SetActive(true);
+        spirimonzToUse.transform.localScale = Vector3.zero;
+        spirimonzToUse.transform.DOScale(1, 0.5f).SetEase(Ease.OutBack);
     }
 
     private void UnequipSpirimonz()
@@ -166,7 +174,18 @@ public class InventoryManager : GameBehaviour
         if (selectedSpirimonz.canBeDroppedOnMap == false) return;
 
         Vector3 dropPos = Player.Instance.interactionController.GetLastGroundPos();
-        if (dropPos == Vector3.zero) return; //No Ground detected
+        if (dropPos == Vector3.zero)
+        {
+            if (Player.Instance.interactionController.DetectCollisionForward())
+            {
+                dropPos = this.transform.position;
+            }
+            else
+            {
+                Vector3 playerForward = Player.Instance.GetForward() * 1f;
+                dropPos = this.transform.position + new Vector3(playerForward.x, 0, playerForward.z);
+            }
+        }
 
         DropSpirimonz(dropPos);
     }
@@ -194,12 +213,31 @@ public class InventoryManager : GameBehaviour
         }
 
         spirimonzToDrop.DroppingOnMap();
+        float camX = Player.Instance.fpsController.playerCamera.transform.localEulerAngles.x;
+
+        // Mapper de 0-360 à 0-180 pour regarder vers le bas
+        if (camX > 180f) camX -= 360f; // [-180,180]
+
+        // Clamp entre 0 et 80 pour éviter les valeurs négatives ou trop grandes
+        camX = Mathf.Clamp(camX, 0f, 80f);
+
+        // Normalisation : 0 -> maxJump, 80 -> minJump (0)
+        float t = camX / 80f; // 0..1
+        float maxJump = 2f;
+        float minJump = 0f;
+        float jumpPower = Mathf.Lerp(maxJump, minJump, t);
         
-        spirimonzToDrop.transform.DOJump(dropPos, 1, 1, 0.75f).OnComplete(() =>
-        {
-            spirimonzToDrop.EnableSpirimonz(true);
-            spirimonzToDrop.DroppedOnMap();
-        });
+        // JumpDuration (vitesse) : 0 = lent, 1 = rapide
+        float minDuration = 1f;  // regarde horizontale = lent
+        float maxDuration = 0.5f; // regarde vers le bas = rapide
+        float jumpDuration = Mathf.Lerp(minDuration, maxDuration, t); // descend avec t
+
+        spirimonzToDrop.transform.DOJump(dropPos, jumpPower, 1, jumpDuration)
+            .OnComplete(() =>
+            {
+                spirimonzToDrop.EnableSpirimonz(true);
+                spirimonzToDrop.DroppedOnMap();
+            });
         selectedSpirimonz = null;
     }
 

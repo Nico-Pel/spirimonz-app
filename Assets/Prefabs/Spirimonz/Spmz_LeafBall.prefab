@@ -88,7 +88,7 @@ Transform:
   m_GameObject: {fileID: 1715400979964189561}
   serializedVersion: 2
   m_LocalRotation: {x: -0.7071068, y: 0, z: -0, w: 0.7071067}
-  m_LocalPosition: {x: -0, y: 0.057934895, z: 0}
+  m_LocalPosition: {x: 0, y: 0.057934895, z: 0}
   m_LocalScale: {x: 0.16074194, y: 0.16074194, z: 0.16074194}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -508,7 +508,7 @@ Transform:
   m_GameObject: {fileID: 7687599841951325676}
   serializedVersion: 2
   m_LocalRotation: {x: 0.7071068, y: 0, z: -0, w: 0.7071067}
-  m_LocalPosition: {x: -0, y: 0, z: 0}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -714,7 +714,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6657164899661425278, guid: 73b72ad84d9584d7e91279923787a2cc, type: 3}
       propertyPath: m_LocalPosition.x
-      value: -7.362829
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 6657164899661425278, guid: 73b72ad84d9584d7e91279923787a2cc, type: 3}
       propertyPath: m_LocalPosition.y
@@ -722,7 +722,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6657164899661425278, guid: 73b72ad84d9584d7e91279923787a2cc, type: 3}
       propertyPath: m_LocalPosition.z
-      value: -0.37668273
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 6657164899661425278, guid: 73b72ad84d9584d7e91279923787a2cc, type: 3}
       propertyPath: m_LocalRotation.w
@@ -755,6 +755,10 @@ PrefabInstance:
     - target: {fileID: 8641687317530957492, guid: 73b72ad84d9584d7e91279923787a2cc, type: 3}
       propertyPath: m_Height
       value: 0.45
+      objectReference: {fileID: 0}
+    - target: {fileID: 8641687317530957492, guid: 73b72ad84d9584d7e91279923787a2cc, type: 3}
+      propertyPath: m_BaseOffset
+      value: -0.08
       objectReference: {fileID: 0}
     - target: {fileID: 8641687317530957492, guid: 73b72ad84d9584d7e91279923787a2cc, type: 3}
       propertyPath: m_AngularSpeed
@@ -820,7 +824,7 @@ MonoBehaviour:
   lookForwardOnDropOnMap: 1
   lookAtDistanceFromPlayer: 10
   forecastTimeBeforeAHunt: 1
-  handPosType: 4
+  handPosType: 6
   baseBehaviour: 3
   secondaryBehaviour: 0
   speed: 3
@@ -828,7 +832,7 @@ MonoBehaviour:
   lookAtSpeed: 5
   targetedEscapeDistance: 1
   escapingSpeed: 7
-  nbOfWayPointsToConsider: 4
+  nbOfWayPointsToConsider: 6
   agent: {fileID: 1531086371073059197}
   collider: {fileID: 4871323218267024969}
   animator: {fileID: 8079454595788852626}

@@ -33,6 +33,7 @@ public class UIJournal : GameBehaviour
         captureButton.onClick.AddListener(StartCapture);
         
         House.Instance.currentGhost.onGhostStartToHunt.AddListener(SetCaptureButtonState);
+        House.Instance.currentGhost.onGhostStopToHunt.AddListener(SetCaptureButtonState);
     }
     
     private void OnEnable()
