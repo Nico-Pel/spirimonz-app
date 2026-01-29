@@ -25385,7 +25385,7 @@ MonoBehaviour:
   - {fileID: 7247504304214234887, guid: 2267b1ce1244944ea9f028ba2da04ba1, type: 3}
   - {fileID: 6375307208799292074, guid: ce29825e03972486a996cc5f3f8ea4e7, type: 3}
   - {fileID: 6690621473432451843, guid: b900e83a2ca094635a259180921c99a9, type: 3}
-  - {fileID: 5483493701284287561, guid: 851c04c5ee8544b59b90bb5bde1dbf04, type: 3}
+  - {fileID: 4111300058613245597, guid: 75c5c85a0b115469da2928638e432a9a, type: 3}
   spirimonzTeam: []
   selectedSpirimonz: {fileID: 0}
   currentSelectedIndex: 0
@@ -27173,6 +27173,7 @@ MonoBehaviour:
   - {fileID: 935064423}
   neighborRooms:
   - {fileID: 1952474882}
+  - {fileID: 1250783248}
 --- !u!1001 &1244027785
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -27382,6 +27383,7 @@ MonoBehaviour:
   - {fileID: 1826702587}
   neighborRooms:
   - {fileID: 1952474882}
+  - {fileID: 1241666155}
 --- !u!65 &1250783249
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -29679,16 +29681,10 @@ MonoBehaviour:
   OnRadiationEnd:
     m_PersistentCalls:
       m_Calls: []
-  clickableObjects:
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  activableObjects:
-  - {fileID: 0}
+  clickableObjects: []
+  activableObjects: []
   neighborRooms:
-  - {fileID: 1756800671}
+  - {fileID: 983901943}
 --- !u!65 &1409335382
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -40482,7 +40478,10 @@ MonoBehaviour:
   - {fileID: 590634351}
   - {fileID: 590634350}
   activableObjects: []
-  neighborRooms: []
+  neighborRooms:
+  - {fileID: 1241666155}
+  - {fileID: 2131217075}
+  - {fileID: 1250783248}
 --- !u!65 &1952474883
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -45383,6 +45382,7 @@ MonoBehaviour:
   - {fileID: 983901943}
   - {fileID: 1250783248}
   - {fileID: 2131217075}
+  - {fileID: 1409335381}
   hauntableRooms:
   - {fileID: 1756800671}
   - {fileID: 98319226}

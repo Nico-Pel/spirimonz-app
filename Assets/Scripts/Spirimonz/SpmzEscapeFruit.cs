@@ -28,7 +28,7 @@ public class SpmzEscapeFruit : Spirimonz
         this.Invoke(1f, () =>
         {
             //Now can look at player while waiting, and not during the fruit drop
-            lookAtPlayerWhileWaiting = true;
+            //lookAtPlayerWhileWaiting = true;
             
             //Follow player
             SwitchBehaviour();
