@@ -233,7 +233,8 @@ public class InteractionController : GameBehaviour
         bool showCursor = _currentTarget != null;
         UIGame.Instance.EnableBigPointer(showCursor || _targetedDoor != null);
 
-        bool showGrabText = _currentTarget is CatchableObject;
+        CatchableObject catchableObject = _currentTarget as CatchableObject;
+        bool showGrabText = catchableObject != null && catchableObject.canBeGrabByPlayer;
         UIGame.Instance.EnableGrabText(showGrabText);
     }
 

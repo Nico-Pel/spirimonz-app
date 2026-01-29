@@ -126,6 +126,13 @@ public class SpmzZoneUV : Spirimonz
 
     private void TryToActivate()
     {
+        if (IsLocked())
+        {
+            animator.SetBool("CanUsePower", false);
+            energyFeedbackLight.intensity = 0;
+            energyFeedbackObject.SetActive(false);
+        }
+        
         if (currentEnergy > _maxEnergy)
             currentEnergy = _maxEnergy;
         
