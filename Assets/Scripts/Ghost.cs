@@ -75,7 +75,6 @@ public class Ghost : GameBehaviour
     
     [Header("Ghost Stats : Angriness")] 
     public float angrinessPercentage = 0f;
-    public float minimumAngrinessToHunt = 50;
     public float angrinessToAddByTriggeringPlayer = 10f;
     
     [Header("Ghost Stats : Hunting")]
@@ -83,9 +82,7 @@ public class Ghost : GameBehaviour
     public float startHuntingStandingTime = 4;
     public float forcedStartTargetingTime = 4;
     public float delayBeforeLosingPlayerTargeting = 4f;
-    public float averageHuntTime = 10f;
     public float huntTimeVariation = 5f;
-    public float minimumPeaceTime = 60f;
     
     private bool _forcedStartTargeting = false;
     private bool _targetingPlayer;
@@ -103,13 +100,10 @@ public class Ghost : GameBehaviour
 
     [Header("Ghost Stats : Throwing")] 
     public float throwDetectionRange = 5;
-    public float throwForceMin = 0.5f;
-    public float throwForceMax = 4;
     public float throwTorqueMax = 90;
     public LayerMask throwableMask;
 
     [Header("Ghost Stats : Doors Playing")]
-    public float slamChances = 50;
     public float doorDetectionRange = 8;
     public float closeForce = 10;
     public float slamForce = 100;
@@ -331,7 +325,7 @@ public class Ghost : GameBehaviour
         this.Invoke(forcedStartTargetingTime, () => _forcedStartTargeting = false);
         _targetingPlayer = true;
 
-        currentHuntTime = Random.Range(averageHuntTime - huntTimeVariation, averageHuntTime + huntTimeVariation);
+        currentHuntTime = Random.Range(ghostParameters.averageHuntTime - huntTimeVariation, ghostParameters.averageHuntTime + huntTimeVariation);
         Debug.Log("Starting a HUNT for: " + currentHuntTime + " seconds");
     }
 
@@ -366,9 +360,7 @@ public class Ghost : GameBehaviour
             }
             else if(_forcedStartTargeting || vision.CanSeePlayer(house.currentPlayer))
             {
-                _targetingPlayer = true;
-                _losingPlayer = false;
-                this.CancelInvoke("LosingTarget");
+                PlayerFound();
             }
             
             SetHuntingDestination();
@@ -413,6 +405,19 @@ public class Ghost : GameBehaviour
         
         //Consider that Ghost don't know where is the player but know where he moved before losing him
         ForceNewWaypoint(Player.Instance.currentRoom);
+    }
+
+    private void PlayerFound()
+    {
+        if (ghostParameters.ghostType == GhostParameters.GhostType.Draconic && !_targetingPlayer &&
+            !_forcedStartTargeting)
+        {
+            currentHuntTime += 5f;
+        }
+                    
+        _targetingPlayer = true;
+        _losingPlayer = false;
+        this.CancelInvoke("LosingTarget");
     }
     
     private void LookAtPlayer()
@@ -505,7 +510,7 @@ public class Ghost : GameBehaviour
         
         onGhostStopToHunt?.Invoke();
         
-        this.Invoke(minimumPeaceTime, () =>
+        this.Invoke(ghostParameters.minimumPeaceTime, () =>
         {
             _canHunt = true;
         });
@@ -606,7 +611,7 @@ public class Ghost : GameBehaviour
             case GhostActivities.Hunt:
                 //Can't attack if not enough angry
                 //Can't attack if Earthbound ghost and not in its favorite room
-                if (_canHunt && angrinessPercentage >= minimumAngrinessToHunt && 
+                if (_canHunt && angrinessPercentage >= ghostParameters.minimumAngrinessToHunt && 
                     (ghostParameters.ghostType != GhostParameters.GhostType.Earthbound || 
                      (ghostParameters.ghostType == GhostParameters.GhostType.Earthbound && currentRoom == favoriteRoom)))
                 {
@@ -693,7 +698,7 @@ public class Ghost : GameBehaviour
             if(ghostParameters.ghostType == GhostParameters.GhostType.Misty) return;
             
             float roll = Random.Range(0f, 100f);
-            if (roll <= slamChances)
+            if (roll <= ghostParameters.slamChances)
             {
                 //Slam
                 selectedDoor.GhostDoorInteraction(0, slamForce, true);
@@ -750,25 +755,23 @@ public class Ghost : GameBehaviour
         
         if (ghostParameters.ghostType == GhostParameters.GhostType.Demonic || ghostParameters.ghostType == GhostParameters.GhostType.Totemic)
         {
-            if (switchLightObject.activableObject.isActivated)
+            if (!switchLightObject.activableObject.isActivated)
             {
-                switchLightObject.activableObject.Deactivate();
-                ActivateActivitySource(switchLightObject.activitySource);
+                ThrowObject(); //Demonics and Totemics can't turn on lights, throw on object instead
+                return;
             }
         }
         else if (ghostParameters.ghostType == GhostParameters.GhostType.Luminous || ghostParameters.ghostType == GhostParameters.GhostType.Voltaic)
         {
-            if (!switchLightObject.activableObject.isActivated)
+            if (switchLightObject.activableObject.isActivated)
             {
-                switchLightObject.activableObject.Activate();
-                ActivateActivitySource(switchLightObject.activitySource);
+                ThrowObject(); //Luminous and Voltaics can't turn off lights, throw on object instead
+                return;
             }
         }
-        else
-        {
-            switchLightObject.activableObject.Operate();
-            ActivateActivitySource(switchLightObject.activitySource);
-        }
+        
+        switchLightObject.OnClick();
+        ActivateActivitySource(switchLightObject.activitySource);
         
         if (ghostParameters.HasEvidence(GhostInvestigator.EvidenceType.SpiritPrints))
         {
@@ -797,25 +800,23 @@ public class Ghost : GameBehaviour
         
         if (ghostParameters.ghostType == GhostParameters.GhostType.Totemic)
         {
-            if (electronicObject.activableObject.isActivated)
+            if (!electronicObject.activableObject.isActivated)
             {
-                electronicObject.activableObject.Deactivate();
-                ActivateActivitySource(electronicObject.activitySource);
+                ThrowObject(); //Totemics can't turn on electronic objects, throw on object instead
+                return;
             }
         }
         else if (ghostParameters.ghostType == GhostParameters.GhostType.Voltaic)
         {
-            if (!electronicObject.activableObject.isActivated)
+            if (electronicObject.activableObject.isActivated)
             {
-                electronicObject.activableObject.Activate();
-                ActivateActivitySource(electronicObject.activitySource);
+                ThrowObject(); //Voltaics can't turn off electronic objects, throw on object instead
+                return;
             }
         }
-        else
-        {
-            electronicObject.activableObject.Operate();
-            ActivateActivitySource(electronicObject.activitySource);
-        }
+        
+        electronicObject.OnClick();
+        ActivateActivitySource(electronicObject.activitySource);
     }
 
     private void InitWayPoints()
@@ -982,9 +983,9 @@ public class Ghost : GameBehaviour
         }
 
         Vector3 randomForce = new Vector3(
-            Random.Range(-throwForceMax, throwForceMax),
-            Random.Range(throwForceMin, throwForceMax) * 2,
-            Random.Range(-throwForceMax, throwForceMax)
+            Random.Range(-ghostParameters.throwForceMax, ghostParameters.throwForceMax),
+            Random.Range(ghostParameters.throwForceMin, ghostParameters.throwForceMax) * 2,
+            Random.Range(-ghostParameters.throwForceMax, ghostParameters.throwForceMax)
         );
 
         Vector3 randomTorque = new Vector3(

@@ -142,7 +142,7 @@ public class Player : GameBehaviour
         UIGame uiGame = UIGame.Instance;
         uiGame.CloseAllWindows();
         uiGame.EnablePointer(false);
-        uiGame.EnableOverlay(true, 7);
+        uiGame.EnableOverlay(true, 5);
     }
     
     public bool IsDead() => _isDead;

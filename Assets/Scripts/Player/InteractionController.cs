@@ -86,7 +86,7 @@ public class InteractionController : GameBehaviour
         // =====================
         if (objectInHands != null)
         {
-            if (Input.GetMouseButtonDown(0))
+            if (Input.GetMouseButtonDown(1))
             {
                 objectInHands.SpecialActionInHandsOnClick();
             }

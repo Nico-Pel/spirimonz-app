@@ -104,6 +104,9 @@ MonoBehaviour:
   activationType: 1
   isActivated: 0
   isLocked: 0
+  loopSound: {fileID: 0}
+  volume: 1
+  range: 10
   objectsToEnable:
   - {fileID: 7403577679865908046}
   - {fileID: 9145633253584107890}
@@ -163,7 +166,7 @@ Light:
   m_Type: 2
   m_Shape: 0
   m_Color: {r: 1, g: 0.86773956, b: 0.3254717, a: 1}
-  m_Intensity: 1
+  m_Intensity: 0.5
   m_Range: 20
   m_SpotAngle: 30
   m_InnerSpotAngle: 21.80208
@@ -225,6 +228,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 113d3c17f5dc1480ca96051011935db1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  isLinkedToPlayer: 0
   light: {fileID: 2293663459878352451}
 --- !u!1001 &521063880610011799
 PrefabInstance:

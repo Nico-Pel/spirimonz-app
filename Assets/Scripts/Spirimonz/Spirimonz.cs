@@ -102,6 +102,9 @@ public class Spirimonz : GameBehaviour, IInteractable
             }
         }
 
+        Player player = GetComponentInParent<Player>();
+        animator.SetBool("Hands", player != null);
+
         ActionOnEnabled();
     }
 
@@ -114,6 +117,7 @@ public class Spirimonz : GameBehaviour, IInteractable
     {
         spirimonzGameObject.SetActive(!hide);
         hidingGameObject.SetActive(hide);
+        agent.enabled = !hide && isOnTheMap;
 
         if (isOnTheMap && hide == false)
         {
@@ -167,11 +171,14 @@ public class Spirimonz : GameBehaviour, IInteractable
         }
     }
 
+    public virtual void DroppingOnMap()
+    {
+        animator.SetBool("Hands", false);
+    }
+    
     public virtual void DroppedOnMap()
     {
         _currentBehaviour = baseBehaviour;
-        
-        animator.SetBool("IsOnMap", true);
 
         if (baseBehaviour == SpirimonzBehaviourState.Escape)
         {
@@ -191,7 +198,7 @@ public class Spirimonz : GameBehaviour, IInteractable
         transform.localPosition = Vector3.zero;
         transform.localEulerAngles = Vector3.zero;
         
-        animator.SetBool("IsOnMap", false);
+        animator.SetBool("Hands", true);
     }
     
     private void OnTriggerEnter(Collider other)
@@ -452,7 +459,13 @@ public class Spirimonz : GameBehaviour, IInteractable
 
     public void OnInteractStart()
     {
-        if (canInteract == false) return;
+        if (canInteract == false)
+        {
+            animator.SetTrigger("Nop");
+            return;
+        }
+        
+        animator.SetTrigger("Click");
         
         InteractionStarted();
     }
@@ -465,12 +478,21 @@ public class Spirimonz : GameBehaviour, IInteractable
     public void SwitchBehaviour()
     {
         SpirimonzBehaviourState stateToUse = _currentBehaviour == baseBehaviour ? secondaryBehaviour : baseBehaviour;
+        if (stateToUse == secondaryBehaviour)
+        {
+            animator.SetTrigger("Switch1");
+        }
+        else
+        {
+            animator.SetTrigger("Switch2");
+        }
         ChangeBehaviour(stateToUse);
     }
 
     public void ChangeBehaviour(SpirimonzBehaviourState newBehaviour)
     {
         _currentBehaviour = newBehaviour;
+        animator.SetBool("Stand", newBehaviour == SpirimonzBehaviourState.Wait);
     }
 
     public void OnInteractHold()
@@ -484,7 +506,7 @@ public class Spirimonz : GameBehaviour, IInteractable
     public void EnableSpirimonz(bool enable)
     {
         gameObject.SetActive(enable);
-        agent.enabled = enable;
+        agent.enabled = enable && House.Instance.currentGhost.IsHunting() == false;
         collider.enabled = enable;
         isOnTheMap = enable;
 

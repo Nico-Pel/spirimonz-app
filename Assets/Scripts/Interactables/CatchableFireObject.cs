@@ -10,7 +10,14 @@ public class CatchableFireObject : CatchableObject
     [FormerlySerializedAs("linkedFireableElement")] public FlammableElement linkedFlammableElement;
     
     public bool turnOffFireOnBigRotation = false;
-    public float rotationLimitBeforeTurningOff = 60f;
+    public float rotationZMinBeforeTurningOff = 0.1f;
+    public float rotationXMaxBeforeTurningOff = 0.9f;
+
+    private float _dropTime;
+    public float rotationProtectionDuration = 2f;
+    
+    [Space]
+    public bool useRotationDebug;
 
     public override void OnThrow()
     {
@@ -20,12 +27,27 @@ public class CatchableFireObject : CatchableObject
         }
     }
 
+    public override void OnDrop()
+    {
+        base.OnDrop();
+        _dropTime = Time.time;
+    }
+
     private void Update()
     {
-        if (turnOffFireOnBigRotation && isGrabbed == false)
+        bool isProtected =
+            Time.time - _dropTime < rotationProtectionDuration;
+        
+        if (turnOffFireOnBigRotation && !isGrabbed)
         {
-            if (Mathf.Abs(transform.localEulerAngles.normalized.z) > rotationLimitBeforeTurningOff ||
-                Mathf.Abs(transform.localEulerAngles.normalized.x) > rotationLimitBeforeTurningOff)
+            if (isProtected)
+                return;
+
+            float rotZ = Mathf.Abs(transform.localEulerAngles.normalized.z);
+            float rotX = Mathf.Abs(transform.localEulerAngles.normalized.x);
+
+            if (rotZ < rotationZMinBeforeTurningOff ||
+                rotX > rotationXMaxBeforeTurningOff)
             {
                 if (linkedFlammableElement.IsOnFire())
                 {
@@ -37,6 +59,8 @@ public class CatchableFireObject : CatchableObject
 
     public override void OnGrab()
     {
+        base.OnGrab();
+        _dropTime = float.PositiveInfinity; // toujours protégé en main
         linkedFlammableElement.canBeTurnedOn = false;
     }
     

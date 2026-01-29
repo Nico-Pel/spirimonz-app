@@ -13,7 +13,8 @@ public class InventoryManager : GameBehaviour
         CameraAim,
         PalmOfTheHand,
         HoldOneHand,
-        HoldTwoHands
+        HoldTwoHands,
+        HoldTwoHandsSmall
     }
     
     [Header("Keyboard (AZERTY)")] 
@@ -143,6 +144,9 @@ public class InventoryManager : GameBehaviour
         }
         
         selectedSpirimonz.gameObject.SetActive(true);
+        selectedSpirimonz.transform.localScale = Vector3.zero;
+        selectedSpirimonz.transform.DOScale(1, 0.5f).SetEase(Ease.OutBack);
+        
         handAnimator.SetInteger("HandPos", (int)selectedSpirimonz.handPosType);
     }
 
@@ -170,6 +174,8 @@ public class InventoryManager : GameBehaviour
     private void DropSpirimonz(Vector3 dropPos)
     {
         if (selectedSpirimonz == null) return; //ERROR, no spirimonz selected
+
+        if (House.Instance.currentGhost.IsHunting()) return; //Can't drop Spirimonz during a hunt
         
         handAnimator.SetInteger("HandPos", (int)HandPoses.LightAim);
         Spirimonz spirimonzToDrop = selectedSpirimonz;
@@ -187,6 +193,8 @@ public class InventoryManager : GameBehaviour
             spirimonzToDrop.transform.DORotate(oppositeRotation, 0.5f, RotateMode.Fast);
         }
 
+        spirimonzToDrop.DroppingOnMap();
+        
         spirimonzToDrop.transform.DOJump(dropPos, 1, 1, 0.75f).OnComplete(() =>
         {
             spirimonzToDrop.EnableSpirimonz(true);

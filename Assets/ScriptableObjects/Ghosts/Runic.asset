@@ -14,6 +14,15 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   ghostType: 6
   ghostSprite: {fileID: 1464959926, guid: 74c689d92d0d94e98b84c1655d246fb2, type: 3}
+  minimumAngrinessToHunt: 75
+  averageHuntTime: 15
+  minimumPeaceTime: 60
+  hidingSpeedBase: 0.75
+  normalSpeedBase: 1
+  targetingSpeedBase: 3
+  throwForceMin: 0.5
+  throwForceMax: 4
+  slamChances: 40
   SpiritPrints: 1
   EatFruits: 0
   BlowUpFlammables: 0
@@ -40,3 +49,4 @@ MonoBehaviour:
   chancesToDetectRadiationOnTrigger: 10
   radiationDurationOnTrigger: 5
   radiationDurationAfterAttack: 15
+  chancesToInteractWithAClickableInstedOfNothing: 50
