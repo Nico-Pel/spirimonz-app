@@ -114,7 +114,7 @@ public class GhostParameters : ScriptableObject
         float cumulative = 0f;
 
         cumulative += activityOneChances;
-        if (roll < cumulative) return 1;
+        if (roll < cumulative && ghostType != GhostType.Psychic) return 1;
 
         cumulative += activityTwoChances;
         if (roll < cumulative) return 2;
