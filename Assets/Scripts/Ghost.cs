@@ -17,6 +17,7 @@ public class Ghost : GameBehaviour
     # if UNITY_EDITOR
         public GhostParameters forcedGhostParameters;
         public GhostActivities forcedGhostActivity = GhostActivities.Nothing;
+        public bool tripleActivityDebug;
     #endif
 
     public enum GhostState
@@ -45,6 +46,8 @@ public class Ghost : GameBehaviour
         Finger
     }
     
+    [Space]
+
     public GhostState currentState;
 
     public House house;
@@ -163,6 +166,14 @@ public class Ghost : GameBehaviour
         transform.position = house.SelectRandomWayPointFromARoom(favoriteRoom).transform.position;
 
         float nextActivityTime = Random.Range(averageActivityTime - activityTimeVariation, averageActivityTime + activityTimeVariation);
+        
+# if UNITY_EDITOR
+        if (tripleActivityDebug)
+        {
+            nextActivityTime = nextActivityTime / 3;
+        }
+#endif
+        
         this.Invoke(nextActivityTime, TriggerActivity);
         
         ghostModel.SetActive(false);
@@ -250,6 +261,8 @@ public class Ghost : GameBehaviour
                     Random.Range(0.8f, 1f),   // 80% à 100% ouvert, propre et clampé
                     Random.Range(50f, 65f)     // vitesse raisonnable pour le hinge
                 );
+                
+                ActivateActivitySource(door.activitySource);
             }
         }
         else if (ghostParameters.HasEvidence(GhostInvestigator.EvidenceType.SpiritPrints) && currentState == GhostState.hideState && other.TryGetComponent(out PrintTrigger printTrigger))
@@ -652,10 +665,17 @@ public class Ghost : GameBehaviour
                 else
                 {
                     Debug.Log("Activity triggered : Nothing " + Time.time);
-                    nextActivityTime = nextActivityTime / 2;
+                    nextActivityTime *= 0.5f;
                 }
                 break;
         }
+
+        # if UNITY_EDITOR
+        if (tripleActivityDebug)
+        {
+            nextActivityTime = nextActivityTime / 3;
+        }
+        #endif
         
         this.Invoke(nextActivityTime, TriggerActivity);
     }

@@ -87,6 +87,8 @@ public class SpmzDetector : Spirimonz
 
     private void NewActivityDetected(ActivitySource activitySource)
     {
+        animator.SetTrigger("Detection");
+        
         _currentActivitySourceDetected = activitySource;
         UpdateDetectionFeedback();
         _newActivityReached = false;
