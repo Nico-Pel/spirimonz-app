@@ -4,8 +4,8 @@ using UnityEngine;
 
 public class UVRevealer : GameBehaviour
 {
-    public float range = 5f;
-    public float chargeSpeed = 0.1f;
+    public float range = 3f;
+    public float chargeSpeed = 0.25f;
     public Transform source;
 
     private List<PrintSource> _printSources;

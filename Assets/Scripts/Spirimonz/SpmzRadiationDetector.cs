@@ -53,13 +53,19 @@ public class SpmzRadiationDetector : Spirimonz
         }
     }
 
-    public override void GoBackToHands(Transform handPos)
+    public override bool GoBackToHands(Transform handPos)
     {
-        base.GoBackToHands(handPos);
+        if (!base.GoBackToHands(handPos))
+        {
+            return false;
+        }
+        
         if (powerActiveInHands == false)
         {
             radiationDetector.StopUsingSound();
         }
+
+        return true;
     }
 
     protected override void OnHuntStart()

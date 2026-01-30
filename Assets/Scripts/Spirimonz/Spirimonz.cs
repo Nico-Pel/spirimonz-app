@@ -24,7 +24,7 @@ public class Spirimonz : GameBehaviour, IInteractable
     [ReadOnly] public bool isOnTheMap;
     public bool canInteract = true;
     public bool canBeDroppedOnMap = true;
-    [FormerlySerializedAs("canBetakenBackIntoHands")] public bool canBeTakenBackIntoHands = true;
+    public bool canBeTakenBackIntoHands = true;
     public bool powerActiveInHands = true;
     public bool lookAtPlayerWhileWaiting = true;
     public bool openDoorsOnItsWay = false;
@@ -192,14 +192,22 @@ public class Spirimonz : GameBehaviour, IInteractable
         }
     }
 
-    public virtual void GoBackToHands(Transform handPos)
+    public virtual bool GoBackToHands(Transform handPos)
     {
+        if (canBeTakenBackIntoHands == false)
+        {
+            animator.SetTrigger("Nop");
+            return false;
+        }
+        
         EnableSpirimonz(false);
         transform.parent = handPos;
         transform.localPosition = Vector3.zero;
         transform.localEulerAngles = Vector3.zero;
         
         animator.SetBool("Hands", true);
+
+        return true;
     }
     
     private void OnTriggerEnter(Collider other)

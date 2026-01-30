@@ -459,8 +459,9 @@ GameObject:
   - component: {fileID: 7588251571570380649}
   - component: {fileID: 7428188145511668491}
   - component: {fileID: 520702898961351886}
+  - component: {fileID: 6171020109606793836}
   m_Layer: 12
-  m_Name: Ring
+  m_Name: Ring-UV-Revealer
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -5281,6 +5282,21 @@ ParticleSystemRenderer:
   m_MeshWeighting2: 1
   m_MeshWeighting3: 1
   m_MaskInteraction: 0
+--- !u!114 &6171020109606793836
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8692037007306502929}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 44febc4eec5074daab4dbbc0287774d3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  range: 3
+  chargeSpeed: 0.25
+  source: {fileID: 7588251571570380649}
 --- !u!1 &8749200956634574531
 GameObject:
   m_ObjectHideFlags: 0
@@ -5387,6 +5403,14 @@ PrefabInstance:
       propertyPath: m_Name
       value: Spmz_Ghostball
       objectReference: {fileID: 0}
+    - target: {fileID: 2398334535009112448, guid: 73b72ad84d9584d7e91279923787a2cc, type: 3}
+      propertyPath: m_Height
+      value: 0.40000004
+      objectReference: {fileID: 0}
+    - target: {fileID: 2398334535009112448, guid: 73b72ad84d9584d7e91279923787a2cc, type: 3}
+      propertyPath: m_Center.y
+      value: 0.32079414
+      objectReference: {fileID: 0}
     - target: {fileID: 4489453831717710807, guid: 73b72ad84d9584d7e91279923787a2cc, type: 3}
       propertyPath: m_LocalPosition.y
       value: 0.252
@@ -5435,6 +5459,14 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 8641687317530957492, guid: 73b72ad84d9584d7e91279923787a2cc, type: 3}
+      propertyPath: m_Height
+      value: 0.1
+      objectReference: {fileID: 0}
+    - target: {fileID: 8641687317530957492, guid: 73b72ad84d9584d7e91279923787a2cc, type: 3}
+      propertyPath: m_ObstacleAvoidanceType
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects:
@@ -5444,7 +5476,10 @@ PrefabInstance:
     m_AddedComponents:
     - targetCorrespondingSourceObject: {fileID: 1928178831690860980, guid: 73b72ad84d9584d7e91279923787a2cc, type: 3}
       insertIndex: 1
-      addedObject: {fileID: 7247504304214234887}
+      addedObject: {fileID: 3990404701300845526}
+    - targetCorrespondingSourceObject: {fileID: 1928178831690860980, guid: 73b72ad84d9584d7e91279923787a2cc, type: 3}
+      insertIndex: 2
+      addedObject: {fileID: 4198745629820256881}
   m_SourcePrefab: {fileID: 100100000, guid: 73b72ad84d9584d7e91279923787a2cc, type: 3}
 --- !u!1 &863767180749091856 stripped
 GameObject:
@@ -5461,7 +5496,7 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 1928178831690860980, guid: 73b72ad84d9584d7e91279923787a2cc, type: 3}
   m_PrefabInstance: {fileID: 3868884369116063063}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &7247504304214234887
+--- !u!114 &3990404701300845526
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -5470,13 +5505,13 @@ MonoBehaviour:
   m_GameObject: {fileID: 3419162010148269283}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: fd1d3bbdca3a24c198cc93c1167fcd50, type: 3}
+  m_Script: {fileID: 11500000, guid: 128b0a72d0cc7415286eac583536ad3f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   spirimonzGameObject: {fileID: 4336612164051074648}
   hidingGameObject: {fileID: 863767180749091856}
   isOnTheMap: 0
-  canInteract: 1
+  canInteract: 0
   canBeDroppedOnMap: 0
   canBeTakenBackIntoHands: 1
   powerActiveInHands: 1
@@ -5485,9 +5520,10 @@ MonoBehaviour:
   lookForwardOnDropOnMap: 0
   lookAtDistanceFromPlayer: 10
   forecastTimeBeforeAHunt: 1
+  jumpForceMultiplier: 1
   handPosType: 3
   baseBehaviour: 0
-  secondaryBehaviour: 1
+  secondaryBehaviour: 0
   speed: 2
   followingDistance: 2
   lookAtSpeed: 5
@@ -5497,19 +5533,35 @@ MonoBehaviour:
   agent: {fileID: 4781829951833191395}
   collider: {fileID: 1511398959686120663}
   animator: {fileID: 8335605840680172990}
-  range: 5
-  chargeSpeed: 0.25
-  UVsourceTransform: {fileID: 7604238621399104289}
-  canUseEnergy: 1
+  maxEnergy: 100
   currentEnergy: 100
-  percentageEnergyToStartUsingIt: 50
-  usingEnergyMaxSec: 6
+  usingEnergyMaxSec: 10
   rechargeMaxSec: 25
-  energyFeedbackObject: {fileID: 8692037007306502929}
-  energyFeedbackLight: {fileID: 3830859053633376851}
-  minFeedbackScale: {x: 0.23, y: 0.23, z: 0.23}
-  minFeedbackLightIntensity: 0.3
-  printSources: []
+  minPercentToUse: 0.5
+  powerActivator: {fileID: 4198745629820256881}
+--- !u!114 &4198745629820256881
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3419162010148269283}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4f1d971d8bf7a445d81a554f9693cfe5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  objectsToEnable:
+  - {fileID: 8692037007306502929}
+  objectsToScale:
+  - targetObject: {fileID: 8692037007306502929}
+    minScale: {x: 0.23, y: 0.23, z: 0.23}
+    maxScale: {x: 0.37, y: 0.37, z: 0.37}
+  lightsToScale:
+  - light: {fileID: 3830859053633376851}
+    minIntensity: 0
+    maxIntensity: 2
+  spirimonz: {fileID: 3990404701300845526}
 --- !u!195 &4781829951833191395 stripped
 NavMeshAgent:
   m_CorrespondingSourceObject: {fileID: 8641687317530957492, guid: 73b72ad84d9584d7e91279923787a2cc, type: 3}

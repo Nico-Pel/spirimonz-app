@@ -50,8 +50,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   ghostParameters: {fileID: 11400000, guid: 8bc19d300597f4977b3b400a60ce14ed, type: 2}
-  forcedGhostParameters: {fileID: 11400000, guid: 349a6494c90b04ac48863433d25a2e07, type: 2}
-  forcedGhostActivity: 6
+  forcedGhostParameters: {fileID: 0}
+  forcedGhostActivity: 7
   currentState: 0
   house: {fileID: 0}
   favoriteRoom: {fileID: 0}
@@ -160,7 +160,7 @@ NavMeshAgent:
   m_Height: 2
   m_BaseOffset: 0
   m_WalkableMask: 7
-  m_ObstacleAvoidanceType: 4
+  m_ObstacleAvoidanceType: 0
 --- !u!136 &6134636237207404671
 CapsuleCollider:
   m_ObjectHideFlags: 0

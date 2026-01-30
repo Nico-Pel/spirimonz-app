@@ -8,7 +8,7 @@ public class SpmzUsePower : Spirimonz
 {
     [Header("Energy")]
     public float maxEnergy = 100f;
-    public float currentEnergy = 100f;
+    [ReadOnly] public float currentEnergy = 100f;
     public float usingEnergyMaxSec = 6f;
     public float rechargeMaxSec = 25f;
     public float minPercentToUse = 0.25f;
@@ -91,4 +91,7 @@ public class SpmzUsePower : Spirimonz
     {
         StopPower();
     }
+    
+    public bool IsUsingPower() => _isUsingPower;
+    public float CurrentEnergyFraction() => Mathf.Clamp01(currentEnergy / maxEnergy);
 }

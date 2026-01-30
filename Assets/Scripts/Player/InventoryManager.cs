@@ -244,6 +244,9 @@ public class InventoryManager : GameBehaviour
     public void SpirimonzGoBackToHands(Spirimonz spirimonz)
     {
         spirimonz.GoBackToHands(spirimonzHandPos);
+
+        if (spirimonz.canBeTakenBackIntoHands == false) return;
+        
         spirimonz.ChangeLayer(fpsMask, 0);
         
         //Equip spirimonz if player do not use items or other spirimonz
