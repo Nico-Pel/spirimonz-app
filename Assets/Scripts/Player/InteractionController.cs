@@ -1,6 +1,7 @@
 using System;
 using Unity.Collections;
 using UnityEngine;
+using UnityEngine.Events;
 
 public class InteractionController : GameBehaviour
 {
@@ -35,6 +36,9 @@ public class InteractionController : GameBehaviour
     
     private Camera _cam;
     private Player _player;
+    
+    public UnityEvent<CatchableObject> OnGrabItem;
+    public UnityEvent<CatchableObject> OnDropItem;
 
     void Awake()
     {
@@ -174,6 +178,8 @@ public class InteractionController : GameBehaviour
         }
     
         objectInHands.Drop(dropPos, Vector3.zero);
+        
+        OnDropItem?.Invoke(objectInHands);
         objectInHands = null;
     }
 
@@ -194,6 +200,8 @@ public class InteractionController : GameBehaviour
 
         objectInHands.ChangeLayer(_objectInHandLayerIndex, 0);
         objectInHands.Drop(dropPos, throwForce);
+        
+        OnDropItem?.Invoke(objectInHands);
         objectInHands = null;
     }
 
@@ -220,18 +228,21 @@ public class InteractionController : GameBehaviour
 
         return false;
     }
-
+    
     public void GrabItem(CatchableObject catchableObject)
     {
         if (objectInHands != null)
         {
             objectInHands.Drop(transform.position, Vector3.zero);
         }
+        
         objectInHands = catchableObject;
         _objectInHandLayerIndex = objectInHands.gameObject.layer;
         _player.inventoryManager.SetHandsStateNull();
         objectInHands.ChangeLayer(_player.inventoryManager.fpsMask);
         objectInHands.Grab(handObjectPosition);
+        
+        OnGrabItem?.Invoke(catchableObject);
     }
     
     // =========================

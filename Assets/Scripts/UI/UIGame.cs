@@ -61,6 +61,11 @@ public class UIGame : MonoBehaviour
         tGrab.gameObject.SetActive(enable);
     }
 
+    public void SwitchJournalState()
+    {
+        EnableJournal(!GetJournalState());
+    }
+
     public void EnableJournal(bool enable)
     {
         Journal.gameObject.SetActive(enable);

@@ -123,7 +123,12 @@ public class Player : GameBehaviour
     public void Die()
     {
         _isDead = true;
-        LockControls(true);
+        
+        this.Invoke(2, () =>
+        {
+            LockControls(true);
+        });
+        
         House.Instance.currentGhost.LockGhost();
         
         //Sounds
@@ -145,8 +150,6 @@ public class Player : GameBehaviour
         uiGame.EnableOverlay(true, 5);
     }
     
-    public bool IsDead() => _isDead;
-
     public void LockControls(bool enable)
     {
         if (_isDead == true) enable = true;
@@ -175,4 +178,8 @@ public class Player : GameBehaviour
     {
         return fpsController.playerCamera.transform.forward;
     }
+
+    public bool IsDead() => _isDead;
+
+    public bool IsLocked() => lockControls;
 }

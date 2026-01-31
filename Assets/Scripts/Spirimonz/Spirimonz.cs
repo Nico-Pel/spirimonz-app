@@ -68,7 +68,7 @@ public class Spirimonz : GameBehaviour, IInteractable
     private bool _isLocked;
     private bool _initialized;
 
-    private void Start()
+    protected virtual void Start()
     {
         InitSpirimonz();
     }
@@ -220,6 +220,13 @@ public class Spirimonz : GameBehaviour, IInteractable
         {
             SetCurrentRoom(room);
         }
+
+        OnColliderTriggeredEnter(other);
+    }
+
+    protected virtual void OnColliderTriggeredEnter(Collider other)
+    {
+        
     }
 
     private void OnCollisionEnter(Collision other)
@@ -257,6 +264,13 @@ public class Spirimonz : GameBehaviour, IInteractable
         {
             agent.obstacleAvoidanceType = ObstacleAvoidanceType.HighQualityObstacleAvoidance;
         }
+
+        OnColliderTriggeredExit(other);
+    }
+    
+    protected virtual void OnColliderTriggeredExit(Collider other)
+    {
+        
     }
 
     protected virtual void SetCurrentRoom(Room room)
@@ -336,7 +350,7 @@ public class Spirimonz : GameBehaviour, IInteractable
         UpdateMovementBehaviour();
     }
 
-    private void UpdateMovementBehaviour()
+    protected virtual void UpdateMovementBehaviour()
     {
         if (_hidingFromAGhost || isOnTheMap == false || _stopMoving)
         {
@@ -378,7 +392,7 @@ public class Spirimonz : GameBehaviour, IInteractable
         }
     }
 
-    private void LookAtPlayer()
+    protected void LookAtPlayer()
     {
         Vector3 targetDir;
         float dist = Vector3.Distance(transform.position, Player.Instance.transform.position);
