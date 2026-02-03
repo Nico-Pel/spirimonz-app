@@ -5,7 +5,7 @@ using UnityEngine.Serialization;
 using UnityEngine.UI;
 using DG.Tweening;
 
-public class UIGame : MonoBehaviour
+public class UIGame : GameBehaviour
 {
     public Image overlay;
 
@@ -37,6 +37,12 @@ public class UIGame : MonoBehaviour
         {
             currentGhost.onGhostStartToHunt.AddListener(CloseAllWindows);
         }
+        
+        this.Invoke(0.1f, () =>
+        {
+            EnableBigPointer(false);
+            EnableGrabText(false);
+        });
     }
 
     public void InitControlTexts(FPSControllerNoPhysics controller)

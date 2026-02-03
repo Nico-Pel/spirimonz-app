@@ -316,6 +316,7 @@ public class InteractionController : GameBehaviour
             {
                 Vector3 targetPos = _cam.transform.position + _cam.transform.forward * _grabDistance;
                 rb.velocity = (targetPos - rb.position) * 30f;
+                //rb.position = Vector3.Lerp(rb.position, targetPos, Time.deltaTime * 10f);
             }
 
             if (Input.GetMouseButtonUp(0))
