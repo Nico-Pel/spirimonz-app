@@ -18,6 +18,8 @@ public class UIGame : GameBehaviour
     private bool _currentCursorState;
     private int _showCursorsActivatedCount;
 
+    private Player _player;
+
     private void Awake()
     {
         if (Instance != null && Instance != this)
@@ -43,9 +45,30 @@ public class UIGame : GameBehaviour
             EnableBigPointer(false);
             EnableGrabText(false);
         });
+
+        _player = Player.Instance;
+        InitControlTexts(_player.inputManager);
     }
 
-    public void InitControlTexts(FPSControllerNoPhysics controller)
+    private void Update()
+    {
+        HandleUI();
+    }
+    
+    private void HandleUI()
+    {
+        if (Input.GetKeyDown(_player.inputManager.openJournal) && _player.IsDead() == false)
+        {
+            SwitchJournalState();
+        }
+
+        if (Input.GetKeyDown(_player.inputManager.exitMenus))
+        {
+            ExitLastMenu();
+        }
+    }
+
+    public void InitControlTexts(InputManager controller)
     {
         tGrab.text = "Grab Item [" + controller.grabObject + "]";
     }
@@ -72,12 +95,12 @@ public class UIGame : GameBehaviour
         EnableJournal(!GetJournalState());
     }
 
-    public void EnableJournal(bool enable)
+    private void EnableJournal(bool enable)
     {
         Journal.gameObject.SetActive(enable);
     }
 
-    public bool GetJournalState()
+    private bool GetJournalState()
     {
         return Journal.gameObject.activeSelf;
     }

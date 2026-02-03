@@ -24803,6 +24803,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1150835892}
   - component: {fileID: 1150835896}
+  - component: {fileID: 1150835898}
   - component: {fileID: 1150835893}
   - component: {fileID: 1150835897}
   - component: {fileID: 1150835895}
@@ -24854,18 +24855,6 @@ MonoBehaviour:
   mouseSensitivityX: 10
   mouseSensitivityY: 10
   maxLookAngle: 80
-  forwardKey: 119
-  backwardKey: 115
-  leftKey: 97
-  rightKey: 100
-  sprintKey: 304
-  turnLight: 116
-  grabObject: 101
-  dropObject: 102
-  throwObject: 103
-  openJournal: 106
-  exitMenus: 27
-  crouchKey: 99
   crouchHeight: 1.5
   crouchCameraHeight: 1
   crouchTransitionSpeed: 6
@@ -24973,6 +24962,7 @@ MonoBehaviour:
   interactionController: {fileID: 1150835895}
   fpsController: {fileID: 1150835893}
   inventoryManager: {fileID: 1150835897}
+  inputManager: {fileID: 1150835898}
   currentRoom: {fileID: 0}
   house: {fileID: 919132149387788165}
   head: {fileID: 2076608638}
@@ -24998,9 +24988,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   inventoryKeys: 310000003200000033000000340000003500000036000000
   spirimonzTeamPrefabs:
-  - {fileID: 5469584514252593962, guid: d242e129e500d4ddeb1b473deee19d75, type: 3}
-  - {fileID: 3990404701300845526, guid: 2267b1ce1244944ea9f028ba2da04ba1, type: 3}
-  - {fileID: 6375307208799292074, guid: ce29825e03972486a996cc5f3f8ea4e7, type: 3}
+  - {fileID: 2436449413268723568, guid: 75c5c85a0b115469da2928638e432a9a, type: 3}
+  - {fileID: 5872005706839520, guid: cf645f4a231bd490698ab891c528e349, type: 3}
+  - {fileID: 5124348347119688593, guid: d81be44fd752e4eabae0cffd2d88ae67, type: 3}
   - {fileID: 6690621473432451843, guid: b900e83a2ca094635a259180921c99a9, type: 3}
   - {fileID: 5483493701284287561, guid: 851c04c5ee8544b59b90bb5bde1dbf04, type: 3}
   spirimonzTeam: []
@@ -25014,6 +25004,30 @@ MonoBehaviour:
   spirimonzMask:
     serializedVersion: 2
     m_Bits: 4096
+--- !u!114 &1150835898
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1150835891}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 420b0ceea7d3c4e5fa146ba65e90304b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  forwardKey: 119
+  backwardKey: 115
+  leftKey: 97
+  rightKey: 100
+  sprintKey: 304
+  turnLight: 116
+  grabObject: 101
+  dropObject: 100
+  throwObject: 103
+  openJournal: 106
+  exitMenus: 27
+  crouchKey: 99
 --- !u!1 &1151119304
 GameObject:
   m_ObjectHideFlags: 0

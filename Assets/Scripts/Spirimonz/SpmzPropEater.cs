@@ -177,7 +177,7 @@ public class SpmzPropEater : Spirimonz
         this.Invoke(delayBeforeGivingFruit, () =>
         {
             Fruit newFruit = Instantiate(fruitPrefab, spawnFruitPos.position, Quaternion.identity);
-            newFruit.transform.DOScale(Vector3.one, 0.5f).From(0);
+            newFruit.transform.DOScale(Vector3.one, 0.5f).From(Vector3.one * 0.01f);
             newFruit.rb.isKinematic = false;
             newFruit.rb.AddForce(transform.forward * giveFruitForceForward + Vector3.up * giveFruitForceUp);
         });

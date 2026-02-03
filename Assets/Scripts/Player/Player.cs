@@ -13,6 +13,7 @@ public class Player : GameBehaviour
     public InteractionController interactionController;
     public FPSControllerNoPhysics fpsController;
     public InventoryManager inventoryManager;
+    public InputManager inputManager;
     
     [Header("Player Settings")]
     public Room currentRoom;

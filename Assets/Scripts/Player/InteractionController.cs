@@ -115,13 +115,13 @@ public class InteractionController : GameBehaviour
             }
             
             // Drop
-            if (Input.GetKeyDown(_player.fpsController.dropObject))
+            if (Input.GetKeyDown(_player.inputManager.dropObject))
             {
                 DropObject();
             }
 
             // Throw
-            if (Input.GetKeyDown(_player.fpsController.throwObject))
+            if (Input.GetKeyDown(_player.inputManager.throwObject))
             {
                 if (objectInHands != null)
                 {
@@ -141,7 +141,7 @@ public class InteractionController : GameBehaviour
             // Grab uniquement si rien en main ni en mode caméra
             if (_player.inventoryManager.OccupedHands()) return;
             
-            if (Input.GetKeyDown(_player.fpsController.grabObject))
+            if (Input.GetKeyDown(_player.inputManager.grabObject))
             {
                 if (targetedCatchable.canBeGrabByPlayer && !targetedCatchable.isGrabbed)
                 {
@@ -156,7 +156,7 @@ public class InteractionController : GameBehaviour
         else if (_currentTarget is Spirimonz spirimonz && spirimonz.isOnTheMap)
         {
             // Grab uniquement si rien en main
-            if (Input.GetKeyDown(_player.fpsController.grabObject))
+            if (Input.GetKeyDown(_player.inputManager.grabObject))
             {
                 _player.inventoryManager.SpirimonzGoBackToHands(spirimonz);
             }

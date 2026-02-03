@@ -1,7 +1,7 @@
 using UnityEngine;
 
 [RequireComponent(typeof(CharacterController))]
-public class FPSControllerNoPhysics : GameBehaviour
+public class FPSControllerNoPhysics : Controller
 {
     public FootstepsListener footstepsListener;
 
@@ -20,20 +20,6 @@ public class FPSControllerNoPhysics : GameBehaviour
     public float mouseSensitivityX = 2.0f;
     public float mouseSensitivityY = 2.0f;
     public float maxLookAngle = 80f;
-
-    [Header("Clavier (AZERTY)")]
-    public KeyCode forwardKey = KeyCode.Z;
-    public KeyCode backwardKey = KeyCode.S;
-    public KeyCode leftKey = KeyCode.Q;
-    public KeyCode rightKey = KeyCode.D;
-    public KeyCode sprintKey = KeyCode.LeftShift;
-    public KeyCode turnLight = KeyCode.T;
-    public KeyCode grabObject = KeyCode.E;
-    public KeyCode dropObject = KeyCode.D;
-    public KeyCode throwObject = KeyCode.G;
-    public KeyCode openJournal = KeyCode.J;
-    public KeyCode exitMenus = KeyCode.Escape;
-    public KeyCode crouchKey = KeyCode.C;
 
     [Header("Crouch")]
     public float crouchHeight = 1f;
@@ -133,6 +119,8 @@ public class FPSControllerNoPhysics : GameBehaviour
 
     void Update()
     {
+        HandleUI();
+
         if (_player.IsLocked()) return;
         
         HandleLook();
@@ -141,17 +129,16 @@ public class FPSControllerNoPhysics : GameBehaviour
         HandleHeadbob();
         HandleArmSway();
         HandleLight();
-        HandleUI();
     }
 
     private void HandleUI()
     {
-        if (Input.GetKeyDown(openJournal) && _player.IsDead() == false)
+        if (Input.GetKeyDown(_player.inputManager.openJournal) && _player.IsDead() == false)
         {
             UIGame.Instance.SwitchJournalState();
         }
 
-        if (Input.GetKeyDown(exitMenus))
+        if (Input.GetKeyDown(_player.inputManager.exitMenus))
         {
             UIGame.Instance.ExitLastMenu();
         }
@@ -173,12 +160,12 @@ public class FPSControllerNoPhysics : GameBehaviour
     // ---------------- MOVE ----------------
     void HandleMove()
     {
-        float x = (Input.GetKey(rightKey) ? 1f : 0f) - (Input.GetKey(leftKey) ? 1f : 0f);
-        float z = (Input.GetKey(forwardKey) ? 1f : 0f) - (Input.GetKey(backwardKey) ? 1f : 0f);
+        float x = (Input.GetKey(_player.inputManager.rightKey) ? 1f : 0f) - (Input.GetKey(_player.inputManager.leftKey) ? 1f : 0f);
+        float z = (Input.GetKey(_player.inputManager.forwardKey) ? 1f : 0f) - (Input.GetKey(_player.inputManager.backwardKey) ? 1f : 0f);
 
         Vector3 input = new Vector3(x, 0, z).normalized;
         bool isMoving = input.magnitude > 0.1f;
-        bool wantsToSprint = Input.GetKey(sprintKey);
+        bool wantsToSprint = Input.GetKey(_player.inputManager.sprintKey);
         bool canSprint = wantsToSprint && isMoving && !staminaDepleted;
 
         // Mise à jour stamina
@@ -229,7 +216,7 @@ public class FPSControllerNoPhysics : GameBehaviour
     // ---------------- CROUCH ----------------
     void HandleCrouch()
     {
-        if (Input.GetKeyDown(crouchKey))
+        if (Input.GetKeyDown(_player.inputManager.crouchKey))
         {
             isCrouching = !isCrouching;
 
@@ -279,7 +266,7 @@ public class FPSControllerNoPhysics : GameBehaviour
             return;
         }
 
-        bool isSprinting = Input.GetKey(sprintKey) && !staminaDepleted;
+        bool isSprinting = Input.GetKey(_player.inputManager.sprintKey) && !staminaDepleted;
         float stepTime = isSprinting ? stepDuration * sprintStepMultiplier : stepDuration;
 
         float previousStepTimer = stepTimer;
@@ -354,7 +341,7 @@ public class FPSControllerNoPhysics : GameBehaviour
     // ---------------- LIGHT ----------------
     void HandleLight()
     {
-        if (Input.GetKeyDown(turnLight) && mLight != null)
+        if (Input.GetKeyDown(_player.inputManager.turnLight) && mLight != null)
         {
             bool enable = !mLight.gameObject.activeSelf;
             mLight.gameObject.SetActive(enable);
