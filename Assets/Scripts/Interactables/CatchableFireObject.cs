@@ -15,7 +15,14 @@ public class CatchableFireObject : CatchableObject
 
     private float _dropTime;
     public float rotationProtectionDuration = 2f;
-    
+
+    private GamePlayer _player;
+
+    private void Start()
+    {
+        _player = (GamePlayer)Player.Instance;
+    }
+
     [Space]
     public bool useRotationDebug;
 
@@ -66,7 +73,7 @@ public class CatchableFireObject : CatchableObject
     
     public override void SpecialActionInHandsOnClick()
     {
-        Player.Instance.UseSlashAnimation();
+        _player.UseSlashAnimation();
         linkedFlammableElement.canBeTurnedOn = true;
 
         this.Invoke(0.5f, () =>

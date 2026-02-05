@@ -16,4 +16,5 @@ public class InputManager : GameBehaviour
     public KeyCode openJournal = KeyCode.J;
     public KeyCode exitMenus = KeyCode.Escape;
     public KeyCode crouchKey = KeyCode.C;
+    public KeyCode jumpKey = KeyCode.Space;
 }

@@ -148,6 +148,8 @@ GameObject:
   m_Component:
   - component: {fileID: 135282725037294992}
   - component: {fileID: 918720565015609317}
+  - component: {fileID: 4781851433011865776}
+  - component: {fileID: 1460992320516161629}
   m_Layer: 0
   m_Name: lightBall
   m_TagString: Untagged
@@ -165,7 +167,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: -0.04100001, z: -0.011500001}
-  m_LocalScale: {x: 0.015, y: 0.015, z: 0.015}
+  m_LocalScale: {x: 0.025, y: 0.025, z: 0.025}
   m_ConstrainProportionsScale: 1
   m_Children: []
   m_Father: {fileID: 7464441204487976967}
@@ -212,7 +214,7 @@ SpriteRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_Sprite: {fileID: 21300000, guid: 9ba65b62f6fde477689dd55089839f3b, type: 3}
-  m_Color: {r: 1, g: 0.7741273, b: 0.4575472, a: 0.039215688}
+  m_Color: {r: 1, g: 0.7741273, b: 0.4575472, a: 0.13333334}
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0
@@ -222,3 +224,36 @@ SpriteRenderer:
   m_WasSpriteAssigned: 1
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
+--- !u!114 &4781851433011865776
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7373238519760026196}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2467cbcbba909487d8528cf9a13c2054, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  lookAtConstraint: {fileID: 1460992320516161629}
+--- !u!1183024399 &1460992320516161629
+LookAtConstraint:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7373238519760026196}
+  m_Enabled: 1
+  serializedVersion: 2
+  m_Weight: 1
+  m_RotationAtRest: {x: 0, y: 0, z: 0}
+  m_RotationOffset: {x: 0, y: 0, z: 0}
+  m_Roll: 0
+  m_WorldUpObject: {fileID: 0}
+  m_UseUpObject: 0
+  m_Active: 1
+  m_IsLocked: 0
+  m_Sources:
+  - sourceTransform: {fileID: 0}
+    weight: 1

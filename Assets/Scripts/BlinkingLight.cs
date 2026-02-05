@@ -16,6 +16,7 @@ public class BlinkingLight : MonoBehaviour
     private Ghost _ghost;
     private bool _isBlinking;
     private float _targetIntensity;
+    private GamePlayer _player;
 
     private void Start()
     {
@@ -29,6 +30,8 @@ public class BlinkingLight : MonoBehaviour
         {
             blinkSpeed = blinkSpeedVoltaic;
         }
+
+        _player = (GamePlayer)Player.Instance;
     }
 
     private void Update()
@@ -40,9 +43,9 @@ public class BlinkingLight : MonoBehaviour
             if (!_isBlinking && dist <= blinkDistance)
             {
                 StartCoroutine(BlinkRoutine());
-                if (_ghost.currentWayPoint.linkedRoom != Player.Instance.currentRoom)
+                if (_ghost.currentWayPoint.linkedRoom != _player.currentRoom)
                 {
-                    Player.Instance.AlertTheHuntingGhost();
+                    _player.AlertTheHuntingGhost();
                 }
             }
             else if (_isBlinking && dist > blinkDistance)

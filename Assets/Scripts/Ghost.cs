@@ -141,8 +141,14 @@ public class Ghost : GameBehaviour
     private bool _canHunt = true;
 
     private SoundManager.SoundInstance _huntingSound;
+    private GamePlayer _player;
     
     int agentContacts = 0;
+
+    private void Start()
+    {
+        _player = (GamePlayer)Player.Instance;
+    }
 
     public void Initialize(House h)
     {
@@ -225,7 +231,7 @@ public class Ghost : GameBehaviour
             if (currentState == GhostState.huntingState)
             {
                 StopHunting();
-                Kill(touchedPlayer);
+                Kill();
             }
             if (currentState == GhostState.hideState)
             {
@@ -417,7 +423,7 @@ public class Ghost : GameBehaviour
         _targetingPlayer = false;
         
         //Consider that Ghost don't know where is the player but know where he moved before losing him
-        ForceNewWaypoint(Player.Instance.currentRoom);
+        ForceNewWaypoint(_player.currentRoom);
     }
 
     private void PlayerFound()
@@ -531,11 +537,11 @@ public class Ghost : GameBehaviour
         SetVisibleRenderer(false);
     }
 
-    private void Kill(Player player)
+    private void Kill()
     {
         if (_isLocked) return;
 
-        player.Die();
+        _player.Die();
     }
 
     private void SetVisibleRenderer(bool enable)

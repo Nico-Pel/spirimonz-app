@@ -13,6 +13,12 @@ public class GhostVision : GameBehaviour
     public bool playerWasSeen = false;
 
     private Coroutine losePlayerCoroutine;
+    private GamePlayer _player;
+
+    private void Start()
+    {
+        _player = (GamePlayer)Player.Instance;
+    }
 
     public bool CanSeePlayer(Player player)
     {
@@ -50,7 +56,7 @@ public class GhostVision : GameBehaviour
             return false;
 
         Vector3 origin = ghostHead.position;
-        Vector3 target = player.head.position;
+        Vector3 target = _player.head.position;
         Vector3 direction = target - origin;
         float distance = direction.magnitude;
         direction.Normalize();

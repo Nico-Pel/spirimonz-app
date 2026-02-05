@@ -2,8 +2,8 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class WorldPlayer : GameBehaviour
+public class WorldPlayer : Player
 {
     public InputManager inputManager;
-    public TPSController tpsController;
+    public ThirdPersonController tpsController;
 }

@@ -35,6 +35,7 @@ public class InventoryManager : GameBehaviour
     public LayerMask spirimonzMask;
 
     private bool _forcedLightStateDuringCam;
+    private GamePlayer _player;
 
     private void Awake()
     {
@@ -44,6 +45,7 @@ public class InventoryManager : GameBehaviour
     private void Start()
     {
         UseWatchObject();
+        _player = (GamePlayer)Player.Instance;
     }
 
     private void InitializeTeam()
@@ -64,7 +66,7 @@ public class InventoryManager : GameBehaviour
     {
         if (selectedSpirimonz != null && selectedSpirimonz.isOnTheMap == false)
         {
-            selectedSpirimonz.currentRoom = Player.Instance.currentRoom;
+            selectedSpirimonz.currentRoom = _player.currentRoom;
         }
         
         for (int i = 0; i < inventoryKeys.Length; i++)
@@ -90,9 +92,9 @@ public class InventoryManager : GameBehaviour
         if (Input.GetMouseButtonDown(1) && handAnimator.GetInteger("HandPos") == (int)HandPoses.LightAim)
         {
             handAnimator.SetInteger("HandPos", (int)HandPoses.CameraAim);
-            if (Player.Instance.fpsController.mLight.gameObject.activeInHierarchy == true)
+            if (_player.fpsController.mLight.gameObject.activeInHierarchy == true)
             {
-                Player.Instance.fpsController.ForceLightState(false);
+                _player.fpsController.ForceLightState(false);
                 _forcedLightStateDuringCam = true;
             }
         }
@@ -103,7 +105,7 @@ public class InventoryManager : GameBehaviour
                 {
                     if (handAnimator.GetInteger("HandPos") == (int)HandPoses.LightAim)
                     {
-                        Player.Instance.fpsController.ForceLightState(true);
+                        _player.fpsController.ForceLightState(true);
                         _forcedLightStateDuringCam = false;
                     }
                 });
@@ -114,7 +116,7 @@ public class InventoryManager : GameBehaviour
 
     private void UseWatchObject()
     {
-        if (Player.Instance.interactionController.objectInHands) return;
+        if (_player.interactionController.objectInHands) return;
         
         handAnimator.SetInteger("HandPos", (int)HandPoses.LightAim);
         UnequipSpirimonz();
@@ -123,7 +125,7 @@ public class InventoryManager : GameBehaviour
     private void EquipSpirimonz(int teamIndex)
     {
         //You can't select a Spirimonz if an object in hands
-        if (Player.Instance.interactionController.objectInHands != null) return;
+        if (_player.interactionController.objectInHands != null) return;
 
         if (spirimonzTeam[teamIndex] == null) return;
         
@@ -173,16 +175,16 @@ public class InventoryManager : GameBehaviour
         if (selectedSpirimonz == null) return; //No spirimonz in hands
         if (selectedSpirimonz.canBeDroppedOnMap == false) return;
 
-        Vector3 dropPos = Player.Instance.interactionController.GetLastGroundPos();
+        Vector3 dropPos = _player.interactionController.GetLastGroundPos();
         if (dropPos == Vector3.zero)
         {
-            if (Player.Instance.interactionController.DetectCollisionForward())
+            if (_player.interactionController.DetectCollisionForward())
             {
                 dropPos = this.transform.position;
             }
             else
             {
-                Vector3 playerForward = Player.Instance.GetForward() * 1f;
+                Vector3 playerForward = _player.GetForward() * 1f;
                 dropPos = this.transform.position + new Vector3(playerForward.x, 0, playerForward.z);
             }
         }
@@ -192,7 +194,7 @@ public class InventoryManager : GameBehaviour
 
     private void DropSpirimonz(Vector3 dropPos)
     {
-        if (selectedSpirimonz == null || Player.Instance.interactionController.HasTarget()) return; //ERROR, no spirimonz selected or Interaction controller target something (door?)
+        if (selectedSpirimonz == null || _player.interactionController.HasTarget()) return; //ERROR, no spirimonz selected or Interaction controller target something (door?)
 
         if (House.Instance.currentGhost.IsHunting()) return; //Can't drop Spirimonz during a hunt
         
@@ -213,7 +215,7 @@ public class InventoryManager : GameBehaviour
         }
 
         spirimonzToDrop.DroppingOnMap();
-        float camX = Player.Instance.fpsController.playerCamera.transform.localEulerAngles.x;
+        float camX = _player.fpsController.playerCamera.transform.localEulerAngles.x;
 
         // Mapper de 0-360 à 0-180 pour regarder vers le bas
         if (camX > 180f) camX -= 360f; // [-180,180]
@@ -281,7 +283,7 @@ public class InventoryManager : GameBehaviour
             handAnimator.GetInteger("HandPos") != (int)HandPoses.LightAim)
             return true;
 
-        if (Player.Instance.interactionController.objectInHands != null)
+        if (_player.interactionController.objectInHands != null)
             return true;
 
         return false;

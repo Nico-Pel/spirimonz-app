@@ -5,18 +5,13 @@ using UnityEngine.Serialization;
 using UnityEngine.UI;
 using DG.Tweening;
 
-public class UIGame : GameBehaviour
+public class UIGame : UIManager
 {
-    public Image overlay;
-
     public GameObject pointerBase;
     public GameObject pointerON;
     public TextMeshProUGUI tGrab;
     public UIJournal Journal;
     public static UIGame Instance { get; private set; }
-
-    private bool _currentCursorState;
-    private int _showCursorsActivatedCount;
 
     private Player _player;
 
@@ -105,55 +100,19 @@ public class UIGame : GameBehaviour
         return Journal.gameObject.activeSelf;
     }
 
-    public void ExitLastMenu()
+    public override void ExitLastMenu()
     {
+        base.ExitLastMenu();
+        
         if (GetJournalState() == true)
         {
             EnableJournal(false);
         }
     }
 
-    public void CloseAllWindows()
+    public override void CloseAllWindows()
     {
+        base.CloseAllWindows();
         EnableJournal(false);
-    }
-
-    private void ShowCursor(bool enable)
-    {
-        _currentCursorState = enable;
-
-        Cursor.visible = enable;
-        Cursor.lockState = enable ? CursorLockMode.None : CursorLockMode.Locked;
-
-        Player.Instance.LockControls(enable);
-    }
-
-    public void AddShowCursor()
-    {
-        _showCursorsActivatedCount++;
-        
-        if (_currentCursorState == false)
-            ShowCursor(true);
-    }
-
-    public void RemoveShowCursor()
-    {
-        _showCursorsActivatedCount--;
-        
-        if(_showCursorsActivatedCount <= 0)
-            ShowCursor(false);
-    }
-    
-    public void EnableOverlay(bool enable, float fadeDuration)
-    {
-        Color colorToUse = enable ? Color.black : new Color(0, 0, 0, 0);
-        if (fadeDuration <= 0)
-        {
-            overlay.color = colorToUse;
-        }
-        else
-        {
-            overlay.DOColor(colorToUse, fadeDuration);
-        }
     }
 }

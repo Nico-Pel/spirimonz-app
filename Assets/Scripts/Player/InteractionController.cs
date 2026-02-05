@@ -35,7 +35,7 @@ public class InteractionController : GameBehaviour
     private IInteractable _currentTarget;
     
     private Camera _cam;
-    private Player _player;
+    private GamePlayer _player;
     
     public UnityEvent<CatchableObject> OnGrabItem;
     public UnityEvent<CatchableObject> OnDropItem;
@@ -47,7 +47,7 @@ public class InteractionController : GameBehaviour
 
     private void Start()
     {
-        _player = Player.Instance;
+        _player = (GamePlayer)Player.Instance;
     }
 
     void Update()
@@ -208,9 +208,8 @@ public class InteractionController : GameBehaviour
     private Vector3 _lastWallHitPos;
     public bool DetectCollisionForward()
     {
-        Player player = _player;
-        Vector3 origin = player.fpsController.playerCamera.transform.position;
-        Vector3 direction = player.GetForward().normalized;
+        Vector3 origin = _player.fpsController.playerCamera.transform.position;
+        Vector3 direction = _player.GetForward().normalized;
         float distance = 1f;
 
         // Crée le Ray

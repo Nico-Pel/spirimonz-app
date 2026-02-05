@@ -40,10 +40,13 @@ public class SpmzPropEater : Spirimonz
     private InteractionController _interactionController;
 
     private bool _askingForFruit;
+    private GamePlayer _player;
+    
     protected override void Start()
     {
         base.Start();
-        _interactionController = Player.Instance.interactionController;
+        _player = (GamePlayer)Player.Instance;
+        _interactionController = _player.interactionController;
         
         _interactionController.OnGrabItem.AddListener(PlayerGrabbedObject);
         _interactionController.OnDropItem.AddListener(PlayerDroppedObject);
