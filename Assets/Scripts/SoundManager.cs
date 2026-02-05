@@ -5,12 +5,20 @@ using UnityEngine;
 public class SoundManager : GameBehaviour
 {
     public static SoundManager Instance { get; private set; }
+    
+    public AudioClip ambientSound;
+    public float ambientSoundVolume = 0.2f;
 
     private AudioSource _ambientSource;
 
     private void Awake()
     {
         Instance = this;
+        
+        if (ambientSound != null)
+        {
+            PlayAmbient(ambientSound, ambientSoundVolume, true);
+        }
     }
 
     // --- Sound Effects existants

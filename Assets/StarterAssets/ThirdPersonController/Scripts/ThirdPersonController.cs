@@ -55,6 +55,7 @@ public class ThirdPersonController : MonoBehaviour
     private InputManager _inputManager;
 
     private bool _hasAnimator;
+    private Player _player;
 
     private void Awake()
     {
@@ -78,12 +79,21 @@ public class ThirdPersonController : MonoBehaviour
 
         _jumpTimeoutDelta = JumpTimeout;
         _fallTimeoutDelta = FallTimeout;
+
+        _player = Player.Instance;
     }
 
     private void Update()
     {
         GroundedCheck();
         JumpAndGravity();
+
+        if (_player.IsLocked())
+        {
+            _animator.SetFloat("Speed", 0);
+            return;
+        }
+        
         Move();
     }
 

@@ -12,9 +12,6 @@ public class House : GameBehaviour
 
     public HouseBiome biome;
     public GhostParameters[] possibleGhostParameters;
-
-    public AudioClip ambientSound;
-    public float ambientSoundVolume = 0.2f;
     
     public Room[] rooms;
     public Room[] hauntableRooms;
@@ -39,10 +36,8 @@ public class House : GameBehaviour
 
     private void Start()
     {
-        if (ambientSound != null)
-        {
-            SoundManager.Instance.PlayAmbient(ambientSound, ambientSoundVolume, true);
-        }
+        UIGame.Instance.EnableOverlay(true, 0);
+        UIGame.Instance.EnableOverlay(false, 3);
     }
 
     private void InitializeHouse()

@@ -44,8 +44,8 @@ public class InventoryManager : GameBehaviour
 
     private void Start()
     {
-        UseWatchObject();
         _player = (GamePlayer)Player.Instance;
+        UseWatchObject();
     }
 
     private void InitializeTeam()
