@@ -9,6 +9,7 @@ public class GameData
 
     public string lastWorldSceneName; // Le dernier world visité
     public Vector3 playerPosition;    // Position dans ce world
+    public Quaternion playerRotation; // Rotation dans ce world
     public int currentHouseID;        // House actuelle si on est dans une house
 }
 

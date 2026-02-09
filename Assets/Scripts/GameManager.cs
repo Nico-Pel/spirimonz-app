@@ -59,13 +59,12 @@ public class GameManager : MonoBehaviour
                     // Spawn devant la maison
                     player.SetPosition(spawnPoints[currentHouseID].position);
                     player.SetRotation(spawnPoints[currentHouseID].rotation);
-                    Debug.Log("Awake: spawn devant la maison " + currentHouseID);
                 }
                 else
                 {
                     // Spawn à la position sauvegardée dans le world
                     player.SetPosition(gameData.playerPosition);
-                    Debug.Log("Awake: spawn à la position sauvegardée " + gameData.playerPosition);
+                    player.SetRotation(gameData.playerRotation);
                 }
             }
         }
@@ -98,6 +97,7 @@ public class GameManager : MonoBehaviour
             {
                 // Spawn à la position sauvegardée dans le world
                 player.SetPosition(gameData.playerPosition);
+                player.SetRotation(gameData.playerRotation);
             }
 
             // Reset le flag
@@ -132,9 +132,10 @@ public class GameManager : MonoBehaviour
 
         if (isWorld)
         {
-            // Sauvegarde position dans le world
+            // Sauvegarde position + rotation dans le world
             gameData.lastWorldSceneName = currentScene.name;
             gameData.playerPosition = player.GetPosition();
+            gameData.playerRotation = player.GetRotation(); // <<< ajouté
             gameData.currentHouseID = -1;
         }
         else
