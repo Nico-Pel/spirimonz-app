@@ -24,6 +24,9 @@ public class CatchableObject : GameBehaviour, IInteractable
 
         if (rb == null)
             rb = GetComponent<Rigidbody>();
+
+        if (!canBeGrabByPlayer)
+            InteractionLocked = true;
     }
 
     // =========================
@@ -42,6 +45,7 @@ public class CatchableObject : GameBehaviour, IInteractable
     public void OnInteractHold() { }
 
     public void OnInteractEnd() { }
+    public bool InteractionLocked { get; set; }
 
     // =========================
     // Logique EXISTANTE (copiée du Player)

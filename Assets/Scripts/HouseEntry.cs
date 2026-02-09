@@ -31,6 +31,9 @@ public class HouseEntry : GameBehaviour
     {
         if(debugRender != null)
             debugRender.enabled = false;
+
+        if (doorInteractable != null)
+            doorInteractable.InteractionLocked = true;
     }
 
     private void Start()
@@ -49,14 +52,24 @@ public class HouseEntry : GameBehaviour
     {
         animator.SetTrigger("Close");
         PlayerSound(closeSound);
-        doorInteractable.SetCursor(lockCursor, lockedCursorSize);
+        
+        if (doorInteractable != null)
+        {
+            doorInteractable.SetCursor(lockCursor, lockedCursorSize);
+            doorInteractable.InteractionLocked = false;
+        }
     }
     
     private void UnlockDoor()
     {
         animator.SetTrigger("Open");
         PlayerSound(openSound);
-        doorInteractable.SetCursor(null);
+
+        if (doorInteractable != null)
+        {
+            doorInteractable.SetCursor(null);
+            doorInteractable.InteractionLocked = true;
+        }
     }
 
     private void OnTriggerEnter(Collider other)

@@ -24,22 +24,31 @@ public class InteractionController : GameBehaviour
     public float throwForceForward = 5f;
 
     [ReadOnly] public CatchableObject objectInHands;
-    
-    [Header("Doors Settings")] 
+
+    [Header("Doors Settings")]
     [SerializeField] LayerMask doorLayer;
 
     private Door _targetedDoor;
-    private GameObject _grabbedDoor; 
+    private GameObject _grabbedDoor;
     private float _grabDistance;
 
     private IInteractable _currentTarget;
-    
+    private IInteractable _lastTarget;
+
     private Camera _cam;
     private GamePlayer _player;
     private UIGame _uiGame;
-    
+
     public UnityEvent<CatchableObject> OnGrabItem;
     public UnityEvent<CatchableObject> OnDropItem;
+
+    // =========================
+    // UI Cache
+    // =========================
+    bool _lastShowCursor;
+    bool _lastShowGrab;
+    Sprite _lastCursorSprite;
+    float _lastCursorSize;
 
     void Awake()
     {
@@ -50,6 +59,9 @@ public class InteractionController : GameBehaviour
     {
         _player = (GamePlayer)Player.Instance;
         _uiGame = UIGame.Instance;
+
+        // fallback sécurité
+        InvokeRepeating(nameof(RefreshCursorUI), 0f, 0.2f);
     }
 
     void Update()
@@ -60,9 +72,8 @@ public class InteractionController : GameBehaviour
         {
             DetectInteractable();
         }
-        
+
         HandleInput();
-        UpdateCursorUI();
     }
 
     // =========================
@@ -73,16 +84,25 @@ public class InteractionController : GameBehaviour
         Vector3 rayOrigin = _cam.transform.position + _cam.transform.forward * rayOffset;
         Ray ray = new Ray(rayOrigin, _cam.transform.forward);
 
+        IInteractable newTarget = null;
+
         if (Physics.SphereCast(ray, sphereRadius, out RaycastHit hit, interactionDistance, interactableLayer, QueryTriggerInteraction.Ignore))
         {
-            targetingGround = (groundLayer.value & (1 << hit.collider.gameObject.layer)) != 0; //Detect if player is targeting ground to drop a spirimonz
+            targetingGround = (groundLayer.value & (1 << hit.collider.gameObject.layer)) != 0;
             _lastGroundPosTargeted = hit.point;
-            _currentTarget = hit.collider.GetComponent<IInteractable>();
+            newTarget = hit.collider.GetComponent<IInteractable>();
+            if (newTarget != null && newTarget.InteractionLocked) newTarget = null;
         }
         else
         {
             targetingGround = false;
-            _currentTarget = null;
+        }
+
+        if (newTarget != _currentTarget)
+        {
+            _lastTarget = _currentTarget;
+            _currentTarget = newTarget;
+            RefreshCursorUI();
         }
     }
 
@@ -91,9 +111,6 @@ public class InteractionController : GameBehaviour
     // =========================
     void HandleInput()
     {
-        // =====================
-        // Interaction avec l'objet ciblé
-        // =====================
         if (_currentTarget != null)
         {
             if (Input.GetMouseButtonDown(0))
@@ -106,65 +123,144 @@ public class InteractionController : GameBehaviour
                 _currentTarget.OnInteractEnd();
         }
 
-        // =====================
-        // Grab / Drop / Throw d'objet en main
-        // =====================
         if (objectInHands != null)
         {
             if (Input.GetMouseButtonDown(1))
-            {
                 objectInHands.SpecialActionInHandsOnClick();
-            }
-            
-            // Drop
-            if (Input.GetKeyDown(_player.inputManager.dropObject))
-            {
-                DropObject();
-            }
 
-            // Throw
+            if (Input.GetKeyDown(_player.inputManager.dropObject))
+                DropObject();
+
             if (Input.GetKeyDown(_player.inputManager.throwObject))
             {
-                if (objectInHands != null)
-                {
-                    if (objectInHands.canBeThrownByPlayer)
-                    {
-                        ThrowObject();
-                    }
-                    else
-                    {
-                        DropObject();
-                    }
-                }
+                if (objectInHands.canBeThrownByPlayer)
+                    ThrowObject();
+                else
+                    DropObject();
             }
         }
         else if (_currentTarget is CatchableObject targetedCatchable)
         {
-            // Grab uniquement si rien en main ni en mode caméra
             if (_player.inventoryManager.OccupedHands()) return;
-            
+
             if (Input.GetKeyDown(_player.inputManager.grabObject))
             {
                 if (targetedCatchable.canBeGrabByPlayer && !targetedCatchable.isGrabbed)
                 {
-                    //If the player has a Spirimonz in hands, unequip it
                     _player.inventoryManager.ReplaceSpirimonzByAnItem();
-                    
-                    //Grab item
                     GrabItem(targetedCatchable);
                 }
             }
         }
         else if (_currentTarget is Spirimonz spirimonz && spirimonz.isOnTheMap)
         {
-            // Grab uniquement si rien en main
             if (Input.GetKeyDown(_player.inputManager.grabObject))
-            {
                 _player.inventoryManager.SpirimonzGoBackToHands(spirimonz);
-            }
         }
     }
 
+    // =========================
+    // UI Handling
+    // =========================
+    void RefreshCursorUI()
+    {
+        // showCursor = target exist OR door is grabbed
+        bool showCursor = _currentTarget != null || _grabbedDoor != null;
+
+        Sprite sprite = null;
+        float size = 1f;
+
+        if (_currentTarget != null && _currentTarget.SpecialCursor)
+        {
+            sprite = _currentTarget.SpecialCursor;
+            size = _currentTarget.CursorSize;
+        }
+        else if (_grabbedDoor != null && _targetedDoor != null && _targetedDoor.SpecialCursor != null)
+        {
+            sprite = _targetedDoor.SpecialCursor;
+            size = _targetedDoor.CursorSize;
+        }
+
+        if (sprite != _lastCursorSprite || Mathf.Abs(size - _lastCursorSize) > 0.01f)
+        {
+            _uiGame.SetBigPointerSprite(sprite, size);
+            _lastCursorSprite = sprite;
+            _lastCursorSize = size;
+        }
+
+        if (showCursor != _lastShowCursor)
+        {
+            _uiGame.EnableBigPointer(showCursor);
+            _lastShowCursor = showCursor;
+        }
+
+        bool showGrab = _currentTarget is CatchableObject c && c.canBeGrabByPlayer;
+        if (showGrab != _lastShowGrab)
+        {
+            _uiGame.EnableGrabText(showGrab);
+            _lastShowGrab = showGrab;
+        }
+    }
+
+    // =========================
+    // Door Handling (INCHANGÉ)
+    // =========================
+    private void HandleDoor()
+    {
+        if (Input.GetMouseButtonUp(0))
+        {
+            if (_targetedDoor != null)
+            {
+                _targetedDoor.Release();
+                _targetedDoor = null;
+            }
+        }
+
+        Ray ray = new Ray(_cam.transform.position, _cam.transform.forward);
+
+        if (Physics.Raycast(ray, out RaycastHit hit, interactionDoorsDistance, doorLayer))
+        {
+            if (_targetedDoor == null)
+                _targetedDoor = hit.collider.GetComponent<Door>();
+
+            if (Input.GetMouseButtonDown(0))
+            {
+                Rigidbody rb = _targetedDoor.rb;
+                HingeJoint hinge = _targetedDoor.hingeJoint;
+
+                if (rb != null && hinge != null)
+                {
+                    _grabbedDoor = _targetedDoor.gameObject;
+                    _targetedDoor.Grab();
+                    _grabDistance = Vector3.Distance(_cam.transform.position, _grabbedDoor.transform.position);
+                    rb.useGravity = false;
+                    rb.freezeRotation = false;
+                }
+            }
+        }
+        else if (!Input.GetMouseButton(0) && _targetedDoor != null && _grabbedDoor == null)
+        {
+            _targetedDoor = null;
+        }
+
+        if (_grabbedDoor != null)
+        {
+            Rigidbody rb = _grabbedDoor.GetComponent<Rigidbody>();
+            Vector3 targetPos = _cam.transform.position + _cam.transform.forward * _grabDistance;
+            rb.velocity = (targetPos - rb.position) * 30f;
+
+            if (Input.GetMouseButtonUp(0))
+            {
+                if(_targetedDoor != null)
+                    _targetedDoor.Release();
+                
+                rb.useGravity = true;
+                _grabbedDoor = null;
+                _targetedDoor = null;
+            }
+        }
+    }
+    
     private void DropObject()
     {
         if (objectInHands == null) return;
@@ -206,7 +302,25 @@ public class InteractionController : GameBehaviour
         OnDropItem?.Invoke(objectInHands);
         objectInHands = null;
     }
+    public void GrabItem(CatchableObject catchableObject)
+    {
+        if (objectInHands != null)
+        {
+            objectInHands.Drop(transform.position, Vector3.zero);
+        }
+    
+        objectInHands = catchableObject;
+        _objectInHandLayerIndex = objectInHands.gameObject.layer;
+        _player.inventoryManager.SetHandsStateNull();
+        objectInHands.ChangeLayer(_player.inventoryManager.fpsMask);
+        objectInHands.Grab(handObjectPosition);
+    
+        OnGrabItem?.Invoke(catchableObject);
 
+        _currentTarget = null;
+        RefreshCursorUI();
+    }
+    
     private Vector3 _lastWallHitPos;
     public bool DetectCollisionForward()
     {
@@ -229,135 +343,10 @@ public class InteractionController : GameBehaviour
 
         return false;
     }
-    
-    public void GrabItem(CatchableObject catchableObject)
-    {
-        if (objectInHands != null)
-        {
-            objectInHands.Drop(transform.position, Vector3.zero);
-        }
-        
-        objectInHands = catchableObject;
-        _objectInHandLayerIndex = objectInHands.gameObject.layer;
-        _player.inventoryManager.SetHandsStateNull();
-        objectInHands.ChangeLayer(_player.inventoryManager.fpsMask);
-        objectInHands.Grab(handObjectPosition);
-        
-        OnGrabItem?.Invoke(catchableObject);
-    }
-    
-    // =========================
-    // UI Handling
-    // =========================
-    bool _grabTextVisible;
-
-    bool _lastShowCursor;
-    bool _lastShowGrab;
-
-    void UpdateCursorUI()
-    {
-        bool showCursor = _currentTarget != null || _targetedDoor != null;
-        
-        Sprite pointerSpriteToUse = null;
-        float cursorSize = 1f;
-        if (showCursor)
-        {
-            if (_currentTarget != null && _currentTarget.SpecialCursor)
-            {
-                pointerSpriteToUse = _currentTarget.SpecialCursor;
-                cursorSize = _currentTarget.CursorSize;
-            }
-            else if (_targetedDoor != null && _targetedDoor.SpecialCursor)
-            {
-                pointerSpriteToUse = _targetedDoor.SpecialCursor;
-                cursorSize = _targetedDoor.CursorSize;
-            }
-        }
-        _uiGame.SetBigPointerSprite(pointerSpriteToUse, cursorSize);
-        
-        if (showCursor != _lastShowCursor)
-        {
-            _uiGame.EnableBigPointer(showCursor);
-            _lastShowCursor = showCursor;
-        }
-
-        bool showGrab = _currentTarget is CatchableObject c && c.canBeGrabByPlayer;
-        if (showGrab != _lastShowGrab)
-        {
-            _uiGame.EnableGrabText(showGrab);
-            _lastShowGrab = showGrab;
-        }
-    }
-
-    private void HandleDoor()
-    {
-        if (Input.GetMouseButtonUp(0))
-        {
-            if (_targetedDoor != null)
-            {
-                _targetedDoor.Release();
-                _targetedDoor = null;
-            }
-        }
-        
-        // Raycast pour détecter la porte
-        RaycastHit hit;
-        Ray ray = new Ray(_cam.transform.position, _cam.transform.forward);
-
-        if (Physics.Raycast(ray, out hit, interactionDoorsDistance, doorLayer))
-        {
-            if(_targetedDoor == null)
-                _targetedDoor = hit.collider.GetComponent<Door>();
-            
-            if (Input.GetMouseButtonDown(0))
-            {
-                Rigidbody rb = _targetedDoor.rb;
-                HingeJoint hinge = _targetedDoor.hingeJoint;
-                if (rb != null && hinge != null)
-                {
-                    _grabbedDoor = _targetedDoor.gameObject;
-                    _targetedDoor.Grab();
-                    _grabDistance = Vector3.Distance(_player.fpsController.playerCamera.transform.position, _grabbedDoor.transform.position);
-                    rb.useGravity = false;          // on désactive la gravité pendant qu’on tire
-                    rb.freezeRotation = false;      // on autorise le Hinge à tourner
-                }
-            }
-        }
-        else if (!Input.GetMouseButton(0) && _targetedDoor != null && _grabbedDoor == null)
-        {
-            _targetedDoor = null;
-        }
-
-        if (_grabbedDoor != null)
-        {
-            Rigidbody rb = _grabbedDoor.GetComponent<Rigidbody>();
-            if (rb != null)
-            {
-                Vector3 targetPos = _cam.transform.position + _cam.transform.forward * _grabDistance;
-                rb.velocity = (targetPos - rb.position) * 30f;
-                //rb.position = Vector3.Lerp(rb.position, targetPos, Time.deltaTime * 10f);
-            }
-
-            if (Input.GetMouseButtonUp(0))
-            {
-                if (_targetedDoor != null)
-                {
-                    _targetedDoor.Release();
-                    _targetedDoor = null;
-                }
-                
-                rb.useGravity = true;
-                _grabbedDoor = null;
-            }
-        }
-    }
 
     public Vector3 GetLastGroundPos()
     {
-        if (!targetingGround)
-            return Vector3.zero;
-        
-        return _lastGroundPosTargeted;
+        return targetingGround ? _lastGroundPosTargeted : Vector3.zero;
     }
 
     public bool HasTarget()

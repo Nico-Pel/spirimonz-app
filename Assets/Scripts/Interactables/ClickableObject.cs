@@ -52,6 +52,8 @@ public class ClickableObject : MonoBehaviour, IInteractable
             OnRelease();
     }
 
+    public bool InteractionLocked { get; set; }
+
     // =========================
     // Existing logic (inchangé)
     // =========================

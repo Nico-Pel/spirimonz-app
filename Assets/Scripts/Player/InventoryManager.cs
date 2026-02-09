@@ -293,4 +293,5 @@ public class InventoryManager : GameBehaviour
     {
         handAnimator.SetInteger("HandPos", (int)HandPoses.Null);
     }
+    
 }

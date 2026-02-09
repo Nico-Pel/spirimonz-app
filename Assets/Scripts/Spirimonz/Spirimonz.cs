@@ -529,6 +529,8 @@ public class Spirimonz : GameBehaviour, IInteractable
     {
     }
 
+    public bool InteractionLocked { get; set; }
+
     public void EnableSpirimonz(bool enable)
     {
         gameObject.SetActive(enable);

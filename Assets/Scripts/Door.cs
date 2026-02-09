@@ -10,6 +10,10 @@ public class Door : GameBehaviour, IInteractable
     public Rigidbody rb;
     public ActivitySource activitySource;
     public PrintSource[] printSources;
+    public Sprite cursorHand;
+    public Sprite cursorGrab;
+    public float cursorGrabSize = 2f;
+    public float cursorHandSize = 3f;
 
     [Header("Door Settings")]
     public float autoCloseSpeed = 10f;
@@ -57,6 +61,8 @@ public class Door : GameBehaviour, IInteractable
         openFullAngle = opensTowardNegative ? limits.min : limits.max;
 
         _almostCloseAngle = Mathf.Abs(closeAngle) + closeAnglePermissiveness;
+        
+        SetCursor(cursorHand, cursorHandSize);
     }
 
     #region Grab / Release
@@ -67,6 +73,8 @@ public class Door : GameBehaviour, IInteractable
         _isGrabbed = true;
         InvokeRepeating(nameof(CheckAngle), checkDelay, checkDelay);
         _askedForGhostSlam = false;
+        
+        SetCursor(cursorGrab, cursorGrabSize);
     }
 
     public void Release()
@@ -78,6 +86,8 @@ public class Door : GameBehaviour, IInteractable
             CloseDoor(autoCloseSpeed);
         else
             StopDoor();
+        
+        SetCursor(cursorHand, cursorHandSize);
     }
 
     #endregion
@@ -245,16 +255,21 @@ public class Door : GameBehaviour, IInteractable
 
     public void OnInteractStart()
     {
-        throw new NotImplementedException();
     }
 
     public void OnInteractHold()
     {
-        throw new NotImplementedException();
     }
 
     public void OnInteractEnd()
     {
-        throw new NotImplementedException();
+    }
+
+    public bool InteractionLocked { get; set; }
+
+    public void SetCursor(Sprite sprite, float size = 1)
+    {
+        SpecialCursor = sprite;
+        CursorSize = size;
     }
 }

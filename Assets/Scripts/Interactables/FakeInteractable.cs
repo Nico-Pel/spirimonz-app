@@ -18,7 +18,9 @@ public class FakeInteractable : GameBehaviour, IInteractable
     public void OnInteractEnd()
     {
     }
-    
+
+    public bool InteractionLocked { get; set; }
+
     public void SetCursor(Sprite sprite, float size = 1)
     {
         SpecialCursor = sprite;
