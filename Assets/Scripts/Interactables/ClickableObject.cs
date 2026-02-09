@@ -31,6 +31,9 @@ public class ClickableObject : MonoBehaviour, IInteractable
     // IInteractable
     // =========================
 
+    public Sprite SpecialCursor { get; set; }
+    public float CursorSize { get; set; }
+
     public void OnInteractStart()
     {
         if (canClick)

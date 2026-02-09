@@ -30,6 +30,9 @@ public class CatchableObject : GameBehaviour, IInteractable
     // IInteractable
     // =========================
 
+    public Sprite SpecialCursor { get; set; }
+    public float CursorSize { get; set; }
+
     public void OnInteractStart()
     {
         // NE FAIT RIEN pour l'instant

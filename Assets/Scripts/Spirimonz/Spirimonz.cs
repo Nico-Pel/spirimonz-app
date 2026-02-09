@@ -480,6 +480,9 @@ public class Spirimonz : GameBehaviour, IInteractable
         
     }
 
+    public Sprite SpecialCursor { get; set; }
+    public float CursorSize { get; set; }
+
     public void OnInteractStart()
     {
         if (canInteract == false)

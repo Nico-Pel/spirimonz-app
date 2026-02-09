@@ -8,11 +8,12 @@ using DG.Tweening;
 public class UIGame : UIManager
 {
     public GameObject pointerBase;
-    public GameObject pointerON;
+    public Image pointerON;
     public TextMeshProUGUI tGrab;
     public UIJournal Journal;
     public static UIGame Instance { get; private set; }
 
+    private Sprite _baseBigPointer;
     private Player _player;
 
     private void Awake()
@@ -25,6 +26,8 @@ public class UIGame : UIManager
 
         Instance = this;
         CloseAllWindows();
+
+        _baseBigPointer = pointerON.sprite;
     }
     
     private void Start()
@@ -77,7 +80,15 @@ public class UIGame : UIManager
 
     public void EnableBigPointer(bool enable)
     {
-        pointerON.SetActive(enable);
+        pointerON.gameObject.SetActive(enable);
+    }
+
+    public void SetBigPointerSprite(Sprite sprite, float size = 1)
+    {
+        if(sprite == null) sprite = _baseBigPointer;
+        
+        pointerON.sprite = sprite;
+        pointerON.transform.localScale = Vector3.one * size;
     }
 
     public void EnableGrabText(bool enable)

@@ -428,6 +428,7 @@ GameObject:
   - component: {fileID: 3971732968283688758}
   - component: {fileID: 424236622480871744}
   - component: {fileID: 7792278745300288537}
+  - component: {fileID: 8491779138171261749}
   m_Layer: 0
   m_Name: ExitWall
   m_TagString: Untagged
@@ -443,7 +444,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2536074023531230356}
   serializedVersion: 2
-  m_LocalRotation: {x: -0, y: 0.0000001490116, z: -0, w: -1}
+  m_LocalRotation: {x: 0, y: 0, z: -0, w: -1}
   m_LocalPosition: {x: -2, y: 0, z: -11.400001}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
@@ -541,11 +542,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 302f6bf8e60e449278a46aef0aa83dd9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  houseSceneName: World01
+  sceneName: World01
   houseID: -1
-  animator: {fileID: 0}
+  isExit: 1
+  doorInteractable: {fileID: 8138986861866714115}
+  animator: {fileID: 8491779138171261749}
   fadeDuration: 3
-  entrySound: {fileID: 8300000, guid: ef90fd3cbafe54a97a434b63740b1775, type: 3}
+  lockCursor: {fileID: 21300000, guid: 3624e60fa632b4b52b0ff58f1eeddc20, type: 3}
+  openSound: {fileID: 8300000, guid: 79e7dd873687148538813dcc3b8caf36, type: 3}
+  closeSound: {fileID: 8300000, guid: d1ff9040ffe4040039b2f7d318db31d9, type: 3}
   volume: 1
   soundDelay: 2
   debugRender: {fileID: 0}
@@ -570,6 +575,27 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 3.9508193, y: 4.1, z: 3.4685802}
   m_Center: {x: 0.03482473, y: 1.95, z: -2.5918803}
+--- !u!95 &8491779138171261749
+Animator:
+  serializedVersion: 5
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2536074023531230356}
+  m_Enabled: 1
+  m_Avatar: {fileID: 0}
+  m_Controller: {fileID: 9100000, guid: 76fda02dd2af84b2d9da28888938dd36, type: 2}
+  m_CullingMode: 0
+  m_UpdateMode: 0
+  m_ApplyRootMotion: 0
+  m_LinearVelocityBlending: 0
+  m_StabilizeFeet: 0
+  m_WarningMessage: 
+  m_HasTransformHierarchy: 1
+  m_AllowConstantClipSamplingOptimization: 1
+  m_KeepAnimatorStateOnDisable: 0
+  m_WriteDefaultValuesOnDisable: 0
 --- !u!1 &3924734200599055913
 GameObject:
   m_ObjectHideFlags: 0
@@ -1182,7 +1208,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 4321458921038606859, guid: 753479ef7f2c84252bf7a670351d9096, type: 3}
       propertyPath: m_Name
-      value: H_Door01
+      value: DoorR
       objectReference: {fileID: 0}
     - target: {fileID: 7086396343587570800, guid: 753479ef7f2c84252bf7a670351d9096, type: 3}
       propertyPath: m_LocalScale.x
@@ -1231,8 +1257,52 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 4321458921038606859, guid: 753479ef7f2c84252bf7a670351d9096, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 7140963436910134827}
+    - targetCorrespondingSourceObject: {fileID: 4321458921038606859, guid: 753479ef7f2c84252bf7a670351d9096, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 8138986861866714115}
   m_SourcePrefab: {fileID: 100100000, guid: 753479ef7f2c84252bf7a670351d9096, type: 3}
+--- !u!1 &3441184349154268691 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 4321458921038606859, guid: 753479ef7f2c84252bf7a670351d9096, type: 3}
+  m_PrefabInstance: {fileID: 1457315873844601880}
+  m_PrefabAsset: {fileID: 0}
+--- !u!65 &7140963436910134827
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3441184349154268691}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 1.3346674, y: 3.233333, z: 0.474921}
+  m_Center: {x: 0.66733253, y: 0.0033140779, z: -0.100000866}
+--- !u!114 &8138986861866714115
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3441184349154268691}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e1e89be7c6b694efdba0775d155a9355, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!4 &8533902367976956008 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 7086396343587570800, guid: 753479ef7f2c84252bf7a670351d9096, type: 3}

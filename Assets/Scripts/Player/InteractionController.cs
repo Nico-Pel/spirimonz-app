@@ -36,6 +36,7 @@ public class InteractionController : GameBehaviour
     
     private Camera _cam;
     private GamePlayer _player;
+    private UIGame _uiGame;
     
     public UnityEvent<CatchableObject> OnGrabItem;
     public UnityEvent<CatchableObject> OnDropItem;
@@ -48,6 +49,7 @@ public class InteractionController : GameBehaviour
     private void Start()
     {
         _player = (GamePlayer)Player.Instance;
+        _uiGame = UIGame.Instance;
     }
 
     void Update()
@@ -255,16 +257,34 @@ public class InteractionController : GameBehaviour
     void UpdateCursorUI()
     {
         bool showCursor = _currentTarget != null || _targetedDoor != null;
+        
+        Sprite pointerSpriteToUse = null;
+        float cursorSize = 1f;
+        if (showCursor)
+        {
+            if (_currentTarget != null && _currentTarget.SpecialCursor)
+            {
+                pointerSpriteToUse = _currentTarget.SpecialCursor;
+                cursorSize = _currentTarget.CursorSize;
+            }
+            else if (_targetedDoor != null && _targetedDoor.SpecialCursor)
+            {
+                pointerSpriteToUse = _targetedDoor.SpecialCursor;
+                cursorSize = _targetedDoor.CursorSize;
+            }
+        }
+        _uiGame.SetBigPointerSprite(pointerSpriteToUse, cursorSize);
+        
         if (showCursor != _lastShowCursor)
         {
-            UIGame.Instance.EnableBigPointer(showCursor);
+            _uiGame.EnableBigPointer(showCursor);
             _lastShowCursor = showCursor;
         }
 
         bool showGrab = _currentTarget is CatchableObject c && c.canBeGrabByPlayer;
         if (showGrab != _lastShowGrab)
         {
-            UIGame.Instance.EnableGrabText(showGrab);
+            _uiGame.EnableGrabText(showGrab);
             _lastShowGrab = showGrab;
         }
     }

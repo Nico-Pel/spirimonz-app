@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using Random = UnityEngine.Random;
 
-public class Door : GameBehaviour
+public class Door : GameBehaviour, IInteractable
 {
     [Header("Door Components")]
     public HingeJoint hingeJoint;
@@ -239,4 +239,22 @@ public class Door : GameBehaviour
     }
 
     #endregion
+
+    public Sprite SpecialCursor { get; set; }
+    public float CursorSize { get; set; }
+
+    public void OnInteractStart()
+    {
+        throw new NotImplementedException();
+    }
+
+    public void OnInteractHold()
+    {
+        throw new NotImplementedException();
+    }
+
+    public void OnInteractEnd()
+    {
+        throw new NotImplementedException();
+    }
 }

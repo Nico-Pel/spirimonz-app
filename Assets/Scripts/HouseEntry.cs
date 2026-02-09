@@ -7,22 +7,56 @@ public class HouseEntry : GameBehaviour
 {
     [FormerlySerializedAs("houseSceneName")] public string sceneName;
     public int houseID = -1;
+    public bool isExit;
+    public FakeInteractable doorInteractable;
     public Animator animator;
     public float fadeDuration = 3f;
     
+    [Header("Locked Cursor")]
+    public Sprite lockCursor;
+    public float lockedCursorSize = 2.5f;
+    
     [Header("Audio")]
-    public AudioClip entrySound;
+    public AudioClip openSound;
+    public AudioClip closeSound;
     public float volume = 1f;
     public float soundDelay = 0.33f;
 
     public MeshRenderer debugRender;
 
     private bool hasEntered = false;
+    private GameManager _gameManager;
 
     private void Awake()
     {
         if(debugRender != null)
             debugRender.enabled = false;
+    }
+
+    private void Start()
+    {
+        _gameManager = GameManager.Instance;
+        
+        if (isExit)
+        {
+            Ghost currentGhost = House.Instance.currentGhost;
+            currentGhost.onGhostStartToHunt.AddListener(LockDoor);
+            currentGhost.onGhostStopToHunt.AddListener(UnlockDoor);
+        }
+    }
+
+    private void LockDoor()
+    {
+        animator.SetTrigger("Close");
+        PlayerSound(closeSound);
+        doorInteractable.SetCursor(lockCursor, lockedCursorSize);
+    }
+    
+    private void UnlockDoor()
+    {
+        animator.SetTrigger("Open");
+        PlayerSound(openSound);
+        doorInteractable.SetCursor(null);
     }
 
     private void OnTriggerEnter(Collider other)
@@ -45,12 +79,15 @@ public class HouseEntry : GameBehaviour
         UIWorld.Instance?.EnableOverlay(true, fadeDuration);
         UIGame.Instance?.EnableOverlay(true, fadeDuration);
         
-        GameManager.Instance?.SetCurrentHouseID(houseID);
+        if(_gameManager != null)
+            _gameManager.SetCurrentHouseID(houseID);
         
+        string animationToUse = isExit ? "Close" : "Open";
         if(animator != null)
-            animator.SetTrigger("Open");
+            animator.SetTrigger(animationToUse);
         
-        this.Invoke(soundDelay, PlayerEntrySound);
+        AudioClip soundToUse = isExit ? closeSound : openSound;
+        this.Invoke(soundDelay, () => PlayerSound(soundToUse));
 
         this.Invoke(fadeDuration, () =>
         {
@@ -66,13 +103,21 @@ public class HouseEntry : GameBehaviour
             return;
         }
 
-        GameManager.Instance.LoadScene(sceneName);
+        if (_gameManager != null)
+        {
+            _gameManager.LoadScene(sceneName);
+        }
+        else
+        {
+            //Prevent to be hard locked on Editor test
+            SceneManager.LoadSceneAsync(sceneName, LoadSceneMode.Single);
+        }
     }
 
-    private void PlayerEntrySound()
+    private void PlayerSound(AudioClip clip)
     {
-        if (entrySound == null) return;
+        if (clip == null) return;
         
-        SoundManager.Instance?.PlaySound(entrySound, transform.position, volume);
+        SoundManager.Instance?.PlaySound(clip, transform.position, volume);
     }
 }
