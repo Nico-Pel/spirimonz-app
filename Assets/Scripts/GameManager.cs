@@ -13,8 +13,8 @@ public class GameManager : MonoBehaviour
 
     public Spirimonz[] allSpirimonzPrefabs;
     private GameData gameData;
-    
-    private bool isLoadingFromHouse = false; // indique qu'on vient d'une maison
+
+    private bool isLoadingFromHouse = false;
 
     void Awake()
     {
@@ -27,20 +27,49 @@ public class GameManager : MonoBehaviour
         Instance = this;
         DontDestroyOnLoad(gameObject);
 
-        // Vérifie que tous les Spirimonz ont un ID unique
         CheckUniqueSpirimonzIDs();
 
         SaveManager.allSpirimonzPrefabs = allSpirimonzPrefabs;
         gameData = SaveManager.Load();
 
-        // Si on a une maison sauvegardée, on veut charger le world associé
-        if (gameData.currentHouseID >= 0 && !string.IsNullOrEmpty(gameData.lastWorldSceneName))
+        Scene currentScene = SceneManager.GetActiveScene();
+
+        // On est déjà dans le dernier World sauvegardé ?
+        bool alreadyInLastWorld = !string.IsNullOrEmpty(gameData.lastWorldSceneName) &&
+                                  currentScene.name == gameData.lastWorldSceneName;
+
+        isLoadingFromHouse = (gameData.currentHouseID >= 0);
+        currentHouseID = gameData.currentHouseID;
+
+        if (!string.IsNullOrEmpty(gameData.lastWorldSceneName) && !alreadyInLastWorld)
         {
-            currentHouseID = gameData.currentHouseID;
-            LoadScene(gameData.lastWorldSceneName);
+            // On n'est pas encore dans le World → load la scène
+            LoadScene(gameData.lastWorldSceneName, exitHouse: isLoadingFromHouse);
+        }
+        else if (alreadyInLastWorld)
+        {
+            // On est déjà dans le bon World → place le player directement
+            if (player == null)
+                player = FindObjectOfType<Player>();
+
+            if (player != null)
+            {
+                if (currentHouseID >= 0 && currentHouseID < spawnPoints.Length)
+                {
+                    // Spawn devant la maison
+                    player.SetPosition(spawnPoints[currentHouseID].position);
+                    player.SetRotation(spawnPoints[currentHouseID].rotation);
+                    Debug.Log("Awake: spawn devant la maison " + currentHouseID);
+                }
+                else
+                {
+                    // Spawn à la position sauvegardée dans le world
+                    player.SetPosition(gameData.playerPosition);
+                    Debug.Log("Awake: spawn à la position sauvegardée " + gameData.playerPosition);
+                }
+            }
         }
 
-        // On attend que la scène soit chargée avant de placer le joueur
         SceneManager.sceneLoaded += OnSceneLoaded;
     }
 
@@ -59,45 +88,27 @@ public class GameManager : MonoBehaviour
 
         if (isWorld)
         {
-            if (isLoadingFromHouse)
+            if (isLoadingFromHouse && currentHouseID >= 0 && currentHouseID < spawnPoints.Length)
             {
-                // On vient d'une maison → spawn à spawnPoints[currentHouseID]
-                if (currentHouseID >= 0 && currentHouseID < spawnPoints.Length)
-                {
-                    player.SetPosition(spawnPoints[currentHouseID].position);
-                    player.transform.rotation = spawnPoints[currentHouseID].rotation;
-                }
-                else
-                {
-                    Debug.LogWarning("currentHouseID invalide, spawn par défaut !");
-                }
-
-                isLoadingFromHouse = false; // reset le flag
+                // Spawn devant la maison
+                player.SetPosition(spawnPoints[currentHouseID].position);
+                player.SetRotation(spawnPoints[currentHouseID].rotation);
             }
             else
             {
-                // Lancement du jeu → spawn à la position sauvegardée
-                if (!string.IsNullOrEmpty(gameData.lastWorldSceneName) &&
-                    gameData.lastWorldSceneName == scene.name)
-                {
-                    player.SetPosition(gameData.playerPosition);
-                }
-                else
-                {
-                    Debug.Log("Pas de position sauvegardée pour ce world, spawn par défaut.");
-                }
+                // Spawn à la position sauvegardée dans le world
+                player.SetPosition(gameData.playerPosition);
             }
+
+            // Reset le flag
+            isLoadingFromHouse = false;
         }
 
-        // Retirer le listener pour éviter doublons
         SceneManager.sceneLoaded -= OnSceneLoaded;
     }
 
-
-
     public void SetCurrentHouseID(int houseID)
     {
-        if (houseID < 0) return;
         currentHouseID = houseID;
     }
 
@@ -105,13 +116,11 @@ public class GameManager : MonoBehaviour
     {
         isLoadingFromHouse = exitHouse;
 
-        // Retire avant d'ajouter pour éviter doublons
         SceneManager.sceneLoaded -= OnSceneLoaded;
         SceneManager.sceneLoaded += OnSceneLoaded;
 
         SceneManager.LoadSceneAsync(sceneName, LoadSceneMode.Single);
     }
-
 
     public void SaveGame()
     {
@@ -123,20 +132,20 @@ public class GameManager : MonoBehaviour
 
         if (isWorld)
         {
-            // Dans un World → save position + nom du world
+            // Sauvegarde position dans le world
             gameData.lastWorldSceneName = currentScene.name;
-            gameData.playerPosition = player.transform.position;
+            gameData.playerPosition = player.GetPosition();
+            gameData.currentHouseID = -1;
         }
         else
         {
-            // Dans une maison ou autre → on sauvegarde juste currentHouseID
+            // Sauvegarde maison
             gameData.currentHouseID = currentHouseID;
         }
 
         SaveManager.Save(gameData);
         Debug.Log("Game saved!");
     }
-
 
     private void OnApplicationPause(bool pause)
     {
@@ -155,10 +164,8 @@ public class GameManager : MonoBehaviour
         foreach (var spiri in allSpirimonzPrefabs)
         {
             if (spiri == null) continue;
-
             if (string.IsNullOrEmpty(spiri.spirimonzID))
                 Debug.LogError($"Spirimonz '{spiri.name}' n’a pas de spirimonzID défini !");
-
             if (!idSet.Add(spiri.spirimonzID))
             {
                 Debug.LogError($"Erreur : Le spirimonzID '{spiri.spirimonzID}' est dupliqué ! Vérifie le prefab '{spiri.name}' !");

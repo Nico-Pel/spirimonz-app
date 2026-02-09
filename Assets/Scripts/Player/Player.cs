@@ -36,12 +36,26 @@ public class Player : GameBehaviour
         if (characterController == null) return;
         
         characterController.enabled = false;
-        transform.position = newPos;
+        characterController.transform.position = newPos;
         characterController.enabled = true;
+        
+        Debug.Log("Pouet set pos " + newPos);
     }
     
     public void SetRotation(Quaternion newRot)
     {
-        transform.rotation = newRot;
+        //characterController.enabled = false;
+        characterController.transform.rotation = newRot;
+        //characterController.enabled = true;
+    }
+
+    public Vector3 GetPosition()
+    {
+        return characterController.transform.position;
+    }
+
+    public Quaternion GetRotation()
+    {
+        return characterController.transform.rotation;
     }
 }
