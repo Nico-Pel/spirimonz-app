@@ -17,6 +17,8 @@ public class Spirimonz : GameBehaviour, IInteractable
         Special,
     }
 
+    public string spirimonzName;
+    public string spirimonzID = "spiri000";
     public GameObject spirimonzGameObject;
     public GameObject hidingGameObject;
 

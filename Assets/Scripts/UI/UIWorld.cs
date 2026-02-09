@@ -22,7 +22,7 @@ public class UIWorld : UIManager
     {
         base.Start();
         
-        UIGame.Instance.EnableOverlay(true, 0);
-        UIGame.Instance.EnableOverlay(false, 1);
+        EnableOverlay(true, 0);
+        EnableOverlay(false, 1);
     }
 }

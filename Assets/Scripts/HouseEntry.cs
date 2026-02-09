@@ -118,7 +118,7 @@ public class HouseEntry : GameBehaviour
 
         if (_gameManager != null)
         {
-            _gameManager.LoadScene(sceneName);
+            _gameManager.LoadScene(sceneName, isExit);
         }
         else
         {
