@@ -1,10 +1,12 @@
 using System;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using UnityEngine.Serialization;
 
 public class HouseEntry : GameBehaviour
 {
-    public string houseSceneName;
+    [FormerlySerializedAs("houseSceneName")] public string sceneName;
+    public int houseID = -1;
     public Animator animator;
     public float fadeDuration = 3f;
     
@@ -39,7 +41,11 @@ public class HouseEntry : GameBehaviour
     private void Entry(Player player)
     {
         player.LockControls(true);
-        UIWorld.Instance.EnableOverlay(true, fadeDuration);
+        
+        UIWorld.Instance?.EnableOverlay(true, fadeDuration);
+        UIGame.Instance?.EnableOverlay(true, fadeDuration);
+        
+        GameManager.Instance?.SetCurrentHouseID(houseID);
         
         if(animator != null)
             animator.SetTrigger("Open");
@@ -54,13 +60,13 @@ public class HouseEntry : GameBehaviour
 
     private void LoadHouseScene()
     {
-        if (string.IsNullOrEmpty(houseSceneName))
+        if (string.IsNullOrEmpty(sceneName))
         {
             Debug.LogError("HouseEntry: House scene is not assigned or not in Build Settings.");
             return;
         }
 
-        SceneManager.LoadSceneAsync(houseSceneName, LoadSceneMode.Single);
+        GameManager.Instance.LoadScene(sceneName);
     }
 
     private void PlayerEntrySound()

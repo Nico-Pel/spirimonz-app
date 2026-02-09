@@ -7,7 +7,10 @@ public class Player : GameBehaviour
 {
     public static Player Instance { get; private set; }
 
+    public CharacterController characterController;
     public InputManager inputManager;
+    
+    [Space]
     
     [ReadOnly] private bool lockControls;
     protected bool _isDead;
@@ -15,6 +18,9 @@ public class Player : GameBehaviour
     private void Awake()
     {
         Instance = this;
+        
+        if(GameManager.Instance != null)
+            GameManager.Instance.player = this;
     }
     
     public void LockControls(bool enable)
@@ -24,4 +30,18 @@ public class Player : GameBehaviour
     
     public bool IsLocked() => lockControls;
     public bool IsDead() => _isDead;
+
+    public void SetPosition(Vector3 newPos)
+    {
+        if (characterController == null) return;
+        
+        characterController.enabled = false;
+        transform.position = newPos;
+        characterController.enabled = true;
+    }
+    
+    public void SetRotation(Quaternion newRot)
+    {
+        transform.rotation = newRot;
+    }
 }

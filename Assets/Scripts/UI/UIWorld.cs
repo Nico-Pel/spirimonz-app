@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -15,5 +16,13 @@ public class UIWorld : UIManager
         }
 
         Instance = this;
+    }
+
+    protected override void Start()
+    {
+        base.Start();
+        
+        UIGame.Instance.EnableOverlay(true, 0);
+        UIGame.Instance.EnableOverlay(false, 1);
     }
 }

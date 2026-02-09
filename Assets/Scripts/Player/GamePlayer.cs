@@ -11,8 +11,8 @@ public class GamePlayer : Player
     public InventoryManager inventoryManager;
     
     [Header("Player Settings")]
-    public Room currentRoom;
-    public House house;
+    [ReadOnly] public Room currentRoom;
+    [ReadOnly] public House house;
 
     public Transform head;
     public Transform body;

@@ -4231,6 +4231,7 @@ GameObject:
   - component: {fileID: 6333243152443948301}
   - component: {fileID: 4968586118364523614}
   - component: {fileID: 830637480992284875}
+  - component: {fileID: 3262768175179773471}
   m_Layer: 8
   m_Name: PlayerArmature
   m_TagString: Player
@@ -4395,6 +4396,29 @@ MonoBehaviour:
   exitMenus: 27
   crouchKey: 99
   jumpKey: 32
+--- !u!114 &3262768175179773471
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8693110901382048774}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c05ee48eff8f14ebbae45f7d27b561bd, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  neck: {fileID: 5882443624313582643}
+  cameraTransform: {fileID: 0}
+  characterRoot: {fileID: 8415484741543134907}
+  verticalLookOffset: 0.2
+  maxUpAngle: 30
+  maxDownAngle: 40
+  maxLeftAngle: 60
+  maxRightAngle: 60
+  maxLookAngleFromForward: 60
+  fallbackSpeed: 4
+  rotationSpeed: 8
 --- !u!1 &8705315420881882718
 GameObject:
   m_ObjectHideFlags: 0

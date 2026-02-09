@@ -48,7 +48,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a12ce1441767b4cd3a52706af838493b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  inputManager: {fileID: 6626169087804704880}
+  characterController: {fileID: 2411241786677898641}
   inputManager: {fileID: 6626169087804704880}
   tpsController: {fileID: 547142108896892342}
 --- !u!1001 &3694954441135648600
@@ -181,6 +181,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 26e54e5a728a9234ab24fcf1460ed8a2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!143 &2411241786677898641 stripped
+CharacterController:
+  m_CorrespondingSourceObject: {fileID: 8144080908034377002, guid: 91c1e739329d34a15b6833b4656ac5d0, type: 3}
+  m_PrefabInstance: {fileID: 5797229822508640443}
+  m_PrefabAsset: {fileID: 0}
 --- !u!4 &2646475044184370688 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 8415484741543134907, guid: 91c1e739329d34a15b6833b4656ac5d0, type: 3}
@@ -220,7 +225,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7049293151969454569, guid: 9276618b323c24989bc37227459a1408, type: 3}
       propertyPath: m_LocalPosition.z
-      value: -2.8499997
+      value: -6
       objectReference: {fileID: 0}
     - target: {fileID: 7049293151969454569, guid: 9276618b323c24989bc37227459a1408, type: 3}
       propertyPath: m_LocalRotation.w
@@ -282,7 +287,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1299368709493320834, guid: f2222ece91ca449f5b85be21c15c0cd8, type: 3}
       propertyPath: m_LocalPosition.z
-      value: -2.8499997
+      value: -6
       objectReference: {fileID: 0}
     - target: {fileID: 1299368709493320834, guid: f2222ece91ca449f5b85be21c15c0cd8, type: 3}
       propertyPath: m_LocalRotation.w
