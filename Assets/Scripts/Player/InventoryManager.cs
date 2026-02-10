@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using DG.Tweening;
+using UnityEngine.Serialization;
 
 public class InventoryManager : GameBehaviour
 {
@@ -20,8 +21,8 @@ public class InventoryManager : GameBehaviour
     [Header("Keyboard (AZERTY)")] 
     public KeyCode[] inventoryKeys = new KeyCode[6];
 
-    [Header("Team")]
-    public Spirimonz[] spirimonzTeamPrefabs = new Spirimonz[5];
+    [FormerlySerializedAs("spirimonzTeamPrefabs")] [Header("Team")]
+    public SpirimonzSettings[] spirimonzTeamSettings = new SpirimonzSettings[5];
     public List<Spirimonz> spirimonzTeam = new List<Spirimonz>();
     [ReadOnly] public Spirimonz selectedSpirimonz = null;
     [ReadOnly] public int currentSelectedIndex;
@@ -36,7 +37,6 @@ public class InventoryManager : GameBehaviour
 
     private bool _forcedLightStateDuringCam;
     private GamePlayer _player;
-
     private void Awake()
     {
         InitializeTeam();
@@ -50,11 +50,11 @@ public class InventoryManager : GameBehaviour
 
     private void InitializeTeam()
     {
-        foreach (Spirimonz spmz in spirimonzTeamPrefabs)
+        foreach (SpirimonzSettings spmzS in spirimonzTeamSettings)
         {
-            if (spmz == null) continue;
+            if (spmzS == null) continue;
             
-            Spirimonz newSpirimonz = Instantiate(spmz, spirimonzHandPos);
+            Spirimonz newSpirimonz = Instantiate(spmzS.spirimonzPrefab, spirimonzHandPos);
             spirimonzTeam.Add(newSpirimonz);
             newSpirimonz.transform.localPosition = Vector3.zero;
             newSpirimonz.transform.localEulerAngles = Vector3.zero;

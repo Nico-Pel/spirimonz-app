@@ -428,7 +428,7 @@ public class Ghost : GameBehaviour
 
     private void PlayerFound()
     {
-        if (ghostParameters.ghostType == GhostParameters.GhostType.Draconic && !_targetingPlayer &&
+        if (ghostParameters.ghostTypeData.ghostType == GhostTypeData.GhostType.Draconic && !_targetingPlayer &&
             !_forcedStartTargeting)
         {
             currentHuntTime += 5f;
@@ -631,8 +631,8 @@ public class Ghost : GameBehaviour
                 //Can't attack if not enough angry
                 //Can't attack if Earthbound ghost and not in its favorite room
                 if (_canHunt && angrinessPercentage >= ghostParameters.minimumAngrinessToHunt && 
-                    (ghostParameters.ghostType != GhostParameters.GhostType.Earthbound || 
-                     (ghostParameters.ghostType == GhostParameters.GhostType.Earthbound && currentRoom == favoriteRoom)))
+                    (ghostParameters.ghostTypeData.ghostType != GhostTypeData.GhostType.Earthbound || 
+                     (ghostParameters.ghostTypeData.ghostType == GhostTypeData.GhostType.Earthbound && currentRoom == favoriteRoom)))
                 {
                     TriggerHunting();
                     Debug.Log("Activity triggered : Hunt " + Time.time);
@@ -721,7 +721,7 @@ public class Ghost : GameBehaviour
 
         if (selectedDoor.isOpen)
         {
-            if(ghostParameters.ghostType == GhostParameters.GhostType.Misty) return;
+            if(ghostParameters.ghostTypeData.ghostType == GhostTypeData.GhostType.Misty) return;
             
             float roll = Random.Range(0f, 100f);
             if (roll <= ghostParameters.slamChances)
@@ -737,7 +737,7 @@ public class Ghost : GameBehaviour
         }
         else
         {
-            if(ghostParameters.ghostType == GhostParameters.GhostType.Grumpy) return;
+            if(ghostParameters.ghostTypeData.ghostType == GhostTypeData.GhostType.Grumpy) return;
             
             float openForce = Random.Range(openForceMin, openForceMax);
             float openAngle = Random.Range(openAngleMin, openAngleMax);
@@ -779,7 +779,7 @@ public class Ghost : GameBehaviour
             return;
         }
         
-        if (ghostParameters.ghostType == GhostParameters.GhostType.Demonic || ghostParameters.ghostType == GhostParameters.GhostType.Totemic)
+        if (ghostParameters.ghostTypeData.ghostType == GhostTypeData.GhostType.Demonic || ghostParameters.ghostTypeData.ghostType == GhostTypeData.GhostType.Totemic)
         {
             if (!switchLightObject.activableObject.isActivated)
             {
@@ -787,7 +787,7 @@ public class Ghost : GameBehaviour
                 return;
             }
         }
-        else if (ghostParameters.ghostType == GhostParameters.GhostType.Luminous || ghostParameters.ghostType == GhostParameters.GhostType.Voltaic)
+        else if (ghostParameters.ghostTypeData.ghostType == GhostTypeData.GhostType.Luminous || ghostParameters.ghostTypeData.ghostType == GhostTypeData.GhostType.Voltaic)
         {
             if (switchLightObject.activableObject.isActivated)
             {
@@ -824,7 +824,7 @@ public class Ghost : GameBehaviour
             return;
         }
         
-        if (ghostParameters.ghostType == GhostParameters.GhostType.Totemic)
+        if (ghostParameters.ghostTypeData.ghostType == GhostTypeData.GhostType.Totemic)
         {
             if (!electronicObject.activableObject.isActivated)
             {
@@ -832,7 +832,7 @@ public class Ghost : GameBehaviour
                 return;
             }
         }
-        else if (ghostParameters.ghostType == GhostParameters.GhostType.Voltaic)
+        else if (ghostParameters.ghostTypeData.ghostType == GhostTypeData.GhostType.Voltaic)
         {
             if (electronicObject.activableObject.isActivated)
             {

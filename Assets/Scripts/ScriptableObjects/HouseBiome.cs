@@ -7,18 +7,18 @@ public class HouseBiome : ScriptableObject
     [System.Serializable]
     public class GhostSpirimonzLink
     {
-        public GhostParameters.GhostType ghostType;
+        public GhostTypeData.GhostType ghostType;
         public Spirimonz spirimonzPrefab;
     }
     
     [Header("Ghost → Spirimonz mapping")]
     public List<GhostSpirimonzLink> spirimonzByGhostType = new();
 
-    private Dictionary<GhostParameters.GhostType, Spirimonz> _cache;
+    private Dictionary<GhostTypeData.GhostType, Spirimonz> _cache;
 
     private void BuildCache()
     {
-        _cache = new Dictionary<GhostParameters.GhostType, Spirimonz>();
+        _cache = new Dictionary<GhostTypeData.GhostType, Spirimonz>();
 
         foreach (var link in spirimonzByGhostType)
         {
@@ -27,7 +27,7 @@ public class HouseBiome : ScriptableObject
         }
     }
 
-    public Spirimonz GetSpirimonzPrefab(GhostParameters.GhostType ghostType)
+    public Spirimonz GetSpirimonzPrefab(GhostTypeData.GhostType ghostType)
     {
         if (_cache == null)
             BuildCache();

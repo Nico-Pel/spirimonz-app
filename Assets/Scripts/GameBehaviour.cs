@@ -74,6 +74,13 @@ public class GameBehaviour : MonoBehaviour
         ApplyLayerRecursively(gameObject, layerIndex, ignoredLayerIndex);
     }
     
+    public void ChangeLayer(GameObject g, int layerIndex, int ignoredLayerIndex = -1)
+    {
+        if (layerIndex == -1) return;
+
+        ApplyLayerRecursively(g, layerIndex, ignoredLayerIndex);
+    }
+    
     private void ApplyLayerRecursively(GameObject obj, int layer, int ignoreLayerIndex = -1)
     {
         if (layer < 0 || layer > 31)

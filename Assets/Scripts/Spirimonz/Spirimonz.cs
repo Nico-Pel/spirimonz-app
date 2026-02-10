@@ -8,6 +8,8 @@ using Random = UnityEngine.Random;
 
 public class Spirimonz : GameBehaviour, IInteractable
 {
+    public SpirimonzSettings settings;
+    
     public enum SpirimonzBehaviourState
     {
         Wait,
@@ -16,9 +18,7 @@ public class Spirimonz : GameBehaviour, IInteractable
         Escape,
         Special,
     }
-
-    public string spirimonzName;
-    public string spirimonzID = "spiri000";
+    
     public GameObject spirimonzGameObject;
     public GameObject hidingGameObject;
 

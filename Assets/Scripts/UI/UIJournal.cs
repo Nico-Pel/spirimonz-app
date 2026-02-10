@@ -11,18 +11,10 @@ public class UIJournal : GameBehaviour
     public Button captureButton;
     public TextMeshProUGUI percentageText;
     
-    [Header("Panel animation")]
-    public RectTransform journalPanel;
-    public float openDuration = 0.4f;
-    public Ease openEase = Ease.OutCubic;
-    
-    private float _targetWidth;
     private int _selectedSlotsCount;
 
     private void Awake()
     {
-        _targetWidth = journalPanel.sizeDelta.x;
-
         foreach (UIGhostTypeSlot slot in ghostTypeSlots)
         {
             slot.OnChangeForcedState.AddListener(SetCaptureButtonState);
@@ -36,23 +28,6 @@ public class UIJournal : GameBehaviour
         House.Instance.currentGhost.onGhostStopToHunt.AddListener(SetCaptureButtonState);
     }
     
-    private void OnEnable()
-    {
-        JournalOpenAnimation();
-    }
-
-    private void JournalOpenAnimation()
-    {
-        journalPanel.DOKill();
-
-        journalPanel.sizeDelta = new Vector2(50f, journalPanel.sizeDelta.y);
-        journalPanel.gameObject.SetActive(true);
-
-        journalPanel
-            .DOSizeDelta(new Vector2(_targetWidth, journalPanel.sizeDelta.y), openDuration)
-            .SetEase(openEase);
-    }
-
     private List<GhostParameters> GetSelectedGhosts()
     {
         List<GhostParameters> selectedGhosts = new List<GhostParameters>();

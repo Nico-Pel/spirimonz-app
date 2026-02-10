@@ -14,6 +14,7 @@ public class InputManager : GameBehaviour
     public KeyCode dropObject = KeyCode.D;
     public KeyCode throwObject = KeyCode.G;
     public KeyCode openJournal = KeyCode.J;
+    public KeyCode openTeamMenu = KeyCode.Tab;
     public KeyCode exitMenus = KeyCode.Escape;
     public KeyCode crouchKey = KeyCode.C;
     public KeyCode jumpKey = KeyCode.Space;

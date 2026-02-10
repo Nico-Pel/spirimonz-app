@@ -119,8 +119,6 @@ public class FPSControllerNoPhysics : Controller
 
     void Update()
     {
-        HandleUI();
-
         if (_player.IsLocked()) return;
         
         HandleLook();
@@ -129,19 +127,6 @@ public class FPSControllerNoPhysics : Controller
         HandleHeadbob();
         HandleArmSway();
         HandleLight();
-    }
-
-    private void HandleUI()
-    {
-        if (Input.GetKeyDown(_player.inputManager.openJournal) && _player.IsDead() == false)
-        {
-            UIGame.Instance.SwitchJournalState();
-        }
-
-        if (Input.GetKeyDown(_player.inputManager.exitMenus))
-        {
-            UIGame.Instance.ExitLastMenu();
-        }
     }
 
     // ---------------- LOOK ----------------

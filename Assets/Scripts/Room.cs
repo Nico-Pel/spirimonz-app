@@ -47,7 +47,7 @@ public class Room : MonoBehaviour
 
         // La pièce favorite du fantôme ne peut pas avoir de variation négative sauf pour les fantômes Blazing
         if (house.currentGhost.favoriteRoom == this && 
-            house.currentGhost.ghostParameters.ghostType != GhostParameters.GhostType.Blazing && 
+            house.currentGhost.ghostParameters.ghostTypeData.ghostType != GhostTypeData.GhostType.Blazing && 
             temperatureRandomVariation < 0)
         {
             temperatureRandomVariation = -temperatureRandomVariation;

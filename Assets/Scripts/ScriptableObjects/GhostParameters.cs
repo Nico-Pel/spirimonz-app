@@ -7,32 +7,10 @@ using UnityEditor;
 using UnityEngine.Serialization;
 using Random = UnityEngine.Random;
 
-[CreateAssetMenu(fileName = "GhostParameters", menuName = "GhostParameters")]
+[CreateAssetMenu(menuName = "Ghosts/GhostParameters")]
 public class GhostParameters : ScriptableObject
 {
-    public enum GhostType
-    {
-        Blazing, //Flamboyant
-        Totemic, //Totémique
-        Aquatic, //Aqueux
-        Glacial, //Glacial
-        Misty, //Brumeux
-        Demonic, //Démoniaque
-        Runic, //Runique
-        Grumpy, //Grognon
-        Trickster, //Farceur
-        Weird, //Bizarre
-        Draconic, //Draconique
-        Earthbound, //Téllurique
-        Psychic, //Psychique
-        Striker, //Frappeur
-        Voltaic, //Voltaïque
-        Luminous, //Lumineux
-        DEBUG
-    }
-
-    public GhostType ghostType;
-    public Sprite ghostSprite;
+    [FormerlySerializedAs("ghostType")] public GhostTypeData ghostTypeData;
     
     [Space]
     
@@ -114,7 +92,7 @@ public class GhostParameters : ScriptableObject
         float cumulative = 0f;
 
         cumulative += activityOneChances;
-        if (roll < cumulative && ghostType != GhostType.Psychic) return 1;
+        if (roll < cumulative && ghostTypeData.ghostType != GhostTypeData.GhostType.Psychic) return 1;
 
         cumulative += activityTwoChances;
         if (roll < cumulative) return 2;

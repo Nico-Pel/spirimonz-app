@@ -12,15 +12,25 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f65aecd675ca3469a8ca5431b0dca6e6, type: 3}
   m_Name: DEBUG GHOST
   m_EditorClassIdentifier: 
-  ghostType: 16
+  ghostTypeData: {fileID: 11400000, guid: fed109bce4b1d4b70afaac2e40cb3a0f, type: 2}
+  minimumAngrinessToHunt: 50
+  averageHuntTime: 10
+  minimumPeaceTime: 60
+  hidingSpeedBase: 0.75
+  normalSpeedBase: 1
+  targetingSpeedBase: 2
+  throwForceMin: 0.5
+  throwForceMax: 4
+  slamChances: 50
   SpiritPrints: 1
   EatFruits: 1
-  AnswerVocals: 1
+  BlowUpFlammables: 0
   FreezingTemperature: 1
   HighSpiritActivities: 1
   SpiritOrbs: 1
   Radioactivity: 1
   chancesToPutPrintOnDoors: 100
+  chancesToPutPrintOnPrintTriggers: 33
   chancesToPutPrintOnSwitch: 100
   chancesToPutPrintOnGround: 33
   chancesToEatFruitInsteadOfThrowingIt: 70
@@ -38,3 +48,4 @@ MonoBehaviour:
   chancesToDetectRadiationOnTrigger: 100
   radiationDurationOnTrigger: 5
   radiationDurationAfterAttack: 15
+  chancesToInteractWithAClickableInstedOfNothing: 50

@@ -2,16 +2,18 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using UnityEngine.Serialization;
 
 public class GameManager : MonoBehaviour
 {
     public static GameManager Instance;
+    public GhostTypeDatabase ghostTypeDatabase;
 
     public Player player;
     public Transform[] spawnPoints;
     [ReadOnly] public int currentHouseID = -1;
 
-    public Spirimonz[] allSpirimonzPrefabs;
+    [FormerlySerializedAs("allSpirimonzPrefabs")] public SpirimonzSettings[] allSpirimonzSettings;
     private GameData gameData;
 
     private bool isLoadingFromHouse = false;
@@ -29,7 +31,7 @@ public class GameManager : MonoBehaviour
 
         CheckUniqueSpirimonzIDs();
 
-        SaveManager.allSpirimonzPrefabs = allSpirimonzPrefabs;
+        SaveManager.allSpirimonzSettings = allSpirimonzSettings;
         gameData = SaveManager.Load();
 
         Scene currentScene = SceneManager.GetActiveScene();
@@ -162,7 +164,7 @@ public class GameManager : MonoBehaviour
     {
 #if UNITY_EDITOR
         HashSet<string> idSet = new HashSet<string>();
-        foreach (var spiri in allSpirimonzPrefabs)
+        foreach (var spiri in allSpirimonzSettings)
         {
             if (spiri == null) continue;
             if (string.IsNullOrEmpty(spiri.spirimonzID))

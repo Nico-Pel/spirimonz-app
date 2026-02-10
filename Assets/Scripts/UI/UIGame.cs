@@ -10,7 +10,7 @@ public class UIGame : UIManager
     public GameObject pointerBase;
     public Image pointerON;
     public TextMeshProUGUI tGrab;
-    public UIJournal Journal;
+    public UITablet tablet;
     public static UIGame Instance { get; private set; }
 
     private Sprite _baseBigPointer;
@@ -57,7 +57,12 @@ public class UIGame : UIManager
     {
         if (Input.GetKeyDown(_player.inputManager.openJournal) && _player.IsDead() == false)
         {
-            SwitchJournalState();
+            OpenJournal();
+        }
+        
+        if (Input.GetKeyDown(_player.inputManager.openTeamMenu) && _player.IsDead() == false)
+        {
+            OpenTeamPanel();
         }
 
         if (Input.GetKeyDown(_player.inputManager.exitMenus))
@@ -96,34 +101,32 @@ public class UIGame : UIManager
         tGrab.gameObject.SetActive(enable);
     }
 
-    public void SwitchJournalState()
+    private void OpenTeamPanel()
     {
-        EnableJournal(!GetJournalState());
+        tablet.gameObject.SetActive(true);
+        tablet.OpenTab(0, true);
+    }
+    
+    private void OpenJournal()
+    {
+        tablet.gameObject.SetActive(true);
+        tablet.OpenTab(1, true);
     }
 
-    private void EnableJournal(bool enable)
+    private void CloseTablet()
     {
-        Journal.gameObject.SetActive(enable);
-    }
-
-    private bool GetJournalState()
-    {
-        return Journal.gameObject.activeSelf;
+        tablet.gameObject.SetActive(false);
     }
 
     public override void ExitLastMenu()
     {
         base.ExitLastMenu();
-        
-        if (GetJournalState() == true)
-        {
-            EnableJournal(false);
-        }
+        tablet.gameObject.SetActive(false);
     }
 
     public override void CloseAllWindows()
     {
         base.CloseAllWindows();
-        EnableJournal(false);
+        tablet.CloseAllTabs();
     }
 }

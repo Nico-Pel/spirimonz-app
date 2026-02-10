@@ -37,7 +37,7 @@ public static class SaveManager
     private static string filePath => Path.Combine(Application.persistentDataPath, "savefile.json");
 
     // Gère la liste de tous tes prefabs Spirimonz
-    public static Spirimonz[] allSpirimonzPrefabs;
+    public static SpirimonzSettings[] allSpirimonzSettings;
 
     // Sauvegarde
     public static void Save(GameData data)
@@ -76,17 +76,17 @@ public static class SaveManager
     {
         GameData newData = new GameData();
 
-        if (allSpirimonzPrefabs == null || allSpirimonzPrefabs.Length == 0)
+        if (allSpirimonzSettings == null || allSpirimonzSettings.Length == 0)
         {
             Debug.LogError("Aucun prefab Spirimonz référencé dans SaveManager.allSpirimonzPrefabs !");
             newData.spirimonzCollection = new SpirimonzData[0];
             return newData;
         }
 
-        newData.spirimonzCollection = new SpirimonzData[allSpirimonzPrefabs.Length];
-        for (int i = 0; i < allSpirimonzPrefabs.Length; i++)
+        newData.spirimonzCollection = new SpirimonzData[allSpirimonzSettings.Length];
+        for (int i = 0; i < allSpirimonzSettings.Length; i++)
         {
-            newData.spirimonzCollection[i] = new SpirimonzData(allSpirimonzPrefabs[i].spirimonzID);
+            newData.spirimonzCollection[i] = new SpirimonzData(allSpirimonzSettings[i].spirimonzID);
         }
 
         return newData;
@@ -95,12 +95,12 @@ public static class SaveManager
     // Ajoute automatiquement les Spirimonz manquants dans la save si tu en ajoutes un nouveau prefab
     private static GameData AddMissingSpirimonz(GameData data)
     {
-        if (allSpirimonzPrefabs == null || allSpirimonzPrefabs.Length == 0)
+        if (allSpirimonzSettings == null || allSpirimonzSettings.Length == 0)
             return data;
 
         var spirimonzList = new System.Collections.Generic.List<SpirimonzData>(data.spirimonzCollection);
 
-        foreach (var prefab in allSpirimonzPrefabs)
+        foreach (var prefab in allSpirimonzSettings)
         {
             bool exists = spirimonzList.Exists(s => s.id == prefab.spirimonzID);
             if (!exists)

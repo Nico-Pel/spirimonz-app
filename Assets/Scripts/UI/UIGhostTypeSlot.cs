@@ -40,8 +40,8 @@ public class UIGhostTypeSlot : GameBehaviour
         _baseBackgroundColor = backgroundImage.color;
         _baseIconColor = ghostIcon.color;
         
-        ghostIcon.sprite = ghostParameters.ghostSprite;
-        titleText.text = ghostParameters.ghostType.ToString();
+        ghostIcon.sprite = ghostParameters.ghostTypeData.ghostSprite;
+        titleText.text = ghostParameters.ghostTypeData.ghostType.ToString();
         
         GhostInvestigator.Instance?.OnInvestigationDatasChange.AddListener(ChangeStateDependingOnInvestigation);
         

@@ -26,7 +26,7 @@ public class BlinkingLight : MonoBehaviour
         baseIntensity = light.intensity;
 
         _ghost = House.Instance.currentGhost;
-        if (_ghost.ghostParameters.ghostType == GhostParameters.GhostType.Voltaic)
+        if (_ghost.ghostParameters.ghostTypeData.ghostType == GhostTypeData.GhostType.Voltaic)
         {
             blinkSpeed = blinkSpeedVoltaic;
         }

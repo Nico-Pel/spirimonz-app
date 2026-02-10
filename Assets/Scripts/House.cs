@@ -136,6 +136,6 @@ public class House : GameBehaviour
 
     public Spirimonz GetSpirimonzPrefab()
     {
-        return biome.GetSpirimonzPrefab(currentGhost.ghostParameters.ghostType);
+        return biome.GetSpirimonzPrefab(currentGhost.ghostParameters.ghostTypeData.ghostType);
     }
 }

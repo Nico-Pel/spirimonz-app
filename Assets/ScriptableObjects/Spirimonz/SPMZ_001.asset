@@ -1,0 +1,29 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2da69e9a0e0f54f3c905a18b7cedd84c, type: 3}
+  m_Name: SPMZ_001
+  m_EditorClassIdentifier: 
+  spirimonzID: SPMZ_001
+  spirimonzName: Pigfire
+  spirimonzPrefab: {fileID: 5469584514252593962, guid: d242e129e500d4ddeb1b473deee19d75, type: 3}
+  spirimonzBodyPrefab: {fileID: 3718845612081920869, guid: 18babdf295ac546f89ca92e03698ee17, type: 3}
+  abilitiesDescriptions:
+  - Pigfire's flame turns blue as the surrounding temperature drops. It turns purple
+    if the <color=#F9AB2D>temperature is freezing</color>.
+  - The Pigfire flame can be used to light <color=#F9AB2D>candles</color>. that the
+    evil spirit could <color=#F9AB2D>blow out</color>..
+  primarySPMZType: {fileID: 11400000, guid: fd1ba802da6494af69dd6b3be0777379, type: 2}
+  secondarySPMZType: {fileID: 11400000, guid: f3f25d6f57f954fe0b8a6b8175a06b35, type: 2}
+  canUsePowerInHands: 1
+  canBeDroppedOnMap: 1
+  canBeTakenBackInHands: 1
+  canFollowPlayer: 1

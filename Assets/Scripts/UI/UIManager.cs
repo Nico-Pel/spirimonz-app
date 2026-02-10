@@ -53,7 +53,7 @@ public class UIManager : GameBehaviour
         Cursor.visible = enable;
         Cursor.lockState = enable ? CursorLockMode.None : CursorLockMode.Locked;
 
-        Player.Instance.LockControls(enable);
+        Player.Instance?.LockControls(enable);
     }
     
     public virtual void ExitLastMenu()
