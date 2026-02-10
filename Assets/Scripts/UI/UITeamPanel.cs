@@ -42,6 +42,9 @@ public class UITeamPanel : GameBehaviour
     
     private InventoryManager _inventoryManager;
     private bool _initialized;
+    
+    private InputManager _inputManager;
+    private int _currentSelectionID;
 
     private void Awake()
     {
@@ -74,6 +77,7 @@ public class UITeamPanel : GameBehaviour
             }
         }
 
+        _inputManager = Player.Instance.inputManager;
         _initialized = true;
         SelectTargetedSpirimonz();
     }
@@ -81,6 +85,37 @@ public class UITeamPanel : GameBehaviour
     private void OnEnable()
     {
         SelectTargetedSpirimonz();
+    }
+
+    private void Update()
+    {
+        if (Input.GetKeyDown(_inputManager.primaryNext) || Input.GetKeyDown(_inputManager.secondaryNext))
+        {
+            NextSpirimonz();
+        }
+        
+        if (Input.GetKeyDown(_inputManager.primaryPrevious) || Input.GetKeyDown(_inputManager.secondaryPrevious))
+        {
+            PreviousSpirimonz();
+        }
+    }
+
+    private void NextSpirimonz()
+    {
+        int targetedID = _currentSelectionID + 1;
+        if (targetedID >= _inventoryManager.spirimonzTeam.Count)
+            targetedID = 0;
+        
+        SelectSpirimonz(targetedID);
+    }
+    
+    private void PreviousSpirimonz()
+    {
+        int targetedID = _currentSelectionID - 1;
+        if (targetedID < 0)
+            targetedID = _inventoryManager.spirimonzTeam.Count - 1;
+        
+        SelectSpirimonz(targetedID);
     }
 
     private void SelectTargetedSpirimonz()
@@ -151,5 +186,7 @@ public class UITeamPanel : GameBehaviour
             switchButtons[i].image.color = isSelected ? selectColor : _baseColor;
             tSwitchNbs[i].color = isSelected ? selectIconColor : _baseIconColor;
         }
+
+        _currentSelectionID = teamID;
     }
 }

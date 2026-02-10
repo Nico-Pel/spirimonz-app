@@ -121,7 +121,7 @@ public class UIGame : UIManager
     public override void ExitLastMenu()
     {
         base.ExitLastMenu();
-        tablet.gameObject.SetActive(false);
+        tablet.CloseAllTabs();
     }
 
     public override void CloseAllWindows()

@@ -18,4 +18,8 @@ public class InputManager : GameBehaviour
     public KeyCode exitMenus = KeyCode.Escape;
     public KeyCode crouchKey = KeyCode.C;
     public KeyCode jumpKey = KeyCode.Space;
+    public KeyCode primaryNext = KeyCode.RightArrow;
+    public KeyCode primaryPrevious = KeyCode.LeftArrow;
+    public KeyCode secondaryNext = KeyCode.E;
+    public KeyCode secondaryPrevious = KeyCode.A;
 }
