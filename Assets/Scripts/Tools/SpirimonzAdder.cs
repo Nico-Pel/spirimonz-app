@@ -27,5 +27,7 @@ public class SpirimonzAdder : GameBehaviour
         {
             _inventoryManager.AddSpirimonzToTeam(spirimonzToAddInTeam);
         }
+
+        spirimonzToAddInTeam = null;
     }
 }

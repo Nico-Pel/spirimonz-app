@@ -19,9 +19,7 @@ public class InventoryManager : GameBehaviour
         HoldTwoHands,
         HoldTwoHandsSmall
     }
- 
-    [FormerlySerializedAs("spirimonzTeamPrefabs")] 
-    
+
     [Header("Team")]
     public List<SpirimonzSettings> spirimonzTeamSettings = new List<SpirimonzSettings>(5);
     public List<Spirimonz> spirimonzTeam = new List<Spirimonz>();
@@ -36,7 +34,7 @@ public class InventoryManager : GameBehaviour
     private Player _player;
     private GamePlayer _gamePlayer;
     private GameManager _gameManager;
-    
+
     private void Awake()
     {
         if (Instance != null && Instance != this)
@@ -44,161 +42,123 @@ public class InventoryManager : GameBehaviour
             Destroy(gameObject);
             return;
         }
-        
         DontDestroyOnLoad(gameObject);
-
         Instance = this;
     }
 
     private void Start()
     {
-        InitPlayer();
-        _gameManager = GameManager.Instance;
-    }
-
-    private void InitPlayer()
-    {
         _player = Player.Instance;
         _gamePlayer = _player as GamePlayer;
+        _gameManager = GameManager.Instance;
     }
 
     public void OnLoadHouseScene()
     {
-        InitializeTeam();
+        InitializeTeam(); 
         UseWatchObject();
     }
-    
+
+    /// <summary>Remplit spirimonzTeamSettings à partir du gameData du GameManager</summary>
     public void LoadTeamFromSave()
     {
-        GameData data = _gameManager.GetGameData();
-
-        // On reset la team settings
         spirimonzTeamSettings.Clear();
+        for (int i = 0; i < 5; i++) spirimonzTeamSettings.Add(null);
 
-        // On prépare une liste vide de 5 slots
-        for (int i = 0; i < 5; i++)
-            spirimonzTeamSettings.Add(null);
+        var data = _gameManager.GetGameData();
 
-        foreach (SpirimonzData spData in data.spirimonzCollection)
+        foreach (var spData in data.spirimonzCollection)
         {
-            if (!spData.inTeam)
-                continue;
+            if (!spData.inTeam) continue;
 
-            // On récupère le SpirimonzSettings correspondant via l'id
-            SpirimonzSettings settings = Array.Find(
-                _gameManager.allSpirimonzSettings,
-                s => s.spirimonzID == spData.id
-            );
-
-            if (settings == null)
-            {
-                Debug.LogWarning("SpirimonzSettings introuvable pour id: " + spData.id);
-                continue;
-            }
-
-            // On place dans la bonne position
-            if (spData.teamPosition >= 0 && spData.teamPosition < spirimonzTeamSettings.Count)
+            var settings = Array.Find(_gameManager.allSpirimonzSettings, s => s.spirimonzID == spData.id);
+            if (settings != null && spData.teamPosition >= 0 && spData.teamPosition < spirimonzTeamSettings.Count)
             {
                 spirimonzTeamSettings[spData.teamPosition] = settings;
             }
         }
     }
-    
-    // ✅ Vérifie s’il y a au moins un slot vide dans spirimonzTeamSettings
-    public bool HasEmptySlot()
-    {
-        return spirimonzTeamSettings.Exists(s => s == null);
-    }
 
-// ✅ Ajoute un Spirimonz à la première place vide (si position non spécifiée)
-    public bool AddSpirimonzToTeam(SpirimonzSettings spirimonzToAdd)
+    public bool AddSpirimonzToTeam(SpirimonzSettings spirimonz, int position = -1)
     {
-        // 1️⃣ Cherche le premier slot vide
-        int position = spirimonzTeamSettings.FindIndex(s => s == null);
+        if (_gameManager == null) return false;
 
-        if (position == -1)
+        // Cherche si le Spirimonz est déjà dans la team
+        int existingIndex = spirimonzTeamSettings.FindIndex(s => s != null && s.spirimonzID == spirimonz.spirimonzID);
+
+        if (position < 0)
         {
-            Debug.LogWarning("Pas de place disponible dans la team pour Spirimonz: " + spirimonzToAdd.spirimonzName);
-            return false; // Aucun slot libre
+            // Ajout au prochain slot libre
+            position = spirimonzTeamSettings.FindIndex(s => s == null);
+            if (position == -1)
+            {
+                Debug.LogWarning($"Pas de place pour {spirimonz.spirimonzName}");
+                return false;
+            }
+
+            if (existingIndex != -1)
+            {
+                if (position < existingIndex)
+                {
+                    // Le nouveau slot est "plus haut" (index plus petit) → on retire l'ancien Spirimonz
+                    RemoveSpirimonzFromTeam(existingIndex);
+                }
+                else
+                {
+                    // Le nouveau slot est plus bas ou égal → ne rien faire
+                    Debug.Log($"Spirimonz {spirimonz.spirimonzName} est déjà dans la team, aucun ajout nécessaire.");
+                    return false;
+                }
+            }
+        }
+        else
+        {
+            // Ajout à une position spécifique
+            if (existingIndex != -1 && existingIndex != position)
+            {
+                RemoveSpirimonzFromTeam(existingIndex);
+            }
         }
 
-        // 2️⃣ Place directement le SpirimonzSettings fourni
-        spirimonzTeamSettings[position] = spirimonzToAdd;
+        // Retire un Spirimonz déjà présent à cette position
+        if (spirimonzTeamSettings[position] != null)
+            RemoveSpirimonzFromTeam(position);
 
-        // 3️⃣ Mettre à jour la save
-        GameData data = _gameManager.GetGameData();
-        SpirimonzData spData = Array.Find(data.spirimonzCollection, s => s.id == spirimonzToAdd.spirimonzID);
-        if (spData != null)
-        {
-            spData.inTeam = true;
-            spData.teamPosition = position;
-        }
-        _gameManager.SaveGame();
+        // Ajoute le Spirimonz
+        spirimonzTeamSettings[position] = spirimonz;
 
-        return true; // Ajout réussi
+        // Met à jour le GameManager / save
+        _gameManager.SetSpirimonzInTeam(spirimonz.spirimonzID, position, true);
+
+        return true;
     }
-    
-    public void AddSpirimonzToTeam(SpirimonzSettings spirimonzToAdd, int position)
+
+
+    /// <summary>Retire un Spirimonz de la team</summary>
+    public void RemoveSpirimonzFromTeam(int position)
     {
         if (position < 0 || position >= spirimonzTeamSettings.Count) return;
 
-        // Retirer l'éventuel Spirimonz déjà présent à cette position
-        SpirimonzSettings existing = spirimonzTeamSettings[position];
-        if (existing != null)
-        {
-            RemoveSpirimonzFromTeam(position);
-        }
-
-        // Ajouter le Spirimonz directement
-        spirimonzTeamSettings[position] = spirimonzToAdd;
-
-        // Mettre à jour la save
-        GameData data = _gameManager.GetGameData();
-        SpirimonzData spData = Array.Find(data.spirimonzCollection, s => s.id == spirimonzToAdd.spirimonzID);
-        if (spData != null)
-        {
-            spData.inTeam = true;
-            spData.teamPosition = position;
-        }
-        _gameManager.SaveGame();
-    }
-
-    
-    public void RemoveSpirimonzFromTeam(int teamIndex)
-    {
-        if (teamIndex < 0 || teamIndex >= spirimonzTeamSettings.Count)
-            return;
-
-        SpirimonzSettings settings = spirimonzTeamSettings[teamIndex];
+        var settings = spirimonzTeamSettings[position];
         if (settings == null) return;
 
-        // 1️⃣ On retire de la team
-        spirimonzTeamSettings[teamIndex] = null;
+        spirimonzTeamSettings[position] = null;
 
-        // 2️⃣ On met à jour la save
-        GameData data = _gameManager.GetGameData();
-        SpirimonzData spData = Array.Find(data.spirimonzCollection, s => s.id == settings.spirimonzID);
-        if (spData != null)
-        {
-            spData.inTeam = false;
-            spData.teamPosition = -1;
-        }
-        _gameManager.SaveGame();
+        // Mettre à jour le GameManager (et la save)
+        _gameManager.SetSpirimonzInTeam(settings.spirimonzID, position, false);
     }
 
-    private void InitializeTeam()
+    /// <summary>Instancie les Spirimonz dans les mains du joueur (uniquement quand on est dans une maison)</summary>
+    public void InitializeTeam()
     {
         spirimonzTeam.Clear();
-        
-        if (_gamePlayer == null)
-        {
-            InitPlayer();
-        }
-        
-        foreach (SpirimonzSettings spmzS in spirimonzTeamSettings)
+
+        if (_gamePlayer == null) return;
+
+        foreach (var spmzS in spirimonzTeamSettings)
         {
             if (spmzS == null) continue;
-            
+
             Spirimonz newSpirimonz = Instantiate(spmzS.spirimonzPrefab, _gamePlayer.spirimonzHandPos);
             spirimonzTeam.Add(newSpirimonz);
             newSpirimonz.transform.localPosition = Vector3.zero;

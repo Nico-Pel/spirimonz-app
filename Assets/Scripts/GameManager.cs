@@ -137,6 +137,18 @@ public class GameManager : MonoBehaviour
 
         SceneManager.LoadSceneAsync(sceneName, LoadSceneMode.Single);
     }
+    
+    /// <summary>Met à jour l'état d'un Spirimonz dans la team</summary>
+    public void SetSpirimonzInTeam(string spirimonzID, int position, bool inTeam)
+    {
+        SpirimonzData spData = Array.Find(gameData.spirimonzCollection, s => s.id == spirimonzID);
+        if (spData != null)
+        {
+            spData.inTeam = inTeam;
+            spData.teamPosition = inTeam ? position : -1;
+            SaveGame();
+        }
+    }
 
     public void SaveGame()
     {
@@ -175,6 +187,7 @@ public class GameManager : MonoBehaviour
     }
     
     public bool IsWorld() => _isWorld;
+    public GameData GetGameData() => gameData;
 
     private void CheckUniqueSpirimonzIDs()
     {
@@ -193,6 +206,4 @@ public class GameManager : MonoBehaviour
         }
 #endif
     }
-    
-    public GameData GetGameData() => gameData;
 }
