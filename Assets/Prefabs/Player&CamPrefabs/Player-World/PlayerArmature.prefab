@@ -4230,7 +4230,6 @@ GameObject:
   - component: {fileID: 8144080908034377002}
   - component: {fileID: 6333243152443948301}
   - component: {fileID: 4968586118364523614}
-  - component: {fileID: 830637480992284875}
   - component: {fileID: 3262768175179773471}
   m_Layer: 8
   m_Name: PlayerArmature
@@ -4371,31 +4370,6 @@ MonoBehaviour:
     m_Bits: 0
   canPush: 0
   strength: 1.1
---- !u!114 &830637480992284875
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8693110901382048774}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 420b0ceea7d3c4e5fa146ba65e90304b, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  forwardKey: 119
-  backwardKey: 115
-  leftKey: 97
-  rightKey: 100
-  sprintKey: 304
-  turnLight: 116
-  grabObject: 101
-  dropObject: 100
-  throwObject: 103
-  openJournal: 106
-  exitMenus: 27
-  crouchKey: 99
-  jumpKey: 32
 --- !u!114 &3262768175179773471
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4416,8 +4390,7 @@ MonoBehaviour:
   maxDownAngle: 40
   maxLeftAngle: 60
   maxRightAngle: 60
-  maxLookAngleFromForward: 60
-  fallbackSpeed: 4
+  maxAngleFromForward: 120
   rotationSpeed: 8
 --- !u!1 &8705315420881882718
 GameObject:

@@ -7,6 +7,8 @@ using UnityEngine.Serialization;
 
 public class InventoryManager : GameBehaviour
 {
+    public static InventoryManager Instance { get; private set; }
+
     public enum HandPoses
     {
         Null,
@@ -17,44 +19,187 @@ public class InventoryManager : GameBehaviour
         HoldTwoHands,
         HoldTwoHandsSmall
     }
+ 
+    [FormerlySerializedAs("spirimonzTeamPrefabs")] 
     
-    [Header("Keyboard (AZERTY)")] 
-    public KeyCode[] inventoryKeys = new KeyCode[6];
-
-    [FormerlySerializedAs("spirimonzTeamPrefabs")] [Header("Team")]
-    public SpirimonzSettings[] spirimonzTeamSettings = new SpirimonzSettings[5];
+    [Header("Team")]
+    public List<SpirimonzSettings> spirimonzTeamSettings = new List<SpirimonzSettings>(5);
     public List<Spirimonz> spirimonzTeam = new List<Spirimonz>();
     [ReadOnly] public Spirimonz selectedSpirimonz = null;
     [ReadOnly] public int currentSelectedIndex;
-
-    [Header("Components")] 
-    public Transform spirimonzHandPos;
-    public Animator handAnimator;
 
     [Header("Layer Masks")] 
     public LayerMask fpsMask;
     public LayerMask spirimonzMask;
 
     private bool _forcedLightStateDuringCam;
-    private GamePlayer _player;
+    private Player _player;
+    private GamePlayer _gamePlayer;
+    private GameManager _gameManager;
+    
     private void Awake()
     {
-        InitializeTeam();
+        if (Instance != null && Instance != this)
+        {
+            Destroy(gameObject);
+            return;
+        }
+        
+        DontDestroyOnLoad(gameObject);
+
+        Instance = this;
     }
 
     private void Start()
     {
-        _player = (GamePlayer)Player.Instance;
+        InitPlayer();
+        _gameManager = GameManager.Instance;
+    }
+
+    private void InitPlayer()
+    {
+        _player = Player.Instance;
+        _gamePlayer = _player as GamePlayer;
+    }
+
+    public void OnLoadHouseScene()
+    {
+        InitializeTeam();
         UseWatchObject();
+    }
+    
+    public void LoadTeamFromSave()
+    {
+        GameData data = _gameManager.GetGameData();
+
+        // On reset la team settings
+        spirimonzTeamSettings.Clear();
+
+        // On prépare une liste vide de 5 slots
+        for (int i = 0; i < 5; i++)
+            spirimonzTeamSettings.Add(null);
+
+        foreach (SpirimonzData spData in data.spirimonzCollection)
+        {
+            if (!spData.inTeam)
+                continue;
+
+            // On récupère le SpirimonzSettings correspondant via l'id
+            SpirimonzSettings settings = Array.Find(
+                _gameManager.allSpirimonzSettings,
+                s => s.spirimonzID == spData.id
+            );
+
+            if (settings == null)
+            {
+                Debug.LogWarning("SpirimonzSettings introuvable pour id: " + spData.id);
+                continue;
+            }
+
+            // On place dans la bonne position
+            if (spData.teamPosition >= 0 && spData.teamPosition < spirimonzTeamSettings.Count)
+            {
+                spirimonzTeamSettings[spData.teamPosition] = settings;
+            }
+        }
+    }
+    
+    // ✅ Vérifie s’il y a au moins un slot vide dans spirimonzTeamSettings
+    public bool HasEmptySlot()
+    {
+        return spirimonzTeamSettings.Exists(s => s == null);
+    }
+
+// ✅ Ajoute un Spirimonz à la première place vide (si position non spécifiée)
+    public bool AddSpirimonzToTeam(SpirimonzSettings spirimonzToAdd)
+    {
+        // 1️⃣ Cherche le premier slot vide
+        int position = spirimonzTeamSettings.FindIndex(s => s == null);
+
+        if (position == -1)
+        {
+            Debug.LogWarning("Pas de place disponible dans la team pour Spirimonz: " + spirimonzToAdd.spirimonzName);
+            return false; // Aucun slot libre
+        }
+
+        // 2️⃣ Place directement le SpirimonzSettings fourni
+        spirimonzTeamSettings[position] = spirimonzToAdd;
+
+        // 3️⃣ Mettre à jour la save
+        GameData data = _gameManager.GetGameData();
+        SpirimonzData spData = Array.Find(data.spirimonzCollection, s => s.id == spirimonzToAdd.spirimonzID);
+        if (spData != null)
+        {
+            spData.inTeam = true;
+            spData.teamPosition = position;
+        }
+        _gameManager.SaveGame();
+
+        return true; // Ajout réussi
+    }
+    
+    public void AddSpirimonzToTeam(SpirimonzSettings spirimonzToAdd, int position)
+    {
+        if (position < 0 || position >= spirimonzTeamSettings.Count) return;
+
+        // Retirer l'éventuel Spirimonz déjà présent à cette position
+        SpirimonzSettings existing = spirimonzTeamSettings[position];
+        if (existing != null)
+        {
+            RemoveSpirimonzFromTeam(position);
+        }
+
+        // Ajouter le Spirimonz directement
+        spirimonzTeamSettings[position] = spirimonzToAdd;
+
+        // Mettre à jour la save
+        GameData data = _gameManager.GetGameData();
+        SpirimonzData spData = Array.Find(data.spirimonzCollection, s => s.id == spirimonzToAdd.spirimonzID);
+        if (spData != null)
+        {
+            spData.inTeam = true;
+            spData.teamPosition = position;
+        }
+        _gameManager.SaveGame();
+    }
+
+    
+    public void RemoveSpirimonzFromTeam(int teamIndex)
+    {
+        if (teamIndex < 0 || teamIndex >= spirimonzTeamSettings.Count)
+            return;
+
+        SpirimonzSettings settings = spirimonzTeamSettings[teamIndex];
+        if (settings == null) return;
+
+        // 1️⃣ On retire de la team
+        spirimonzTeamSettings[teamIndex] = null;
+
+        // 2️⃣ On met à jour la save
+        GameData data = _gameManager.GetGameData();
+        SpirimonzData spData = Array.Find(data.spirimonzCollection, s => s.id == settings.spirimonzID);
+        if (spData != null)
+        {
+            spData.inTeam = false;
+            spData.teamPosition = -1;
+        }
+        _gameManager.SaveGame();
     }
 
     private void InitializeTeam()
     {
+        spirimonzTeam.Clear();
+        
+        if (_gamePlayer == null)
+        {
+            InitPlayer();
+        }
+        
         foreach (SpirimonzSettings spmzS in spirimonzTeamSettings)
         {
             if (spmzS == null) continue;
             
-            Spirimonz newSpirimonz = Instantiate(spmzS.spirimonzPrefab, spirimonzHandPos);
+            Spirimonz newSpirimonz = Instantiate(spmzS.spirimonzPrefab, _gamePlayer.spirimonzHandPos);
             spirimonzTeam.Add(newSpirimonz);
             newSpirimonz.transform.localPosition = Vector3.zero;
             newSpirimonz.transform.localEulerAngles = Vector3.zero;
@@ -64,14 +209,22 @@ public class InventoryManager : GameBehaviour
     
     void Update()
     {
+        if (_gamePlayer != null)
+        {
+            UpdateGamePlayer();
+        }
+    }
+
+    private void UpdateGamePlayer()
+    {
         if (selectedSpirimonz != null && selectedSpirimonz.isOnTheMap == false)
         {
-            selectedSpirimonz.currentRoom = _player.currentRoom;
+            selectedSpirimonz.currentRoom = _gamePlayer.currentRoom;
         }
         
-        for (int i = 0; i < inventoryKeys.Length; i++)
+        for (int i = 0; i < _player.inputManager.inventoryKeys.Length; i++)
         {
-            if (Input.GetKeyDown(inventoryKeys[i]))
+            if (Input.GetKeyDown(_player.inputManager.inventoryKeys[i]))
             {
                 currentSelectedIndex = i;
                 if (i == 0)
@@ -89,43 +242,55 @@ public class InventoryManager : GameBehaviour
         {
             TryToDropSpirimonz();
         }
-        if (Input.GetMouseButtonDown(1) && handAnimator.GetInteger("HandPos") == (int)HandPoses.LightAim)
+        
+        if (Input.GetMouseButtonDown(1) && _gamePlayer.handAnimator.GetInteger("HandPos") == (int)HandPoses.LightAim)
         {
-            handAnimator.SetInteger("HandPos", (int)HandPoses.CameraAim);
-            if (_player.fpsController.mLight.gameObject.activeInHierarchy == true)
+            TurnOnNightVision();
+        }
+        
+        if (Input.GetMouseButtonUp(1) && _gamePlayer.handAnimator.GetInteger("HandPos") == (int)HandPoses.CameraAim)
+        {
+            TurnOffNightVision();
+        }
+    }
+
+    private void TurnOnNightVision()
+    {
+        _gamePlayer.handAnimator.SetInteger("HandPos", (int)HandPoses.CameraAim);
+        if (_gamePlayer.fpsController.mLight.gameObject.activeInHierarchy == true)
+        {
+            _gamePlayer.fpsController.ForceLightState(false);
+            _forcedLightStateDuringCam = true;
+        }
+    }
+    
+    private void TurnOffNightVision()
+    {
+        if(_forcedLightStateDuringCam)
+        {this.Invoke(0.25f, () =>
             {
-                _player.fpsController.ForceLightState(false);
-                _forcedLightStateDuringCam = true;
-            }
-        }
-        if (Input.GetMouseButtonUp(1) && handAnimator.GetInteger("HandPos") == (int)HandPoses.CameraAim)
-        {
-            if(_forcedLightStateDuringCam)
-            {this.Invoke(0.25f, () =>
+                if (_gamePlayer.handAnimator.GetInteger("HandPos") == (int)HandPoses.LightAim)
                 {
-                    if (handAnimator.GetInteger("HandPos") == (int)HandPoses.LightAim)
-                    {
-                        _player.fpsController.ForceLightState(true);
-                        _forcedLightStateDuringCam = false;
-                    }
-                });
-            }
-            handAnimator.SetInteger("HandPos", (int)HandPoses.LightAim);
+                    _gamePlayer.fpsController.ForceLightState(true);
+                    _forcedLightStateDuringCam = false;
+                }
+            });
         }
+        _gamePlayer.handAnimator.SetInteger("HandPos", (int)HandPoses.LightAim);
     }
 
     private void UseWatchObject()
     {
-        if (_player.interactionController.objectInHands) return;
+        if (_gamePlayer.interactionController.objectInHands) return;
         
-        handAnimator.SetInteger("HandPos", (int)HandPoses.LightAim);
+        _gamePlayer.handAnimator.SetInteger("HandPos", (int)HandPoses.LightAim);
         UnequipSpirimonz();
     }
 
     private void EquipSpirimonz(int teamIndex)
     {
         //You can't select a Spirimonz if an object in hands
-        if (_player.interactionController.objectInHands != null) return;
+        if (_gamePlayer.interactionController.objectInHands != null) return;
 
         if (spirimonzTeam[teamIndex] == null) return;
         
@@ -141,7 +306,7 @@ public class InventoryManager : GameBehaviour
         
         if (selectedSpirimonz.isOnTheMap)
         {
-            handAnimator.SetInteger("HandPos", (int)HandPoses.LightAim);
+            _gamePlayer.handAnimator.SetInteger("HandPos", (int)HandPoses.LightAim);
             return;
         }
         
@@ -153,7 +318,7 @@ public class InventoryManager : GameBehaviour
     private void SetSpirimonzHandPos()
     {
         Spirimonz spirimonzToUse = spirimonzTeam[currentSelectedIndex - 1];
-        handAnimator.SetInteger("HandPos", (int)spirimonzToUse.handPosType);
+        _gamePlayer.handAnimator.SetInteger("HandPos", (int)spirimonzToUse.handPosType);
         
         spirimonzToUse.gameObject.SetActive(true);
         spirimonzToUse.transform.localScale = Vector3.zero;
@@ -175,16 +340,16 @@ public class InventoryManager : GameBehaviour
         if (selectedSpirimonz == null) return; //No spirimonz in hands
         if (selectedSpirimonz.canBeDroppedOnMap == false) return;
 
-        Vector3 dropPos = _player.interactionController.GetLastGroundPos();
+        Vector3 dropPos = _gamePlayer.interactionController.GetLastGroundPos();
         if (dropPos == Vector3.zero)
         {
-            if (_player.interactionController.DetectCollisionForward())
+            if (_gamePlayer.interactionController.DetectCollisionForward())
             {
                 dropPos = this.transform.position;
             }
             else
             {
-                Vector3 playerForward = _player.GetForward() * 1f;
+                Vector3 playerForward = _gamePlayer.GetForward() * 1f;
                 dropPos = this.transform.position + new Vector3(playerForward.x, 0, playerForward.z);
             }
         }
@@ -194,11 +359,11 @@ public class InventoryManager : GameBehaviour
 
     private void DropSpirimonz(Vector3 dropPos)
     {
-        if (selectedSpirimonz == null || _player.interactionController.HasTarget()) return; //ERROR, no spirimonz selected or Interaction controller target something (door?)
+        if (selectedSpirimonz == null || _gamePlayer.interactionController.HasTarget()) return; //ERROR, no spirimonz selected or Interaction controller target something (door?)
 
         if (House.Instance.currentGhost.IsHunting()) return; //Can't drop Spirimonz during a hunt
         
-        handAnimator.SetInteger("HandPos", (int)HandPoses.LightAim);
+        _gamePlayer.handAnimator.SetInteger("HandPos", (int)HandPoses.LightAim);
         Spirimonz spirimonzToDrop = selectedSpirimonz;
         spirimonzToDrop.transform.parent = House.Instance.transform;
         spirimonzToDrop.ChangeLayer(spirimonzMask, 0);
@@ -215,7 +380,7 @@ public class InventoryManager : GameBehaviour
         }
 
         spirimonzToDrop.DroppingOnMap();
-        float camX = _player.fpsController.playerCamera.transform.localEulerAngles.x;
+        float camX = _gamePlayer.fpsController.playerCamera.transform.localEulerAngles.x;
 
         // Mapper de 0-360 à 0-180 pour regarder vers le bas
         if (camX > 180f) camX -= 360f; // [-180,180]
@@ -245,14 +410,14 @@ public class InventoryManager : GameBehaviour
 
     public void SpirimonzGoBackToHands(Spirimonz spirimonz)
     {
-        spirimonz.GoBackToHands(spirimonzHandPos);
+        spirimonz.GoBackToHands(_gamePlayer.spirimonzHandPos);
 
         if (spirimonz.canBeTakenBackIntoHands == false) return;
         
         spirimonz.ChangeLayer(fpsMask, 0);
         
         //Equip spirimonz if player do not use items or other spirimonz
-        if(handAnimator.GetInteger("HandPos") == (int)HandPoses.Null || handAnimator.GetInteger("HandPos") == (int)HandPoses.LightAim)
+        if(_gamePlayer.handAnimator.GetInteger("HandPos") == (int)HandPoses.Null || _gamePlayer.handAnimator.GetInteger("HandPos") == (int)HandPoses.LightAim)
         {
             currentSelectedIndex = GetSpirimonzIndex(spirimonz) + 1;
             EquipSpirimonz(currentSelectedIndex - 1);
@@ -279,11 +444,11 @@ public class InventoryManager : GameBehaviour
 
     public bool OccupedHands()
     {
-        if (handAnimator.GetInteger("HandPos") != (int)HandPoses.Null &&
-            handAnimator.GetInteger("HandPos") != (int)HandPoses.LightAim)
+        if (_gamePlayer.handAnimator.GetInteger("HandPos") != (int)HandPoses.Null &&
+            _gamePlayer.handAnimator.GetInteger("HandPos") != (int)HandPoses.LightAim)
             return true;
 
-        if (_player.interactionController.objectInHands != null)
+        if (_gamePlayer.interactionController.objectInHands != null)
             return true;
 
         return false;
@@ -291,7 +456,6 @@ public class InventoryManager : GameBehaviour
 
     public void SetHandsStateNull()
     {
-        handAnimator.SetInteger("HandPos", (int)HandPoses.Null);
+        _gamePlayer.handAnimator.SetInteger("HandPos", (int)HandPoses.Null);
     }
-    
 }

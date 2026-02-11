@@ -8,7 +8,8 @@ public class GamePlayer : Player
     [Header("Player Components")]
     public InteractionController interactionController;
     public FPSControllerNoPhysics fpsController;
-    public InventoryManager inventoryManager;
+    public Transform spirimonzHandPos;
+    public Animator handAnimator;
     
     [Header("Player Settings")]
     [ReadOnly] public Room currentRoom;
@@ -38,8 +39,10 @@ public class GamePlayer : Player
     
     private Ghost _ghost;
 
-    private void Start()
+    protected override void Start()
     {
+        base.Start();
+        
         _ghost = House.Instance.currentGhost;
         _ghost.onGhostStartToHunt.AddListener(() => _detectHeartBeat = true);
         _ghost.onGhostStopToHunt.AddListener(() => _detectHeartBeat = false);
@@ -55,7 +58,7 @@ public class GamePlayer : Player
 
     public void UseSlashAnimation()
     {
-        inventoryManager.handAnimator.SetTrigger("Slash");
+        handAnimator.SetTrigger("Slash");
     }
 
     public void AlertTheHuntingGhost()
@@ -130,8 +133,8 @@ public class GamePlayer : Player
         this.Invoke(groundFallDelay, () => StopAmbientSound(soundManager));
         
         //Animation
-        inventoryManager.handAnimator.SetBool("IsDead", true);
-        inventoryManager.handAnimator.SetTrigger("Death");
+        handAnimator.SetBool("IsDead", true);
+        handAnimator.SetTrigger("Death");
         
         //UI
         UIGame uiGame = UIGame.Instance;

@@ -1374,9 +1374,7 @@ GameObject:
   m_Component:
   - component: {fileID: 7839698453145841734}
   - component: {fileID: 5986506708449503894}
-  - component: {fileID: 2864525082577305372}
   - component: {fileID: 5518024246041543246}
-  - component: {fileID: 5052523127076512579}
   - component: {fileID: 1421224315111902519}
   - component: {fileID: 2816432068695902417}
   m_Layer: 7
@@ -1416,10 +1414,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   characterController: {fileID: 2816432068695902417}
-  inputManager: {fileID: 2864525082577305372}
+  inputManager: {fileID: 0}
+  inventoryManager: {fileID: 0}
   interactionController: {fileID: 1421224315111902519}
   fpsController: {fileID: 5518024246041543246}
-  inventoryManager: {fileID: 5052523127076512579}
+  spirimonzHandPos: {fileID: 8795790434599231914}
+  handAnimator: {fileID: 123471729633074825}
   currentRoom: {fileID: 0}
   house: {fileID: 0}
   head: {fileID: 4227735763372530946}
@@ -1431,32 +1431,6 @@ MonoBehaviour:
   groundFallVolume: 3
   groundFallDelay: 2.5
   heartBeating: {fileID: 8300000, guid: bba3072e567a54195a77d26180590ab4, type: 3}
---- !u!114 &2864525082577305372
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3819186216081997299}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 420b0ceea7d3c4e5fa146ba65e90304b, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  forwardKey: 119
-  backwardKey: 115
-  leftKey: 97
-  rightKey: 100
-  sprintKey: 304
-  turnLight: 116
-  grabObject: 101
-  dropObject: 100
-  throwObject: 103
-  openJournal: 106
-  openTeamMenu: 9
-  exitMenus: 27
-  crouchKey: 99
-  jumpKey: 32
 --- !u!114 &5518024246041543246
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1510,36 +1484,6 @@ MonoBehaviour:
   torchSoundOn: {fileID: 8300000, guid: a3ec91de1fe8a46859dd414b4ae2c9c8, type: 3}
   torchSoundOff: {fileID: 8300000, guid: 58241017f60114d6086279ed3e6748a4, type: 3}
   noStaminaSound: {fileID: 8300000, guid: c3419cdf36f2840d79108a2a29f55b02, type: 3}
---- !u!114 &5052523127076512579
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3819186216081997299}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 7e1e0c369c96a48cbb12b35d0a4416e2, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  inventoryKeys: 310000003200000033000000340000003500000036000000
-  spirimonzTeamSettings:
-  - {fileID: 11400000, guid: 6a1ac6d5c37274148ba7453f0edb20e4, type: 2}
-  - {fileID: 11400000, guid: dd18591de3d124e0283bca7cf4909c16, type: 2}
-  - {fileID: 11400000, guid: ffe088154f0534dbcacdfb1efafc73ee, type: 2}
-  - {fileID: 11400000, guid: 49269b5a6040a4d5f8e5d30ba8d6ff69, type: 2}
-  - {fileID: 11400000, guid: bcce209ca3e344af39b18b1aa10f200f, type: 2}
-  spirimonzTeam: []
-  selectedSpirimonz: {fileID: 0}
-  currentSelectedIndex: 0
-  spirimonzHandPos: {fileID: 8795790434599231914}
-  handAnimator: {fileID: 123471729633074825}
-  fpsMask:
-    serializedVersion: 2
-    m_Bits: 8192
-  spirimonzMask:
-    serializedVersion: 2
-    m_Bits: 4096
 --- !u!114 &1421224315111902519
 MonoBehaviour:
   m_ObjectHideFlags: 0

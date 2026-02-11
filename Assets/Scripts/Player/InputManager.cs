@@ -1,9 +1,12 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
 public class InputManager : GameBehaviour
 {
+    public static InputManager Instance { get; private set; }
+
     public KeyCode forwardKey = KeyCode.W;
     public KeyCode backwardKey = KeyCode.S;
     public KeyCode leftKey = KeyCode.A;
@@ -22,4 +25,18 @@ public class InputManager : GameBehaviour
     public KeyCode primaryPrevious = KeyCode.LeftArrow;
     public KeyCode secondaryNext = KeyCode.E;
     public KeyCode secondaryPrevious = KeyCode.A;
+    public KeyCode[] inventoryKeys = new KeyCode[6];
+    
+    private void Awake()
+    {
+        if (Instance != null && Instance != this)
+        {
+            Destroy(gameObject);
+            return;
+        }
+        
+        DontDestroyOnLoad(gameObject);
+        
+        Instance = this;
+    }
 }

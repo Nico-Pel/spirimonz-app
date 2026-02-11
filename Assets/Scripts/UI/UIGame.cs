@@ -7,11 +7,16 @@ using DG.Tweening;
 
 public class UIGame : UIManager
 {
+    public static UIGame Instance { get; private set; }
+
+    public float openSceneFadeDuration = 3f;
+    
+    [Space]
+    
     public GameObject pointerBase;
     public Image pointerON;
     public TextMeshProUGUI tGrab;
     public UITablet tablet;
-    public static UIGame Instance { get; private set; }
 
     private Sprite _baseBigPointer;
     private Player _player;
@@ -20,18 +25,21 @@ public class UIGame : UIManager
     {
         if (Instance != null && Instance != this)
         {
-            Destroy(gameObject);
+            Destroy(Instance.gameObject);
             return;
         }
 
         Instance = this;
         CloseAllWindows();
 
-        _baseBigPointer = pointerON.sprite;
+        if(_baseBigPointer != null)
+            _baseBigPointer = pointerON.sprite;
     }
     
-    private void Start()
+    protected override void Start()
     {
+        base.Start();
+        
         Ghost currentGhost = House.Instance?.currentGhost;
         if (currentGhost != null)
         {
@@ -45,7 +53,14 @@ public class UIGame : UIManager
         });
 
         _player = Player.Instance;
-        InitControlTexts(_player.inputManager);
+        
+        EnableOverlay(true, 0);
+        EnableOverlay(false, openSceneFadeDuration);
+        
+        this.Invoke(0.1f, () =>
+        {
+            InitControlTexts(_player.inputManager);
+        });
     }
 
     private void Update()
@@ -85,6 +100,8 @@ public class UIGame : UIManager
 
     public void EnableBigPointer(bool enable)
     {
+        if (pointerON == null) return;
+        
         pointerON.gameObject.SetActive(enable);
     }
 

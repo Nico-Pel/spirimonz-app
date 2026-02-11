@@ -5,13 +5,20 @@ using UnityEngine;
 
 public class ShowCursor : GameBehaviour
 {
+    private UIGame _uiGame;
+    
     private void OnEnable()
     {
-        UIGame.Instance.AddShowCursor();
+        if(_uiGame == null)
+            _uiGame = UIGame.Instance;
+        
+        if(_uiGame != null)
+            _uiGame.AddShowCursor();
     }
 
     private void OnDisable()
     {
-        UIGame.Instance.RemoveShowCursor();
+        if(_uiGame != null)
+            _uiGame.RemoveShowCursor();
     }
 }

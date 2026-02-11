@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -8,7 +9,8 @@ public class Player : GameBehaviour
     public static Player Instance { get; private set; }
 
     public CharacterController characterController;
-    public InputManager inputManager;
+    [ReadOnly] public InputManager inputManager;
+    [ReadOnly] public InventoryManager inventoryManager;
     
     [Space]
     
@@ -22,7 +24,13 @@ public class Player : GameBehaviour
         if(GameManager.Instance != null)
             GameManager.Instance.player = this;
     }
-    
+
+    protected virtual void Start()
+    {
+        inventoryManager = InventoryManager.Instance;
+        inputManager = InputManager.Instance;
+    }
+
     public void LockControls(bool enable)
     {
         lockControls = enable;
@@ -38,8 +46,6 @@ public class Player : GameBehaviour
         characterController.enabled = false;
         characterController.transform.position = newPos;
         characterController.enabled = true;
-        
-        Debug.Log("Pouet set pos " + newPos);
     }
     
     public void SetRotation(Quaternion newRot)

@@ -132,6 +132,8 @@ public class FPSControllerNoPhysics : Controller
     // ---------------- LOOK ----------------
     void HandleLook()
     {
+        if (_player.IsLocked()) return;
+        
         float mouseX = Input.GetAxis("Mouse X") * mouseSensitivityX * 100f * Time.deltaTime;
         float mouseY = Input.GetAxis("Mouse Y") * mouseSensitivityY * 100f * Time.deltaTime;
 

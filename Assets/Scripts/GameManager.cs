@@ -9,15 +9,19 @@ public class GameManager : MonoBehaviour
     public static GameManager Instance;
     public GhostTypeDatabase ghostTypeDatabase;
 
-    public Player player;
+    [ReadOnly] public Player player;
     public Transform[] spawnPoints;
-    [ReadOnly] public int currentHouseID = -1;
+    [ReadOnly] private int currentHouseID = -1;
 
     [FormerlySerializedAs("allSpirimonzPrefabs")] public SpirimonzSettings[] allSpirimonzSettings;
     private GameData gameData;
 
     private bool isLoadingFromHouse = false;
+    private bool _isWorld;
+    private bool _firstLoad = true;
 
+    private InventoryManager _inventoryManager;
+    
     void Awake()
     {
         if (Instance != null && Instance != this)
@@ -41,7 +45,7 @@ public class GameManager : MonoBehaviour
                                   currentScene.name == gameData.lastWorldSceneName;
 
         isLoadingFromHouse = (gameData.currentHouseID >= 0);
-        currentHouseID = gameData.currentHouseID;
+        SetCurrentHouseID(gameData.currentHouseID);
 
         if (!string.IsNullOrEmpty(gameData.lastWorldSceneName) && !alreadyInLastWorld)
         {
@@ -74,6 +78,12 @@ public class GameManager : MonoBehaviour
         SceneManager.sceneLoaded += OnSceneLoaded;
     }
 
+    private void Start()
+    {
+        _inventoryManager = InventoryManager.Instance;
+        _inventoryManager.LoadTeamFromSave();
+    }
+
     private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
         if (player == null)
@@ -84,10 +94,10 @@ public class GameManager : MonoBehaviour
             Debug.LogWarning("Player introuvable dans la scène !");
             return;
         }
+        
+        _isWorld = scene.name.ToLower().StartsWith("world");
 
-        bool isWorld = scene.name.ToLower().StartsWith("world");
-
-        if (isWorld)
+        if (_isWorld)
         {
             if (isLoadingFromHouse && currentHouseID >= 0 && currentHouseID < spawnPoints.Length)
             {
@@ -104,6 +114,10 @@ public class GameManager : MonoBehaviour
 
             // Reset le flag
             isLoadingFromHouse = false;
+        }
+        else
+        {
+            _inventoryManager.OnLoadHouseScene();
         }
 
         SceneManager.sceneLoaded -= OnSceneLoaded;
@@ -159,6 +173,8 @@ public class GameManager : MonoBehaviour
     {
         SaveGame();
     }
+    
+    public bool IsWorld() => _isWorld;
 
     private void CheckUniqueSpirimonzIDs()
     {
@@ -177,4 +193,6 @@ public class GameManager : MonoBehaviour
         }
 #endif
     }
+    
+    public GameData GetGameData() => gameData;
 }

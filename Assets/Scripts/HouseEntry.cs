@@ -89,10 +89,9 @@ public class HouseEntry : GameBehaviour
     {
         player.LockControls(true);
         
-        UIWorld.Instance?.EnableOverlay(true, fadeDuration);
         UIGame.Instance?.EnableOverlay(true, fadeDuration);
         
-        if(_gameManager != null)
+        if(_gameManager != null && !isExit)
             _gameManager.SetCurrentHouseID(houseID);
         
         string animationToUse = isExit ? "Close" : "Open";

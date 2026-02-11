@@ -60,7 +60,7 @@ public class CaptureScene : GameBehaviour
     {
         ghostAnimator.SetTrigger("Attack");
         PlayLoseSound();
-        this.Invoke(0.5f, () => UIGame.Instance.EnableOverlay(true, 0));
+        this.Invoke(0.3f, () => UIGame.Instance.EnableOverlay(true, 0.1f));
     }
 
     public void PlayerFakeHeartBeating()

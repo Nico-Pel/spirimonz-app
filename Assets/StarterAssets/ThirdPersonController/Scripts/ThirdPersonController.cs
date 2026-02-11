@@ -67,20 +67,20 @@ public class ThirdPersonController : MonoBehaviour
 
     private void Start()
     {
+        _player = Player.Instance;
+        _inputManager = InputManager.Instance;
+
         _cinemachineTargetYaw = CinemachineCameraTarget.transform.rotation.eulerAngles.y;
 
         _controller = GetComponent<CharacterController>();
         _animator = GetComponent<Animator>();
         _hasAnimator = _animator != null;
 
-        _inputManager = GetComponent<InputManager>();
         if (_inputManager == null)
             Debug.LogError("InputManager manquant sur le Player !");
 
         _jumpTimeoutDelta = JumpTimeout;
         _fallTimeoutDelta = FallTimeout;
-
-        _player = Player.Instance;
     }
 
     private void Update()
