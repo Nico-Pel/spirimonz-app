@@ -48,13 +48,19 @@ public class InventoryManager : GameBehaviour
 
     private void Start()
     {
+        InitPlayer();
+        _gameManager = GameManager.Instance;
+    }
+
+    private void InitPlayer()
+    {
         _player = Player.Instance;
         _gamePlayer = _player as GamePlayer;
-        _gameManager = GameManager.Instance;
     }
 
     public void OnLoadHouseScene()
     {
+        InitPlayer();
         InitializeTeam(); 
         UseWatchObject();
     }
