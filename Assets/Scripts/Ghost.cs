@@ -73,7 +73,7 @@ public class Ghost : GameBehaviour
     [Header("Spirit Orbs")] 
     public GameObject ghostOrbsPrefab;
 
-    private float _waitDoorTime = 1f;
+    private float _waitDoorTime = 1.25f;
     private bool _stopMoving = false;
     
     [Header("Ghost Stats : Angriness")] 
@@ -251,7 +251,6 @@ public class Ghost : GameBehaviour
         {
             if (currentState != GhostState.huntingState /*|| door.isOpen*/)
                 return;
-
 
             Vector3 directionToDoor = (door.transform.position - transform.position).normalized;
             Vector3 moveDirection = agent.velocity.normalized;

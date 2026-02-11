@@ -47,30 +47,35 @@ public class GameManager : MonoBehaviour
         isLoadingFromHouse = (gameData.currentHouseID >= 0);
         SetCurrentHouseID(gameData.currentHouseID);
 
-        if (!string.IsNullOrEmpty(gameData.lastWorldSceneName) && !alreadyInLastWorld)
-        {
-            // On n'est pas encore dans le World → load la scène
-            LoadScene(gameData.lastWorldSceneName, exitHouse: isLoadingFromHouse);
-        }
-        else if (alreadyInLastWorld)
-        {
-            // On est déjà dans le bon World → place le player directement
-            if (player == null)
-                player = FindObjectOfType<Player>();
+        bool isATestFromHouse = SceneManager.GetActiveScene().name.StartsWith("House");
 
-            if (player != null)
+        if (isATestFromHouse == false)
+        {
+            if ( !string.IsNullOrEmpty(gameData.lastWorldSceneName) && !alreadyInLastWorld)
             {
-                if (currentHouseID >= 0 && currentHouseID < spawnPoints.Length)
+                // On n'est pas encore dans le World → load la scène
+                LoadScene(gameData.lastWorldSceneName, exitHouse: isLoadingFromHouse);
+            }
+            else if (alreadyInLastWorld)
+            {
+                // On est déjà dans le bon World → place le player directement
+                if (player == null)
+                    player = FindObjectOfType<Player>();
+
+                if (player != null)
                 {
-                    // Spawn devant la maison
-                    player.SetPosition(spawnPoints[currentHouseID].position);
-                    player.SetRotation(spawnPoints[currentHouseID].rotation);
-                }
-                else
-                {
-                    // Spawn à la position sauvegardée dans le world
-                    player.SetPosition(gameData.playerPosition);
-                    player.SetRotation(gameData.playerRotation);
+                    if (currentHouseID >= 0 && currentHouseID < spawnPoints.Length)
+                    {
+                        // Spawn devant la maison
+                        player.SetPosition(spawnPoints[currentHouseID].position);
+                        player.SetRotation(spawnPoints[currentHouseID].rotation);
+                    }
+                    else
+                    {
+                        // Spawn à la position sauvegardée dans le world
+                        player.SetPosition(gameData.playerPosition);
+                        player.SetRotation(gameData.playerRotation);
+                    }
                 }
             }
         }
@@ -117,6 +122,11 @@ public class GameManager : MonoBehaviour
         }
         else
         {
+            if (_inventoryManager == null)
+            {
+                _inventoryManager = FindObjectOfType<InventoryManager>();
+            }
+            
             _inventoryManager.OnLoadHouseScene();
         }
 

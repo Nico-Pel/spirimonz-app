@@ -85,6 +85,13 @@ public class GamePlayer : Player
         {
             _delayBeforeNextBeat -= Time.deltaTime;
         }
+        
+        # if UNITY_EDITOR
+        if (Input.GetKeyDown(KeyCode.L))
+        {
+            LockControls(true);
+        }
+        # endif
     }
 
     private void HandleHeartBeat()
