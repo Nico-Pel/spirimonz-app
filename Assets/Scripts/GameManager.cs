@@ -4,7 +4,7 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.Serialization;
 
-public class GameManager : MonoBehaviour
+public class GameManager : GameBehaviour
 {
     public static GameManager Instance;
     public GhostTypeDatabase ghostTypeDatabase;
@@ -127,7 +127,10 @@ public class GameManager : MonoBehaviour
                 _inventoryManager = FindObjectOfType<InventoryManager>();
             }
             
-            _inventoryManager.OnLoadHouseScene();
+            this.Invoke(0.1f, () =>
+            {
+                _inventoryManager.OnLoadHouseScene();
+            });
         }
 
         SceneManager.sceneLoaded -= OnSceneLoaded;

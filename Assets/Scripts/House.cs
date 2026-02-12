@@ -22,7 +22,7 @@ public class House : GameBehaviour
     public float temperatureMaxHouseVariation = 3.5f;
 
     public Ghost[] possibleGhosts;
-    public Ghost currentGhost;
+    [ReadOnly] public Ghost currentGhost;
     
     public Player currentPlayer;
     

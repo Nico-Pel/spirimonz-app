@@ -89,7 +89,7 @@ public class GamePlayer : Player
         # if UNITY_EDITOR
         if (Input.GetKeyDown(KeyCode.L))
         {
-            LockControls(true);
+            LockControls(!IsLocked());
         }
         # endif
     }

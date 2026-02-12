@@ -1,0 +1,93 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &6082679644016702559
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 4697995489396399020}
+  - component: {fileID: 2960280831599915338}
+  m_Layer: 0
+  m_Name: ___GhostInvestigator___
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &4697995489396399020
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6082679644016702559}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &2960280831599915338
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6082679644016702559}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cfc0de529428049e4b350c64f2c2421a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  captureScene: {fileID: 0}
+  delayBeforeActivatingCaptureScene: 3
+  fadeDuration: 2
+  allGhostParameters:
+  - {fileID: 11400000, guid: 349a6494c90b04ac48863433d25a2e07, type: 2}
+  - {fileID: 11400000, guid: c707696b59eec4ba1ac95fac94b670a0, type: 2}
+  - {fileID: 11400000, guid: 598c36d8c33ed465988ce3a7c4380e59, type: 2}
+  - {fileID: 11400000, guid: a4694c8273575415bb0fa6c33dea7ded, type: 2}
+  - {fileID: 11400000, guid: 2b135e37d107d4344b20a22b4139f807, type: 2}
+  - {fileID: 11400000, guid: 50df473a8911b465283d94051a800408, type: 2}
+  - {fileID: 11400000, guid: 2ea5277f10cfd4547a1f55e0d5d27f8c, type: 2}
+  - {fileID: 11400000, guid: 719d6c31d960141a5928613801818556, type: 2}
+  - {fileID: 11400000, guid: add3d1b49bdb540c98d5fcb369d192c7, type: 2}
+  - {fileID: 11400000, guid: f022c727b653440329f1660c3fb0c92f, type: 2}
+  - {fileID: 11400000, guid: a4f1b9950bb1d46acb771891f6eaf236, type: 2}
+  - {fileID: 11400000, guid: 4ee9de21fad324ff3977a7be64dca229, type: 2}
+  - {fileID: 11400000, guid: 8e8dc43926a4b444bbafac30219b5471, type: 2}
+  - {fileID: 11400000, guid: 4408c541e51d04ea0814d4a1680e1d90, type: 2}
+  - {fileID: 11400000, guid: d62313b85fde34a67918d492de0cec7e, type: 2}
+  - {fileID: 11400000, guid: 5be40afe7c3c1496dbd25b40ff9157e0, type: 2}
+  SpiritPrints: 0
+  EatFruits: 0
+  BlowUpFlammables: 0
+  FreezingTemperature: 0
+  HighSpiritActivities: 0
+  SpiritOrbs: 0
+  Radioactivity: 0
+  possibleSuspects:
+  - {fileID: 11400000, guid: 349a6494c90b04ac48863433d25a2e07, type: 2}
+  - {fileID: 11400000, guid: c707696b59eec4ba1ac95fac94b670a0, type: 2}
+  - {fileID: 11400000, guid: 598c36d8c33ed465988ce3a7c4380e59, type: 2}
+  - {fileID: 11400000, guid: a4694c8273575415bb0fa6c33dea7ded, type: 2}
+  - {fileID: 11400000, guid: 2b135e37d107d4344b20a22b4139f807, type: 2}
+  - {fileID: 11400000, guid: 50df473a8911b465283d94051a800408, type: 2}
+  - {fileID: 11400000, guid: 2ea5277f10cfd4547a1f55e0d5d27f8c, type: 2}
+  - {fileID: 11400000, guid: 719d6c31d960141a5928613801818556, type: 2}
+  - {fileID: 11400000, guid: add3d1b49bdb540c98d5fcb369d192c7, type: 2}
+  - {fileID: 11400000, guid: f022c727b653440329f1660c3fb0c92f, type: 2}
+  - {fileID: 11400000, guid: a4f1b9950bb1d46acb771891f6eaf236, type: 2}
+  - {fileID: 11400000, guid: 4ee9de21fad324ff3977a7be64dca229, type: 2}
+  - {fileID: 11400000, guid: 8e8dc43926a4b444bbafac30219b5471, type: 2}
+  - {fileID: 11400000, guid: 4408c541e51d04ea0814d4a1680e1d90, type: 2}
+  - {fileID: 11400000, guid: d62313b85fde34a67918d492de0cec7e, type: 2}
+  - {fileID: 11400000, guid: 5be40afe7c3c1496dbd25b40ff9157e0, type: 2}
+  OnInvestigationDatasChange:
+    m_PersistentCalls:
+      m_Calls: []

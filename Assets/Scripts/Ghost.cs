@@ -349,6 +349,10 @@ public class Ghost : GameBehaviour
 
     private void Update()
     {
+        if (currentState == GhostState.huntingState)
+        {
+            Debug.Log("POUET " + vision.CanSeePlayer(house.currentPlayer));
+        }
         if (currentState == GhostState.standingState)
         {
             agent.speed = 0;
