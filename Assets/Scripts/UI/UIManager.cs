@@ -20,6 +20,7 @@ public class UIManager : GameBehaviour
     public void AddShowCursor()
     {
         _showCursorsActivatedCount++;
+        Debug.Log("POUET CURSOR ADD " + _showCursorsActivatedCount);
         
         if (_currentCursorState == false)
             ShowCursor(true);
@@ -28,6 +29,7 @@ public class UIManager : GameBehaviour
     public void RemoveShowCursor()
     {
         _showCursorsActivatedCount--;
+        Debug.Log("POUET CURSOR REMOVE " + _showCursorsActivatedCount);
         
         if(_showCursorsActivatedCount <= 0)
             ShowCursor(false);
