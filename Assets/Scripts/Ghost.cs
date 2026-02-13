@@ -15,9 +15,8 @@ public class Ghost : GameBehaviour
    [Space]
    
     # if UNITY_EDITOR
-        public GhostParameters forcedGhostParameters;
-        public GhostActivities forcedGhostActivity = GhostActivities.Nothing;
-        public bool tripleActivityDebug;
+        [ReadOnly] public GhostActivities forcedGhostActivity = GhostActivities.Nothing;
+        [ReadOnly] public bool tripleActivityDebug;
     #endif
 
     public enum GhostState
@@ -76,17 +75,21 @@ public class Ghost : GameBehaviour
     private float _waitDoorTime = 1.25f;
     private bool _stopMoving = false;
     
-    [Header("Ghost Stats : Angriness")] 
-    public float angrinessPercentage = 0f;
-    public float angrinessToAddByTriggeringPlayer = 10f;
+    [FormerlySerializedAs("angrinessPercentage")] [Header("Ghost Stats : Angriness")] 
+    public float angerPercentage = 0f;
+    [FormerlySerializedAs("angrinessToAddByTriggeringPlayer")] public float angerToAddByTriggeringPlayer = 10f;
     
     [Header("Ghost Stats : Hunting")]
     public float forecastTimeBeforeAHunt = 5f;
     public float startHuntingStandingTime = 4;
-    public float forcedStartTargetingTime = 4;
     public float delayBeforeLosingPlayerTargeting = 4f;
     public float huntTimeVariation = 5f;
     
+    [ReadOnly] public float forcedStartTargetingTime = 1f;
+    [ReadOnly] public float angerThresholdStep = 10;
+    [ReadOnly] public float forcedTargetingTimeIncreasePerStep = 2.5f;
+    private float _baseForcedStartTargetingTime;
+
     private bool _forcedStartTargeting = false;
     private bool _targetingPlayer;
     private bool _losingPlayer;
@@ -148,6 +151,7 @@ public class Ghost : GameBehaviour
     private void Start()
     {
         _player = (GamePlayer)Player.Instance;
+        _baseForcedStartTargetingTime = forcedStartTargetingTime;
     }
 
     public void Initialize(House h)
@@ -160,25 +164,45 @@ public class Ghost : GameBehaviour
         }
         
         # if UNITY_EDITOR
-        if (forcedGhostParameters != null)
+        if (h.forcedGhostParameters != null)
         {
-            ghostParameters = forcedGhostParameters;
+            ghostParameters = h.forcedGhostParameters;
         }
         # endif
         
         favoriteRoom = house.hauntableRooms[Random.Range(0, house.hauntableRooms.Length)];
-        currentRoom = favoriteRoom;
+        
+        # if UNITY_EDITOR
+        if (h.forcedFavoriteRoomID >= 0 && house.hauntableRooms.Length > h.forcedFavoriteRoomID && house.hauntableRooms[h.forcedFavoriteRoomID] != null)
+        {
+            favoriteRoom = house.hauntableRooms[h.forcedFavoriteRoomID];
+        }
 
+        if (h.forcedGhostActivity != GhostActivities.Nothing)
+        {
+            forcedGhostActivity = h.forcedGhostActivity;
+        }
+
+        if (h.useHuntTimeMultiplierDebug)
+        {
+            ghostParameters.averageHuntTime *= h.huntTimeMultiplierDebug;
+        }
+        # endif
+
+        agent.enabled = false;
         transform.position = house.SelectRandomWayPointFromARoom(favoriteRoom).transform.position;
+        currentRoom = favoriteRoom;
+        agent.enabled = true;
 
         float nextActivityTime = Random.Range(averageActivityTime - activityTimeVariation, averageActivityTime + activityTimeVariation);
         
-# if UNITY_EDITOR
-        if (tripleActivityDebug)
+        # if UNITY_EDITOR
+        if (h.tripleActivityDebug)
         {
+            tripleActivityDebug = true;
             nextActivityTime = nextActivityTime / 3;
         }
-#endif
+        #endif
         
         this.Invoke(nextActivityTime, TriggerActivity);
         
@@ -230,12 +254,13 @@ public class Ghost : GameBehaviour
         {
             if (currentState == GhostState.huntingState)
             {
-                StopHunting();
+                UIGame.Instance.BlinkOverlay(0.2f);
+                this.Invoke(0.2f, StopHunting);
                 Kill();
             }
             if (currentState == GhostState.hideState)
             {
-                ImproveAngriness(angrinessToAddByTriggeringPlayer);
+                ImproveAnger(angerToAddByTriggeringPlayer);
             }
         }
         else if (ghostParameters.HasEvidence(GhostInvestigator.EvidenceType.Radioactivity) && other.TryGetComponent(out RadiationDetector radiationDetector))
@@ -320,8 +345,8 @@ public class Ghost : GameBehaviour
         currentState = GhostState.standingState;
         agent.velocity = Vector3.zero;
         
-        float startingHuntDelay = DivideByPercentage(startHuntingStandingTime, angrinessPercentage);
-        this.Invoke(startingHuntDelay, StartHunting);
+        //float startingHuntDelay = DivideByPercentage(startHuntingStandingTime, angerPercentage);
+        this.Invoke(startHuntingStandingTime, StartHunting);
         
         ghostModel.SetActive(true);
         SetVisibleRenderer(true);
@@ -330,6 +355,7 @@ public class Ghost : GameBehaviour
 
     private void StartHunting()
     {
+        ResetWaypoints();
         InitWayPoints();
         _huntingSound = SoundManager.Instance.PlaySound(huntingSound, transform.position, 1f, 1, -1f, 20f, true, this.transform);
         
@@ -349,10 +375,6 @@ public class Ghost : GameBehaviour
 
     private void Update()
     {
-        if (currentState == GhostState.huntingState)
-        {
-            Debug.Log("POUET " + vision.CanSeePlayer(house.currentPlayer));
-        }
         if (currentState == GhostState.standingState)
         {
             agent.speed = 0;
@@ -429,7 +451,7 @@ public class Ghost : GameBehaviour
         ForceNewWaypoint(_player.currentRoom);
     }
 
-    private void PlayerFound()
+    public void PlayerFound()
     {
         if (ghostParameters.ghostTypeData.ghostType == GhostTypeData.GhostType.Draconic && !_targetingPlayer &&
             !_forcedStartTargeting)
@@ -472,9 +494,10 @@ public class Ghost : GameBehaviour
     {
         agent.destination = _targetingPlayer ? house.currentPlayer.transform.position : currentWayPoint.transform.position;
 
-        if (!_targetingPlayer)
+        if (_targetingPlayer == false)
         {
             float dist = Vector3.Distance(transform.position, currentWayPoint.transform.position);
+
             if (dist < currentHuntingWayPointDistanceTargeted)
             {
                 huntingWayPoints.Remove(currentWayPoint);
@@ -574,22 +597,19 @@ public class Ghost : GameBehaviour
             r.enabled = enable;
         }
     }
-    
-    float DivideByPercentage(float value, float percentage)
-    {
-        percentage = Mathf.Clamp(percentage, 0f, 100f);
-
-        float t = percentage / 100f;
-
-        // Courbe exponentielle : 1 → 4
-        float divisor = Mathf.Pow(4f, t);
-
-        return value / divisor;
-    }
 
     private void TriggerActivity()
     {
         if (_isLocked) return;
+
+        float nextActivityTime = Random.Range(averageActivityTime - activityTimeVariation, averageActivityTime + activityTimeVariation);
+        
+        //Do not trigger activity during a hunt, re-roll timer
+        if (currentState == GhostState.huntingState)
+        {
+            this.Invoke(nextActivityTime, TriggerActivity);
+            return;
+        }
         
         GhostActivities randomActivity =
             (GhostActivities)Enum.GetValues(typeof(GhostActivities))
@@ -603,9 +623,8 @@ public class Ghost : GameBehaviour
         }
 #endif
         
-        float nextActivityTime = Random.Range(averageActivityTime - activityTimeVariation, averageActivityTime + activityTimeVariation);
         //Le fantôme trigger plus vite le prochain event s'il est enervé
-        nextActivityTime = DivideByPercentage(nextActivityTime, angrinessPercentage);
+        nextActivityTime = DivideByPercentage(nextActivityTime, angerPercentage);
 
         if (currentState != GhostState.hideState)
         {
@@ -633,7 +652,7 @@ public class Ghost : GameBehaviour
             case GhostActivities.Hunt:
                 //Can't attack if not enough angry
                 //Can't attack if Earthbound ghost and not in its favorite room
-                if (_canHunt && angrinessPercentage >= ghostParameters.minimumAngrinessToHunt && 
+                if (_canHunt && angerPercentage >= ghostParameters.minimumAngerToHunt && 
                     (ghostParameters.ghostTypeData.ghostType != GhostTypeData.GhostType.Earthbound || 
                      (ghostParameters.ghostTypeData.ghostType == GhostTypeData.GhostType.Earthbound && currentRoom == favoriteRoom)))
                 {
@@ -862,7 +881,7 @@ public class Ghost : GameBehaviour
     private void SelectNewHuntingWaypoint()
     {
         currentWayPoint = SelectNearestWayPoint();
-        currentHuntingWayPointDistanceTargeted = Random.Range(1f, 5f);
+        currentHuntingWayPointDistanceTargeted = Random.Range(0.1f, 5f);
 
         float chancesToIgnoreAPoint = Random.Range(0f, 100f);
         if (chancesToIgnoreAPoint <= chancesPercentageToIgnoreAWayPoint)
@@ -887,7 +906,7 @@ public class Ghost : GameBehaviour
 
     private WayPoint SelectNearestWayPoint()
     {
-        if(huntingWayPoints.Count == 0)
+        if(huntingWayPoints.Count <= 2 * house.rooms.Length)
             ResetWaypoints();
         
         WayPoint selectedWaypoint = huntingWayPoints[0];
@@ -895,7 +914,7 @@ public class Ghost : GameBehaviour
         
         foreach (WayPoint w in huntingWayPoints)
         {
-            float dist = Vector3.Distance(transform.position, w.transform.position);
+            float dist = PathDistanceForAnAgent(agent, w.transform.position, 0.1f);
             if (dist < bestDist)
             {
                 bestDist = dist;
@@ -908,6 +927,7 @@ public class Ghost : GameBehaviour
 
     public void ForceNewWaypoint(Room room)
     {
+        currentHuntingWayPointDistanceTargeted = Random.Range(0.1f, 5f);
         currentWayPoint = house.SelectRandomWayPointFromARoom(room);
     }
 
@@ -1027,20 +1047,27 @@ public class Ghost : GameBehaviour
         ActivateActivitySource(objectToThrow.activitySource);
     }
 
-    public void ImproveAngriness(float percentageToAdd)
+    public void ImproveAnger(float percentageToAdd)
     {
-        angrinessPercentage += percentageToAdd;
-        if (angrinessPercentage > 100)
-        {
-            angrinessPercentage = 100;
-        }
+        angerPercentage += percentageToAdd;
+
+        if (angerPercentage <= 100f)
+            return;
+
+        float surplusOfAnger = angerPercentage - 100f;
+
+        int steps = Mathf.FloorToInt(surplusOfAnger / angerThresholdStep);
+
+        forcedStartTargetingTime =
+            _baseForcedStartTargetingTime +
+            steps * forcedTargetingTimeIncreasePerStep;
     }
 
     public void DecreaseAngriness(float percentageToDecrease)
     {
-        if (angrinessPercentage < 0)
+        if (angerPercentage < 0)
         {
-            angrinessPercentage = 0;
+            angerPercentage = 0;
         }
     }
 

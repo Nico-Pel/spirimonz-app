@@ -47,6 +47,15 @@ public class UIManager : GameBehaviour
             overlay.DOColor(colorToUse, fadeDuration);
         }
     }
+
+    public void BlinkOverlay(float halfBlinkDuration = 0.2f)
+    {
+        EnableOverlay(true, halfBlinkDuration);
+        this.Invoke(halfBlinkDuration, () =>
+        {
+            EnableOverlay(false, halfBlinkDuration);
+        });
+    }
     
     private void ShowCursor(bool enable)
     {

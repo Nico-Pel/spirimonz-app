@@ -46,6 +46,18 @@ public class GameBehaviour : MonoBehaviour
         }
     }
     
+    protected float DivideByPercentage(float value, float percentage)
+    {
+        percentage = Mathf.Clamp(percentage, 0f, 100f);
+
+        float t = percentage / 100f;
+
+        // Courbe exponentielle : 1 → 4
+        float divisor = Mathf.Pow(4f, t);
+
+        return value / divisor;
+    }
+    
     public static int LayerMaskToLayer(LayerMask mask)
     {
         int value = mask.value;

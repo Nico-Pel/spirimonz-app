@@ -331,6 +331,14 @@ public class FPSControllerNoPhysics : Controller
         if (Input.GetKeyDown(_player.inputManager.turnLight) && mLight != null)
         {
             bool enable = !mLight.gameObject.activeSelf;
+
+            if (enable)
+            {
+                GamePlayer gamePlayer = _player as GamePlayer;
+                if (gamePlayer != null)
+                    gamePlayer.AlertTheHuntingGhost();
+            }
+            
             mLight.gameObject.SetActive(enable);
             mLightObject.SetActive(enable);
             

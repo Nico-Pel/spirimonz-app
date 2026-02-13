@@ -34,6 +34,7 @@ public class MovableObject : ClickableObject
     public float pitchMax = 1.1f;
     
     private bool _isActivated;
+    private bool _canBeClickedByPlayer = true;
     
     private Vector3 _startPosition;
     private Vector3 _startRotation;
@@ -76,5 +77,18 @@ public class MovableObject : ClickableObject
         
         AudioClip clip = _isActivated && moveSoundBack != null ? moveSoundBack : moveSound;
         SoundManager.Instance?.PlaySound(clip, activitySource.transform.position, volume, Random.Range(pitchMin, pitchMax));
+    }
+    
+    protected override void GhostClickedDuringAHunt()
+    {
+        if (!_isActivated)
+        {
+            _canBeClickedByPlayer = false;
+            this.Invoke(1f, () =>
+            {
+                _canBeClickedByPlayer = true;
+            });
+            OnClick();
+        }
     }
 }

@@ -9,6 +9,18 @@ using Random = UnityEngine.Random;
 public class House : GameBehaviour
 {
     public static House Instance { get; private set; }
+    
+       
+# if UNITY_EDITOR
+    public GhostParameters forcedGhostParameters;
+    public Ghost.GhostActivities forcedGhostActivity = Ghost.GhostActivities.Nothing;
+    public int forcedFavoriteRoomID = -1;
+    public bool tripleActivityDebug;
+    public bool useHuntTimeMultiplierDebug;
+    public float huntTimeMultiplierDebug = 10f;
+#endif
+    
+    [Space]
 
     public HouseBiome biome;
     public GhostParameters[] possibleGhostParameters;

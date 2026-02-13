@@ -60,18 +60,25 @@ public class GamePlayer : Player
     {
         handAnimator.SetTrigger("Slash");
     }
-
+    
     public void AlertTheHuntingGhost()
     {
         if (house.currentGhost == null || house.currentGhost.currentState != Ghost.GhostState.huntingState)
         {
             return;
         }
-        
-        float distance = Vector3.Distance(this.transform.position, house.currentGhost.transform.position);
-        if (distance < house.currentGhost.detectPlayerActivityRange)
+
+        if (_ghost.currentRoom == currentRoom)
         {
-            house.currentGhost.ForceNewWaypoint(currentRoom);
+            _ghost.PlayerFound();
+        }
+        else
+        {
+            float distance = Vector3.Distance(this.transform.position, house.currentGhost.transform.position);
+            if (distance < house.currentGhost.detectPlayerActivityRange)
+            {
+                house.currentGhost.ForceNewWaypoint(currentRoom);
+            }
         }
     }
 

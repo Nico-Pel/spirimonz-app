@@ -1,6 +1,7 @@
+using System;
 using UnityEngine;
 
-public class ClickableObject : MonoBehaviour, IInteractable
+public class ClickableObject : GameBehaviour, IInteractable
 {
     public ActivitySource activitySource;
 
@@ -8,6 +9,7 @@ public class ClickableObject : MonoBehaviour, IInteractable
     public bool canClick = true;
     public bool canHold = false;
     public bool canRelease = false;
+    public bool canBeClickedOnTriggerByGhostDuringHunt;
 
     public House house { get; set; }
 
@@ -71,5 +73,18 @@ public class ClickableObject : MonoBehaviour, IInteractable
     public virtual void OnRelease()
     {
         Debug.Log($"{name} released!");
+    }
+
+    private void OnTriggerEnter(Collider other)
+    {
+        if (other.TryGetComponent(out Ghost ghost) && ghost.currentState == Ghost.GhostState.huntingState)
+        {
+            GhostClickedDuringAHunt();
+        }
+    }
+
+    protected virtual void GhostClickedDuringAHunt()
+    {
+        
     }
 }

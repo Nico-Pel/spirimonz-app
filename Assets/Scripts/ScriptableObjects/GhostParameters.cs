@@ -12,10 +12,11 @@ public class GhostParameters : ScriptableObject
 {
     [FormerlySerializedAs("ghostType")] public GhostTypeData ghostTypeData;
     
+    [FormerlySerializedAs("minimumAngrinessToHunt")]
     [Space]
     
     [Header("Ghost Stats : Hunting")]
-    public float minimumAngrinessToHunt = 50;
+    public float minimumAngerToHunt = 50;
     public float averageHuntTime = 10f;
     public float minimumPeaceTime = 60f;
     

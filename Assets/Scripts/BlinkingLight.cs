@@ -18,6 +18,9 @@ public class BlinkingLight : MonoBehaviour
     private float _targetIntensity;
     private GamePlayer _player;
 
+    private Coroutine _blinkCoroutine;
+    private bool _shouldBlink;
+    
     private void Start()
     {
         if (light == null)
@@ -36,54 +39,73 @@ public class BlinkingLight : MonoBehaviour
 
     private void Update()
     {
-        if (gameObject.activeInHierarchy && _ghost != null && _ghost.currentState != Ghost.GhostState.hideState)
+        if (!gameObject.activeInHierarchy || _ghost == null ||
+            _ghost.currentState == Ghost.GhostState.hideState ||
+            !light.enabled)
         {
-            float dist = Vector3.Distance(transform.position, _ghost.transform.position);
+            StopBlink();
+            return;
+        }
 
-            if (!_isBlinking && dist <= blinkDistance)
+        float dist = Vector3.Distance(transform.position, _ghost.transform.position);
+
+        if (dist <= blinkDistance)
+        {
+            StartBlink();
+
+            if (isLinkedToPlayer && _ghost.currentWayPoint.linkedRoom != _player.currentRoom)
             {
-                StartCoroutine(BlinkRoutine());
-                if (_ghost.currentWayPoint.linkedRoom != _player.currentRoom)
-                {
-                    _player.AlertTheHuntingGhost();
-                }
-            }
-            else if (_isBlinking && dist > blinkDistance)
-            {
-                _isBlinking = false; // stoppe le blink à la fin de la coroutine
+                _player.AlertTheHuntingGhost();
             }
         }
         else
         {
-            _isBlinking = false; // pas actif → pas de blink
+            StopBlink();
         }
+    }
+    
+    private void StopBlink()
+    {
+        if (_blinkCoroutine == null)
+            return;
+
+        _shouldBlink = false;
+        StopCoroutine(_blinkCoroutine);
+        _blinkCoroutine = null;
+
+        light.intensity = baseIntensity;
+    }
+    
+    private void StartBlink()
+    {
+        if (_blinkCoroutine != null)
+            return;
+
+        _shouldBlink = true;
+        _blinkCoroutine = StartCoroutine(BlinkRoutine());
     }
 
     private IEnumerator BlinkRoutine()
     {
-        _isBlinking = true;
-        while (_isBlinking)
+        while (_shouldBlink)
         {
-            // Intensité faible
-            _targetIntensity = baseIntensity * blinkMultiplier;
-            while (_isBlinking && light.intensity > _targetIntensity + 0.01f)
-            {
-                light.intensity = Mathf.Lerp(light.intensity, _targetIntensity, Time.deltaTime * 10f);
-                yield return null;
-            }
-
-            // Intensité normale
-            _targetIntensity = baseIntensity;
-            while (_isBlinking && light.intensity < _targetIntensity - 0.01f)
-            {
-                light.intensity = Mathf.Lerp(light.intensity, _targetIntensity, Time.deltaTime * 10f);
-                yield return null;
-            }
-
-            yield return new WaitForSeconds(blinkSpeed); // pause entre les clignos
+            yield return BlinkTo(baseIntensity * blinkMultiplier);
+            yield return BlinkTo(baseIntensity);
+            yield return new WaitForSeconds(blinkSpeed);
         }
-
-        // Restore à l'intensité normale
-        light.intensity = baseIntensity;
+    }
+    
+    private IEnumerator BlinkTo(float target)
+    {
+        while (_shouldBlink && Mathf.Abs(light.intensity - target) > 0.01f)
+        {
+            light.intensity = Mathf.Lerp(light.intensity, target, Time.deltaTime * 10f);
+            yield return null;
+        }
+    }
+    
+    private void OnDisable()
+    {
+        StopBlink();
     }
 }
