@@ -14,7 +14,7 @@ public class PrintSource : GameBehaviour
     private float _currentDuration;
     private float _colorPower;
     private float _powerMax = 3; //Full color is 1.5f
-    private float invisibleMarge = 0.25f;
+    private float invisibleMarge = 0.5f;
     
     public UnityEvent OnActivate;
     public UnityEvent OnDeactivate;

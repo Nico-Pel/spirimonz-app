@@ -50,9 +50,19 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   canBeGrabByPlayer: 1
+  canBeThrownByGhost: 1
+  canBeThrownByPlayer: 1
+  setRotZeroOnDrop: 1
   rb: {fileID: 7055402289030159528}
   activitySource: {fileID: 3683657692521461788}
   isGrabbed: 0
+  collisionSounds:
+  - {fileID: 8300000, guid: 0e88b0731e98b4b00aaf5a5279cee8fd, type: 3}
+  collisionSoundVolume: 0.5
+  collisionSoundAveragePitch: 1
+  collisionSoundVariationPitch: 0.1
+  collisionSoundRange: 15
+  minForceToPlayCollision: 1
 --- !u!54 &7055402289030159528
 Rigidbody:
   m_ObjectHideFlags: 0

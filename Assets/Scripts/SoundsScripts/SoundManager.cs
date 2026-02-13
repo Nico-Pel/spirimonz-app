@@ -6,6 +6,9 @@ public class SoundManager : GameBehaviour
 {
     public static SoundManager Instance { get; private set; }
     
+    [SerializeField]
+    private AudioEmitter3D audioEmitterPrefab;
+    
     public AudioClip ambientSound;
     public float ambientSoundVolume = 0.2f;
 
@@ -21,7 +24,6 @@ public class SoundManager : GameBehaviour
         }
     }
 
-    // --- Sound Effects existants
     public SoundInstance PlaySound(
         AudioClip clip,
         Vector3 position,
@@ -30,53 +32,55 @@ public class SoundManager : GameBehaviour
         float duration = -1f,
         float range = 15f,
         bool loop = false,
-        Transform sourceParent = null
+        Transform sourceParent = null,
+        bool ignoreAudioOcclusion = false
     )
     {
-        if (clip == null)
+        if (clip == null || audioEmitterPrefab == null)
             return null;
-        
+
         if (sourceParent != null)
         {
             AudioSource[] sources = sourceParent.GetComponentsInChildren<AudioSource>();
             foreach (var s in sources)
             {
                 if (s.clip == clip && s.isPlaying)
-                    return null; // on bloque
+                    return null;
             }
         }
 
-        GameObject go = new GameObject($"Sound_{clip.name}");
+        AudioEmitter3D emitter = Instantiate(
+            audioEmitterPrefab,
+            position,
+            Quaternion.identity
+        );
+
+        emitter.name = $"Sound_{clip.name}";
+
         if (sourceParent != null)
-            go.transform.SetParent(sourceParent);
+            emitter.transform.SetParent(sourceParent);
 
-        go.transform.position = position;
+        emitter.Init(
+            clip,
+            volume,
+            pitch,
+            range,
+            loop,
+            ignoreAudioOcclusion
+        );
 
-        AudioSource source = go.AddComponent<AudioSource>();
-        
-        source.clip = clip;
-        source.volume = volume;
-        source.pitch = pitch;
+        emitter.Play();
 
-        source.spatialBlend = 1f;
-        source.minDistance = 1f;
-        source.maxDistance = range;
-        source.rolloffMode = AudioRolloffMode.Linear;
+        AudioSource source = emitter.audioSource;
+        GameObject go = emitter.gameObject;
 
-        source.loop = loop;
-        source.Play();
-
-        // Gestion de la durée
+        // --- Gestion durée / destruction
         if (duration > 0f)
         {
             if (sourceParent == null)
-            {
                 Destroy(go, duration);
-            }
             else
-            {
                 Destroy(source, duration);
-            }
         }
         else if (!loop)
         {
@@ -84,12 +88,11 @@ public class SoundManager : GameBehaviour
             this.Invoke(clip.length / effectivePitch, () =>
             {
                 if (sourceParent == null)
-                {
                     Destroy(go);
-                }
                 else
                 {
-                    Destroy(source);
+                    //Debug.Log("Source : " + source.gameObject.name, source.gameObject);
+                    Destroy(source.gameObject);
                 }
             });
         }
@@ -175,7 +178,8 @@ public class SoundManager : GameBehaviour
             }
             else
             {
-                Destroy(_source);
+                Debug.Log("Source : " + _source.gameObject.name, _source.gameObject);
+                Destroy(_source.gameObject);
             }
             _source = null;
             _gameObject = null;

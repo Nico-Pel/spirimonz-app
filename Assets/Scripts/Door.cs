@@ -28,6 +28,11 @@ public class Door : GameBehaviour, IInteractable
     public AudioClip closeSound;
     public AudioClip slamSound;
 
+    [Header("Audio Occlusion")] 
+    public AudioOccluder mAudioOccluder;
+    public AudioOccluder[] connectedWallOccluders;
+    public Door[] connectedDoors;
+
     [ReadOnly] public bool isOpen = false;
     [ReadOnly] public bool opensTowardNegative;
     [ReadOnly] public float closeAngle;
@@ -117,6 +122,7 @@ public class Door : GameBehaviour, IInteractable
         if (openPercentage > 0 && !isOpen)
         {
             isOpen = true;
+            EnableAudioOcclusions(false);
             PlaySound(openSound);
         }
 
@@ -126,6 +132,7 @@ public class Door : GameBehaviour, IInteractable
     public void CloseDoor(float closeSpeed, bool forcedSlam = false)
     {
         isOpen = false;
+        EnableAudioOcclusions(true);
         HingeClose(closeSpeed);
 
         PlaySound((forcedSlam || IsSlamDetected()) ? slamSound : closeSound);
@@ -203,6 +210,7 @@ public class Door : GameBehaviour, IInteractable
         if (!isOpen && Mathf.Abs(currentAngle) > _almostCloseAngle)
         {
             isOpen = true;
+            EnableAudioOcclusions(false);
             PlaySound(openSound);
         }
 
@@ -271,5 +279,35 @@ public class Door : GameBehaviour, IInteractable
     {
         SpecialCursor = sprite;
         CursorSize = size;
+    }
+    
+    public float GetOpenRatio()
+    {
+        float angle = Mathf.Abs(hingeJoint.angle);
+        return Mathf.InverseLerp(
+            Mathf.Abs(closeAngle),
+            Mathf.Abs(openFullAngle),
+            angle
+        );
+    }
+
+    private void EnableAudioOcclusions(bool enable)
+    {
+        foreach (Door door in connectedDoors)
+        {
+            if (door != null && door.isOpen)
+                return;
+        }
+        
+        if (mAudioOccluder != null)
+        {
+            mAudioOccluder.blockSound = enable;
+        }
+        
+        foreach (AudioOccluder occluder in connectedWallOccluders)
+        {
+            if(occluder != null)
+                occluder.blockSound = enable;
+        }
     }
 }

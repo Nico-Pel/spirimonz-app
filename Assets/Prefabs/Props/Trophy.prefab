@@ -56,6 +56,14 @@ MonoBehaviour:
   rb: {fileID: 7055402289030159528}
   activitySource: {fileID: 3683657692521461788}
   isGrabbed: 0
+  collisionSounds:
+  - {fileID: 8300000, guid: 49c25ffe95b40482c898cc4ac4e079e0, type: 3}
+  - {fileID: 8300000, guid: 61d3ee132f1f44d19a4c84ca4d0ba948, type: 3}
+  collisionSoundVolume: 0.5
+  collisionSoundAveragePitch: 1
+  collisionSoundVariationPitch: 0.1
+  collisionSoundRange: 15
+  minForceToPlayCollision: 1
 --- !u!54 &7055402289030159528
 Rigidbody:
   m_ObjectHideFlags: 0

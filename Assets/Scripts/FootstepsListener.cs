@@ -18,7 +18,8 @@ public class FootstepsListener : GameBehaviour
     [Header("Footsteps")] 
     public float range = 15f;
     public FootstepSounds[] footstepSounds; // Paramétrable dans l'Inspector
-    public float footstepVolume = 0.7f;
+    public float footstepVolume = 0.025f;
+    public bool ignoreAudioOcclusion = true;
     
     public float groundCheckDistance;
     public LayerMask groundLayers;
@@ -66,7 +67,8 @@ public class FootstepsListener : GameBehaviour
                         -1f,
                         range,
                         false,
-                        transform
+                        transform,
+                        ignoreAudioOcclusion : ignoreAudioOcclusion
                     );
                     return; // IMPORTANT : premier sol valide
                 }

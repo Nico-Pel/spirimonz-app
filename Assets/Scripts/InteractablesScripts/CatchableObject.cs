@@ -1,6 +1,8 @@
+using System;
 using UnityEngine;
 using UnityEngine.Events;
 using DG.Tweening;
+using Random = UnityEngine.Random;
 
 [RequireComponent(typeof(ActivitySource))]
 public class CatchableObject : GameBehaviour, IInteractable
@@ -15,6 +17,18 @@ public class CatchableObject : GameBehaviour, IInteractable
 
     [ReadOnly] public bool isGrabbed;
 
+    [Header("Sounds")] 
+    public AudioClip[] collisionSounds;
+    public float collisionSoundVolume = 0.5f;
+    public float collisionSoundAveragePitch = 1f;
+    public float collisionSoundVariationPitch = 0.1f;
+    public float collisionSoundRange = 15f;
+    public float minForceToPlayCollision = 1f;
+
+    private bool _canCallCollisionSound = false;
+    private float _collisionSoundsMinDelay = 0.5f;
+    private float _collisionStartDelay = 1f;
+
     private Transform _currentHolder;
 
     private void Awake()
@@ -27,6 +41,8 @@ public class CatchableObject : GameBehaviour, IInteractable
 
         if (!canBeGrabByPlayer)
             InteractionLocked = true;
+        
+        this.Invoke(_collisionStartDelay, () => _canCallCollisionSound = true);
     }
 
     // =========================
@@ -116,5 +132,56 @@ public class CatchableObject : GameBehaviour, IInteractable
     public virtual void SpecialActionInHandsOnClick()
     {
         
+    }
+
+    private void OnCollisionEnter(Collision collision)
+    {
+        float impactForce = collision.relativeVelocity.magnitude;
+
+        if (impactForce > minForceToPlayCollision)
+            OnCollision(collision.transform, impactForce);
+    }
+
+    protected virtual void OnCollision(Transform other, float impactForce)
+    {
+        PlayCollisionSound(impactForce);
+    }
+
+    private void PlayCollisionSound(float impactForce)
+    {
+        if (collisionSounds.Length == 0|| !_canCallCollisionSound) return;
+
+        AudioClip clipToUse = null;
+        clipToUse = collisionSounds[Random.Range(0, collisionSounds.Length)];
+        if (clipToUse == null)
+        {
+            //If selected clip is null, select first viable sound
+            foreach (AudioClip clip in collisionSounds)
+            {
+                if (clip != null)
+                {
+                    clipToUse = clip;
+                    break;
+                }
+            }
+        }
+
+        //No viable audio clip
+        if (clipToUse == null)
+            return;
+        
+        _canCallCollisionSound = false;
+        this.Invoke(_collisionSoundsMinDelay, () => _canCallCollisionSound = true);
+
+        float volumeMultiplier = Mathf.Clamp01(impactForce / 10f); // normalise impactForce
+        float pitch = collisionSoundAveragePitch + Random.Range(-collisionSoundVariationPitch, collisionSoundVariationPitch);
+
+        SoundManager.Instance.PlaySound(
+            clipToUse,
+            position: transform.position,
+            volume: collisionSoundVolume * volumeMultiplier,
+            pitch: pitch,
+            range: collisionSoundRange
+        );
     }
 }

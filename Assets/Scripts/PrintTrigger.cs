@@ -6,10 +6,15 @@ using Random = UnityEngine.Random;
 public class PrintTrigger : GameBehaviour
 {
     public PrintSource[] printSources;
-    private bool _canReceivePrint;
+    private bool _canReceivePrint = false;
+
+    private float _delayBeforeActivation = 3f;
 
     private void Start()
     {
+        //Security, prevent ghost to trigger a print on start
+        this.Invoke(_delayBeforeActivation, () => _canReceivePrint = true);
+        
         foreach (PrintSource source in printSources)
         {
             source.OnActivate.AddListener(() => _canReceivePrint = false);
@@ -29,6 +34,4 @@ public class PrintTrigger : GameBehaviour
 
         return available.Count > 0 ? available[Random.Range(0, available.Count)] : null;
     }
-
-    public bool CanReceivePrint() => _canReceivePrint;
 }

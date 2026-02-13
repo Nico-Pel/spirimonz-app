@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 
 public class AudioOcclusion : MonoBehaviour
@@ -11,6 +12,7 @@ public class AudioOcclusion : MonoBehaviour
     private AudioSource _source;
     private AudioLowPassFilter _lowPass;
     private Transform _listener;
+    private float _baseVolume;
 
     void Awake()
     {
@@ -19,22 +21,41 @@ public class AudioOcclusion : MonoBehaviour
         _listener = Camera.main.transform;
     }
 
+    private void Start()
+    {
+        _baseVolume = _source.volume;
+    }
+
     void Update()
     {
+        if (_listener == null)
+            return;
+        
         Vector3 dir = _listener.position - transform.position;
         float dist = dir.magnitude;
 
+        RaycastHit hit;
         bool blocked = Physics.Raycast(
             transform.position,
             dir.normalized,
+            out hit,      // <-- ici
             dist,
-            occlusionMask
+            occlusionMask,
+            QueryTriggerInteraction.Ignore 
         );
 
-        float targetVolume = blocked ? occludedVolume : 1f;
+        if (blocked)
+        {
+            if (hit.transform.TryGetComponent<AudioOccluder>(out AudioOccluder occluder))
+            {
+                blocked = occluder.blockSound;
+            }
+        }
+
+        float volume = blocked ? occludedVolume : 1f;
         float targetCutoff = blocked ? occludedCutoff : openCutoff;
 
-        _source.volume = Mathf.Lerp(_source.volume, targetVolume, Time.deltaTime * smoothSpeed);
+        _source.volume = Mathf.Lerp(_source.volume, _baseVolume * volume, Time.deltaTime * smoothSpeed);
         _lowPass.cutoffFrequency = Mathf.Lerp(_lowPass.cutoffFrequency, targetCutoff, Time.deltaTime * smoothSpeed);
     }
 }

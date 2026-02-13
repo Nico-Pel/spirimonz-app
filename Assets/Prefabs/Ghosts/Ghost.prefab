@@ -50,7 +50,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   ghostParameters: {fileID: 11400000, guid: 8bc19d300597f4977b3b400a60ce14ed, type: 2}
-  forcedGhostParameters: {fileID: 0}
+  forcedGhostParameters: {fileID: 11400000, guid: 2b135e37d107d4344b20a22b4139f807, type: 2}
   forcedGhostActivity: 7
   tripleActivityDebug: 0
   currentState: 0
@@ -726,6 +726,7 @@ MonoBehaviour:
     pitchMin: 0.95
     pitchMax: 1.05
   footstepVolume: 0.1
+  ignoreAudioOcclusion: 1
   groundCheckDistance: 1.2
   groundLayers:
     serializedVersion: 2
