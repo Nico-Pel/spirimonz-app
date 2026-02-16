@@ -1,7 +1,7 @@
 using System;
 using UnityEngine;
-
-public class ActivableObject : MonoBehaviour
+using UnityEngine.Events;
+public class ActivableObject : GameBehaviour
 {
     public enum ActivationSpecialType
     {
@@ -22,6 +22,9 @@ public class ActivableObject : MonoBehaviour
     public float volume = 1f;
     public float range = 10f;
     private SoundManager.SoundInstance _loopSound;
+    
+    public UnityEvent OnActivated;
+    public UnityEvent OnDeactivated;
 
     public House house { get; set; }
 
@@ -65,6 +68,8 @@ public class ActivableObject : MonoBehaviour
         
         PlayLoopSound();
         isActivated = true;
+        
+        OnActivated?.Invoke();
     }
     
     private void PlayLoopSound()
@@ -87,5 +92,7 @@ public class ActivableObject : MonoBehaviour
             _loopSound.Stop(false);
         
         isActivated = false;
+        
+        OnDeactivated?.Invoke();
     }
 }

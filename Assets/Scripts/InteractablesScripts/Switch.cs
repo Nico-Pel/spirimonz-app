@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Events;
 
 public class Switch : ClickableObject
 {
@@ -17,7 +18,7 @@ public class Switch : ClickableObject
     public float pitchMax = 1.1f;
 
     private int _state = 0;
-
+    
     public override void OnClick()
     {
         base.OnClick();

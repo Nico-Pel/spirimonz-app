@@ -183,6 +183,11 @@ public class GameBehaviour : MonoBehaviour
 
         return pathLength;
     }
+    
+    protected bool AlmostEquals(float f, int i, float minimumDistance = 0.01f)
+    {
+        return Mathf.Abs(f - i) < minimumDistance;
+    }
 }
 
 #region ReadOnly Attribute
