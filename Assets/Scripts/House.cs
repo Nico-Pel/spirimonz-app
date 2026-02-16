@@ -12,6 +12,7 @@ public class House : GameBehaviour
     
        
 # if UNITY_EDITOR
+    public bool useDebugs;
     public GhostParameters forcedGhostParameters;
     public Ghost.GhostActivities forcedGhostActivity = Ghost.GhostActivities.Nothing;
     public int forcedFavoriteRoomID = -1;

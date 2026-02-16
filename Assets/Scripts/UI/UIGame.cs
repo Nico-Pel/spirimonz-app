@@ -32,7 +32,7 @@ public class UIGame : UIManager
         Instance = this;
         CloseAllWindows();
 
-        if(_baseBigPointer != null)
+        if(pointerON != null)
             _baseBigPointer = pointerON.sprite;
     }
     

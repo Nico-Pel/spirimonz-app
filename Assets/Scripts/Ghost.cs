@@ -164,7 +164,7 @@ public class Ghost : GameBehaviour
         }
         
         # if UNITY_EDITOR
-        if (h.forcedGhostParameters != null)
+        if (h.useDebugs && h.forcedGhostParameters != null)
         {
             ghostParameters = h.forcedGhostParameters;
         }
@@ -173,17 +173,17 @@ public class Ghost : GameBehaviour
         favoriteRoom = house.hauntableRooms[Random.Range(0, house.hauntableRooms.Length)];
         
         # if UNITY_EDITOR
-        if (h.forcedFavoriteRoomID >= 0 && house.hauntableRooms.Length > h.forcedFavoriteRoomID && house.hauntableRooms[h.forcedFavoriteRoomID] != null)
+        if (h.useDebugs && h.forcedFavoriteRoomID >= 0 && house.hauntableRooms.Length > h.forcedFavoriteRoomID && house.hauntableRooms[h.forcedFavoriteRoomID] != null)
         {
             favoriteRoom = house.hauntableRooms[h.forcedFavoriteRoomID];
         }
 
-        if (h.forcedGhostActivity != GhostActivities.Nothing)
+        if (h.useDebugs && h.forcedGhostActivity != GhostActivities.Nothing)
         {
             forcedGhostActivity = h.forcedGhostActivity;
         }
 
-        if (h.useHuntTimeMultiplierDebug)
+        if (h.useDebugs && h.useHuntTimeMultiplierDebug)
         {
             ghostParameters.averageHuntTime *= h.huntTimeMultiplierDebug;
         }
@@ -617,7 +617,7 @@ public class Ghost : GameBehaviour
                     Enum.GetValues(typeof(GhostActivities)).Length));
 
 # if UNITY_EDITOR
-        if (forcedGhostActivity != GhostActivities.Nothing)
+        if (house.useDebugs && forcedGhostActivity != GhostActivities.Nothing)
         {
             randomActivity = forcedGhostActivity;
         }

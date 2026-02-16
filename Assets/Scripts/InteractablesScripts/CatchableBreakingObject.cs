@@ -57,25 +57,25 @@ public class CatchableBreakingObject : CatchableObject
 
         foreach (Transform fracture in GetComponentsInChildren<Transform>())
         {
-            //Ignore parent
-            if(fracture == transform) continue;
-            
+            if (fracture == transform) continue;
+
+            Transform localFracture = fracture;
+
             this.Invoke(lockingFracturesDelay, () =>
             {
-                if (fracture.gameObject != null)
+                if (localFracture == null) return;
+
+                if (localFracture.TryGetComponent(out Rigidbody rb) && rb.velocity.magnitude < 0.5f)
                 {
-                    if (fracture.TryGetComponent(out Rigidbody rb) && rb.velocity.magnitude < 0.5f)
+                    rb.isKinematic = true;
+                }
+                else
+                {
+                    localFracture.DOScale(0.01f, 2f).OnComplete(() =>
                     {
-                        rb.isKinematic = true;
-                    }
-                    else
-                    {
-                        fracture.DOScale(0.01f, 2f).OnComplete(() =>
-                        {
-                            if(fracture.gameObject != null)
-                                Destroy(fracture.gameObject);
-                        });
-                    }
+                        if (localFracture != null)
+                            Destroy(localFracture.gameObject);
+                    });
                 }
             });
         }

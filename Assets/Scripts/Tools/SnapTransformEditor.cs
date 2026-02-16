@@ -4,7 +4,7 @@ using UnityEngine;
 [InitializeOnLoad]
 public static class SnapTransformEditor
 {
-    private const float SNAP_VALUE = 0.1f;
+    private const float SNAP_VALUE = 0.05f;
 
     static SnapTransformEditor()
     {
@@ -66,11 +66,7 @@ public static class SnapTransformEditor
 
     private static float SnapAngle(float angle)
     {
-        angle = Mathf.Repeat(angle, 360f);
-
-        if (angle > 180f)
-            angle -= 360f;
-
+        angle = Mathf.DeltaAngle(0f, angle);
         return SnapFloat(angle);
     }
 }
