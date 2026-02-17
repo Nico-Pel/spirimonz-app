@@ -14,6 +14,9 @@ public class ClickableObject : GameBehaviour, IInteractable
 
     public House house { get; set; }
 
+    private float _securityClickTime = 0.15f;
+    private bool _clickSecurityLocked = false;
+    
     private void Awake()
     {
         if (activitySource == null)
@@ -39,6 +42,11 @@ public class ClickableObject : GameBehaviour, IInteractable
 
     public void OnInteractStart()
     {
+        if (_clickSecurityLocked) return;
+
+        _clickSecurityLocked = true;
+        this.Invoke(_securityClickTime, () => _clickSecurityLocked = false);
+            
         if (canClick)
             OnClick();
     }

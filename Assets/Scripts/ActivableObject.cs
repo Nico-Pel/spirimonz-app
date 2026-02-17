@@ -21,10 +21,15 @@ public class ActivableObject : GameBehaviour
     public AudioClip loopSound;
     public float volume = 1f;
     public float range = 10f;
+    public float pitch = 1f;
     private SoundManager.SoundInstance _loopSound;
     
     public UnityEvent OnActivated;
     public UnityEvent OnDeactivated;
+
+    [Header("Automatic disable")]
+    public bool useAutomaticDisable = false;
+    public float automaticDisableTime = 0.5f;
 
     public House house { get; set; }
 
@@ -70,6 +75,11 @@ public class ActivableObject : GameBehaviour
         isActivated = true;
         
         OnActivated?.Invoke();
+
+        if (useAutomaticDisable)
+        {
+            this.Invoke(automaticDisableTime, Deactivate);
+        }
     }
     
     private void PlayLoopSound()
@@ -82,7 +92,8 @@ public class ActivableObject : GameBehaviour
             volume: volume,
             loop: true,
             range: range,
-            sourceParent: transform
+            sourceParent: transform,
+            pitch : pitch
         );
     }
 

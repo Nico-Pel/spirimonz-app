@@ -197,7 +197,7 @@ public class Ghost : GameBehaviour
         float nextActivityTime = Random.Range(averageActivityTime - activityTimeVariation, averageActivityTime + activityTimeVariation);
         
         # if UNITY_EDITOR
-        if (h.tripleActivityDebug)
+        if (h.useDebugs && h.tripleActivityDebug)
         {
             tripleActivityDebug = true;
             nextActivityTime = nextActivityTime / 3;

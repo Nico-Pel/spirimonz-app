@@ -7,7 +7,6 @@ public class ActivableWaterFiller : ActivableObject
 {
     [ReadOnly] public float waterFillPercentage;
     public GameObject waterObject;
-    public GameObject waterFillerObject;
 
     [Header("Settings")] 
     public float percentageFillForSeconds = 5f;
@@ -26,19 +25,18 @@ public class ActivableWaterFiller : ActivableObject
     public AudioClip waterEmptySound;
     public float waterEmptyVolume = 1f;
     
-    [Header("Fill Curve")]
-    public AnimationCurve fillCurve = AnimationCurve.EaseInOut(0, 0, 1, 1);
+    [Header("Fill Curves")]
+    public AnimationCurve positionCurve = AnimationCurve.EaseInOut(0, 0, 1, 1);
+    public AnimationCurve scaleCurve    = AnimationCurve.EaseInOut(0, 0, 1, 1);
     
     public override void Activate()
     {
         base.Activate();
-        waterFillerObject.SetActive(true);
     }
     
     public override void Deactivate()
     {
         base.Deactivate();
-        waterFillerObject.SetActive(false);
     }
 
     private void Update()
@@ -58,13 +56,15 @@ public class ActivableWaterFiller : ActivableObject
             OnWaterEmpty();
         }
 
-        waterObject.SetActive(waterFillPercentage > 5f);
+        waterObject.SetActive(waterFillPercentage > 0.1f);
 
         float t = waterFillPercentage / 100f;
-        float curvedT = fillCurve.Evaluate(t);
 
-        waterObject.transform.localPosition = Vector3.Lerp(basePosition, endPosition, curvedT);
-        waterObject.transform.localScale    = Vector3.Lerp(baseScale, endScale, curvedT);
+        float positionT = positionCurve.Evaluate(t);
+        float scaleT    = scaleCurve.Evaluate(t);
+
+        waterObject.transform.localPosition = Vector3.Lerp(basePosition, endPosition, positionT);
+        waterObject.transform.localScale    = Vector3.Lerp(baseScale, endScale, scaleT);
     }
 
     private void OnWaterEmpty()

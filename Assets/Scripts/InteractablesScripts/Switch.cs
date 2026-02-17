@@ -16,7 +16,12 @@ public class Switch : ClickableObject
     public float volume = 0.5f;
     public float pitchMin = 0.9f;
     public float pitchMax = 1.1f;
+    
+    private SoundManager.SoundInstance _soundInstance;
 
+    [Header("Special settings")] 
+    public bool isOnStateSwitch;
+    
     private int _state = 0;
     
     public override void OnClick()
@@ -35,10 +40,20 @@ public class Switch : ClickableObject
         }
         
         //Play sound
-        if (TurnOnSound == null || TurnOffSound == null) return;
             
         AudioClip clip = _state == 1 ? TurnOnSound : TurnOffSound;
-        PlaySound(clip);
+        if(clip != null)
+            PlaySound(clip);
+
+        //Reset
+        if (isOnStateSwitch)
+        {
+            this.Invoke(0.1f, () =>
+            {
+                _state = 0;
+                animator.SetInteger("State", _state);
+            });
+        }
     }
 
     public void LockObject()
@@ -67,6 +82,12 @@ public class Switch : ClickableObject
     
     private void PlaySound(AudioClip sound)
     {
+        if (_soundInstance != null)
+        {
+            _soundInstance.Stop();
+        }
+        
+        _soundInstance =
         SoundManager.Instance?.PlaySound(sound, activitySource.transform.position, volume, Random.Range(pitchMin, pitchMax));
     }
 }

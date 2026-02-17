@@ -164,13 +164,13 @@ MonoBehaviour:
   waterFillerObject: {fileID: 6844536992270817117}
   percentageFillForSeconds: 5
   percentageEmptyForSeconds: 10
-  baseScale: {x: 0.44, y: 0.36, z: 0.24}
-  basePosition: {x: 0, y: 0.153, z: -0.572}
+  baseScale: {x: 0.024, y: 0.02, z: 0.013}
+  basePosition: {x: 0, y: 0.153, z: -0.604}
   endScale: {x: 0.666, y: 0.666, z: 0.666}
   endPosition: {x: 0, y: 0.663, z: -0.557}
   waterEmptySound: {fileID: 8300000, guid: 11424ff2e58194be394272146149e75d, type: 3}
   waterEmptyVolume: 0.025
-  fillCurve:
+  positionCurve:
     serializedVersion: 2
     m_Curve:
     - serializedVersion: 3
@@ -190,6 +190,39 @@ MonoBehaviour:
       tangentMode: 0
       weightedMode: 0
       inWeight: 0
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  scaleCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 3.3254716
+      outSlope: 3.3254716
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0.033333335
+    - serializedVersion: 3
+      time: 0.17748605
+      value: 0.4895609
+      inSlope: 1.689732
+      outSlope: 1.689732
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.34267133
+      outWeight: 0.0644724
+    - serializedVersion: 3
+      time: 1
+      value: 1
+      inSlope: 0.049220636
+      outSlope: 0.049220636
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.38333333
       outWeight: 0
     m_PreInfinity: 2
     m_PostInfinity: 2
@@ -221,8 +254,8 @@ Transform:
   m_GameObject: {fileID: 7116218049710173364}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0.153, z: -0.572}
-  m_LocalScale: {x: 0.44, y: 0.36, z: 0.24}
+  m_LocalPosition: {x: 0, y: 0.153, z: -0.604}
+  m_LocalScale: {x: 0.024, y: 0.02, z: 0.013}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 971934375043462908}
@@ -305,7 +338,7 @@ Transform:
   m_GameObject: {fileID: 9213361983431424344}
   serializedVersion: 2
   m_LocalRotation: {x: -0.7071069, y: -0, z: -0, w: -0.70710677}
-  m_LocalPosition: {x: 0.00909091, y: 0.198, z: 0.497}
+  m_LocalPosition: {x: 0.00909091, y: 0.2, z: 0.3}
   m_LocalScale: {x: 1.1136365, y: 2.0416667, z: 1.3611109}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -483,7 +516,7 @@ ParticleSystem:
       serializedVersion: 2
       minMaxState: 0
       minColor: {r: 1, g: 1, b: 1, a: 1}
-      maxColor: {r: 1, g: 1, b: 1, a: 0.050980393}
+      maxColor: {r: 1, g: 1, b: 1, a: 0.03137255}
       maxGradient:
         serializedVersion: 2
         key0: {r: 1, g: 1, b: 1, a: 1}
@@ -5114,10 +5147,6 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 764223828660086664}
     m_Modifications:
-    - target: {fileID: 2839848189586056284, guid: 885c883685be349fab4b3d04b3895bf3, type: 3}
-      propertyPath: m_IsActive
-      value: 1
-      objectReference: {fileID: 0}
     - target: {fileID: 4353122214957038836, guid: 885c883685be349fab4b3d04b3895bf3, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0
@@ -5158,13 +5187,13 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 4706355332999088736, guid: 885c883685be349fab4b3d04b3895bf3, type: 3}
-      propertyPath: m_LocalScale.y
-      value: 0.2833377
+    - target: {fileID: 4646383914978009005, guid: 885c883685be349fab4b3d04b3895bf3, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 3.82
       objectReference: {fileID: 0}
     - target: {fileID: 4706355332999088736, guid: 885c883685be349fab4b3d04b3895bf3, type: 3}
-      propertyPath: m_LocalPosition.y
-      value: -0.195
+      propertyPath: m_LocalPosition.z
+      value: 0.167
       objectReference: {fileID: 0}
     - target: {fileID: 6886287545056954391, guid: 885c883685be349fab4b3d04b3895bf3, type: 3}
       propertyPath: activableObject
