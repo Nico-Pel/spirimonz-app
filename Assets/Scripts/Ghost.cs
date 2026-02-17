@@ -645,7 +645,7 @@ public class Ghost : GameBehaviour
                 break;
 
             case GhostActivities.ChangeElectronicObjectState:
-                TriggerElectronicObjectActivity();
+                TriggerActivatorObjectActivity();
                 Debug.Log("Activity triggered : Electronic Object " + Time.time);
                 break;
             
@@ -835,9 +835,9 @@ public class Ghost : GameBehaviour
         }
     }
     
-    private void TriggerElectronicObjectActivity()
+    private void TriggerActivatorObjectActivity()
     {
-        Switch electronicObject = currentRoom.SelectSpecialSwitchObject(ActivableObject.ActivationSpecialType.electronicObject);
+        Switch electronicObject = currentRoom.SelectRandomSwitchObject(ActivableObject.ActivationSpecialType.electronicLight);
         
         //No object found, throw an object instead
         if (electronicObject == null)
@@ -845,21 +845,45 @@ public class Ghost : GameBehaviour
             ThrowObject();
             return;
         }
-        
-        if (ghostParameters.ghostTypeData.ghostType == GhostTypeData.GhostType.Totemic)
+
+        if (electronicObject.activableObject != null)
         {
-            if (!electronicObject.activableObject.isActivated)
+            if (electronicObject.activableObject.activationType == ActivableObject.ActivationSpecialType.electronicObject)
             {
-                ThrowObject(); //Totemics can't turn on electronic objects, throw on object instead
-                return;
-            }
-        }
-        else if (ghostParameters.ghostTypeData.ghostType == GhostTypeData.GhostType.Voltaic)
-        {
-            if (electronicObject.activableObject.isActivated)
+                if (ghostParameters.ghostTypeData.ghostType == GhostTypeData.GhostType.Totemic)
+                {
+                    if (electronicObject.activableObject.isActivated == false)
+                    {
+                        ThrowObject(); //Totemics can't turn on electronic objects, throw on object instead
+                        return;
+                    }
+                }
+                else if (ghostParameters.ghostTypeData.ghostType == GhostTypeData.GhostType.Voltaic)
+                {
+                    if (electronicObject.activableObject.isActivated)
+                    {
+                        ThrowObject(); //Voltaics can't turn off electronic objects, throw on object instead
+                        return;
+                    }
+                }
+            }else if (electronicObject.activableObject.activationType == ActivableObject.ActivationSpecialType.water)
             {
-                ThrowObject(); //Voltaics can't turn off electronic objects, throw on object instead
-                return;
+                if (ghostParameters.ghostTypeData.ghostType == GhostTypeData.GhostType.Blazing)
+                {
+                    if (electronicObject.activableObject.isActivated == false)
+                    {
+                        ThrowObject(); //Blazings can't turn on water objects, throw on object instead
+                        return;
+                    }
+                }
+                else if (ghostParameters.ghostTypeData.ghostType == GhostTypeData.GhostType.Aquatic)
+                {
+                    if (electronicObject.activableObject.isActivated)
+                    {
+                        ThrowObject(); //Aquatics can't turn off water objects, throw on object instead
+                        return;
+                    }
+                }
             }
         }
         
@@ -1061,6 +1085,24 @@ public class Ghost : GameBehaviour
         forcedStartTargetingTime =
             _baseForcedStartTargetingTime +
             steps * forcedTargetingTimeIncreasePerStep;
+    }
+
+    public void TryToImproveAnger(float angerValue, Transform source, float distMax = 10f, bool usePathDistance = false)
+    {
+        float dist = 0;
+        if (usePathDistance)
+        {
+            dist = PathDistanceForAnAgent(agent, source.position);
+        }
+        else
+        {
+            dist = Vector3.Distance(transform.position, source.position);
+        }
+
+        if (dist <= distMax)
+        {
+            ImproveAnger(angerValue);
+        }
     }
 
     public void DecreaseAngriness(float percentageToDecrease)

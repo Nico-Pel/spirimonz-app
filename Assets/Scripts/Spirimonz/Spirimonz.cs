@@ -69,9 +69,11 @@ public class Spirimonz : GameBehaviour, IInteractable
 
     private bool _isLocked;
     private bool _initialized;
+    protected House _house;
 
     protected virtual void Start()
     {
+        _house = House.Instance;
         InitSpirimonz();
     }
 
@@ -83,9 +85,9 @@ public class Spirimonz : GameBehaviour, IInteractable
         _currentBehaviour = SpirimonzBehaviourState.Wait;
         hidingGameObject.SetActive(false);
         
-        House.Instance.currentGhost.onGhostCallForAHunt.AddListener(StartDelayBeforeFeelingAHunt);
-        House.Instance.currentGhost.onGhostStartToHunt.AddListener(OnHuntStart);
-        House.Instance.currentGhost.onGhostStopToHunt.AddListener(OnHuntEnd);
+        _house.currentGhost.onGhostCallForAHunt.AddListener(StartDelayBeforeFeelingAHunt);
+        _house.currentGhost.onGhostStartToHunt.AddListener(OnHuntStart);
+        _house.currentGhost.onGhostStopToHunt.AddListener(OnHuntEnd);
         
         EnableSpirimonz(false);
         _initialized = true;
@@ -136,7 +138,7 @@ public class Spirimonz : GameBehaviour, IInteractable
     private bool _shouldFeelAHunt;
     private void StartDelayBeforeFeelingAHunt()
     {
-        float timeBeforeDisappearing = House.Instance.currentGhost.forecastTimeBeforeAHunt - forecastTimeBeforeAHunt;
+        float timeBeforeDisappearing = _house.currentGhost.forecastTimeBeforeAHunt - forecastTimeBeforeAHunt;
         if (timeBeforeDisappearing <= 0)
             timeBeforeDisappearing = 0.1f;
 
@@ -188,7 +190,7 @@ public class Spirimonz : GameBehaviour, IInteractable
             _escaping = true;
         }
 
-        if (House.Instance.currentGhost.IsHunting())
+        if (_house.currentGhost.IsHunting())
         {
             collider.enabled = false;
         }
@@ -401,7 +403,7 @@ public class Spirimonz : GameBehaviour, IInteractable
 
         if (dist < lookAtDistanceFromPlayer)
         {
-            targetDir = House.Instance.currentPlayer.transform.position - transform.position;
+            targetDir = _house.currentPlayer.transform.position - transform.position;
         }
         else
         {
@@ -437,7 +439,7 @@ public class Spirimonz : GameBehaviour, IInteractable
 
     private void FollowingPlayer()
     {
-        Vector3 playerPos = House.Instance.currentPlayer.transform.position;
+        Vector3 playerPos = _house.currentPlayer.transform.position;
         float dist = Vector3.Distance(transform.position, playerPos);
         agent.speed = dist > followingDistance ? speed : 0;
         agent.SetDestination(playerPos);
@@ -455,7 +457,7 @@ public class Spirimonz : GameBehaviour, IInteractable
         if (_targetedTransform == null)
         {
             _targetedTransform =
-                House.Instance.SelectRandomWaypointFurthestFromPosition(agent, nbOfWayPointsToConsider).transform;
+                _house.SelectRandomWaypointFurthestFromPosition(agent, nbOfWayPointsToConsider).transform;
         }
 
         if (_targetedTransform == null)
@@ -536,7 +538,7 @@ public class Spirimonz : GameBehaviour, IInteractable
     public void EnableSpirimonz(bool enable)
     {
         gameObject.SetActive(enable);
-        agent.enabled = enable && House.Instance.currentGhost.IsHunting() == false;
+        agent.enabled = enable && _house.currentGhost.IsHunting() == false;
         collider.enabled = enable;
         isOnTheMap = enable;
 

@@ -31,6 +31,7 @@ public class SpmzDetector : Spirimonz
     public float basePitch = 0.7f;
     public float bonusPitchPerDetectionLevel = 0.2f;
     public AudioClip detectionFiveSound;
+    public float annoyingSoundValue = 0;
     
     private ActivitySource _currentActivitySourceDetected;
     private bool _newActivityReached;
@@ -98,6 +99,11 @@ public class SpmzDetector : Spirimonz
             AudioClip clipToUse = activitySource.activityValue == 5 ? detectionFiveSound : detectionSound;
             float pitch = activitySource.activityValue == 5 ? 1f : basePitch + bonusPitchPerDetectionLevel * (activitySource.activityValue - 1);
             SoundManager.Instance.PlaySound(clipToUse, transform.position, soundVolume, pitch, -1f, 15f, false, transform);
+
+            if (annoyingSoundValue > 0)
+            {
+                _house.currentGhost.TryToImproveAnger(annoyingSoundValue, transform);
+            }
         }
     }
 

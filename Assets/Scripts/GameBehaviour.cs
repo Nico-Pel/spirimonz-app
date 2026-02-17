@@ -149,7 +149,7 @@ public class GameBehaviour : MonoBehaviour
 
     public float PathDistanceForAnAgent(NavMeshAgent mAgent,
         Vector3 positionToTarget,
-        float sampleRadius = 5f)
+        float sampleRadius = 0.1f)
     {
         if (mAgent == null || !mAgent.isOnNavMesh)
             return -1f;

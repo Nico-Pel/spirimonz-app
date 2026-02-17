@@ -88,7 +88,7 @@ public class Door : GameBehaviour, IInteractable
         CancelInvoke(nameof(CheckAngle));
 
         if (isOpen && Mathf.Abs(hingeJoint.angle) < _almostCloseAngle)
-            CloseDoor(autoCloseSpeed);
+            CloseDoor(autoCloseSpeed, ignoreAudioOcclusions:true);
         else
             StopDoor();
         
@@ -123,19 +123,19 @@ public class Door : GameBehaviour, IInteractable
         {
             isOpen = true;
             EnableAudioOcclusions(false);
-            PlaySound(openSound);
+            PlaySound(openSound, false);
         }
 
         ForcedHinge(targetAngle, moveSpeed);
     }
 
-    public void CloseDoor(float closeSpeed, bool forcedSlam = false)
+    public void CloseDoor(float closeSpeed, bool forcedSlam = false, bool ignoreAudioOcclusions = false)
     {
         isOpen = false;
         EnableAudioOcclusions(true);
         HingeClose(closeSpeed);
 
-        PlaySound((forcedSlam || IsSlamDetected()) ? slamSound : closeSound);
+        PlaySound((forcedSlam || IsSlamDetected()) ? slamSound : closeSound, ignoreAudioOcclusions);
     }
 
     #endregion
@@ -188,7 +188,7 @@ public class Door : GameBehaviour, IInteractable
             return;
 
         if (isOpen && !_ghostJustInteracted && Mathf.Abs(hingeJoint.angle) < _almostCloseAngle)
-            CloseDoor(autoCloseSpeed, _askedForGhostSlam);
+            CloseDoor(autoCloseSpeed, _askedForGhostSlam, ignoreAudioOcclusions:false);
         else if (isOpen && !_ghostJustInteracted && Mathf.Abs(hingeJoint.velocity) < 2f)
             StopDoor();
     }
@@ -211,7 +211,7 @@ public class Door : GameBehaviour, IInteractable
         {
             isOpen = true;
             EnableAudioOcclusions(false);
-            PlaySound(openSound);
+            PlaySound(openSound, true);
         }
 
         _lastAngle = currentAngle;
@@ -235,10 +235,10 @@ public class Door : GameBehaviour, IInteractable
         return Mathf.Lerp(closeAngle, openFullAngle, Mathf.Clamp01(openPercentage));
     }
 
-    private void PlaySound(AudioClip clip)
+    private void PlaySound(AudioClip clip, bool ignoreOcclusion)
     {
         if (clip != null)
-            SoundManager.Instance.PlaySound(clip, transform.position, volume: volume);
+            SoundManager.Instance.PlaySound(clip, transform.position, volume: volume, ignoreAudioOcclusion:ignoreOcclusion);
     }
 
     public bool IsGrabbed() => _isGrabbed;

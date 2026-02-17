@@ -1,6 +1,8 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Object = UnityEngine.Object;
 
 public class SoundManager : GameBehaviour
 {
@@ -13,6 +15,7 @@ public class SoundManager : GameBehaviour
     public float ambientSoundVolume = 0.2f;
 
     private AudioSource _ambientSource;
+    private Ghost _ghost;
 
     private void Awake()
     {
@@ -23,7 +26,7 @@ public class SoundManager : GameBehaviour
             PlayAmbient(ambientSound, ambientSoundVolume, true);
         }
     }
-
+    
     public SoundInstance PlaySound(
         AudioClip clip,
         Vector3 position,
