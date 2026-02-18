@@ -12,15 +12,18 @@ public class UIManager : GameBehaviour
     private bool _currentCursorState;
     private int _showCursorsActivatedCount;
 
+    private Player _player;
+
     protected virtual void Start()
     {
         ShowCursor(false);
+
+        _player = Player.Instance;
     }
 
     public void AddShowCursor()
     {
         _showCursorsActivatedCount++;
-        Debug.Log("POUET CURSOR ADD " + _showCursorsActivatedCount);
         
         if (_currentCursorState == false)
             ShowCursor(true);
@@ -29,7 +32,6 @@ public class UIManager : GameBehaviour
     public void RemoveShowCursor()
     {
         _showCursorsActivatedCount--;
-        Debug.Log("POUET CURSOR REMOVE " + _showCursorsActivatedCount);
         
         if(_showCursorsActivatedCount <= 0)
             ShowCursor(false);
@@ -64,7 +66,8 @@ public class UIManager : GameBehaviour
         Cursor.visible = enable;
         Cursor.lockState = enable ? CursorLockMode.None : CursorLockMode.Locked;
 
-        Player.Instance?.LockControls(enable);
+        if(_player != null)
+            _player.LockControls(enable);
     }
     
     public virtual void ExitLastMenu()

@@ -14,6 +14,10 @@ public class SpirimonzSettings : ScriptableObject
     public GameObject spirimonzBodyPrefab;
     public Vector3 bodyPresentationOffset;
 
+    [Space] 
+    
+    public Sprite img;
+    
     [Space]
     
     [TextArea(3, 10)]

@@ -61,11 +61,15 @@ public class Room : MonoBehaviour
     public Switch SelectRandomSwitchObject(ActivableObject.ActivationSpecialType forbiddenType = ActivableObject.ActivationSpecialType.none)
     {
         List<Switch> selectableObjects = new List<Switch>();
-        foreach (Switch s in clickableObjects)
+        foreach (ClickableObject c in clickableObjects)
         {
-            if(s.activableObject.activationType != ActivableObject.ActivationSpecialType.none && 
-               s.activableObject.activationType != forbiddenType)
-                selectableObjects.Add(s);
+            Switch s = c as Switch;
+            if (s != null)
+            {
+                if(s.activableObject.activationType != ActivableObject.ActivationSpecialType.none && 
+                   s.activableObject.activationType != forbiddenType)
+                    selectableObjects.Add(s);
+            }
         }
         if (selectableObjects.Count == 0) return null;
         return selectableObjects[Random.Range(0, selectableObjects.Count)];

@@ -130,6 +130,12 @@ public class UIGame : UIManager
         tablet.OpenTab(1, true);
     }
 
+    public void OpenPrivateTabletWindow(int windowID)
+    {
+        tablet.gameObject.SetActive(true);
+        tablet.OpenPrivateWindow(windowID);
+    }
+
     private void CloseTablet()
     {
         tablet.gameObject.SetActive(false);
@@ -138,12 +144,12 @@ public class UIGame : UIManager
     public override void ExitLastMenu()
     {
         base.ExitLastMenu();
-        tablet.CloseAllTabs();
+        tablet.TurnOffTablet();
     }
 
     public override void CloseAllWindows()
     {
         base.CloseAllWindows();
-        tablet.CloseAllTabs();
+        tablet.TurnOffTablet();
     }
 }

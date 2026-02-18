@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Events;
 using DG.Tweening;
 using UnityEngine.Serialization;
 
@@ -34,6 +35,8 @@ public class InventoryManager : GameBehaviour
     private Player _player;
     private GamePlayer _gamePlayer;
     private GameManager _gameManager;
+
+    public UnityEvent onTeamChange;
 
     private void Awake()
     {
@@ -128,7 +131,13 @@ public class InventoryManager : GameBehaviour
 
         // Retire un Spirimonz déjà présent à cette position
         if (spirimonzTeamSettings[position] != null)
+        {
+            if (existingIndex == -1)
+            {
+                AddSpirimonzToTeam(spirimonzTeamSettings[position], existingIndex);
+            }
             RemoveSpirimonzFromTeam(position);
+        }
 
         // Ajoute le Spirimonz
         spirimonzTeamSettings[position] = spirimonz;
@@ -136,6 +145,7 @@ public class InventoryManager : GameBehaviour
         // Met à jour le GameManager / save
         _gameManager.SetSpirimonzInTeam(spirimonz.spirimonzID, position, true);
 
+        onTeamChange?.Invoke();
         return true;
     }
 
@@ -152,6 +162,7 @@ public class InventoryManager : GameBehaviour
 
         // Mettre à jour le GameManager (et la save)
         _gameManager.SetSpirimonzInTeam(settings.spirimonzID, position, false);
+        onTeamChange?.Invoke();
     }
 
     /// <summary>Instancie les Spirimonz dans les mains du joueur (uniquement quand on est dans une maison)</summary>
@@ -423,5 +434,16 @@ public class InventoryManager : GameBehaviour
     public void SetHandsStateNull()
     {
         _gamePlayer.handAnimator.SetInteger("HandPos", (int)HandPoses.Null);
+    }
+
+    public bool IsSpirimonzInTeam(SpirimonzSettings spmz)
+    {
+        foreach (SpirimonzSettings ss in spirimonzTeamSettings)
+        {
+            if (spmz == ss)
+                return true;
+        }
+
+        return false;
     }
 }

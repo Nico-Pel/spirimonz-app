@@ -3,34 +3,23 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using TMPro;
-using UnityEngine.Serialization;
 using UnityEngine.UI;
 
 public class UITeamPanel : GameBehaviour
 {
-    [Header("3D Components")] 
-    public Transform spmzBodyPos;
-    [ReadOnly] public GameObject currentSpirimonzBody;
+    public enum AutoSelectionType
+    {
+        firstSpirimonz,
+        equipedSpirimonz
+    }
+    
+    public AutoSelectionType autoSelection = AutoSelectionType.equipedSpirimonz;
+    
+    [Header("Components")] 
+    public UISpirimonzInformationsSetter spmzInfoSetter;
     
     [Header("Texts")]
-    public TextMeshProUGUI tSpirimonzName;
-    public TextMeshProUGUI[] tSpirimonzAbilities;
     public TextMeshProUGUI[] tSwitchNbs;
-
-    [Header("Images")] 
-    public Image[] abilityPanels;
-    public Image primaryType;
-    public Image secondaryType;
-    public Image[] booleanFeedbacks;
-
-    private Color _abilityPanelBaseColor;
-    private Color _abilityPanelOffColor;
-
-    [Header("Sprites")] 
-    public Sprite nopSprite;
-    public Color nopColor;
-    public Sprite yesSprite;
-    public Color yesColor;
 
     [Header("Buttons")] 
     public Button[] switchButtons;
@@ -50,8 +39,6 @@ public class UITeamPanel : GameBehaviour
     {
         _baseColor = switchButtons[0].image.color;
         _baseIconColor = tSwitchNbs[0].color;
-        _abilityPanelBaseColor = abilityPanels[0].color;
-        _abilityPanelOffColor = new Color(_abilityPanelBaseColor.r, _abilityPanelBaseColor.g, _abilityPanelBaseColor.b, 0.2f);
     }
 
     private void Start()
@@ -84,7 +71,14 @@ public class UITeamPanel : GameBehaviour
 
     private void OnEnable()
     {
-        SelectTargetedSpirimonz();
+        if (autoSelection == AutoSelectionType.firstSpirimonz)
+        {
+            SelectSpirimonz(0);
+        }
+        else if (autoSelection == AutoSelectionType.equipedSpirimonz)
+        {
+            SelectTargetedSpirimonz();
+        }
     }
 
     private void Update()
@@ -134,51 +128,7 @@ public class UITeamPanel : GameBehaviour
     private void SelectSpirimonz(int teamID)
     {
         SpirimonzSettings spmz = _inventoryManager.spirimonzTeamSettings[teamID];
-        tSpirimonzName.text = spmz.spirimonzName;
-
-        primaryType.sprite = spmz.PrimaryTypeSprite;
-        secondaryType.sprite = spmz.SecondaryTypeSprite;
-
-        int abilityCount = spmz.abilitiesDescriptions.Length;
-        for (int i = 0; i < abilityPanels.Length; i++)
-        {
-            if (i >= abilityCount)
-            {
-                abilityPanels[i].color = _abilityPanelOffColor;
-                tSpirimonzAbilities[i].text = "";
-            }
-            else
-            {
-                abilityPanels[i].color = _abilityPanelBaseColor;
-                tSpirimonzAbilities[i].text = spmz.abilitiesDescriptions[i];
-            }
-        }
-
-        if (currentSpirimonzBody != null)
-        {
-            Destroy(currentSpirimonzBody);
-        }
-        
-        currentSpirimonzBody = Instantiate(spmz.spirimonzBodyPrefab, spmzBodyPos.position, spmzBodyPos.rotation, spmzBodyPos);
-        spmzBodyPos.localPosition = Vector3.zero + spmz.bodyPresentationOffset;
-        currentSpirimonzBody.transform.localScale = Vector3.one * 7f;
-        ChangeLayer(currentSpirimonzBody, 5);
-
-        bool powerInHands = spmz.canUsePowerInHands;
-        booleanFeedbacks[0].sprite = powerInHands ? yesSprite : nopSprite;
-        booleanFeedbacks[0].color = powerInHands ? yesColor : nopColor;
-        
-        bool canDropOnMap = spmz.canBeDroppedOnMap;
-        booleanFeedbacks[1].sprite = canDropOnMap ? yesSprite : nopSprite;
-        booleanFeedbacks[1].color = canDropOnMap ? yesColor : nopColor;
-        
-        bool canGoBackToHands = spmz.canBeTakenBackInHands;
-        booleanFeedbacks[2].sprite = canGoBackToHands ? yesSprite : nopSprite;
-        booleanFeedbacks[2].color = canGoBackToHands ? yesColor : nopColor;
-        
-        bool followPlayer = spmz.canFollowPlayer;
-        booleanFeedbacks[3].sprite = followPlayer ? yesSprite : nopSprite;
-        booleanFeedbacks[3].color = followPlayer ? yesColor : nopColor;
+        spmzInfoSetter.SetSpirimonz(spmz);
 
         for (int i = 0; i < switchButtons.Length; i++)
         {
@@ -189,4 +139,6 @@ public class UITeamPanel : GameBehaviour
 
         _currentSelectionID = teamID;
     }
+    
+    public int GetCurrentSelectionID() => _currentSelectionID;
 }

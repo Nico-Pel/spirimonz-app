@@ -51,6 +51,6 @@ public class UIJournal : GameBehaviour
     {
         gameObject.SetActive(false);
         GhostInvestigator.Instance.TryToCapture(GetSelectedGhosts());
-        UIGame.Instance.tablet.CloseAllTabs();
+        UIGame.Instance.tablet.TurnOffTablet();
     }
 }

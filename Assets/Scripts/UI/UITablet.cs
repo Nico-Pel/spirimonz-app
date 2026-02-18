@@ -13,7 +13,10 @@ public class UITablet : MonoBehaviour
     public Image[] tabIcons;
     public Color selectColor;
     public Color selectIconColor;
+
+    public GameObject tabsObject;
     public GameObject[] tabWindows;
+    public GameObject[] privateWindows;
 
     private Color _baseColor;
     private Color _baseIconColor;
@@ -59,6 +62,8 @@ public class UITablet : MonoBehaviour
             tabButtons[i].image.color = selected ? selectColor : _baseColor;
             tabIcons[i].color = selected ? selectIconColor : _baseIconColor;
         }
+
+        tabsObject.SetActive(true);
     }
     
     private void OnEnable()
@@ -78,12 +83,41 @@ public class UITablet : MonoBehaviour
             .SetEase(openEase);
     }
 
-    public void CloseAllTabs()
+    public void TurnOffTablet()
     {
         foreach (GameObject g in tabWindows)
         {
             g.SetActive(false);
         }
+        foreach (GameObject g in privateWindows)
+        {
+            g.SetActive(false);
+        }
         gameObject.SetActive(false);
+    }
+
+    private void CloseAllTabs()
+    {
+        foreach (GameObject g in tabWindows)
+        {
+            g.SetActive(false);
+        }
+    }
+    
+    private void CloseAllPrivateWindows()
+    {
+        foreach (GameObject g in privateWindows)
+        {
+            g.SetActive(false);
+        }
+    }
+
+    public void OpenPrivateWindow(int windowID)
+    {
+        CloseAllTabs();
+        CloseAllPrivateWindows();
+        
+        tabsObject.SetActive(false);
+        privateWindows[windowID].SetActive(true);
     }
 }
