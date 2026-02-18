@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Events;
 using TMPro;
 using UnityEngine.UI;
 
@@ -10,6 +11,7 @@ public class UISpirimonzInformationsSetter : GameBehaviour
     [Header("3D Components")]
     public Transform spmzBodyPos;
     [ReadOnly] public GameObject currentSpirimonzBody;
+    public UISpirimonzInformationsSetter[] linkedSpirimonzSetters;
     
     [Header("Texts")]
     public TextMeshProUGUI tSpirimonzName;
@@ -31,6 +33,8 @@ public class UISpirimonzInformationsSetter : GameBehaviour
     public Color yesColor;
     
     private SpirimonzSettings _lastSpirimonzSettings;
+
+    public UnityEvent onInfoChanges;
     
     private void Awake()
     {
@@ -65,6 +69,7 @@ public class UISpirimonzInformationsSetter : GameBehaviour
         }
         
         _lastSpirimonzSettings = spmz;
+        onInfoChanges?.Invoke();
     }
 
     private void SetSpirimonzAbilities(SpirimonzSettings spmz)
@@ -87,6 +92,12 @@ public class UISpirimonzInformationsSetter : GameBehaviour
         if (currentSpirimonzBody != null)
         {
             Destroy(currentSpirimonzBody);
+        }
+
+        foreach (UISpirimonzInformationsSetter linkedSetter in linkedSpirimonzSetters)
+        {
+            if(linkedSetter.currentSpirimonzBody != null)
+                Destroy(linkedSetter.currentSpirimonzBody);
         }
         
         currentSpirimonzBody = Instantiate(spmz.spirimonzBodyPrefab, spmzBodyPos.position, spmzBodyPos.rotation, spmzBodyPos);
@@ -124,5 +135,10 @@ public class UISpirimonzInformationsSetter : GameBehaviour
     {
         if(currentSpirimonzBody != null)
             Destroy(currentSpirimonzBody);
+    }
+
+    public SpirimonzSettings GetLastSpirimonzSettings()
+    {
+        return _lastSpirimonzSettings;
     }
 }

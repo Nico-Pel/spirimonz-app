@@ -48,14 +48,12 @@ public class UITeamPanel : GameBehaviour
 
     private void Initialize()
     {
-        if (Player.Instance is GamePlayer gamePlayer)
-        {
-            _inventoryManager = gamePlayer.inventoryManager;
-        }
+        _inventoryManager = InventoryManager.Instance;
+        _inputManager = InputManager.Instance;
         
         for (int i = 0; i < switchButtons.Length; i++)
         {
-            bool isNull = _inventoryManager.spirimonzTeam[i] == null;
+            bool isNull = _inventoryManager.spirimonzTeamSettings[i] == null;
             switchButtons[i].interactable = !isNull;
             if (isNull == false)
             {
@@ -64,7 +62,6 @@ public class UITeamPanel : GameBehaviour
             }
         }
 
-        _inputManager = Player.Instance.inputManager;
         _initialized = true;
         SelectTargetedSpirimonz();
     }
@@ -83,14 +80,17 @@ public class UITeamPanel : GameBehaviour
 
     private void Update()
     {
-        if (Input.GetKeyDown(_inputManager.primaryNext) || Input.GetKeyDown(_inputManager.secondaryNext))
+        if (_inventoryManager != null)
         {
-            NextSpirimonz();
-        }
+            if (Input.GetKeyDown(_inputManager.primaryNext) || Input.GetKeyDown(_inputManager.secondaryNext))
+            {
+                NextSpirimonz();
+            }
         
-        if (Input.GetKeyDown(_inputManager.primaryPrevious) || Input.GetKeyDown(_inputManager.secondaryPrevious))
-        {
-            PreviousSpirimonz();
+            if (Input.GetKeyDown(_inputManager.primaryPrevious) || Input.GetKeyDown(_inputManager.secondaryPrevious))
+            {
+                PreviousSpirimonz();
+            }
         }
     }
 

@@ -22,10 +22,16 @@ public class UIJournal : GameBehaviour
         
         SetCaptureButtonState();
         
-        captureButton.onClick.AddListener(StartCapture);
-        
-        House.Instance.currentGhost.onGhostStartToHunt.AddListener(SetCaptureButtonState);
-        House.Instance.currentGhost.onGhostStopToHunt.AddListener(SetCaptureButtonState);
+        if(captureButton != null)
+            captureButton.onClick.AddListener(StartCapture);
+
+        House house = House.Instance;
+
+        if (house != null)
+        {
+            House.Instance.currentGhost.onGhostStartToHunt.AddListener(SetCaptureButtonState);
+            House.Instance.currentGhost.onGhostStopToHunt.AddListener(SetCaptureButtonState);
+        }
     }
     
     private List<GhostParameters> GetSelectedGhosts()
@@ -41,6 +47,8 @@ public class UIJournal : GameBehaviour
 
     private void SetCaptureButtonState()
     {
+        if (captureButton == null) return;
+        
         int selectedSlotsCount = GetSelectedGhosts().Count;
         float percentageChances = GhostInvestigator.Instance.GetCaptureChancePercentage(selectedSlotsCount);
         captureButton.interactable = selectedSlotsCount > 0 && percentageChances > 0 && House.Instance.currentGhost.IsHunting() == false;

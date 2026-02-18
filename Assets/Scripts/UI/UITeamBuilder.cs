@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using TMPro;
 
 public class UITeamBuilder : GameBehaviour
 {
@@ -14,6 +15,9 @@ public class UITeamBuilder : GameBehaviour
     
     public GameObject spirimonzRightInfo;
     public GameObject spirimonzLeftInfo;
+
+    public GameObject spirimonzRightSecondaryTitle;
+    public TextMeshProUGUI secondaryTitleText;
 
     public Button bCloseRight;
     public Button bCloseLeft;
@@ -33,7 +37,11 @@ public class UITeamBuilder : GameBehaviour
     private void Awake()
     {
         bCloseRight.onClick.AddListener(() => spirimonzRightInfo.SetActive(false));
-        bCloseLeft.onClick.AddListener(() => spirimonzLeftInfo.SetActive(false));
+        bCloseLeft.onClick.AddListener(() =>
+        {
+            spirimonzLeftInfo.SetActive(false);
+            spirimonzRightSecondaryTitle.SetActive(false);
+        });
         
         bInfoRight.onClick.AddListener(SwitchRightInfoState);
         bInfoLeft.onClick.AddListener(SwitchLeftInfoState);
@@ -50,6 +58,15 @@ public class UITeamBuilder : GameBehaviour
             spirimonzPanelSelectors.Add(spmzSelector);
             spmzSelector.Initialize(this, _player.inventoryManager);
         }
+
+        UISpirimonzInformationsSetter infoSetter = teamPanel.spmzInfoSetter;
+        teamPanel.spmzInfoSetter.onInfoChanges.AddListener(() => SetSecondaryTitleText(infoSetter));
+        SetSecondaryTitleText(infoSetter);
+    }
+
+    private void SetSecondaryTitleText(UISpirimonzInformationsSetter infoSetter)
+    {
+        secondaryTitleText.text = infoSetter.GetLastSpirimonzSettings().spirimonzName;
     }
 
     private void OnEnable()
@@ -69,22 +86,28 @@ public class UITeamBuilder : GameBehaviour
     
     private void SwitchLeftInfoState()
     {
-        spirimonzLeftInfo.SetActive(!spirimonzLeftInfo.activeInHierarchy);
+        bool isActiveInHierarchy = spirimonzLeftInfo.activeInHierarchy;
+        spirimonzLeftInfo.SetActive(!isActiveInHierarchy);
+        spirimonzRightSecondaryTitle.SetActive(!isActiveInHierarchy);
+        
         if(spirimonzLeftInfo.activeInHierarchy)
             spirimonzRightInfo.SetActive(false);
     }
 
     public void SelectSpirimonzInPanel(UISpirimonzPanelSelector spmzSelector)
     {
-        selectedSpirimonzInfoSetter.SetSpirimonz(spmzSelector.spirimonzSettings);
-        selectionFooter.SetActive(true);
-
         if (_currentSelected != null)
         {
             _currentSelected.Unselect();
         }
+        
+        selectedSpirimonzInfoSetter.SetSpirimonz(spmzSelector.spirimonzSettings);
+        selectionFooter.SetActive(true);
 
         _currentSelected = spmzSelector;
+
+        int currentSpirimonzSelectedID = _player.inventoryManager.currentSelectedIndex;
+        bChooseSpirimonz.interactable = spmzSelector.spirimonzSettings != _player.inventoryManager.spirimonzTeamSettings[currentSpirimonzSelectedID];
     }
 
     public void UnselectSpirimonzInPanel()
@@ -98,12 +121,15 @@ public class UITeamBuilder : GameBehaviour
         int forcedPosID = teamPanel.GetCurrentSelectionID();
 
         SpirimonzSettings currentSpirimonzAtThisPosition = _player.inventoryManager.spirimonzTeamSettings[forcedPosID];
-        if (currentSpirimonzAtThisPosition != null)
-        {
-            SelectSpirimonzInPanel(GetSelectedSpirimonzPanelSelector(currentSpirimonzAtThisPosition));
-        }
         
         _player.inventoryManager.AddSpirimonzToTeam(_currentSelected.spirimonzSettings, forcedPosID);
+        
+        teamPanel.spmzInfoSetter.SetSpirimonz(_currentSelected.spirimonzSettings);
+        
+        if (currentSpirimonzAtThisPosition != null)
+        {
+            GetSelectedSpirimonzPanelSelector(currentSpirimonzAtThisPosition).Select();
+        }
     }
 
     private UISpirimonzPanelSelector GetSelectedSpirimonzPanelSelector(SpirimonzSettings spmzSettings)

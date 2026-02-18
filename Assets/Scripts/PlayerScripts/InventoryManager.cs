@@ -132,7 +132,7 @@ public class InventoryManager : GameBehaviour
         // Retire un Spirimonz déjà présent à cette position
         if (spirimonzTeamSettings[position] != null)
         {
-            if (existingIndex == -1)
+            if (existingIndex != -1)
             {
                 AddSpirimonzToTeam(spirimonzTeamSettings[position], existingIndex);
             }

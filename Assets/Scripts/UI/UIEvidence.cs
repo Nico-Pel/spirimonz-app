@@ -20,7 +20,9 @@ public class UIEvidence : GameBehaviour
 
     private void Start()
     {
-        dotButton.onClick.AddListener(DotPressed);
+        if(dotButton != null)
+            dotButton.onClick.AddListener(DotPressed);
+        
         titleText.text = evidenceParameter.title;
         infoText.text = evidenceParameter.info;
     }

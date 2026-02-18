@@ -113,7 +113,7 @@ public class ThirdPersonController : MonoBehaviour
 
     private void CameraRotation()
     {
-        if (LockCameraPosition) return;
+        if (LockCameraPosition || _player.IsLocked()) return;
 
         float mouseX = Input.GetAxis("Mouse X") * mouseSensitivity;
         float mouseY = Input.GetAxis("Mouse Y") * mouseSensitivity;
