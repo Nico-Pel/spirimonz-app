@@ -1,7 +1,7 @@
 using System.Collections;
 using UnityEngine;
 
-public class BlinkingLight : MonoBehaviour
+public class BlinkingLight : GameBehaviour
 {
     public bool isLinkedToPlayer;
     
@@ -28,17 +28,23 @@ public class BlinkingLight : MonoBehaviour
 
         baseIntensity = light.intensity;
 
-        _ghost = House.Instance.currentGhost;
-        if (_ghost.ghostParameters.ghostTypeData.ghostType == GhostTypeData.GhostType.Voltaic)
+        this.Invoke(0.1f, () =>
         {
-            blinkSpeed = blinkSpeedVoltaic;
-        }
+            _ghost = House.Instance.currentGhost;
+            if (_ghost.ghostParameters.ghostTypeData.ghostType == GhostTypeData.GhostType.Voltaic)
+            {
+                blinkSpeed = blinkSpeedVoltaic;
+            }
 
-        _player = (GamePlayer)Player.Instance;
+            _player = (GamePlayer)Player.Instance;
+        });
+
     }
 
     private void Update()
     {
+        if (_ghost == null || _player == null) return;
+        
         if (!gameObject.activeInHierarchy || _ghost == null ||
             _ghost.currentState == Ghost.GhostState.hideState ||
             !light.enabled)
@@ -53,7 +59,7 @@ public class BlinkingLight : MonoBehaviour
         {
             StartBlink();
 
-            if (isLinkedToPlayer && _ghost.currentWayPoint.linkedRoom != _player.currentRoom)
+            if (isLinkedToPlayer && _ghost.currentRoom != _player.currentRoom)
             {
                 _player.AlertTheHuntingGhost();
             }

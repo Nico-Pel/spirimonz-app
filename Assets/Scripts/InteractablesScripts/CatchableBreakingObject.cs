@@ -61,6 +61,7 @@ public class CatchableBreakingObject : CatchableObject
 
             Transform localFracture = fracture;
 
+            localFracture.transform.parent = null;
             this.Invoke(lockingFracturesDelay, () =>
             {
                 if (localFracture == null) return;

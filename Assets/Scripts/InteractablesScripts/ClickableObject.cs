@@ -26,6 +26,9 @@ public class ClickableObject : GameBehaviour, IInteractable
                 this
             );
         }
+
+        if (canClick == false)
+            LockInteraction(true);
     }
 
     public virtual void Initialize(House h)
@@ -82,6 +85,11 @@ public class ClickableObject : GameBehaviour, IInteractable
     public virtual void OnRelease()
     {
         Debug.Log($"{name} released!");
+    }
+
+    public void LockInteraction(bool enable)
+    {
+        InteractionLocked = enable;
     }
 
     private void OnTriggerEnter(Collider other)

@@ -285,6 +285,7 @@ public class Ghost : GameBehaviour
             if (dot > 0.15f) // seuil à ajuster
             {
                 _stopMoving = true;
+                agent.velocity = Vector3.zero;
                 this.Invoke(_waitDoorTime, () => _stopMoving = false);
 
                 door.GhostDoorInteraction(
@@ -421,6 +422,8 @@ public class Ghost : GameBehaviour
                 animator.SetBool("Walk", true);
                 animator.SetBool("Targeting", canSeePlayer);
             }
+            
+            animator.SetFloat("MoveSpeed", agent.speed);
         }
         else
         {
@@ -699,7 +702,7 @@ public class Ghost : GameBehaviour
         }
 
         # if UNITY_EDITOR
-        if (tripleActivityDebug)
+        if (house.useDebugs && tripleActivityDebug)
         {
             nextActivityTime = nextActivityTime / 3;
         }
