@@ -132,7 +132,7 @@ public class UITeamBuilder : GameBehaviour
 
         _currentSelected = spmzSelector;
 
-        int currentSpirimonzSelectedID = _player.inventoryManager.currentSelectedIndex;
+        int currentSpirimonzSelectedID = teamPanel.GetCurrentSelectionID();
         bChooseSpirimonz.interactable = spmzSelector.spirimonzSettings != _player.inventoryManager.spirimonzTeamSettings[currentSpirimonzSelectedID];
     }
 

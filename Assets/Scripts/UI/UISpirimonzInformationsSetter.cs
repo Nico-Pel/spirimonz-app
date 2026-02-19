@@ -89,8 +89,6 @@ public class UISpirimonzInformationsSetter : GameBehaviour
 
     private void SetSpirimonzBody(SpirimonzSettings spmz)
     {
-        if (spmzBodyPos == null) return;
-        
         if (currentSpirimonzBody != null)
         {
             Destroy(currentSpirimonzBody);
@@ -130,7 +128,7 @@ public class UISpirimonzInformationsSetter : GameBehaviour
     private void OnEnable()
     {
         if(_lastSpirimonzSettings != null)
-            SetSpirimonzBody(_lastSpirimonzSettings);
+            SetSpirimonz(_lastSpirimonzSettings);
     }
 
     private void OnDisable()

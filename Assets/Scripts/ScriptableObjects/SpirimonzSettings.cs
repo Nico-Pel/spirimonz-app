@@ -33,7 +33,6 @@ public class SpirimonzSettings : ScriptableObject
     public Sprite img;
     
     [Space]
-    
     public AbilitySettings[] abilities;
     
     [Space]
