@@ -72,7 +72,7 @@ public class Ghost : GameBehaviour
     [Header("Spirit Orbs")] 
     public GameObject ghostOrbsPrefab;
 
-    private float _waitDoorTime = 1.25f;
+    private float _waitDoorTime = 0.5f;
     private bool _stopMoving = false;
     
     [FormerlySerializedAs("angrinessPercentage")] [Header("Ghost Stats : Angriness")] 
@@ -276,7 +276,11 @@ public class Ghost : GameBehaviour
         }
         else if (other.TryGetComponent(out Door door))
         {
-            if (currentState != GhostState.huntingState /*|| door.isOpen*/)
+            // Ignore la porte si elle a un twinDoor déjà assez ouverte
+            if (door.twinDoor != null && door.twinDoor.GetOpenRatio() >= 0.7f)
+                return;
+
+            if (currentState != GhostState.huntingState)
                 return;
 
             Vector3 directionToDoor = (door.transform.position - transform.position).normalized;
@@ -284,18 +288,11 @@ public class Ghost : GameBehaviour
 
             float dot = Vector3.Dot(moveDirection, directionToDoor);
 
-            if (dot > 0.15f) // seuil à ajuster
+            if (dot > 0.15f)
             {
                 _stopMoving = true;
                 agent.velocity = Vector3.zero;
 
-                /*
-                door.GhostDoorInteraction(
-                    Random.Range(0.8f, 1f),   // 80% à 100% ouvert, propre et clampé
-                    Random.Range(50f, 65f)     // vitesse raisonnable pour le hinge
-                );
-                */
-                
                 float waitTime = ComputeDoorWaitTime(door, _waitDoorTime);
 
                 if (waitTime > 0f)
@@ -304,10 +301,12 @@ public class Ghost : GameBehaviour
                 }
                 else
                 {
-                    // Passe directement, ou pousse la porte sans ralentir
                     door.GhostDoorInteraction(1f, openingDoorSpeed * ghostParameters.openingDoorSpeedMultiplier);
+                    
+                    _stopMoving = false;
+                    agent.isStopped = false;
                 }
-                
+
                 ActivateActivitySource(door.activitySource);
             }
         }
@@ -329,17 +328,16 @@ public class Ghost : GameBehaviour
     {
         float openRatio = door.GetOpenRatio();
 
-        // Porte suffisamment ouverte → pas d'arrêt
+        // Si twinDoor ouvert → on diminue l'attente
+        if (door.twinDoor != null)
+            openRatio = Mathf.Max(openRatio, door.twinDoor.GetOpenRatio());
+
         if (openRatio >= 0.7f)
             return 0f;
 
-        // Porte fermée → attente complète
         if (!door.isOpen)
             return maxWaitTime;
 
-        // Porte entre-ouverte → attente proportionnelle
-        // 0.7 → 0 sec
-        // 0.0 → maxWaitTime
         float normalized = openRatio / 0.7f;
         return maxWaitTime * (1f - normalized);
     }
@@ -352,33 +350,38 @@ public class Ghost : GameBehaviour
             yield break;
 
         if (door.IsGrabbed())
-        {
             door.Release();
-        }
+
         door.InteractionLocked = true;
 
         _stopMoving = true;
         agent.isStopped = true;
 
         const float OPEN_THRESHOLD = 0.7f;
+        float safetyTimer = 2.5f; // ⏱️ sécurité
+        float timer = 0f;
 
-        // Tant que la porte n'est pas assez ouverte
         while (door != null && door.GetOpenRatio() < OPEN_THRESHOLD)
         {
-            // Le fantôme pousse progressivement la porte
             door.GhostDoorInteraction(
-                openPercentage: 1f,
-                moveSpeed: openingDoorSpeed * ghostParameters.openingDoorSpeedMultiplier,
-                slam: false
+                1f,
+                openingDoorSpeed * ghostParameters.openingDoorSpeedMultiplier,
+                false
             );
 
-            yield return null; // frame suivante
+            timer += Time.deltaTime;
+            if (timer >= safetyTimer)
+                break;
+
+            yield return null;
         }
 
-        // La porte est assez ouverte → reprise immédiate
+        // 🔓 LIBÉRATION GARANTIE
         _stopMoving = false;
         agent.isStopped = false;
-        door.InteractionLocked = false;
+
+        if (door != null)
+            door.InteractionLocked = false;
     }
     
     void OnTriggerExit(Collider other)
@@ -447,6 +450,11 @@ public class Ghost : GameBehaviour
 
     private void Update()
     {
+        if (agent.isStopped && !_stopMoving)
+        {
+            agent.isStopped = false;
+        }
+        
         if (currentState == GhostState.standingState)
         {
             agent.speed = 0;
@@ -1201,9 +1209,9 @@ public class Ghost : GameBehaviour
         currentRoom.AddTemperatureDelta(ghostParameters.GetRandomRefreshment());
     }
 
-    public bool IsHunting()
+    public bool IsHunting(bool includeWillHunt = true)
     {
-        return currentState == GhostState.huntingState || currentState == GhostState.standingState || _willHunt;
+        return currentState == GhostState.huntingState || currentState == GhostState.standingState || (includeWillHunt && _willHunt);
     }
 
     public void LockGhost()

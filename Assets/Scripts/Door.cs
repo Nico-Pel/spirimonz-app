@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Serialization;
 using Random = UnityEngine.Random;
 
 public class Door : GameBehaviour, IInteractable
@@ -31,7 +32,8 @@ public class Door : GameBehaviour, IInteractable
     [Header("Audio Occlusion")] 
     public AudioOccluder mAudioOccluder;
     public AudioOccluder[] connectedWallOccluders;
-    public Door[] connectedDoors;
+    [FormerlySerializedAs("connectedDoors")] public Door[] doorsSharingSameSoundOcclusion;
+    public Door twinDoor;
 
     [ReadOnly] public bool isOpen = false;
     [ReadOnly] public bool opensTowardNegative;
@@ -294,7 +296,7 @@ public class Door : GameBehaviour, IInteractable
 
     private void EnableAudioOcclusions(bool enable)
     {
-        foreach (Door door in connectedDoors)
+        foreach (Door door in doorsSharingSameSoundOcclusion)
         {
             if (door != null && door.isOpen)
                 return;

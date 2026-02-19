@@ -143,6 +143,7 @@ public class Room : MonoBehaviour
 
     public void StartRadiation(float duration)
     {
+        Debug.Log("Start radiation");
         radiationDuration = duration;
         radiationInTheRoom = true;
         OnRadiationStart?.Invoke(radiationDuration);

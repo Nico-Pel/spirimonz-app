@@ -19,8 +19,12 @@ public class Spirimonz : GameBehaviour, IInteractable
         Special,
     }
     
+    [Header("Hiding Object Settings")] 
     public GameObject spirimonzGameObject;
     public GameObject hidingGameObject;
+    private Vector3 _baseHidingOrbPos;
+    [SerializeField] private bool useDifferentHidingOrbPosForHands;
+    [SerializeField] private Vector3 _handHidingOrbPos;
 
     [Header("Spirimonz Settings")] 
     [ReadOnly] public bool isOnTheMap;
@@ -73,6 +77,7 @@ public class Spirimonz : GameBehaviour, IInteractable
 
     protected virtual void Start()
     {
+        _baseHidingOrbPos = hidingGameObject.transform.localPosition;
         _house = House.Instance;
         InitSpirimonz();
     }
@@ -93,7 +98,7 @@ public class Spirimonz : GameBehaviour, IInteractable
         _initialized = true;
     }
 
-    private void OnEnable()
+    protected virtual void OnEnable()
     {
         if (_initialized)
         {
@@ -132,6 +137,14 @@ public class Spirimonz : GameBehaviour, IInteractable
         if (hide)
         {
             collider.enabled = false;
+            if (isOnTheMap)
+            {
+                hidingGameObject.transform.localPosition = _baseHidingOrbPos;
+            }
+            else
+            {
+                hidingGameObject.transform.localPosition = useDifferentHidingOrbPosForHands ? _handHidingOrbPos : _baseHidingOrbPos;
+            }
         }
     }
 
@@ -194,6 +207,8 @@ public class Spirimonz : GameBehaviour, IInteractable
         {
             collider.enabled = false;
         }
+
+        isOnTheMap = true;
     }
 
     public virtual bool GoBackToHands(Transform handPos)
@@ -566,4 +581,6 @@ public class Spirimonz : GameBehaviour, IInteractable
     {
         
     }
+    
+    public bool IsInHidingMode() => _hidingFromAGhost;
 }

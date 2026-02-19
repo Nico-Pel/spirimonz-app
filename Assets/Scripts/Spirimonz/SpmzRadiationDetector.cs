@@ -1,7 +1,4 @@
 using System;
-using System.Collections;
-using System.Collections.Generic;
-using Unity.VisualScripting;
 using UnityEngine;
 
 public class SpmzRadiationDetector : Spirimonz
@@ -9,28 +6,45 @@ public class SpmzRadiationDetector : Spirimonz
     public RadiationDetector radiationDetector;
     public GameObject radiationFeedback;
 
-    private void Awake()
+    private bool _eventsInitialized;
+
+    private void InitEvents()
     {
-        radiationDetector.OnDetectionStart.AddListener(TurnOnRadiationFeedback);
-        radiationDetector.OnDetectionEnd.AddListener(TurnOffRadiationFeedback);
+        if (_eventsInitialized) return;
+
+        radiationDetector.OnDetectionStart.AddListener(OnRadiationChanged);
+        radiationDetector.OnDetectionEnd.AddListener(OnRadiationChanged);
 
         radiationDetector.useSound = powerActiveInHands;
+
+        _eventsInitialized = true;
+    }
+
+    private void OnRadiationChanged()
+    {
+        // Force le feedback en fonction de l'état actuel du détecteur
+        //if (!isOnTheMap && !powerActiveInHands) return;
+
+        bool isDetecting = radiationDetector.IsDetectingRadiation();
+        if (isDetecting)
+            TurnOnRadiationFeedback();
+        else
+            TurnOffRadiationFeedback();
     }
 
     private void TurnOnRadiationFeedback()
     {
-        Debug.Log("Radiations Ghost 1 IsOnMap: " + isOnTheMap);
-        if (powerActiveInHands == false && isOnTheMap == false) return;
-        Debug.Log("Radiations Ghost 2");
+        if (radiationFeedback.activeSelf) return;
 
         radiationFeedback.SetActive(true);
-        
         animator.SetBool("Radiations", true);
         animator.SetTrigger("RadiationsDetection");
     }
 
     private void TurnOffRadiationFeedback()
     {
+        if (!radiationFeedback.activeInHierarchy) return;
+
         radiationFeedback.SetActive(false);
         animator.SetBool("Radiations", false);
     }
@@ -38,39 +52,85 @@ public class SpmzRadiationDetector : Spirimonz
     protected override void SetCurrentRoom(Room room)
     {
         base.SetCurrentRoom(room);
-        radiationDetector.SetCurrentRoom(room);
+
+        if (radiationDetector != null)
+            radiationDetector.SetCurrentRoom(room);
+
+        // Mettre à jour immédiatement le feedback si la radiation est déjà active
+        if (isOnTheMap && radiationDetector.IsDetectingRadiation())
+        {
+            TurnOnRadiationFeedback();
+        }
     }
-    
+
     public override void DroppedOnMap()
     {
         base.DroppedOnMap();
-        
-        // If the detector wasn't active in hands, trigger the radiation feedbacks if it's necessary
-        if (powerActiveInHands == false)
+
+        isOnTheMap = true;
+
+        if (powerActiveInHands == false && radiationDetector != null)
         {
+            // Activer le son avant de connecter la room
             radiationDetector.useSound = true;
             radiationDetector.SetCurrentRoom(currentRoom);
+
+            // Forcer feedback visuel
+            if (radiationDetector.IsDetectingRadiation())
+            {
+                TurnOnRadiationFeedback();
+
+                // Jouer le son manuellement si nécessaire
+                radiationDetector.PlaySoundManuallyIfNeeded();
+            }
         }
     }
 
     public override bool GoBackToHands(Transform handPos)
     {
-        if (!base.GoBackToHands(handPos))
-        {
-            return false;
-        }
-        
-        if (powerActiveInHands == false)
-        {
-            radiationDetector.StopUsingSound();
-        }
+        bool success = base.GoBackToHands(handPos);
 
-        return true;
+        /*if (success && powerActiveInHands == false && radiationDetector != null)
+            radiationDetector.StopUsingSound();*/
+
+        return success;
     }
 
     protected override void OnHuntStart()
     {
         base.OnHuntStart();
-        radiationDetector.EndDetection();
+        if (radiationDetector != null)
+            radiationDetector.EndDetection();
+    }
+
+    protected override void OnEnable()
+    {
+        base.OnEnable();
+
+        if (!_eventsInitialized)
+            InitEvents();
+
+        if (currentRoom == null && Player.Instance != null)
+        {
+            GamePlayer gamePlayer = Player.Instance as GamePlayer;
+            if(gamePlayer != null)
+                currentRoom = gamePlayer.currentRoom;
+        }
+
+        if (radiationDetector != null)
+            radiationDetector.SetCurrentRoom(currentRoom);
+    }
+
+    private void Update()
+    {
+        // Boucle de sécurité pour corriger les cas où le detector a déjà de la radiation
+        if ((isOnTheMap || powerActiveInHands) && radiationDetector != null)
+        {
+            bool isDetecting = radiationDetector.IsDetectingRadiation();
+            if (isDetecting && !radiationFeedback.activeSelf)
+                TurnOnRadiationFeedback();
+            else if (!isDetecting && radiationFeedback.activeSelf)
+                TurnOffRadiationFeedback();
+        }
     }
 }

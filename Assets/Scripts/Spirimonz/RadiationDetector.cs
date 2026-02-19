@@ -107,5 +107,18 @@ public class RadiationDetector : GameBehaviour
         {
             TriggerDetection(_currentRoom.radiationDuration);
         }
+        else
+        {
+            EndDetection();
+        }
+    }
+    
+    public void PlaySoundManuallyIfNeeded()
+    {
+        // Si le son n'est pas déjà joué, le lancer
+        if (useSound && radiationSoundClip != null && (_radiationSound == null || !_radiationSound.IsPlaying))
+        {
+            PlaySound();
+        }
     }
 }

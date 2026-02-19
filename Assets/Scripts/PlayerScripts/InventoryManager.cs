@@ -326,8 +326,10 @@ public class InventoryManager : GameBehaviour
             }
             else
             {
-                Vector3 playerForward = _gamePlayer.GetForward() * 1f;
-                dropPos = this.transform.position + new Vector3(playerForward.x, 0, playerForward.z);
+                Vector3 playerPos = _player.transform.position; // ou _gamePlayer.transform.position
+                Vector3 playerForward = _gamePlayer.GetForward().normalized; 
+                dropPos = playerPos + new Vector3(playerForward.x, 0, playerForward.z) * 1f; // 1m devant le joueur
+
             }
         }
 
@@ -338,10 +340,12 @@ public class InventoryManager : GameBehaviour
     {
         if (selectedSpirimonz == null || _gamePlayer.interactionController.HasTarget()) return; //ERROR, no spirimonz selected or Interaction controller target something (door?)
 
-        if (House.Instance.currentGhost.IsHunting()) return; //Can't drop Spirimonz during a hunt
+        if (House.Instance.currentGhost.IsHunting(false)) return; //Can't drop Spirimonz during a hunt
+        
+        Spirimonz spirimonzToDrop = selectedSpirimonz;
+        if (spirimonzToDrop.IsInHidingMode()) return;
         
         _gamePlayer.handAnimator.SetInteger("HandPos", (int)HandPoses.LightAim);
-        Spirimonz spirimonzToDrop = selectedSpirimonz;
         spirimonzToDrop.transform.parent = House.Instance.transform;
         spirimonzToDrop.ChangeLayer(spirimonzMask, 0);
 
@@ -367,7 +371,7 @@ public class InventoryManager : GameBehaviour
 
         // Normalisation : 0 -> maxJump, 80 -> minJump (0)
         float t = camX / 80f; // 0..1
-        float maxJump = 2f;
+        float maxJump = 1.5f;
         float minJump = 0f;
         float jumpPower = Mathf.Lerp(maxJump, minJump, t) * spirimonzToDrop.jumpForceMultiplier;
         

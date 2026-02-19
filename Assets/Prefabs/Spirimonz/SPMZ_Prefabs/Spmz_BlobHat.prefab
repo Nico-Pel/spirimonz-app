@@ -53,7 +53,7 @@ MonoBehaviour:
       m_Calls: []
   useSound: 1
   radiationSoundClip: {fileID: 8300000, guid: c1dd3532698f44fc89b9d958857b2419, type: 3}
-  volume: 0.5
+  volume: 0.35
   range: 12
 --- !u!135 &407041007114009026
 SphereCollider:
@@ -255,11 +255,13 @@ MonoBehaviour:
   settings: {fileID: 11400000, guid: bcce209ca3e344af39b18b1aa10f200f, type: 2}
   spirimonzGameObject: {fileID: 1411794852601502325}
   hidingGameObject: {fileID: 3891022503482444847}
+  useDifferentHidingOrbPosForHands: 1
+  _handHidingOrbPos: {x: 0, y: 0.2, z: 0}
   isOnTheMap: 0
   canInteract: 0
   canBeDroppedOnMap: 1
   canBeTakenBackIntoHands: 1
-  powerActiveInHands: 0
+  powerActiveInHands: 1
   lookAtPlayerWhileWaiting: 1
   openDoorsOnItsWay: 0
   lookForwardOnDropOnMap: 0

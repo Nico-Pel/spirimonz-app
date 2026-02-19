@@ -89,8 +89,10 @@ public class SpmzUsePower : Spirimonz
         animator.SetBool("CanUsePower", false);
     }
     
-    private void OnEnable()
+    protected override void OnEnable()
     {
+        base.OnEnable();
+        
         // Si le Spirimonz avait été désactivé un moment
         if (_timeDisabled > 0f)
         {
