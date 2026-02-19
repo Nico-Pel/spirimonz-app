@@ -12,16 +12,18 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2da69e9a0e0f54f3c905a18b7cedd84c, type: 3}
   m_Name: SPMZ_002
   m_EditorClassIdentifier: 
+  unlockedByDefault: 1
   spirimonzID: SPMZ_002
   spirimonzName: Ghostball
   spirimonzPrefab: {fileID: 3990404701300845526, guid: 2267b1ce1244944ea9f028ba2da04ba1, type: 3}
   spirimonzBodyPrefab: {fileID: 2146491726777669896, guid: 06f4f0502ee8c4d9da1168d6ab0fd1a8, type: 3}
   bodyPresentationOffset: {x: 0, y: 2, z: 0}
   img: {fileID: 21300000, guid: 9799b759a0bff47e18228989e14ff3f6, type: 3}
-  abilitiesDescriptions:
-  - When you activate Ghostball continuously in your hand, it reveals the <color=#F9AB2D>spectral
-    imprints</color> around you.
-  - Ghostball needs time to recover energy after using its power.
+  abilities:
+  - evidenceTypes: 00000000
+    description: 
+  - evidenceTypes: 
+    description: 
   primarySPMZType: {fileID: 11400000, guid: f3f25d6f57f954fe0b8a6b8175a06b35, type: 2}
   secondarySPMZType: {fileID: 11400000, guid: 5712efd7f144544b88832b8d3630b8b1, type: 2}
   canUsePowerInHands: 1

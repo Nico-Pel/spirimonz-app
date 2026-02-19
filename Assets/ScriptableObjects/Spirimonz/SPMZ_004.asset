@@ -12,16 +12,18 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2da69e9a0e0f54f3c905a18b7cedd84c, type: 3}
   m_Name: SPMZ_004
   m_EditorClassIdentifier: 
+  unlockedByDefault: 1
   spirimonzID: SPMZ_004
   spirimonzName: Fennelec
   spirimonzPrefab: {fileID: 6690621473432451843, guid: b900e83a2ca094635a259180921c99a9, type: 3}
   spirimonzBodyPrefab: {fileID: 5453656450278695769, guid: 854e3568938194fe38d3738da87327fa, type: 3}
   bodyPresentationOffset: {x: 0, y: 0, z: 0}
   img: {fileID: 21300000, guid: f21d97e7ebd12431fa215598232b1844, type: 3}
-  abilitiesDescriptions:
-  - When following you, Fennelec can detect <color=#F9AB2D>spirit activities</color>
-    and display their value on its ears. eat this fruit.
-  - Fennelec's cry irritates the ghost if it is nearby.
+  abilities:
+  - evidenceTypes: 04000000
+    description: 
+  - evidenceTypes: 
+    description: 
   primarySPMZType: {fileID: 11400000, guid: eb1030ee125fb4db9ac37d4b8a6a14fc, type: 2}
   secondarySPMZType: {fileID: 11400000, guid: 656b66e7e8c514324826de4f46b83def, type: 2}
   canUsePowerInHands: 0

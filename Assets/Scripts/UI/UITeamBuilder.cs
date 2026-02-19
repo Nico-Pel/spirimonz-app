@@ -31,9 +31,14 @@ public class UITeamBuilder : GameBehaviour
     public GameObject selectionFooter;
     public Button bChooseSpirimonz;
 
+    [Space] [Header("Filters")] 
+    public UIFilterButton[] bFilterEvidences;
+    
     private UISpirimonzPanelSelector _currentSelected;
     private Player _player;
+    private GameManager _gameManager;
 
+    private bool _isSelectorInitialized;
     private void Awake()
     {
         bCloseRight.onClick.AddListener(() => spirimonzRightInfo.SetActive(false));
@@ -47,30 +52,51 @@ public class UITeamBuilder : GameBehaviour
         bInfoLeft.onClick.AddListener(SwitchLeftInfoState);
         
         bChooseSpirimonz.onClick.AddListener(ChooseSpirimonz);
+
+        foreach (UIFilterButton filter in bFilterEvidences)
+        {
+            if (filter != null)
+                filter.onStateChanged.AddListener(UpdateSpirimonzPanel);
+        }
     }
 
     private void Start()
     {
         _player = Player.Instance;
+        _gameManager = GameManager.Instance;
         
-        foreach (UISpirimonzPanelSelector spmzSelector in spirimonzSelectorPanel.GetComponentsInChildren<UISpirimonzPanelSelector>())
-        {
-            spirimonzPanelSelectors.Add(spmzSelector);
-            spmzSelector.Initialize(this, _player.inventoryManager);
-        }
-
+        InitializeSelectors();
+        UpdateSpirimonzPanel();
+        
         UISpirimonzInformationsSetter infoSetter = teamPanel.spmzInfoSetter;
         teamPanel.spmzInfoSetter.onInfoChanges.AddListener(() => SetSecondaryTitleText(infoSetter));
         SetSecondaryTitleText(infoSetter);
     }
 
+    private void InitializeSelectors()
+    {
+        foreach (UISpirimonzPanelSelector spmzSelector in spirimonzSelectorPanel.GetComponentsInChildren<UISpirimonzPanelSelector>())
+        {
+            spirimonzPanelSelectors.Add(spmzSelector);
+            spmzSelector.Initialize(this, _player.inventoryManager);
+        }
+        _isSelectorInitialized = true;
+    }
+
     private void SetSecondaryTitleText(UISpirimonzInformationsSetter infoSetter)
     {
-        secondaryTitleText.text = infoSetter.GetLastSpirimonzSettings().spirimonzName;
+        SpirimonzSettings spmzSettings = infoSetter.GetLastSpirimonzSettings();
+        if (spmzSettings == null)
+        {
+            spmzSettings = _player.inventoryManager.spirimonzTeamSettings[0];
+        }
+        secondaryTitleText.text = spmzSettings.spirimonzName;
     }
 
     private void OnEnable()
     {
+        UpdateSpirimonzPanel();
+
         if (_currentSelected != null)
         {
             UnselectSpirimonzInPanel();
@@ -143,5 +169,39 @@ public class UITeamBuilder : GameBehaviour
         }
 
         return null;
+    }
+
+    private void UpdateSpirimonzPanel()
+    {
+        if (_isSelectorInitialized == false) return;
+        
+        foreach (UISpirimonzPanelSelector spmzSelector in spirimonzPanelSelectors)
+        {
+            if (_gameManager.IsSpirimonzCaptured(spmzSelector.spirimonzSettings.spirimonzID) == false)
+            {
+                spmzSelector.gameObject.SetActive(false);
+                continue;
+            }
+
+            for (int i = 0; i < bFilterEvidences.Length; i++)
+            {
+                if (bFilterEvidences[i] != null)
+                {
+                    GhostInvestigator.EvidenceType evidence = (GhostInvestigator.EvidenceType)i;
+                    if (bFilterEvidences[i].GetState() == 1 && spmzSelector.spirimonzSettings.IsUsefulForEvidence(evidence) == false)
+                    {
+                        spmzSelector.gameObject.SetActive(false);
+                        continue;
+                    }
+                    else if (bFilterEvidences[i].GetState() == 2 && spmzSelector.spirimonzSettings.IsUsefulForEvidence(evidence) == true)
+                    {
+                        spmzSelector.gameObject.SetActive(false);
+                        continue;
+                    }
+                }
+            }
+            
+            spmzSelector.gameObject.SetActive(true);
+        }
     }
 }

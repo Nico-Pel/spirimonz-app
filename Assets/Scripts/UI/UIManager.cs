@@ -12,7 +12,7 @@ public class UIManager : GameBehaviour
     private bool _currentCursorState;
     private int _showCursorsActivatedCount;
 
-    private Player _player;
+    protected Player _player;
 
     protected virtual void Start()
     {

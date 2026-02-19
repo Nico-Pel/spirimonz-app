@@ -19,7 +19,6 @@ public class UIGame : UIManager
     public UITablet tablet;
 
     private Sprite _baseBigPointer;
-    private Player _player;
 
     private void Awake()
     {

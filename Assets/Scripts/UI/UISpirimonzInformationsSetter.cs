@@ -74,7 +74,7 @@ public class UISpirimonzInformationsSetter : GameBehaviour
 
     private void SetSpirimonzAbilities(SpirimonzSettings spmz)
     {
-        int abilityCount = spmz.abilitiesDescriptions.Length;
+        int abilityCount = spmz.abilities.Length;
         for (int i = 0; i < abilityPanels.Length; i++)
         {
             bool abilityExist = i < abilityCount;
@@ -83,12 +83,14 @@ public class UISpirimonzInformationsSetter : GameBehaviour
                 abilityPanels[i].color = abilityExist ? _abilityPanelBaseColor : _abilityPanelOffColor;
                 
             if(tSpirimonzAbilities[i] != null)
-                tSpirimonzAbilities[i].text = abilityExist ? spmz.abilitiesDescriptions[i] : "";
+                tSpirimonzAbilities[i].text = abilityExist ? spmz.abilities[i].description : "";
         }
     }
 
     private void SetSpirimonzBody(SpirimonzSettings spmz)
     {
+        if (spmzBodyPos == null) return;
+        
         if (currentSpirimonzBody != null)
         {
             Destroy(currentSpirimonzBody);
@@ -99,7 +101,7 @@ public class UISpirimonzInformationsSetter : GameBehaviour
             if(linkedSetter.currentSpirimonzBody != null)
                 Destroy(linkedSetter.currentSpirimonzBody);
         }
-        
+
         currentSpirimonzBody = Instantiate(spmz.spirimonzBodyPrefab, spmzBodyPos.position, spmzBodyPos.rotation, spmzBodyPos);
         spmzBodyPos.localPosition = Vector3.zero + spmz.bodyPresentationOffset;
         currentSpirimonzBody.transform.localScale = Vector3.one * 7f;

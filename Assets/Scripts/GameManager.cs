@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.Serialization;
@@ -161,6 +162,35 @@ public class GameManager : GameBehaviour
             spData.teamPosition = inTeam ? position : -1;
             SaveGame();
         }
+    }
+
+    public void UnlockSpirimonz(string spirimonzID)
+    {
+        SpirimonzData spData = Array.Find(gameData.spirimonzCollection, s => s.id == spirimonzID);
+        if (spData != null)
+        {
+            spData.unlocked = true;
+            SaveGame();
+        }
+    }
+
+    public bool IsSpirimonzCaptured(string spirimonzID)
+    {
+        SpirimonzSettings spirimonzSettings =
+            allSpirimonzSettings.FirstOrDefault(s => s.spirimonzID == spirimonzID);
+
+        if (spirimonzSettings != null && spirimonzSettings.unlockedByDefault)
+        {
+            return true;
+        }
+        
+        SpirimonzData spData = Array.Find(gameData.spirimonzCollection, s => s.id == spirimonzID);
+        if (spData != null)
+        {
+            return spData.unlocked;
+        }
+
+        return false;
     }
 
     public void SaveGame()

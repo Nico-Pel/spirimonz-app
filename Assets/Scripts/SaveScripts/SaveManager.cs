@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 [Serializable]
 public class GameData
@@ -17,7 +18,7 @@ public class GameData
 public class SpirimonzData
 {
     public string id;          
-    public bool captured;      
+    [FormerlySerializedAs("captured")] public bool unlocked;      
     public bool inTeam;        
     public int teamPosition;   
     public int level;          
@@ -25,7 +26,7 @@ public class SpirimonzData
     public SpirimonzData(string id)
     {
         this.id = id;
-        captured = false;
+        unlocked = false;
         inTeam = false;
         teamPosition = 0;
         level = 1;

@@ -12,14 +12,18 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2da69e9a0e0f54f3c905a18b7cedd84c, type: 3}
   m_Name: SPMZ_006
   m_EditorClassIdentifier: 
+  unlockedByDefault: 1
   spirimonzID: SPMZ_006
   spirimonzName: Candleghost
   spirimonzPrefab: {fileID: 2436449413268723568, guid: 75c5c85a0b115469da2928638e432a9a, type: 3}
   spirimonzBodyPrefab: {fileID: 8203193899053635286, guid: cd9a25a457f6b495da9eb86e6f793e58, type: 3}
   bodyPresentationOffset: {x: 0, y: 1, z: 0}
   img: {fileID: 21300000, guid: 215dabd190388433488d333b14b84a36, type: 3}
-  abilitiesDescriptions:
-  - Candle ghost reveals <color=#F9AB2D>spectral imprints</color> around him.
+  abilities:
+  - evidenceTypes: 02000000
+    description: 
+  - evidenceTypes: 00000000
+    description: 
   primarySPMZType: {fileID: 11400000, guid: 3efe65f25f8eb46bf831e0bfec7b1770, type: 2}
   secondarySPMZType: {fileID: 11400000, guid: fd1ba802da6494af69dd6b3be0777379, type: 2}
   canUsePowerInHands: 0
