@@ -17,7 +17,7 @@ public class ClickableObject : GameBehaviour, IInteractable
     private float _securityClickTime = 0.15f;
     private bool _clickSecurityLocked = false;
     
-    private void Awake()
+    protected virtual void Awake()
     {
         if (activitySource == null)
         {

@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using UnityEngine.Serialization;
 
 [RequireComponent(typeof(CharacterController))]
 public class ThirdPersonController : MonoBehaviour
@@ -50,11 +51,10 @@ public class ThirdPersonController : MonoBehaviour
     private float _jumpTimeoutDelta;
     private float _fallTimeoutDelta;
 
-    private Animator _animator;
+    [FormerlySerializedAs("_animator")] public Animator animator;
     private CharacterController _controller;
     private InputManager _inputManager;
 
-    private bool _hasAnimator;
     private Player _player;
 
     private GameObject _mainCamera;
@@ -68,8 +68,6 @@ public class ThirdPersonController : MonoBehaviour
         _cinemachineTargetYaw = CinemachineCameraTarget.transform.rotation.eulerAngles.y;
 
         _controller = GetComponent<CharacterController>();
-        _animator = GetComponent<Animator>();
-        _hasAnimator = _animator != null;
 
         if (_inputManager == null)
             Debug.LogError("InputManager manquant sur le Player !");
@@ -85,7 +83,7 @@ public class ThirdPersonController : MonoBehaviour
 
         if (_player.IsLocked())
         {
-            _animator.SetFloat("Speed", 0);
+            animator.SetFloat("Speed", 0);
             return;
         }
         
@@ -102,13 +100,12 @@ public class ThirdPersonController : MonoBehaviour
         Vector3 spherePosition = new Vector3(transform.position.x, transform.position.y - GroundedOffset, transform.position.z);
         Grounded = Physics.CheckSphere(spherePosition, GroundedRadius, GroundLayers, QueryTriggerInteraction.Ignore);
 
-        if (_hasAnimator)
-            _animator.SetBool("Grounded", Grounded);
+        animator.SetBool("Grounded", Grounded);
     }
 
     private void CameraRotation()
     {
-        if (LockCameraPosition || _player.IsLocked()) return;
+        if (LockCameraPosition || _player.IsCameraLocked()) return;
 
         float mouseX = Input.GetAxis("Mouse X") * mouseSensitivity;
         float mouseY = Input.GetAxis("Mouse Y") * mouseSensitivity;
@@ -167,11 +164,8 @@ public class ThirdPersonController : MonoBehaviour
         _controller.Move(targetDirection.normalized * (_speed * Time.deltaTime) +
                          new Vector3(0f, _verticalVelocity, 0f) * Time.deltaTime);
 
-        if (_hasAnimator)
-        {
-            _animator.SetFloat("Speed", _animationBlend);
-            _animator.SetFloat("MotionSpeed", inputMagnitude);
-        }
+        animator.SetFloat("Speed", _animationBlend);
+        animator.SetFloat("MotionSpeed", inputMagnitude);
     }
 
     private void JumpAndGravity()
@@ -182,18 +176,15 @@ public class ThirdPersonController : MonoBehaviour
         {
             _fallTimeoutDelta = FallTimeout;
 
-            if (_hasAnimator)
-            {
-                _animator.SetBool("Jump", false);
-                _animator.SetBool("FreeFall", false);
-            }
+            animator.SetBool("Jump", false);
+            animator.SetBool("FreeFall", false);
 
             if (_verticalVelocity < 0f) _verticalVelocity = -2f;
 
             if (jumpInput && _jumpTimeoutDelta <= 0f)
             {
                 _verticalVelocity = Mathf.Sqrt(JumpHeight * -2f * Gravity);
-                if (_hasAnimator) _animator.SetBool("Jump", true);
+                animator.SetBool("Jump", true);
             }
 
             if (_jumpTimeoutDelta >= 0f) _jumpTimeoutDelta -= Time.deltaTime;
@@ -203,8 +194,8 @@ public class ThirdPersonController : MonoBehaviour
             _jumpTimeoutDelta = JumpTimeout;
 
             if (_fallTimeoutDelta >= 0f) _fallTimeoutDelta -= Time.deltaTime;
-            else if (_hasAnimator)
-                _animator.SetBool("FreeFall", true);
+            else
+                animator.SetBool("FreeFall", true);
         }
 
         if (_verticalVelocity < _terminalVelocity)

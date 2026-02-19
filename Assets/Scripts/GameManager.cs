@@ -170,6 +170,11 @@ public class GameManager : GameBehaviour
                 player.SetRotation(gameData.playerRotation);
             }
 
+            if (_isDead)
+            {
+                TryToTriggerReviveAnimation();
+            }
+
             // Reset le flag
             isLoadingFromHouse = false;
         }
@@ -187,6 +192,23 @@ public class GameManager : GameBehaviour
         }
 
         SceneManager.sceneLoaded -= OnSceneLoaded;
+    }
+
+    private void TryToTriggerReviveAnimation()
+    {
+        _isDead = false;
+        
+        if (player == null)
+        {
+            player = FindObjectOfType<Player>();
+        }
+        
+        WorldPlayer wPlayer = player as WorldPlayer;
+
+        if (wPlayer != null)
+        {
+            wPlayer.PlayReviveAnimation();
+        }
     }
 
     public void SetCurrentHouseID(int houseID)

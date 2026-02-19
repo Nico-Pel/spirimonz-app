@@ -57,7 +57,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   canBeGrabByPlayer: 1
   canBeThrownByGhost: 0
-  canBeThrownByPlayer: 0
+  canBeThrownByPlayer: 1
   setRotZeroOnDrop: 1
   rb: {fileID: 2682425786196691017}
   activitySource: {fileID: 8690141513541133376}
@@ -102,6 +102,9 @@ MonoBehaviour:
   ghostVolume: 0.2
   ghostPitch: 0.5
   canBeTurnedOn: 1
+  onChangeFireState:
+    m_PersistentCalls:
+      m_Calls: []
 --- !u!114 &4267799521826249937
 MonoBehaviour:
   m_ObjectHideFlags: 0

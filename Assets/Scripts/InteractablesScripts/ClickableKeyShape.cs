@@ -30,8 +30,9 @@ public class ClickableKeyShape : ClickableObject
     private bool _isActivated;
     private Coroutine _currentCoroutine;
 
-    private void Awake()
+    protected override void Awake()
     {
+        base.Awake();
         if (skinnedMesh == null || skinnedMesh.sharedMesh == null) return;
 
         int shapeIndex = -1;

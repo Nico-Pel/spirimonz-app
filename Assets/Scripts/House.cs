@@ -156,6 +156,6 @@ public class House : GameBehaviour
     
     public void ExpelPlayerFromHouse()
     {
-        this.Invoke(8, () => houseEntry.Entry(currentPlayer, true));
+        this.Invoke(6, () => houseEntry.Entry(currentPlayer, true));
     }
 }

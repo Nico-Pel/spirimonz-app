@@ -17,6 +17,7 @@ public class Player : GameBehaviour
     [Space]
     
     [ReadOnly] private bool lockControls;
+    [ReadOnly] private bool lockCamera;
     protected bool _isDead;
 
     private void Awake()
@@ -33,12 +34,16 @@ public class Player : GameBehaviour
         inputManager = InputManager.Instance;
     }
 
-    public void LockControls(bool enable)
+    public void LockControls(bool enable, bool movementsOnly = false)
     {
         lockControls = enable;
+        
+        if (movementsOnly == false)
+            lockCamera = enable;
     }
     
     public bool IsLocked() => lockControls;
+    public bool IsCameraLocked() => lockCamera;
     public bool IsDead() => _isDead;
 
     public void SetPosition(Vector3 newPos)

@@ -37,6 +37,7 @@ public class GhostParameters : ScriptableObject
     
     [Header("Ghost Stats : Doors interactions")] 
     public float slamChances = 50;
+    public float openingDoorSpeedMultiplier = 1f;
     
     [Space]
     

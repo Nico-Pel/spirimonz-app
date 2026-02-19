@@ -79,7 +79,7 @@ public class CaptureScene : GameBehaviour
     {
         ghostAnimator.SetTrigger("Attack");
         PlayLoseSound();
-        this.Invoke(0.3f, () => UIGame.Instance.EnableOverlay(true, 0.1f));
+        this.Invoke(0.25f, () => UIGame.Instance.EnableOverlay(true, 0.1f));
 
         this.Invoke(3, Exit);
     }

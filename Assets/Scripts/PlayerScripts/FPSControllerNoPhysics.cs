@@ -131,7 +131,7 @@ public class FPSControllerNoPhysics : Controller
     // ---------------- LOOK ----------------
     void HandleLook()
     {
-        if (_player.IsLocked()) return;
+        if (_player.IsCameraLocked()) return;
         
         float mouseX = Input.GetAxis("Mouse X") * mouseSensitivityX * 100f * Time.deltaTime;
         float mouseY = Input.GetAxis("Mouse Y") * mouseSensitivityY * 100f * Time.deltaTime;
@@ -310,7 +310,7 @@ public class FPSControllerNoPhysics : Controller
 
     void HandleArmSway()
     {
-        if (armsTransform == null) return;
+        if (armsTransform == null || _player.IsCameraLocked()) return;
 
         float mouseX = Input.GetAxis("Mouse X");
         float mouseY = Input.GetAxis("Mouse Y");

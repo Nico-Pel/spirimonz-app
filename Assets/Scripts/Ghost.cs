@@ -124,6 +124,8 @@ public class Ghost : GameBehaviour
     public float activityTimeVariation = 10f;
     public float chancesToRoamInAnotherRoom = 25f;
 
+    private float openingDoorSpeed = 35f;
+
     [Header("Ghost Stats : Blinking")] 
     public float averageVisibleTime = 1;
     public float visibleTimeVariation = 0.5f;
@@ -265,10 +267,10 @@ public class Ghost : GameBehaviour
         }
         else if (ghostParameters.HasEvidence(GhostInvestigator.EvidenceType.Radioactivity) && other.TryGetComponent(out RadiationDetector radiationDetector))
         {
-            Debug.Log("TRIGGER RADIATIONS DETECTOR");
+            //Debug.Log("TRIGGER RADIATIONS DETECTOR");
             if (ghostParameters.ShouldDetectRadiationOnTrigger())
             {
-                Debug.Log("TRIGGER RADIATIONS");
+                //Debug.Log("TRIGGER RADIATIONS");
                 radiationDetector.TriggerDetection(ghostParameters.radiationDurationOnTrigger);
             }
         }
@@ -286,12 +288,25 @@ public class Ghost : GameBehaviour
             {
                 _stopMoving = true;
                 agent.velocity = Vector3.zero;
-                this.Invoke(_waitDoorTime, () => _stopMoving = false);
 
+                /*
                 door.GhostDoorInteraction(
                     Random.Range(0.8f, 1f),   // 80% à 100% ouvert, propre et clampé
                     Random.Range(50f, 65f)     // vitesse raisonnable pour le hinge
                 );
+                */
+                
+                float waitTime = ComputeDoorWaitTime(door, _waitDoorTime);
+
+                if (waitTime > 0f)
+                {
+                    StartCoroutine(WaitAndOpenDoor(door));
+                }
+                else
+                {
+                    // Passe directement, ou pousse la porte sans ralentir
+                    door.GhostDoorInteraction(1f, openingDoorSpeed * ghostParameters.openingDoorSpeedMultiplier);
+                }
                 
                 ActivateActivitySource(door.activitySource);
             }
@@ -308,6 +323,62 @@ public class Ghost : GameBehaviour
                 }
             }
         }
+    }
+    
+    float ComputeDoorWaitTime(Door door, float maxWaitTime)
+    {
+        float openRatio = door.GetOpenRatio();
+
+        // Porte suffisamment ouverte → pas d'arrêt
+        if (openRatio >= 0.7f)
+            return 0f;
+
+        // Porte fermée → attente complète
+        if (!door.isOpen)
+            return maxWaitTime;
+
+        // Porte entre-ouverte → attente proportionnelle
+        // 0.7 → 0 sec
+        // 0.0 → maxWaitTime
+        float normalized = openRatio / 0.7f;
+        return maxWaitTime * (1f - normalized);
+    }
+    
+    private Coroutine _doorRoutine;
+
+    private IEnumerator WaitAndOpenDoor(Door door)
+    {
+        if (door == null)
+            yield break;
+
+        if (door.IsGrabbed())
+        {
+            door.Release();
+        }
+        door.InteractionLocked = true;
+
+        _stopMoving = true;
+        agent.isStopped = true;
+
+        const float OPEN_THRESHOLD = 0.7f;
+
+        // Tant que la porte n'est pas assez ouverte
+        while (door != null && door.GetOpenRatio() < OPEN_THRESHOLD)
+        {
+            // Le fantôme pousse progressivement la porte
+            door.GhostDoorInteraction(
+                openPercentage: 1f,
+                moveSpeed: openingDoorSpeed * ghostParameters.openingDoorSpeedMultiplier,
+                slam: false
+            );
+
+            yield return null; // frame suivante
+        }
+
+        // La porte est assez ouverte → reprise immédiate
+        _stopMoving = false;
+        agent.isStopped = false;
+        door.InteractionLocked = false;
     }
     
     void OnTriggerExit(Collider other)
@@ -371,7 +442,7 @@ public class Ghost : GameBehaviour
         _targetingPlayer = true;
 
         currentHuntTime = Random.Range(ghostParameters.averageHuntTime - huntTimeVariation, ghostParameters.averageHuntTime + huntTimeVariation);
-        Debug.Log("Starting a HUNT for: " + currentHuntTime + " seconds");
+        //Debug.Log("Starting a HUNT for: " + currentHuntTime + " seconds");
     }
 
     private void Update()
@@ -641,17 +712,17 @@ public class Ghost : GameBehaviour
         {
             case GhostActivities.ObjectInteraction:
                 ThrowObject();
-                Debug.Log("Activity triggered : Throw Object");
+                //Debug.Log("Activity triggered : Throw Object");
                 break;
 
             case GhostActivities.ChangeLightState:
                 TriggerElectronicLightActivity();
-                Debug.Log("Activity triggered : Elec Light " + Time.time);
+                //Debug.Log("Activity triggered : Elec Light " + Time.time);
                 break;
 
             case GhostActivities.ChangeElectronicObjectState:
                 TriggerActivatorObjectActivity();
-                Debug.Log("Activity triggered : Electronic Object " + Time.time);
+                //Debug.Log("Activity triggered : Electronic Object " + Time.time);
                 break;
             
             case GhostActivities.Hunt:
@@ -662,20 +733,20 @@ public class Ghost : GameBehaviour
                      (ghostParameters.ghostTypeData.ghostType == GhostTypeData.GhostType.Earthbound && currentRoom == favoriteRoom)))
                 {
                     TriggerHunting();
-                    Debug.Log("Activity triggered : Hunt " + Time.time);
+                    //Debug.Log("Activity triggered : Hunt " + Time.time);
                     return;
                 }
                 else
                 {
                     TriggerActivity();
-                    Debug.Log("Activity triggered : Reroll activity " + Time.time);
+                    //Debug.Log("Activity triggered : Reroll activity " + Time.time);
                     return;
                 }
                 break;
             
             case GhostActivities.PlayWithDoor:
                 PlayWithDoor();
-                Debug.Log("Activity triggered : Play With Door " + Time.time);
+                //Debug.Log("Activity triggered : Play With Door " + Time.time);
                 break;
             
             case GhostActivities.BlowOutAFlammable:
@@ -697,7 +768,7 @@ public class Ghost : GameBehaviour
                 }
                 else
                 {
-                    Debug.Log("Activity triggered : Nothing " + Time.time);
+                    //Debug.Log("Activity triggered : Nothing " + Time.time);
                     nextActivityTime *= 0.5f;
                 }
                 break;
@@ -738,12 +809,12 @@ public class Ghost : GameBehaviour
         //No door found
         if (selectedDoor == null)
         {
-            Debug.Log("No door find");
+            //Debug.Log("No door find");
             return;
         }
         else
         {
-            Debug.Log("Door activity! : ", selectedDoor);
+            //Debug.Log("Door activity! : ", selectedDoor);
         }
 
         if (selectedDoor.isOpen)

@@ -44,6 +44,7 @@ public class Door : GameBehaviour, IInteractable
     private bool _ghostJustInteracted;
     private bool _isGrabbed;
 
+    //private float _lockTimeAfterGhostInteraction = 1.5f;
     private Vector3 _basePosition;
 
     private void Start()

@@ -29,7 +29,7 @@ public class InteractionController : GameBehaviour
     [SerializeField] LayerMask doorLayer;
 
     private Door _targetedDoor;
-    private GameObject _grabbedDoor;
+    private Door _grabbedDoor;
     private float _grabDistance;
 
     private IInteractable _currentTarget;
@@ -67,12 +67,7 @@ public class InteractionController : GameBehaviour
     void Update()
     {
         HandleDoor();
-
-        if (objectInHands == null)
-        {
-            DetectInteractable();
-        }
-
+        DetectInteractable();
         HandleInput();
     }
 
@@ -91,7 +86,14 @@ public class InteractionController : GameBehaviour
             targetingGround = (groundLayer.value & (1 << hit.collider.gameObject.layer)) != 0;
             _lastGroundPosTargeted = hit.point;
             newTarget = hit.collider.GetComponent<IInteractable>();
-            if (newTarget != null && newTarget.InteractionLocked) newTarget = null;
+            
+            if (newTarget != null && newTarget.InteractionLocked) 
+                newTarget = null;
+            
+            if (newTarget != null && objectInHands != null && newTarget is CatchableObject)
+            {
+                newTarget = null;
+            }
         }
         else
         {
@@ -165,8 +167,8 @@ public class InteractionController : GameBehaviour
     void RefreshCursorUI()
     {
         // showCursor = target exist OR door is grabbed
-        bool showCursor = _currentTarget != null || _grabbedDoor != null;
-
+        bool showCursor = (_currentTarget != null && _currentTarget.InteractionLocked == false) || (_targetedDoor != null && _targetedDoor.InteractionLocked == false);
+        
         Sprite sprite = null;
         float size = 1f;
 
@@ -175,7 +177,7 @@ public class InteractionController : GameBehaviour
             sprite = _currentTarget.SpecialCursor;
             size = _currentTarget.CursorSize;
         }
-        else if (_grabbedDoor != null && _targetedDoor != null && _targetedDoor.SpecialCursor != null)
+        else if (_targetedDoor != null && _targetedDoor.SpecialCursor != null)
         {
             sprite = _targetedDoor.SpecialCursor;
             size = _targetedDoor.CursorSize;
@@ -221,16 +223,20 @@ public class InteractionController : GameBehaviour
         if (Physics.Raycast(ray, out RaycastHit hit, interactionDoorsDistance, doorLayer))
         {
             if (_targetedDoor == null)
-                _targetedDoor = hit.collider.GetComponent<Door>();
-
-            if (Input.GetMouseButtonDown(0))
+            {
+                Door door =  hit.collider.GetComponent<Door>();
+                if(door.InteractionLocked == false)
+                    _targetedDoor = door;
+            }
+            
+            if (Input.GetMouseButtonDown(0) && _targetedDoor != null)
             {
                 Rigidbody rb = _targetedDoor.rb;
                 HingeJoint hinge = _targetedDoor.hingeJoint;
 
                 if (rb != null && hinge != null)
                 {
-                    _grabbedDoor = _targetedDoor.gameObject;
+                    _grabbedDoor = _targetedDoor;
                     _targetedDoor.Grab();
                     _grabDistance = Vector3.Distance(_cam.transform.position, _grabbedDoor.transform.position);
                     rb.useGravity = false;

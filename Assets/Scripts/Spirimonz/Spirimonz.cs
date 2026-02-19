@@ -286,6 +286,9 @@ public class Spirimonz : GameBehaviour, IInteractable
     {
         if (openDoorsOnItsWay == false) return;
         
+        if (door.GetOpenRatio() > 0.7f)
+            return;
+        
         OpenDoor(door);
 
         /*Vector3 directionToDoor = (door.transform.position - transform.position).normalized;
@@ -301,37 +304,22 @@ public class Spirimonz : GameBehaviour, IInteractable
 
     private void OpenDoor(Door door)
     {
+        float currentRatio = door.GetOpenRatio();
+
+        // ⛔ Refuse toute interaction qui réduirait l'ouverture
+        if (currentRatio > 0.05f && door.hingeJoint.velocity < 0f)
+            return;
+
         _stopMoving = true;
         agent.velocity = Vector3.zero;        
         this.Invoke(_waitDoorTime, () => _stopMoving = false);
 
-        // 1️⃣ Récupère l'angle cible complet
-        float fullOpen = door.openFullAngle;
-        float currentAngle = door.hingeJoint.angle;
+        float targetPercentage = Random.Range(
+            Mathf.Max(currentRatio, 0.8f),
+            1f
+        );
 
-        // 2️⃣ Vérifie la distance restante
-        float delta = Mathf.Abs(fullOpen - currentAngle);
-
-        float targetPercentage;
-
-        if (delta < 10f) 
-        {
-            // La porte est à peine ouverte → on force un peu plus
-            // Par exemple, on vise entre 80 et 100%
-            targetPercentage = Mathf.Lerp(
-                currentAngle, fullOpen, Random.Range(0.8f, 1f)
-            );
-        }
-        else
-        {
-            // Porte fermée ou partiellement ouverte → ouverture normale
-            targetPercentage = Random.Range(0.8f, 1f);
-        }
-
-        // 3️⃣ Définir la vitesse raisonnable
         float speed = 50f;
-
-        // 4️⃣ Interaction fantôme
         door.GhostDoorInteraction(targetPercentage, speed);
     }
 

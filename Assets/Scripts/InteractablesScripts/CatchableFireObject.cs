@@ -21,6 +21,17 @@ public class CatchableFireObject : CatchableObject
     private void Start()
     {
         _player = (GamePlayer)Player.Instance;
+        if (canBeGrabByPlayer == false)
+        {
+            rb.isKinematic = true;
+        }
+        
+        //linkedFlammableElement.onChangeFireState.AddListener(SetThrowable);
+    }
+
+    private void SetThrowable(bool fireOn)
+    {
+        canBeThrownByPlayer = !fireOn;
     }
 
     [Space]
@@ -28,7 +39,7 @@ public class CatchableFireObject : CatchableObject
 
     public override void OnThrow()
     {
-        if (linkedFlammableElement.turnOffOnThrow)
+        if (linkedFlammableElement.turnOffOnThrow && linkedFlammableElement.IsOnFire())
         {
             linkedFlammableElement.EnableFire(false);
         }

@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Events;
 
 public class FlammableElement : GameBehaviour
 {
@@ -20,6 +21,8 @@ public class FlammableElement : GameBehaviour
     public bool canBeTurnedOn = true;
 
     private bool _isOnFire;
+
+    public UnityEvent<bool> onChangeFireState;
 
     private void Start()
     {
@@ -52,6 +55,8 @@ public class FlammableElement : GameBehaviour
                 SoundManager.Instance.PlaySound(blowUpByGhostSoundClip, transform.position, ghostVolume, ghostPitch, -1f, 10f);
             }
         }
+        
+        onChangeFireState?.Invoke(_isOnFire);
     }
     
     public bool IsOnFire()
