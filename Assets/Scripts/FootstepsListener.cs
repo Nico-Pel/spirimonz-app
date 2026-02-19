@@ -17,8 +17,8 @@ public class FootstepsListener : GameBehaviour
 
     [Header("Footsteps")] 
     public float range = 15f;
-    public FootstepSounds[] footstepSounds; // Paramétrable dans l'Inspector
     public float footstepVolume = 0.025f;
+    public FootstepSounds[] footstepSounds; // Paramétrable dans l'Inspector
     public bool ignoreAudioOcclusion = true;
     
     public float groundCheckDistance;
@@ -29,6 +29,7 @@ public class FootstepsListener : GameBehaviour
     public void PlayFootstep(float volumeMultiplier = 1f)
     {
         Ray ray = new Ray(transform.position + Vector3.up * 0.25f, Vector3.down);
+        Debug.DrawRay(ray.origin, ray.direction * groundCheckDistance, Color.red);
 
         RaycastHit[] hits = Physics.RaycastAll(
             ray,
@@ -39,7 +40,7 @@ public class FootstepsListener : GameBehaviour
 
         if (hits.Length == 0)
             return;
-
+        
         // Toujours trier par distance !
         System.Array.Sort(hits, (a, b) => a.distance.CompareTo(b.distance));
 
@@ -52,13 +53,11 @@ public class FootstepsListener : GameBehaviour
 
             foreach (var footstep in footstepSounds)
             {
-
                 if (footstep.groundTag == groundTag && footstep.stepClips.Length > 0)
                 {
                     AudioClip clip = footstep.stepClips[
                         Random.Range(0, footstep.stepClips.Length)
                     ];
-
                     SoundManager.Instance.PlaySound(
                         clip,
                         transform.position,

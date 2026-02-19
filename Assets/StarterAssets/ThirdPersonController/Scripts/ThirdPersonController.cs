@@ -31,6 +31,13 @@ public class ThirdPersonController : MonoBehaviour
     public float BottomClamp = -30f;
     public float CameraAngleOverride = 0f;
     public bool LockCameraPosition = false;
+    
+    [Header("Footsteps")]
+    public FootstepsListener footstepsListener;
+    private float _footstepCooldownWalk = 0.35f;
+    private float _footstepCooldownRun  = 0.30f;
+
+    private float _lastFootstepTime = -999f;
 
     [Header("Audio")]
     public AudioClip LandingAudioClip;
@@ -88,6 +95,7 @@ public class ThirdPersonController : MonoBehaviour
         }
         
         Move();
+        UpdateFootsteps();
     }
 
     private void LateUpdate()
@@ -207,5 +215,63 @@ public class ThirdPersonController : MonoBehaviour
         Color color = Grounded ? new Color(0f, 1f, 0f, 0.35f) : new Color(1f, 0f, 0f, 0.35f);
         Gizmos.color = color;
         Gizmos.DrawSphere(new Vector3(transform.position.x, transform.position.y - GroundedOffset, transform.position.z), GroundedRadius);
+    }
+    
+// =======================
+// FOOTSTEPS
+// =======================
+
+    /// <summary>
+    /// Called by Animation Event
+    /// </summary>
+    public void OnFootstep()
+    {
+        if (!Grounded)
+            return;
+
+        if (footstepsListener == null)
+            return;
+
+        if (_speed < 0.1f)
+            return;
+
+        float speed01 = Mathf.InverseLerp(0f, SprintSpeed, _speed);
+        bool isRunning = speed01 > 0.55f;
+
+        float cooldown = isRunning ? _footstepCooldownRun : _footstepCooldownWalk;
+
+        if (Time.time - _lastFootstepTime < cooldown)
+            return;
+
+        _lastFootstepTime = Time.time;
+
+        float volumeMultiplier = Mathf.Lerp(0.7f, 1.2f, speed01);
+        footstepsListener.PlayFootstep(volumeMultiplier);
+    }
+    
+    private float lastLeftStep = -1f;
+    private float lastRightStep = -1f;
+
+    private void UpdateFootsteps()
+    {
+        if (!Grounded || _speed < 0.1f || footstepsListener == null) return;
+
+        AnimatorStateInfo state = animator.GetCurrentAnimatorStateInfo(0);
+        float clipLength = state.length; 
+        float speed = animator.speed * state.speedMultiplier; // prend le blendTree en compte
+        float currentTime = state.normalizedTime * clipLength / speed; // temps réel écoulé dans le clip
+
+        // Frames converties en secondes
+        float leftStepTime  = 12f / 37f * clipLength;
+        float rightStepTime = 30f / 37f * clipLength;
+
+        if (currentTime >= leftStepTime && lastLeftStep < leftStepTime)
+            footstepsListener.PlayFootstep();
+
+        if (currentTime >= rightStepTime && lastRightStep < rightStepTime)
+            footstepsListener.PlayFootstep();
+
+        lastLeftStep  = currentTime;
+        lastRightStep = currentTime;
     }
 }
