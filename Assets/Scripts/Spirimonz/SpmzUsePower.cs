@@ -13,6 +13,8 @@ public class SpmzUsePower : Spirimonz
     public float rechargeMaxSec = 25f;
     public float minPercentToUse = 0.25f;
 
+    private float _timeDisabled;
+    
     [Header("Power")]
     public PowerActivator powerActivator;
 
@@ -86,10 +88,28 @@ public class SpmzUsePower : Spirimonz
         powerActivator.Deactivate();
         animator.SetBool("CanUsePower", false);
     }
+    
+    private void OnEnable()
+    {
+        // Si le Spirimonz avait été désactivé un moment
+        if (_timeDisabled > 0f)
+        {
+            float timeOff = Time.realtimeSinceStartup - _timeDisabled;
+
+            // Recharge en fonction du temps passé off
+            float energyRecovered = timeOff * (maxEnergy / rechargeMaxSec);
+            currentEnergy = Mathf.Min(currentEnergy + energyRecovered, maxEnergy);
+        
+            _timeDisabled = 0f; // reset
+        }
+    }
 
     private void OnDisable()
     {
         StopPower();
+    
+        // Enregistrer le moment où il est désactivé
+        _timeDisabled = Time.realtimeSinceStartup;
     }
     
     public bool IsUsingPower() => _isUsingPower;

@@ -605,8 +605,17 @@ MonoBehaviour:
   isActivated: 0
   isLocked: 0
   loopSound: {fileID: 8300000, guid: fe5caa6d0a18d45f9bd0269ab0436c7b, type: 3}
-  volume: 0.25
-  range: 15
+  volume: 0.225
+  range: 10
+  pitch: 1
+  OnActivated:
+    m_PersistentCalls:
+      m_Calls: []
+  OnDeactivated:
+    m_PersistentCalls:
+      m_Calls: []
+  useAutomaticDisable: 0
+  automaticDisableTime: 0.5
 --- !u!114 &4945201477472288226
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -623,6 +632,7 @@ MonoBehaviour:
   canClick: 1
   canHold: 0
   canRelease: 0
+  canBeClickedOnTriggerByGhostDuringHunt: 0
   printSources: []
   activableObject: {fileID: 959552096807127443}
   animator: {fileID: 6237519062264787173}
@@ -632,6 +642,7 @@ MonoBehaviour:
   volume: 0.2
   pitchMin: 0.6
   pitchMax: 0.8
+  isOnStateSwitch: 0
 --- !u!95 &6237519062264787173
 Animator:
   serializedVersion: 5
