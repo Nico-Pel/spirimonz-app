@@ -1,44 +1,40 @@
-using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
 public class SpmzRayDetector : Spirimonz
 {
-    [Header("Detection settings")]
+    [Header("Detection Settings")]
     public float detectionDistance = 3f;
-    public float delayWithoutSourceBeforeTurningOff = 0.2f;
 
-    private bool _delayStarted;
-
-    [Header("Detection materials settings")]
+    [Header("Visuals")]
     public MeshRenderer[] meshRenderers;
     public Material detectionMatNull;
     public Material detectionMatBase;
     public Material detectionMatFive;
+    public float visualDuration = 4f; // durée fixe du visuel et blink
 
-    [Header("Detection Audio Settings")]
+    [Header("Audio")]
     public AudioClip detectionSound;
     public AudioClip detectionFiveSound;
     public float soundVolume = 0.8f;
     public float basePitch = 0.7f;
     public float bonusPitchPerDetectionLevel = 0.2f;
-    
-    [Header("Blink settings")]
+
+    [Header("Blink")]
     public bool enableBlink = true;
-    public float blinkSpeed = 3f; // vitesse du blink
+    public float blinkSpeed = 3f;
     private Dictionary<MeshRenderer, Coroutine> _blinkingCoroutines = new Dictionary<MeshRenderer, Coroutine>();
 
     private Camera _cam;
-    private ActivitySource _targetedActivitySource;
+    private bool _isVisualPlaying = false;
+    private float _raycastTimer = 0f;
+    public float raycastInterval = 0.2f;
 
     private void Awake()
     {
         _cam = Camera.main;
     }
-
-    private float _raycastTimer = 0f;
-    public float raycastInterval = 0.2f; // 5 raycasts par seconde max
 
     public override bool UpdateSpirimonzBehaviour()
     {
@@ -56,81 +52,57 @@ public class SpmzRayDetector : Spirimonz
 
     private void PerformRaycast()
     {
+        if (_isVisualPlaying) return; // si animation visuelle en cours, ne rien trigger
+
         if (_cam == null) _cam = Camera.main;
         if (_cam == null) return;
 
         RaycastHit hit;
         ActivitySource source = null;
-        bool noSourceFound = true;
 
         if (Physics.Raycast(_cam.transform.position, _cam.transform.forward, out hit, detectionDistance))
         {
             source = GetActivitySourceFromHit(hit.transform);
-            noSourceFound = source == null || source.activityValue <= 0;
         }
 
-        if (noSourceFound && !_delayStarted)
+        if (source != null && source.activityValue > 0 && source.GetActivityTimer() >= 1f)
         {
-            _delayStarted = true;
-            Invoke(nameof(ResetSource), delayWithoutSourceBeforeTurningOff);
-        }
-
-        if (source != null && source != _targetedActivitySource && source.activityValue > 0)
-        {
-            TargetNewActivitySource(source);
+            StartCoroutine(PlayVisualAndSound(source));
         }
     }
 
-    private ActivitySource GetActivitySourceFromHit(Transform hitTransform)
+    private ActivitySource GetActivitySourceFromHit(Transform t)
     {
-        if (hitTransform.TryGetComponent(out CatchableObject catchable) && catchable.activitySource != null)
-            return catchable.activitySource;
-
-        if (hitTransform.TryGetComponent(out ClickableObject clickable) && clickable.activitySource != null)
-            return clickable.activitySource;
-
-        if (hitTransform.TryGetComponent(out Door door) && door.activitySource != null)
-            return door.activitySource;
-
+        if (t.TryGetComponent(out CatchableObject c) && c.activitySource != null) return c.activitySource;
+        if (t.TryGetComponent(out ClickableObject cl) && cl.activitySource != null) return cl.activitySource;
+        if (t.TryGetComponent(out Door d) && d.activitySource != null) return d.activitySource;
         return null;
     }
 
-    private void ResetSource()
+    private IEnumerator PlayVisualAndSound(ActivitySource source)
     {
-        _targetedActivitySource = null;
+        _isVisualPlaying = true;
+
+        // Visuel
+        UpdateVisuals(source.activityValue);
+
+        // Son
+        PlayActivitySound(source.activityValue);
+
+        // Animator
+        if (animator != null) animator.SetTrigger("Detection");
+
+        // Attente de la durée du visuel
+        float timer = 0f;
+        while (timer < visualDuration)
+        {
+            timer += Time.deltaTime;
+            yield return null;
+        }
+
+        // Fin du visuel
         UpdateVisuals(0);
-        _delayStarted = false;
-    }
-
-    private void CancelResetInvoke()
-    {
-        CancelInvoke(nameof(ResetSource));
-        _delayStarted = false;
-    }
-
-    private int _lastActivityValue = 0;
-    private void TargetNewActivitySource(ActivitySource newActivitySource)
-    {
-        if (newActivitySource == null || newActivitySource.activityValue <= 0) return;
-        
-        CancelResetInvoke();
-
-        bool isNewSource = newActivitySource != _targetedActivitySource;
-        bool activityChanged = newActivitySource.activityValue != _lastActivityValue;
-
-        if (!isNewSource && !activityChanged) return; // pas de trigger inutile
-
-        _targetedActivitySource = newActivitySource;
-        _lastActivityValue = newActivitySource.activityValue;
-
-        CancelResetInvoke();
-        UpdateVisuals(newActivitySource.activityValue);
-
-        
-        if (animator != null)
-            animator.SetTrigger("Detection");
-
-        PlayActivitySound(newActivitySource.activityValue);
+        _isVisualPlaying = false;
     }
 
     private void UpdateVisuals(int activityValue)
@@ -146,18 +118,18 @@ public class SpmzRayDetector : Spirimonz
             if (activityValue > 0)
             {
                 matToUse = activityValue == 5 ? detectionMatFive : detectionMatBase;
-                if (i + 1 > activityValue)
-                    matToUse = detectionMatNull;
+                if (i + 1 > activityValue) matToUse = detectionMatNull;
             }
 
             meshRenderers[i].material = matToUse;
             StartBlinking(matToUse, meshRenderers[i]);
         }
     }
-    
+
     private void StartBlinking(Material mat, MeshRenderer renderer)
     {
-        // Stopper le blink précédent si nécessaire
+        if (!enableBlink) return;
+
         if (_blinkingCoroutines.TryGetValue(renderer, out var oldCoroutine))
         {
             StopCoroutine(oldCoroutine);
@@ -166,12 +138,11 @@ public class SpmzRayDetector : Spirimonz
 
         if (mat == detectionMatBase || mat == detectionMatFive)
         {
-            Coroutine coroutine = StartCoroutine(BlinkEmission(mat));
-            _blinkingCoroutines[renderer] = coroutine;
+            Coroutine c = StartCoroutine(BlinkEmission(mat));
+            _blinkingCoroutines[renderer] = c;
         }
         else
         {
-            // Reset emission si ce n'est pas un material actif
             if (mat.HasProperty("_EmissionColor"))
                 mat.SetColor("_EmissionColor", Color.black);
         }
@@ -185,20 +156,19 @@ public class SpmzRayDetector : Spirimonz
 
         while (true)
         {
-            // PingPong entre 0.5 et 1
             float intensity = Mathf.PingPong(Time.time * blinkSpeed, 0.5f) + 0.5f;
             mat.SetColor("_EmissionColor", baseColor * intensity);
             yield return null;
         }
     }
-    
+
     private void PlayActivitySound(int activityValue)
     {
         if (detectionSound == null) return;
 
-        AudioClip clipToUse = activityValue == 5 ? detectionFiveSound : detectionSound;
+        AudioClip clip = activityValue == 5 ? detectionFiveSound : detectionSound;
         float pitch = activityValue == 5 ? 1f : Mathf.Max(0.1f, basePitch + bonusPitchPerDetectionLevel * (activityValue - 1));
 
-        SoundManager.Instance.PlaySound(clipToUse, transform.position, soundVolume, pitch, -1f, 15f, false, transform);
+        SoundManager.Instance.PlaySound(clip, transform.position, soundVolume, pitch, -1f, 15f, false, transform);
     }
 }

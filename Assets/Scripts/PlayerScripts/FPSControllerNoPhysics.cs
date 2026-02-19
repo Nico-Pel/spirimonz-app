@@ -321,15 +321,19 @@ public class FPSControllerNoPhysics : Controller
         float mouseX = Input.GetAxis("Mouse X");
         float mouseY = Input.GetAxis("Mouse Y");
 
-        Quaternion sway = Quaternion.Euler(
+        // Rotation cible basée sur la rotation de départ + sway
+        Quaternion swayRot = Quaternion.Euler(
             -mouseY * swayAmountX,
             mouseX * swayAmountY,
             0f
         );
 
+        Quaternion targetRot = armsStartLocalRot * swayRot;
+
+        // Interpolation vers la rotation cible
         armsTransform.localRotation = Quaternion.Slerp(
             armsTransform.localRotation,
-            armsTransform.localRotation * sway,
+            targetRot,
             Time.deltaTime * swaySmooth
         );
     }

@@ -43,6 +43,9 @@ public class CatchableObject : GameBehaviour, IInteractable
             InteractionLocked = true;
         
         this.Invoke(_collisionStartDelay, () => _canCallCollisionSound = true);
+        
+        // Check toutes les 0.5 secondes
+        InvokeRepeating(nameof(CheckFall), 1f, 2f);
     }
 
     // =========================
@@ -183,5 +186,11 @@ public class CatchableObject : GameBehaviour, IInteractable
             pitch: pitch,
             range: collisionSoundRange
         );
+    }
+    
+    void CheckFall()
+    {
+        if (transform.position.y < -50f)
+            Destroy(gameObject);
     }
 }
