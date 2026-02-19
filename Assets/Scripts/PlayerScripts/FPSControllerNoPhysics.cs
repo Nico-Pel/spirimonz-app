@@ -6,7 +6,6 @@ public class FPSControllerNoPhysics : Controller
     public FootstepsListener footstepsListener;
 
     [Header("Références")]
-    public Camera playerCamera;
     public Light mLight;
     public GameObject mLightObject;
 
@@ -92,9 +91,11 @@ public class FPSControllerNoPhysics : Controller
 
     void Start()
     {
+        _player = Player.Instance;
+
         controller = GetComponent<CharacterController>();
 
-        cameraStartLocalPos = playerCamera.transform.localPosition;
+        cameraStartLocalPos = _player.camera.transform.localPosition;
         cameraStandingPos = cameraStartLocalPos;
         standingHeight = controller.height;
 
@@ -113,8 +114,6 @@ public class FPSControllerNoPhysics : Controller
         // Init stamina
         currentStamina = maxStamina;
         staminaDepleted = false;
-
-        _player = Player.Instance;
     }
 
     void Update()
@@ -140,13 +139,15 @@ public class FPSControllerNoPhysics : Controller
         xRotation -= mouseY;
         xRotation = Mathf.Clamp(xRotation, -maxLookAngle, maxLookAngle);
 
-        playerCamera.transform.localRotation = Quaternion.Euler(xRotation, 0f, 0f);
+        _player.camera.transform.localRotation = Quaternion.Euler(xRotation, 0f, 0f);
         transform.Rotate(Vector3.up * mouseX);
     }
 
     // ---------------- MOVE ----------------
     void HandleMove()
     {
+        if (_player.IsLocked()) return;
+        
         float x = (Input.GetKey(_player.inputManager.rightKey) ? 1f : 0f) - (Input.GetKey(_player.inputManager.leftKey) ? 1f : 0f);
         float z = (Input.GetKey(_player.inputManager.forwardKey) ? 1f : 0f) - (Input.GetKey(_player.inputManager.backwardKey) ? 1f : 0f);
 
@@ -203,6 +204,8 @@ public class FPSControllerNoPhysics : Controller
     // ---------------- CROUCH ----------------
     void HandleCrouch()
     {
+        if (_player.IsLocked()) return;
+        
         if (Input.GetKeyDown(_player.inputManager.crouchKey))
         {
             isCrouching = !isCrouching;
@@ -226,9 +229,9 @@ public class FPSControllerNoPhysics : Controller
         controller.center = new Vector3(0, controller.height / 2f, 0);
 
         float targetCamY = isCrouching ? crouchCameraHeight : cameraStandingPos.y;
-        Vector3 camPos = playerCamera.transform.localPosition;
+        Vector3 camPos = _player.camera.transform.localPosition;
         camPos.y = Mathf.Lerp(camPos.y, targetCamY, Time.deltaTime * crouchTransitionSpeed);
-        playerCamera.transform.localPosition = camPos;
+        _player.camera.transform.localPosition = camPos;
     }
 
     void EnableHeadBob()
@@ -244,8 +247,8 @@ public class FPSControllerNoPhysics : Controller
 
         if (!canUseHeadBob || smoothedMove.magnitude < 0.1f || !controller.isGrounded)
         {
-            playerCamera.transform.localPosition = Vector3.Lerp(
-                playerCamera.transform.localPosition,
+            _player.camera.transform.localPosition = Vector3.Lerp(
+                _player.camera.transform.localPosition,
                 cameraStartLocalPos,
                 Time.deltaTime * bobResetSpeed
             );
@@ -268,7 +271,7 @@ public class FPSControllerNoPhysics : Controller
         if (stepTimer > 1f) stepTimer -= 1f;
 
         float bob = Mathf.Sin(stepTimer * Mathf.PI * 2f) * bobAmplitude;
-        playerCamera.transform.localPosition = cameraStartLocalPos + Vector3.up * bob;
+        _player.camera.transform.localPosition = cameraStartLocalPos + Vector3.up * bob;
 
         HandleArmsBob();
     }
@@ -328,6 +331,8 @@ public class FPSControllerNoPhysics : Controller
     // ---------------- LIGHT ----------------
     void HandleLight()
     {
+        if (_player.IsLocked()) return;
+        
         if (Input.GetKeyDown(_player.inputManager.turnLight) && mLight != null)
         {
             bool enable = !mLight.gameObject.activeSelf;

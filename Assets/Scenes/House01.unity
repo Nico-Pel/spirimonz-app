@@ -23046,6 +23046,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 1731531867130258203, guid: 56dd97ab6854c41b7bacaf7cd99514f6, type: 3}
+      propertyPath: houseEntry
+      value: 
+      objectReference: {fileID: 3423637249492515329}
     - target: {fileID: 2823075584241609848, guid: 56dd97ab6854c41b7bacaf7cd99514f6, type: 3}
       propertyPath: m_Name
       value: CaptureScene
@@ -23238,6 +23242,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   useDebugs: 0
+  playerCantDie: 0
   forcedGhostParameters: {fileID: 0}
   forcedGhostActivity: 7
   forcedFavoriteRoomID: 3
@@ -23245,6 +23250,7 @@ MonoBehaviour:
   useHuntTimeMultiplierDebug: 1
   huntTimeMultiplierDebug: 10
   biome: {fileID: 11400000, guid: c4e9a4eaa9c4d4e2a9cc57bcabc173d1, type: 2}
+  houseEntry: {fileID: 3423637249492515329}
   possibleGhostParameters:
   - {fileID: 11400000, guid: 349a6494c90b04ac48863433d25a2e07, type: 2}
   - {fileID: 11400000, guid: c707696b59eec4ba1ac95fac94b670a0, type: 2}
@@ -23578,6 +23584,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 424236622480871744, guid: bf5410f8eface405d9495b7b08580441, type: 3}
+      propertyPath: houseID
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 669946535729911598, guid: bf5410f8eface405d9495b7b08580441, type: 3}
       propertyPath: m_Materials.Array.data[3]
       value: 
@@ -23643,6 +23653,17 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: bf5410f8eface405d9495b7b08580441, type: 3}
+--- !u!114 &3423637249492515329 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 424236622480871744, guid: bf5410f8eface405d9495b7b08580441, type: 3}
+  m_PrefabInstance: {fileID: 3423637249492515328}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 302f6bf8e60e449278a46aef0aa83dd9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1001 &3838307121474647834
 PrefabInstance:
   m_ObjectHideFlags: 0

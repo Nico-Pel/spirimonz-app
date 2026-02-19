@@ -569,8 +569,10 @@ public class Ghost : GameBehaviour
     private void Kill()
     {
         if (_isLocked) return;
+        if (house.useDebugs && house.playerCantDie) return;
 
         _player.Die();
+        house.ExpelPlayerFromHouse();
     }
 
     private void SetVisibleRenderer(bool enable)

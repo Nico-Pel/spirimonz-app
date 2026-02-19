@@ -85,7 +85,7 @@ public class HouseEntry : GameBehaviour
         }
     }
 
-    private void Entry(Player player)
+    public void Entry(Player player, bool useDeadAnimation = false)
     {
         player.LockControls(true);
         
@@ -103,11 +103,11 @@ public class HouseEntry : GameBehaviour
 
         this.Invoke(fadeDuration, () =>
         {
-            LoadHouseScene();
+            LoadHouseScene(useDeadAnimation);
         });
     }
 
-    private void LoadHouseScene()
+    private void LoadHouseScene(bool useDeadAnimation)
     {
         if (string.IsNullOrEmpty(sceneName))
         {
@@ -117,6 +117,7 @@ public class HouseEntry : GameBehaviour
 
         if (_gameManager != null)
         {
+            _gameManager.UseDeadAnimation();
             _gameManager.LoadScene(sceneName, isExit);
         }
         else

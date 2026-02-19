@@ -4,36 +4,35 @@ using UnityEngine;
 [CreateAssetMenu(fileName = "HouseBiome", menuName = "HouseBiome")]
 public class HouseBiome : ScriptableObject
 {
-    [System.Serializable]
-    public class GhostSpirimonzLink
+    public SpirimonzSettings[] spirimonzInThisBiome;
+
+    public SpirimonzSettings GetCapturedSpirimonz(GhostTypeData.GhostType ghostType)
     {
-        public GhostTypeData.GhostType ghostType;
-        public Spirimonz spirimonzPrefab;
-    }
-    
-    [Header("Ghost → Spirimonz mapping")]
-    public List<GhostSpirimonzLink> spirimonzByGhostType = new();
-
-    private Dictionary<GhostTypeData.GhostType, Spirimonz> _cache;
-
-    private void BuildCache()
-    {
-        _cache = new Dictionary<GhostTypeData.GhostType, Spirimonz>();
-
-        foreach (var link in spirimonzByGhostType)
+        //To prevent a crash, if there is no spirimonz in this biome, use 1st spirimonz in datas
+        if (spirimonzInThisBiome.Length == 0)
         {
-            if (!_cache.ContainsKey(link.ghostType) && link.spirimonzPrefab != null)
-                _cache.Add(link.ghostType, link.spirimonzPrefab);
+            return GameManager.Instance.allSpirimonzSettings[0];
         }
-    }
+        
+        List<SpirimonzSettings> possibleSpirimonz = new List<SpirimonzSettings>();
 
-    public Spirimonz GetSpirimonzPrefab(GhostTypeData.GhostType ghostType)
-    {
-        if (_cache == null)
-            BuildCache();
+        foreach (SpirimonzSettings spmz in spirimonzInThisBiome)
+        {
+            if (spmz.primarySPMZType.ghostType == ghostType || spmz.secondarySPMZType.ghostType == ghostType)
+            {
+                possibleSpirimonz.Add(spmz);
+            }
+        }
 
-        return _cache.TryGetValue(ghostType, out var prefab)
-            ? prefab
-            : null;
+        //If there is no spirimonz for this ghost type, use a full random spirimonz instead
+        if (possibleSpirimonz.Count == 0)
+        {
+            foreach (SpirimonzSettings spmz in spirimonzInThisBiome)
+            {
+                possibleSpirimonz.Add(spmz);
+            }
+        }
+        
+        return possibleSpirimonz[Random.Range(0, possibleSpirimonz.Count)];
     }
 }

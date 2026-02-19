@@ -270,7 +270,7 @@ public class InteractionController : GameBehaviour
         Vector3 dropPos = handObjectDropPosition.position;
                 
         // Check si un mur est juste devant
-        if (Physics.Raycast(transform.position + Vector3.up * 1.5f, _player.fpsController.playerCamera.transform.forward, out RaycastHit hit, 0.65f))
+        if (Physics.Raycast(transform.position + Vector3.up * 1.5f, _player.camera.transform.forward, out RaycastHit hit, 0.65f))
         {
             dropPos = hit.point - transform.forward * 0.25f; // recule un peu pour pas clipper
         }
@@ -324,7 +324,7 @@ public class InteractionController : GameBehaviour
     private Vector3 _lastWallHitPos;
     public bool DetectCollisionForward()
     {
-        Vector3 origin = _player.fpsController.playerCamera.transform.position;
+        Vector3 origin = _player.camera.transform.position;
         Vector3 direction = _player.GetForward().normalized;
         float distance = 1f;
 

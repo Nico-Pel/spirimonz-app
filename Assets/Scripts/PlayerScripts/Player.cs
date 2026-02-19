@@ -8,6 +8,8 @@ public class Player : GameBehaviour
 {
     public static Player Instance { get; private set; }
 
+    public Camera camera;
+
     public CharacterController characterController;
     [ReadOnly] public InputManager inputManager;
     [ReadOnly] public InventoryManager inventoryManager;

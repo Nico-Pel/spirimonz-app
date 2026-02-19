@@ -57,17 +57,12 @@ public class ThirdPersonController : MonoBehaviour
     private bool _hasAnimator;
     private Player _player;
 
-    private void Awake()
-    {
-        if (_mainCamera == null)
-            _mainCamera = GameObject.FindGameObjectWithTag("MainCamera");
-    }
-
     private GameObject _mainCamera;
 
     private void Start()
     {
         _player = Player.Instance;
+        _mainCamera = _player.camera.gameObject;
         _inputManager = InputManager.Instance;
 
         _cinemachineTargetYaw = CinemachineCameraTarget.transform.rotation.eulerAngles.y;

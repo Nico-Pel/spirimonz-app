@@ -357,7 +357,7 @@ public class InventoryManager : GameBehaviour
         }
 
         spirimonzToDrop.DroppingOnMap();
-        float camX = _gamePlayer.fpsController.playerCamera.transform.localEulerAngles.x;
+        float camX = _gamePlayer.camera.transform.localEulerAngles.x;
 
         // Mapper de 0-360 à 0-180 pour regarder vers le bas
         if (camX > 180f) camX -= 360f; // [-180,180]

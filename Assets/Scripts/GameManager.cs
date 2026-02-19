@@ -9,9 +9,8 @@ public class GameManager : GameBehaviour
 {
     public static GameManager Instance;
     public GhostTypeDatabase ghostTypeDatabase;
-
+    
     [ReadOnly] public Player player;
-    public Transform[] spawnPoints;
     [ReadOnly] private int currentHouseID = -1;
 
     [FormerlySerializedAs("allSpirimonzPrefabs")] public SpirimonzSettings[] allSpirimonzSettings;
@@ -22,6 +21,7 @@ public class GameManager : GameBehaviour
     private bool _firstLoad = true;
 
     private InventoryManager _inventoryManager;
+    private bool _isDead;
     
     void Awake()
     {
@@ -62,14 +62,19 @@ public class GameManager : GameBehaviour
                 // On est déjà dans le bon World → place le player directement
                 if (player == null)
                     player = FindObjectOfType<Player>();
-
+  
                 if (player != null)
                 {
-                    if (currentHouseID >= 0 && currentHouseID < spawnPoints.Length)
+                    World world = World.Instance;
+                    if (world == null)
+                    {
+                        world = FindObjectOfType<World>();
+                    }
+                    if (currentHouseID >= 0 && currentHouseID < world.spawnPoints.Length)
                     {
                         // Spawn devant la maison
-                        player.SetPosition(spawnPoints[currentHouseID].position);
-                        player.SetRotation(spawnPoints[currentHouseID].rotation);
+                        player.SetPosition(world.spawnPoints[currentHouseID].position);
+                        player.SetRotation(world.spawnPoints[currentHouseID].rotation);
                     }
                     else
                     {
@@ -88,6 +93,46 @@ public class GameManager : GameBehaviour
     {
         _inventoryManager = InventoryManager.Instance;
         _inventoryManager.LoadTeamFromSave();
+
+        InitDefaultSpirimonzIfNeeded();
+    }
+    
+    private void InitDefaultSpirimonzIfNeeded()
+    {
+        if (gameData == null || _inventoryManager == null)
+            return;
+
+        // 1. Vérifie si la team est vide dans la save
+        bool hasAnySpirimonzInTeam = gameData.spirimonzCollection
+            .Any(s => s.inTeam);
+
+        if (hasAnySpirimonzInTeam)
+            return;
+
+        Debug.Log("Team is empty, initializing default Spirimonz...");
+
+        foreach (var settings in allSpirimonzSettings)
+        {
+            if (!settings.unlockedByDefault)
+                continue;
+
+            SpirimonzData spData = Array.Find(
+                gameData.spirimonzCollection,
+                s => s.id == settings.spirimonzID
+            );
+
+            if (spData == null)
+                continue;
+
+            // 2. Unlock UNIQUEMENT
+            spData.unlocked = true;
+
+            // 3. Ajout à la team (InventoryManager gère TOUT)
+            _inventoryManager.AddSpirimonzToTeam(settings);
+        }
+
+        // Save globale (unlock + team déjà sync via GameManager)
+        SaveManager.Save(gameData);
     }
 
     private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
@@ -105,11 +150,18 @@ public class GameManager : GameBehaviour
 
         if (_isWorld)
         {
-            if (isLoadingFromHouse && currentHouseID >= 0 && currentHouseID < spawnPoints.Length)
+            World world = World.Instance;
+
+            if (world == null)
+            {
+                world = FindObjectOfType<World>();
+            }
+            
+            if (isLoadingFromHouse && currentHouseID >= 0 && currentHouseID < world.spawnPoints.Length)
             {
                 // Spawn devant la maison
-                player.SetPosition(spawnPoints[currentHouseID].position);
-                player.SetRotation(spawnPoints[currentHouseID].rotation);
+                player.SetPosition(world.spawnPoints[currentHouseID].position);
+                player.SetRotation(world.spawnPoints[currentHouseID].rotation);
             }
             else
             {
@@ -159,7 +211,7 @@ public class GameManager : GameBehaviour
         if (spData != null)
         {
             spData.inTeam = inTeam;
-            spData.teamPosition = inTeam ? position : -1;
+            spData.teamPosition = inTeam ? Mathf.Max(0, position) : -1;
             SaveGame();
         }
     }
@@ -222,6 +274,11 @@ public class GameManager : GameBehaviour
     private void OnApplicationPause(bool pause)
     {
         if (pause) SaveGame();
+    }
+
+    public void UseDeadAnimation()
+    {
+        _isDead = true;
     }
 
     private void OnApplicationQuit()

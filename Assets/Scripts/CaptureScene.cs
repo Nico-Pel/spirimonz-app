@@ -7,6 +7,8 @@ public class CaptureScene : GameBehaviour
 {
     public AudioClip victorySound;
     public float victoryVolume = 1f;
+
+    public GameObject smokeDarkWinEffect;
     
     public AudioClip loseSound;
     public float loseVolume = 1f;
@@ -20,12 +22,14 @@ public class CaptureScene : GameBehaviour
     public Animator sceneAnimator;
     public float delayBeforeStartingWinAnimation = 0.5f;
 
-    private Spirimonz _capturedSpirimonz;
+    private GameObject _capturedSpirimonz;
 
     private void OnEnable()
     {
         UIGame.Instance.EnableOverlay(false, 0.5f);
         SoundManager.Instance.StopAmbient(1.5f);
+        
+        Camera.main.gameObject.SetActive(false);
     }
 
     //Animation Event
@@ -43,11 +47,26 @@ public class CaptureScene : GameBehaviour
 
     private void Win()
     {
+        SpirimonzSettings selectedSpirimonz = House.Instance.GetSpirimonzSettings();
+        
+        smokeDarkWinEffect.SetActive(true);
+        
         ghostModel.SetActive(false);
-        _capturedSpirimonz = Instantiate(House.Instance.GetSpirimonzPrefab(), transform.position, Quaternion.identity);
-        _capturedSpirimonz.hidingGameObject.SetActive(false);
-        _capturedSpirimonz.Lock();
+        _capturedSpirimonz = Instantiate(selectedSpirimonz.spirimonzBodyPrefab, transform.position + selectedSpirimonz.bodyPresentationOffset, Quaternion.identity);
         this.Invoke(delayBeforeStartingWinAnimation, PlayWinAnimation);
+        
+        UnlockSpirimonz(selectedSpirimonz.spirimonzID);
+        
+        this.Invoke(8, Exit);
+    }
+
+    private void UnlockSpirimonz(string spirimonzID)
+    {
+        GameManager gameManager = GameManager.Instance;
+        if (gameManager.IsSpirimonzCaptured(spirimonzID) == false)
+        {
+            gameManager.UnlockSpirimonz(spirimonzID);
+        }
     }
 
     private void PlayWinAnimation()
@@ -61,23 +80,30 @@ public class CaptureScene : GameBehaviour
         ghostAnimator.SetTrigger("Attack");
         PlayLoseSound();
         this.Invoke(0.3f, () => UIGame.Instance.EnableOverlay(true, 0.1f));
+
+        this.Invoke(3, Exit);
     }
 
     public void PlayerFakeHeartBeating()
     {
         SoundManager.Instance.PlaySound(
-            heartBeatingClip, transform.position, heartBeatVolume, sourceParent: transform, duration: -1f, loop: false);
+            heartBeatingClip, transform.position, heartBeatVolume, sourceParent: transform, duration: -1f, loop: false, ignoreAudioOcclusion: true);
     }
 
     private void PlayVictorySound()
     {
         SoundManager.Instance.PlaySound(
-            victorySound, transform.position, victoryVolume, sourceParent: transform, duration: -1f, loop: false);
+            victorySound, transform.position, victoryVolume, sourceParent: transform, duration: -1f, loop: false, pitch:1f, ignoreAudioOcclusion: true);
     }
     
     private void PlayLoseSound()
     {
         SoundManager.Instance.PlaySound(
-            loseSound, transform.position, loseVolume, sourceParent: transform, duration: -1f, loop: false);
+            loseSound, transform.position, loseVolume, sourceParent: transform, duration: -1f, loop: false, ignoreAudioOcclusion: true);
+    }
+
+    private void Exit()
+    {
+        House.Instance.houseEntry.Entry(Player.Instance);
     }
 }

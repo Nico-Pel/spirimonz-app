@@ -174,6 +174,6 @@ public class GamePlayer : Player
     
     public Vector3 GetForward()
     {
-        return fpsController.playerCamera.transform.forward;
+        return camera.transform.forward;
     }
 }

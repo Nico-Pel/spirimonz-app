@@ -13,6 +13,7 @@ public class House : GameBehaviour
        
 # if UNITY_EDITOR
     public bool useDebugs;
+    public bool playerCantDie;
     public GhostParameters forcedGhostParameters;
     public Ghost.GhostActivities forcedGhostActivity = Ghost.GhostActivities.Nothing;
     public int forcedFavoriteRoomID = -1;
@@ -24,6 +25,7 @@ public class House : GameBehaviour
     [Space]
 
     public HouseBiome biome;
+    public HouseEntry houseEntry;
     public GhostParameters[] possibleGhostParameters;
     
     public Room[] rooms;
@@ -147,8 +149,13 @@ public class House : GameBehaviour
         return selectableWayPoints[Random.Range(0, selectableWayPoints.Count)];
     }
 
-    public Spirimonz GetSpirimonzPrefab()
+    public SpirimonzSettings GetSpirimonzSettings()
     {
-        return biome.GetSpirimonzPrefab(currentGhost.ghostParameters.ghostTypeData.ghostType);
+        return biome.GetCapturedSpirimonz(currentGhost.ghostParameters.ghostTypeData.ghostType);
+    }
+    
+    public void ExpelPlayerFromHouse()
+    {
+        this.Invoke(8, () => houseEntry.Entry(currentPlayer, true));
     }
 }

@@ -48,7 +48,19 @@ public class MaterialReplacer : MonoBehaviour
         Debug.Log($"Material replaced {replaceCount} time(s).");
     }
 
-    // Bouton directement dans l’Inspector
+    // Swap the two materials
+    public void SwapMaterials()
+    {
+        Undo.RecordObject(this, "Swap Materials");
+
+        Material temp = materialToReplace;
+        materialToReplace = replacementMaterial;
+        replacementMaterial = temp;
+
+        EditorUtility.SetDirty(this);
+    }
+
+    // Inspector buttons
     [CustomEditor(typeof(MaterialReplacer))]
     private class MaterialReplacerEditor : Editor
     {
@@ -59,11 +71,18 @@ public class MaterialReplacer : MonoBehaviour
             MaterialReplacer replacer = (MaterialReplacer)target;
 
             EditorGUILayout.Space();
-            GUI.enabled = replacer.materialToReplace != null && replacer.replacementMaterial != null;
 
+            // Replace button
+            GUI.enabled = replacer.materialToReplace != null && replacer.replacementMaterial != null;
             if (GUILayout.Button("Replace Material In Children"))
             {
                 replacer.ReplaceMaterials();
+            }
+
+            // Swap button
+            if (GUILayout.Button("Swap Materials"))
+            {
+                replacer.SwapMaterials();
             }
 
             GUI.enabled = true;
