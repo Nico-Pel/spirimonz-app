@@ -174,7 +174,7 @@ public class UITeamBuilder : GameBehaviour
     private void UpdateSpirimonzPanel()
     {
         if (_isSelectorInitialized == false) return;
-        
+
         foreach (UISpirimonzPanelSelector spmzSelector in spirimonzPanelSelectors)
         {
             if (_gameManager.IsSpirimonzCaptured(spmzSelector.spirimonzSettings.spirimonzID) == false)
@@ -191,17 +191,17 @@ public class UITeamBuilder : GameBehaviour
                     if (bFilterEvidences[i].GetState() == 1 && spmzSelector.spirimonzSettings.IsUsefulForEvidence(evidence) == false)
                     {
                         spmzSelector.gameObject.SetActive(false);
-                        continue;
+                        break;
                     }
                     else if (bFilterEvidences[i].GetState() == 2 && spmzSelector.spirimonzSettings.IsUsefulForEvidence(evidence) == true)
                     {
                         spmzSelector.gameObject.SetActive(false);
-                        continue;
+                        break;
                     }
                 }
+                
+                spmzSelector.gameObject.SetActive(true);
             }
-            
-            spmzSelector.gameObject.SetActive(true);
         }
     }
 }

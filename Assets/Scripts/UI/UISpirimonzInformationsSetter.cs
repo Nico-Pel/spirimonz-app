@@ -23,8 +23,8 @@ public class UISpirimonzInformationsSetter : GameBehaviour
     public Image secondaryType;
     public Image[] booleanFeedbacks;
 
-    private Color _abilityPanelBaseColor;
-    private Color _abilityPanelOffColor;
+    public Color abilityPanelBaseColor;
+    public Color abilityPanelOffColor;
 
     [Header("Sprites")] 
     public Sprite nopSprite;
@@ -35,13 +35,7 @@ public class UISpirimonzInformationsSetter : GameBehaviour
     private SpirimonzSettings _lastSpirimonzSettings;
 
     public UnityEvent onInfoChanges;
-    
-    private void Awake()
-    {
-        _abilityPanelBaseColor = abilityPanels[0].color;
-        _abilityPanelOffColor = new Color(_abilityPanelBaseColor.r, _abilityPanelBaseColor.g, _abilityPanelBaseColor.b, 0.2f);
-    }
-    
+
     public void SetSpirimonz(SpirimonzSettings spmz)
     {
         if(tSpirimonzName != null)
@@ -80,7 +74,7 @@ public class UISpirimonzInformationsSetter : GameBehaviour
             bool abilityExist = i < abilityCount;
 
             if (abilityPanels[i] != null)
-                abilityPanels[i].color = abilityExist ? _abilityPanelBaseColor : _abilityPanelOffColor;
+                abilityPanels[i].color = abilityExist ? abilityPanelBaseColor : abilityPanelOffColor;
                 
             if(tSpirimonzAbilities[i] != null)
                 tSpirimonzAbilities[i].text = abilityExist ? spmz.abilities[i].description : "";
