@@ -264,8 +264,14 @@ public class FPSControllerNoPhysics : Controller
 
         if (previousStepTimer < 0.5f && stepTimer >= 0.5f)
         {
-            float volume = isSprinting ? 1f : 0.5f;
-            PlayFootstep(volume);
+            float speed = smoothedMove.magnitude;
+
+            // ⚡ On ne joue le pas que si on bouge assez vite
+            if (speed > 0.05f)
+            {
+                float volume = isSprinting ? 1f : 0.5f;
+                PlayFootstep(volume);
+            }
         }
 
         if (stepTimer > 1f) stepTimer -= 1f;

@@ -26,6 +26,9 @@ public class HouseEntry : GameBehaviour
 
     private bool hasEntered = false;
     private GameManager _gameManager;
+    
+    private float _securityTime = 1f;
+    private bool _canBeTriggered;
 
     private void Awake()
     {
@@ -46,6 +49,8 @@ public class HouseEntry : GameBehaviour
             currentGhost.onGhostStartToHunt.AddListener(LockDoor);
             currentGhost.onGhostStopToHunt.AddListener(UnlockDoor);
         }
+        
+        this.Invoke(_securityTime, () => _canBeTriggered = true);
     }
 
     private void LockDoor()
@@ -74,7 +79,7 @@ public class HouseEntry : GameBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
-        if (hasEntered)
+        if (hasEntered || _canBeTriggered == false)
             return;
 
         Player player = other.GetComponentInParent<Player>();

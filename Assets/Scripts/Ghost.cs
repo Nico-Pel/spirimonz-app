@@ -206,7 +206,8 @@ public class Ghost : GameBehaviour
         }
         #endif
         
-        this.Invoke(nextActivityTime, TriggerActivity);
+        //Fist activity if called later
+        this.Invoke(nextActivityTime * 2, TriggerActivity);
         
         ghostModel.SetActive(false);
 

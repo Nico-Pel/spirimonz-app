@@ -7,11 +7,15 @@ public class ActivitySource : MonoBehaviour
 {
     [Range(0, 5)]
     public int activityValue = 0;
+    public int nbOfActivity { get; set; }
     
     private float _activityTimer;
 
     public void SetActivityValue(int newValue, float time)
     {
+        if (newValue != 0)
+            nbOfActivity++;
+        
         if (newValue > activityValue)
         {
             activityValue = newValue;
@@ -37,4 +41,6 @@ public class ActivitySource : MonoBehaviour
         _activityTimer = 0;
         activityValue = 0;
     }
+    
+    public float GetActivityTimer() => _activityTimer;
 }

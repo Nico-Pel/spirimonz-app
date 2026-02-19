@@ -38361,10 +38361,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   useDebugs: 1
   playerCantDie: 1
-  forcedGhostParameters: {fileID: 11400000, guid: 2b135e37d107d4344b20a22b4139f807, type: 2}
-  forcedGhostActivity: 7
+  forcedGhostParameters: {fileID: 11400000, guid: f022c727b653440329f1660c3fb0c92f, type: 2}
+  forcedGhostActivity: 0
   forcedFavoriteRoomID: 0
-  tripleActivityDebug: 0
+  tripleActivityDebug: 1
   useHuntTimeMultiplierDebug: 0
   huntTimeMultiplierDebug: 1
   biome: {fileID: 11400000, guid: c4e9a4eaa9c4d4e2a9cc57bcabc173d1, type: 2}
@@ -39511,6 +39511,14 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1323683201}
     m_Modifications:
+    - target: {fileID: 314630725114964094, guid: 8daa25a44d2284a3d850180b4785689b, type: 3}
+      propertyPath: apparitionPercentageChances
+      value: 50
+      objectReference: {fileID: 0}
+    - target: {fileID: 1678816412550748983, guid: 8daa25a44d2284a3d850180b4785689b, type: 3}
+      propertyPath: apparitionPercentageChances
+      value: 50
+      objectReference: {fileID: 0}
     - target: {fileID: 5927354360612036453, guid: 8daa25a44d2284a3d850180b4785689b, type: 3}
       propertyPath: m_Name
       value: BoxCrate01 (1)

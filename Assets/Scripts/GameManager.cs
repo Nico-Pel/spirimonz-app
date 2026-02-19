@@ -8,6 +8,12 @@ using UnityEngine.Serialization;
 public class GameManager : GameBehaviour
 {
     public static GameManager Instance;
+    
+    [Header("Debug")]
+    public bool considerEverySpirimonzUnlocked;
+    
+    [Space]
+
     public GhostTypeDatabase ghostTypeDatabase;
     
     [ReadOnly] public Player player;
@@ -250,6 +256,10 @@ public class GameManager : GameBehaviour
 
     public bool IsSpirimonzCaptured(string spirimonzID)
     {
+        # if UNITY_EDITOR
+            if (considerEverySpirimonzUnlocked) return true;
+        # endif
+        
         SpirimonzSettings spirimonzSettings =
             allSpirimonzSettings.FirstOrDefault(s => s.spirimonzID == spirimonzID);
 
