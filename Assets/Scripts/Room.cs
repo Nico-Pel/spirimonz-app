@@ -7,7 +7,7 @@ using UnityEngine.Serialization;
 public class Room : MonoBehaviour
 {
     [Header("Temperature Settings")]
-    public float currentTemperature = 20f;
+    [SerializeField] private float currentTemperature = 20f;
     private float _temperatureTarget = 20f;
     public float _smoothSpeed = 1f; // vitesse de transition (°C/sec)
     public float minNormalTemperature = 1f; // température minimale possible
@@ -172,4 +172,11 @@ public class Room : MonoBehaviour
     // Pour compatibilité et lisibilité
     public void AddCooling(float value) => AddTemperatureDelta(-value);
     public void AddHeating(float value) => AddTemperatureDelta(value);
+
+    public float GetTemperatureCelsius() => currentTemperature;
+    
+    public float GetTemperatureFahrenheit()
+    { 
+        return (currentTemperature * 9f / 5f) + 32f;
+    }
 }

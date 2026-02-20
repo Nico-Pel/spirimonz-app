@@ -8,8 +8,9 @@ using UnityEngine.Serialization;
 public class GameManager : GameBehaviour
 {
     public static GameManager Instance;
-    
-    [Header("Debug")]
+
+    [Header("Debug")] 
+    public bool ignoreAllHouseDebugs;
     public bool considerEverySpirimonzUnlocked;
     
     [Space]

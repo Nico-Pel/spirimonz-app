@@ -11,15 +11,18 @@ public class ClickableObject : GameBehaviour, IInteractable
     public bool canHold = false;
     public bool canRelease = false;
     public bool canBeClickedOnTriggerByGhostDuringHunt;
+    public bool ignoreActivitySource;
 
     public House house { get; set; }
 
     private float _securityClickTime = 0.15f;
     private bool _clickSecurityLocked = false;
+
+    public UnityEvent onClick;
     
     protected virtual void Awake()
     {
-        if (activitySource == null)
+        if (activitySource == null && !ignoreActivitySource)
         {
             Debug.LogError(
                 $"{nameof(ActivitySource)} introuvable sur {name}",
@@ -74,6 +77,7 @@ public class ClickableObject : GameBehaviour, IInteractable
 
     public virtual void OnClick()
     {
+        onClick?.Invoke();
         Debug.Log($"{name} clicked!");
     }
 

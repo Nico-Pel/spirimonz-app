@@ -525,7 +525,7 @@ public class Spirimonz : GameBehaviour, IInteractable
     public void ChangeBehaviour(SpirimonzBehaviourState newBehaviour)
     {
         _currentBehaviour = newBehaviour;
-        animator.SetBool("Stand", newBehaviour == SpirimonzBehaviourState.Wait);
+        animator.SetBool("Wait", newBehaviour == SpirimonzBehaviourState.Wait);
     }
 
     public void OnInteractHold()

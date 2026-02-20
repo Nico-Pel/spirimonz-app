@@ -38,7 +38,7 @@ public class SpmzTemperatureColor : Spirimonz
         
         base.UpdateSpirimonzBehaviour();
         
-        float currentTemperature = currentRoom.currentTemperature;
+        float currentTemperature = currentRoom.GetTemperatureCelsius();
 
         Color targetColor = freezingColor;
 

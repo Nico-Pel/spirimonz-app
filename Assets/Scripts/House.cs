@@ -46,7 +46,26 @@ public class House : GameBehaviour
     private void Awake()
     {
         Instance = this;
+        
+        #if UNITY_EDITOR
+        CheckIgnoreDebugs();
+        #endif
+        
         InitializeHouse();
+    }
+
+    private void CheckIgnoreDebugs()
+    {
+        GameManager gameManager = GameManager.Instance;
+        if (gameManager == null)
+        {
+            gameManager = FindObjectOfType<GameManager>();
+        }
+        if (gameManager != null)
+        {
+            if (gameManager.ignoreAllHouseDebugs)
+                useDebugs = false;
+        }
     }
 
     private void Start()

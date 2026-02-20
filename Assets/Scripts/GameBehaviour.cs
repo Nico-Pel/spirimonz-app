@@ -188,6 +188,11 @@ public class GameBehaviour : MonoBehaviour
     {
         return Mathf.Abs(f - i) < minimumDistance;
     }
+
+    public float ConvertToFahrenheit(float celsciusValue)
+    {
+        return (celsciusValue * 9f / 5f) + 32f;
+    }
 }
 
 #region ReadOnly Attribute
