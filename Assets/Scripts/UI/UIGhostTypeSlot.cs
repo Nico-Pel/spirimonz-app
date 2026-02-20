@@ -27,12 +27,15 @@ public class UIGhostTypeSlot : GameBehaviour
     public GameObject cross;
     public Image backgroundImage;
     public Button forcedStateButton;
+    public ButtonPointerHandler bInfo;
 
     private Color _baseTitleColor;
     private Color _baseBackgroundColor;
     private Color _baseIconColor;
     
     public UnityEvent OnChangeForcedState;
+    
+    private UIJournal _journal;
 
     private void Start()
     {
@@ -40,12 +43,42 @@ public class UIGhostTypeSlot : GameBehaviour
         _baseBackgroundColor = backgroundImage.color;
         _baseIconColor = ghostIcon.color;
         
-        ghostIcon.sprite = ghostParameters.ghostTypeData.ghostSprite;
-        titleText.text = ghostParameters.ghostTypeData.ghostType.ToString();
-        
         GhostInvestigator.Instance?.OnInvestigationDatasChange.AddListener(ChangeStateDependingOnInvestigation);
         
         forcedStateButton.onClick.AddListener(SwitchForcedState);
+
+        bInfo.onPointerDown.AddListener(OpenGhostInfo);
+        bInfo.onPointerUp.AddListener(CloseGhostInfo);
+    }
+
+    public void SetJournal(UIJournal j)
+    {
+        _journal = j;
+    }
+
+    private void OnValidate()
+    {
+        if (ghostParameters != null)
+        {
+            ghostIcon.sprite = ghostParameters.ghostTypeData.ghostSprite;
+            titleText.text = ghostParameters.ghostTypeData.ghostType.ToString();
+        }
+    }
+
+    private void OpenGhostInfo()
+    {
+        if (_journal != null)
+        {
+            _journal.OpenGhostFrame(ghostParameters);
+        }
+    }
+    
+    private void CloseGhostInfo()
+    {
+        if (_journal != null)
+        {
+            _journal.CloseGhostFrame();
+        }
     }
 
     private void ChangeStateDependingOnInvestigation(GhostInvestigator.EvidenceType evidenceType)

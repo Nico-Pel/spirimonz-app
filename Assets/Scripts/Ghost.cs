@@ -196,6 +196,10 @@ public class Ghost : GameBehaviour
         currentRoom = favoriteRoom;
         agent.enabled = true;
 
+        if (ghostParameters.ghostTypeData.ghostType == GhostTypeData.GhostType.Trickster)
+        {
+            averageActivityTime *= 0.75f;
+        }
         float nextActivityTime = Random.Range(averageActivityTime - activityTimeVariation, averageActivityTime + activityTimeVariation);
         
         # if UNITY_EDITOR
@@ -498,7 +502,13 @@ public class Ghost : GameBehaviour
             else
             {
                 bool canSeePlayer = vision.CanSeePlayer(house.currentPlayer);
-                agent.speed = currentState == GhostState.huntingState && canSeePlayer ? ghostParameters.targetingSpeedBase : ghostParameters.normalSpeedBase;
+                
+                float speed = currentState == GhostState.huntingState && canSeePlayer ? ghostParameters.targetingSpeedBase : ghostParameters.normalSpeedBase;
+                if (ghostParameters.ghostTypeData.ghostType == GhostTypeData.GhostType.Aquatic && currentRoom == favoriteRoom)
+                {
+                    speed *= 1.5f;
+                }
+                agent.speed = speed;
                 animator.SetBool("Walk", true);
                 animator.SetBool("Targeting", canSeePlayer);
             }

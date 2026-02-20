@@ -13,7 +13,10 @@ MonoBehaviour:
   m_Name: GhostPsychic
   m_EditorClassIdentifier: 
   ghostTypeData: {fileID: 11400000, guid: bc465cea5eb7b49b7abc25d39e2cd70f, type: 2}
-  minimumAngrinessToHunt: 50
+  ghostClues:
+  - description: The spirit can throws objects farther than others.
+  - description: This spirit does not trigger level 1 ghostly activity.
+  minimumAngerToHunt: 50
   averageHuntTime: 15
   minimumPeaceTime: 60
   hidingSpeedBase: 0.75
@@ -22,6 +25,7 @@ MonoBehaviour:
   throwForceMin: 3
   throwForceMax: 8
   slamChances: 40
+  openingDoorSpeedMultiplier: 1
   SpiritPrints: 0
   EatFruits: 0
   BlowUpFlammables: 0

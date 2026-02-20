@@ -13,7 +13,10 @@ MonoBehaviour:
   m_Name: GhostTrickster
   m_EditorClassIdentifier: 
   ghostTypeData: {fileID: 11400000, guid: 6b74578408ec14b618200c6b1e1360a0, type: 2}
-  minimumAngrinessToHunt: 50
+  ghostClues:
+  - description: The evil spirit tends to create interactions more often.
+  - description: The evil spirit moves very quickly when searching for the player.
+  minimumAngerToHunt: 50
   averageHuntTime: 15
   minimumPeaceTime: 40
   hidingSpeedBase: 0.75
@@ -22,6 +25,7 @@ MonoBehaviour:
   throwForceMin: 0.5
   throwForceMax: 4
   slamChances: 40
+  openingDoorSpeedMultiplier: 1
   SpiritPrints: 1
   EatFruits: 0
   BlowUpFlammables: 1

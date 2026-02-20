@@ -10,9 +10,17 @@ using Random = UnityEngine.Random;
 [CreateAssetMenu(menuName = "Ghosts/GhostParameters")]
 public class GhostParameters : ScriptableObject
 {
+    [System.Serializable]
+    public class GhostClue
+    {
+        [TextArea(3, 10)]
+        public string description;
+    }
+    
     [FormerlySerializedAs("ghostType")] public GhostTypeData ghostTypeData;
     
-    [FormerlySerializedAs("minimumAngrinessToHunt")]
+    [Space]
+    public GhostClue[] ghostClues;
     [Space]
     
     [Header("Ghost Stats : Hunting")]

@@ -13,7 +13,11 @@ MonoBehaviour:
   m_Name: GhostDraconic
   m_EditorClassIdentifier: 
   ghostTypeData: {fileID: 11400000, guid: 9ead2f77d54f148ad8c3e86c995700d4, type: 2}
-  minimumAngrinessToHunt: 50
+  ghostClues:
+  - description: The evil spirit is slow when it is searching for you, but very fast
+      when it has found you.
+  - description: When this spirit finds you, its hunt duration is extended.
+  minimumAngerToHunt: 50
   averageHuntTime: 15
   minimumPeaceTime: 60
   hidingSpeedBase: 0.75
@@ -22,6 +26,7 @@ MonoBehaviour:
   throwForceMin: 0.5
   throwForceMax: 4
   slamChances: 40
+  openingDoorSpeedMultiplier: 1
   SpiritPrints: 0
   EatFruits: 1
   BlowUpFlammables: 0

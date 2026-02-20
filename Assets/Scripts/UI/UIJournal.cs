@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
@@ -10,6 +11,13 @@ public class UIJournal : GameBehaviour
     public UIGhostTypeSlot[] ghostTypeSlots;
     public Button captureButton;
     public TextMeshProUGUI percentageText;
+
+    [Header("Ghost frame")]
+    public GameObject ghostFrame;
+    public TextMeshProUGUI tGhostName;
+    public Image iGhostImage;
+    public GameObject[] ghostClues;
+    public TextMeshProUGUI[] tGhostClues;
     
     private int _selectedSlotsCount;
 
@@ -18,6 +26,7 @@ public class UIJournal : GameBehaviour
         foreach (UIGhostTypeSlot slot in ghostTypeSlots)
         {
             slot.OnChangeForcedState.AddListener(SetCaptureButtonState);
+            slot.SetJournal(this);
         }
         
         SetCaptureButtonState();
@@ -33,7 +42,12 @@ public class UIJournal : GameBehaviour
             House.Instance.currentGhost.onGhostStopToHunt.AddListener(SetCaptureButtonState);
         }
     }
-    
+
+    private void OnEnable()
+    {
+        CloseGhostFrame();
+    }
+
     private List<GhostParameters> GetSelectedGhosts()
     {
         List<GhostParameters> selectedGhosts = new List<GhostParameters>();
@@ -60,5 +74,26 @@ public class UIJournal : GameBehaviour
         gameObject.SetActive(false);
         GhostInvestigator.Instance.TryToCapture(GetSelectedGhosts());
         UIGame.Instance.tablet.TurnOffTablet();
+    }
+
+    public void OpenGhostFrame(GhostParameters ghostParameters)
+    {
+        tGhostName.text = ghostParameters.ghostTypeData.ghostType.ToString() + " spirit";
+        iGhostImage.sprite = ghostParameters.ghostTypeData.ghostSprite;
+        for (int i = 0; i < ghostClues.Length; i++)
+        {
+            bool visible = i < ghostParameters.ghostClues.Length;
+            ghostClues[i].SetActive(visible);
+            if (visible)
+            {
+                tGhostClues[i].text = ghostParameters.ghostClues[i].description;
+            }
+        }
+        ghostFrame.SetActive(true);
+    }
+
+    public void CloseGhostFrame()
+    {
+        ghostFrame.SetActive(false);
     }
 }

@@ -13,7 +13,9 @@ MonoBehaviour:
   m_Name: GhostRunic
   m_EditorClassIdentifier: 
   ghostTypeData: {fileID: 11400000, guid: 219545d2aae84444a90456d737e3cd02, type: 2}
-  minimumAngrinessToHunt: 75
+  ghostClues:
+  - description: The spirit onlystarts a hunt if it is very angry.
+  minimumAngerToHunt: 50
   averageHuntTime: 15
   minimumPeaceTime: 60
   hidingSpeedBase: 0.75
@@ -22,6 +24,7 @@ MonoBehaviour:
   throwForceMin: 0.5
   throwForceMax: 4
   slamChances: 40
+  openingDoorSpeedMultiplier: 1
   SpiritPrints: 1
   EatFruits: 0
   BlowUpFlammables: 0
