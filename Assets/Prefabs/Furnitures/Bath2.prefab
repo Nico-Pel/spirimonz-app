@@ -5043,7 +5043,7 @@ MonoBehaviour:
   OnActivated:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 0}
+      - m_Target: {fileID: 1506040839271383829}
         m_TargetAssemblyTypeName: UnityEngine.GameObject, UnityEngine
         m_MethodName: SetActive
         m_Mode: 6
@@ -5058,7 +5058,7 @@ MonoBehaviour:
   OnDeactivated:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 0}
+      - m_Target: {fileID: 1506040839271383829}
         m_TargetAssemblyTypeName: UnityEngine.GameObject, UnityEngine
         m_MethodName: SetActive
         m_Mode: 6
@@ -5070,6 +5070,8 @@ MonoBehaviour:
           m_StringArgument: 
           m_BoolArgument: 0
         m_CallState: 2
+  useAutomaticDisable: 0
+  automaticDisableTime: 0.5
   waterFillPercentage: 0
   waterObject: {fileID: 5031376730644067398}
   percentageFillForSeconds: 5
@@ -5077,7 +5079,7 @@ MonoBehaviour:
   baseScale: {x: 0.0832111, y: 0.0832111, z: 0.049634594}
   basePosition: {x: -0.001, y: 0.261, z: -1.009}
   endScale: {x: 1.0745933, y: 0.832111, z: 1.0482883}
-  endPosition: {x: 0, y: 1, z: 0}
+  endPosition: {x: 0, y: 1, z: -0.083}
   waterEmptySound: {fileID: 8300000, guid: 11424ff2e58194be394272146149e75d, type: 3}
   waterEmptyVolume: 0.025
   positionCurve:

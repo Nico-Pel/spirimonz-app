@@ -122,7 +122,9 @@ public class HouseEntry : GameBehaviour
 
         if (_gameManager != null)
         {
-            _gameManager.UseDeadAnimation();
+            if(useDeadAnimation)
+                _gameManager.UseDeadAnimation();
+            
             _gameManager.LoadScene(sceneName, isExit);
         }
         else

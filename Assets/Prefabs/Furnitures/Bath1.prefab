@@ -129,6 +129,7 @@ MonoBehaviour:
   loopSound: {fileID: 8300000, guid: ed220b742ec0f4e1dbd6a6b525ed7688, type: 3}
   volume: 0.35
   range: 20
+  pitch: 1
   OnActivated:
     m_PersistentCalls:
       m_Calls:
@@ -159,9 +160,10 @@ MonoBehaviour:
           m_StringArgument: 
           m_BoolArgument: 0
         m_CallState: 2
+  useAutomaticDisable: 0
+  automaticDisableTime: 0.5
   waterFillPercentage: 0
   waterObject: {fileID: 7116218049710173364}
-  waterFillerObject: {fileID: 6844536992270817117}
   percentageFillForSeconds: 5
   percentageEmptyForSeconds: 10
   baseScale: {x: 0.024, y: 0.02, z: 0.013}
@@ -207,14 +209,14 @@ MonoBehaviour:
       inWeight: 0
       outWeight: 0.033333335
     - serializedVersion: 3
-      time: 0.17748605
-      value: 0.4895609
-      inSlope: 1.689732
-      outSlope: 1.689732
+      time: 0.23998655
+      value: 0.47776845
+      inSlope: 1.4279548
+      outSlope: 1.4279548
       tangentMode: 0
       weightedMode: 0
       inWeight: 0.34267133
-      outWeight: 0.0644724
+      outWeight: 0.100893095
     - serializedVersion: 3
       time: 1
       value: 1
@@ -5211,10 +5213,5 @@ PrefabInstance:
 --- !u!4 &5043153448781123573 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 4353122214957038836, guid: 885c883685be349fab4b3d04b3895bf3, type: 3}
-  m_PrefabInstance: {fileID: 8761054613240722177}
-  m_PrefabAsset: {fileID: 0}
---- !u!1 &6844536992270817117 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 2839848189586056284, guid: 885c883685be349fab4b3d04b3895bf3, type: 3}
   m_PrefabInstance: {fileID: 8761054613240722177}
   m_PrefabAsset: {fileID: 0}

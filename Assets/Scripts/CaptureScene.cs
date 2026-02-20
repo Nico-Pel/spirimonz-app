@@ -57,7 +57,7 @@ public class CaptureScene : GameBehaviour
         
         UnlockSpirimonz(selectedSpirimonz.spirimonzID);
         
-        this.Invoke(8, Exit);
+        this.Invoke(8, () => Exit(false));
     }
 
     private void UnlockSpirimonz(string spirimonzID)
@@ -79,9 +79,9 @@ public class CaptureScene : GameBehaviour
     {
         ghostAnimator.SetTrigger("Attack");
         PlayLoseSound();
-        this.Invoke(0.25f, () => UIGame.Instance.EnableOverlay(true, 0.1f));
+        this.Invoke(0.275f, () => UIGame.Instance.EnableOverlay(true, 0.1f));
 
-        this.Invoke(3, Exit);
+        this.Invoke(3, () => Exit(true));
     }
 
     public void PlayerFakeHeartBeating()
@@ -102,8 +102,8 @@ public class CaptureScene : GameBehaviour
             loseSound, transform.position, loseVolume, sourceParent: transform, duration: -1f, loop: false, ignoreAudioOcclusion: true);
     }
 
-    private void Exit()
+    private void Exit(bool isDead)
     {
-        House.Instance.houseEntry.Entry(Player.Instance);
+        House.Instance.houseEntry.Entry(Player.Instance, isDead);
     }
 }

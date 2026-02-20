@@ -57,7 +57,9 @@ public class GhostInvestigator : GameBehaviour
     private void Awake()
     {
         Instance = this;
-        captureScene.gameObject.SetActive(false);
+        
+        if(captureScene != null)
+            captureScene.gameObject.SetActive(false);
     }
     
     private void Start()

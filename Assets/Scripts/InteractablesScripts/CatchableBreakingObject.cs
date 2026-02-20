@@ -30,7 +30,6 @@ public class CatchableBreakingObject : CatchableObject
 
     protected override void OnCollision(Transform other, float impactForce)
     {
-        Debug.Log("FORCE : " + impactForce);
         if (impactForce > minForceToBreak)
         {
             BreakObject(impactForce);

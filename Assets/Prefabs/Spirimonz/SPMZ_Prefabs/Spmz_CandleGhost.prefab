@@ -52,6 +52,8 @@ MonoBehaviour:
   settings: {fileID: 11400000, guid: 32f1fbf3ee7714d189b40190a488bd48, type: 2}
   spirimonzGameObject: {fileID: 8191954518207117381}
   hidingGameObject: {fileID: 6803035549042134653}
+  useDifferentHidingOrbPosForHands: 0
+  _handHidingOrbPos: {x: 0, y: 0, z: 0}
   isOnTheMap: 0
   canInteract: 1
   canBeDroppedOnMap: 1
@@ -77,9 +79,9 @@ MonoBehaviour:
   animator: {fileID: 2955232386827294605}
   turnOnInHands: []
   turnOffInHands:
-  - {fileID: 3415084785774456322}
+  - {fileID: 5177060569515697379}
   turnOnOnMap:
-  - {fileID: 3415084785774456322}
+  - {fileID: 5177060569515697379}
   turnOffOnMap: []
 --- !u!195 &3353183270758605277
 NavMeshAgent:
@@ -248,18 +250,55 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 3049006018710749216, guid: cd9a25a457f6b495da9eb86e6f793e58, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 3160965821169581245, guid: cd9a25a457f6b495da9eb86e6f793e58, type: 3}
+      propertyPath: startOnFire
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 3394838753241923729, guid: cd9a25a457f6b495da9eb86e6f793e58, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 3924247771939871793, guid: cd9a25a457f6b495da9eb86e6f793e58, type: 3}
+      propertyPath: m_Enabled
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 3924247771939871793, guid: cd9a25a457f6b495da9eb86e6f793e58, type: 3}
+      propertyPath: startOnFire
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 5161318070348696176, guid: cd9a25a457f6b495da9eb86e6f793e58, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 6525449633085620021, guid: cd9a25a457f6b495da9eb86e6f793e58, type: 3}
+      propertyPath: m_Enabled
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 8203193899053635286, guid: cd9a25a457f6b495da9eb86e6f793e58, type: 3}
       propertyPath: m_Name
       value: Body_CandleGhost
       objectReference: {fileID: 0}
+    - target: {fileID: 9111766290927127157, guid: cd9a25a457f6b495da9eb86e6f793e58, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
     m_RemovedComponents:
     - {fileID: 3435902412096163262, guid: cd9a25a457f6b495da9eb86e6f793e58, type: 3}
+    - {fileID: 3160965821169581245, guid: cd9a25a457f6b495da9eb86e6f793e58, type: 3}
+    - {fileID: 4963446611229219463, guid: cd9a25a457f6b495da9eb86e6f793e58, type: 3}
     m_RemovedGameObjects: []
     m_AddedGameObjects:
     - targetCorrespondingSourceObject: {fileID: 3391459707418800013, guid: cd9a25a457f6b495da9eb86e6f793e58, type: 3}
       insertIndex: -1
       addedObject: {fileID: 7530581473693647216}
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 5161318070348696176, guid: cd9a25a457f6b495da9eb86e6f793e58, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 4002153064182598540}
   m_SourcePrefab: {fileID: 100100000, guid: cd9a25a457f6b495da9eb86e6f793e58, type: 3}
 --- !u!4 &867381850076726900 stripped
 Transform:
@@ -271,16 +310,41 @@ Animator:
   m_CorrespondingSourceObject: {fileID: 2989029412659820830, guid: cd9a25a457f6b495da9eb86e6f793e58, type: 3}
   m_PrefabInstance: {fileID: 33832354121936531}
   m_PrefabAsset: {fileID: 0}
---- !u!1 &3415084785774456322 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 3394838753241923729, guid: cd9a25a457f6b495da9eb86e6f793e58, type: 3}
-  m_PrefabInstance: {fileID: 33832354121936531}
-  m_PrefabAsset: {fileID: 0}
 --- !u!4 &3416210090928439582 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 3391459707418800013, guid: cd9a25a457f6b495da9eb86e6f793e58, type: 3}
   m_PrefabInstance: {fileID: 33832354121936531}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &3894919706796257954 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 3924247771939871793, guid: cd9a25a457f6b495da9eb86e6f793e58, type: 3}
+  m_PrefabInstance: {fileID: 33832354121936531}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5177060569515697379}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ef689f8e73963493ca15d37dc00fb176, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!1 &5177060569515697379 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 5161318070348696176, guid: cd9a25a457f6b495da9eb86e6f793e58, type: 3}
+  m_PrefabInstance: {fileID: 33832354121936531}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &4002153064182598540
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5177060569515697379}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bbb32acf3b95949e6a7b2bd6d7727fe2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  linkedFlammableObject: {fileID: 3894919706796257954}
+  canGiveFire: 1
 --- !u!1 &8191954518207117381 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 8203193899053635286, guid: cd9a25a457f6b495da9eb86e6f793e58, type: 3}

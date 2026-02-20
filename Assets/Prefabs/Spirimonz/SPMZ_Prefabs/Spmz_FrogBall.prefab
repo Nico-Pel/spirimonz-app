@@ -214,6 +214,8 @@ MonoBehaviour:
   settings: {fileID: 11400000, guid: e9fd91d393085478d894819c27d79bbf, type: 2}
   spirimonzGameObject: {fileID: 8611541423369652124}
   hidingGameObject: {fileID: 7212616103152048925}
+  useDifferentHidingOrbPosForHands: 0
+  _handHidingOrbPos: {x: 0, y: 0, z: 0}
   isOnTheMap: 0
   canInteract: 0
   canBeDroppedOnMap: 0
@@ -238,7 +240,9 @@ MonoBehaviour:
   collider: {fileID: 8871381898542128090}
   animator: {fileID: 2912491062720751038}
   detectionDistance: 3.5
-  delayWithoutSourceBeforeTurningOff: 2
+  raycastLayers:
+    serializedVersion: 2
+    m_Bits: 38401
   meshRenderers:
   - {fileID: 7039285200987973225}
   - {fileID: 7626898609230477973}
@@ -248,6 +252,7 @@ MonoBehaviour:
   detectionMatNull: {fileID: 2100000, guid: 717c921192f674e91b2251e0bdb9b5c3, type: 2}
   detectionMatBase: {fileID: 2100000, guid: b71ede716613c43e982eae387f0a212e, type: 2}
   detectionMatFive: {fileID: 2100000, guid: c83208ff0d11648d39b9b332fc619a99, type: 2}
+  visualDuration: 4
   detectionSound: {fileID: 8300000, guid: 6b22b147f7b90406fb01d50cbdc84b53, type: 3}
   detectionFiveSound: {fileID: 8300000, guid: c108088c9b2a546a9bfdd67a0b9aacc4, type: 3}
   soundVolume: 0.5

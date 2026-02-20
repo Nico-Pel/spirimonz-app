@@ -78,17 +78,14 @@ public class ClickableObject : GameBehaviour, IInteractable
     public virtual void OnClick()
     {
         onClick?.Invoke();
-        Debug.Log($"{name} clicked!");
     }
 
     public virtual void OnHold()
     {
-        Debug.Log($"{name} held!");
     }
 
     public virtual void OnRelease()
     {
-        Debug.Log($"{name} released!");
     }
 
     public void LockInteraction(bool enable)

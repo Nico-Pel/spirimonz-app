@@ -47,6 +47,15 @@ public class SpmzRadiationDetector : Spirimonz
 
         radiationFeedback.SetActive(false);
         animator.SetBool("Radiations", false);
+
+        if (radiationDetector != null)
+            radiationDetector.StopUsingSound(); // stop le son ici
+    }
+
+    private void OnDisable()
+    {
+        // On stop aussi le feedback si jamais il est encore actif
+        TurnOffRadiationFeedback();
     }
 
     protected override void SetCurrentRoom(Room room)
@@ -121,16 +130,17 @@ public class SpmzRadiationDetector : Spirimonz
             radiationDetector.SetCurrentRoom(currentRoom);
     }
 
-    private void Update()
+    protected override void UpdateMovementBehaviour()
     {
-        // Boucle de sécurité pour corriger les cas où le detector a déjà de la radiation
-        if ((isOnTheMap || powerActiveInHands) && radiationDetector != null)
-        {
-            bool isDetecting = radiationDetector.IsDetectingRadiation();
-            if (isDetecting && !radiationFeedback.activeSelf)
-                TurnOnRadiationFeedback();
-            else if (!isDetecting && radiationFeedback.activeSelf)
-                TurnOffRadiationFeedback();
-        }
+        base.UpdateMovementBehaviour();
+        
+        if (radiationDetector == null) return;
+
+        bool isDetecting = radiationDetector.IsDetectingRadiation();
+
+        if (isDetecting && !radiationFeedback.activeSelf)
+            TurnOnRadiationFeedback();
+        else if (!isDetecting && radiationFeedback.activeSelf)
+            TurnOffRadiationFeedback(); // ici on stop aussi le son
     }
 }

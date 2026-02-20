@@ -401,26 +401,21 @@ public class Spirimonz : GameBehaviour, IInteractable
 
     protected void LookAtPlayer()
     {
-        Vector3 targetDir;
-        float dist = Vector3.Distance(transform.position, Player.Instance.transform.position);
+        Vector3 targetDir = _house.currentPlayer.transform.position - transform.position;
 
-        if (dist < lookAtDistanceFromPlayer)
-        {
-            targetDir = _house.currentPlayer.transform.position - transform.position;
-        }
-        else
-        {
-            Vector3 forwardTarget = transform.position + transform.forward * 5f;
-            targetDir = forwardTarget - transform.position;
-        }
-
-        // Optionnel : lock l’axe Y
+        // Lock X et Z pour ne jamais se pencher
         targetDir.y = 0f;
 
+        if (targetDir.sqrMagnitude < 0.001f) return; // éviter NaN si trop proche
+
         Quaternion targetRotation = Quaternion.LookRotation(targetDir);
+
+        // Garder seulement la rotation Y
+        Vector3 euler = transform.rotation.eulerAngles;
+        euler.y = targetRotation.eulerAngles.y;
         transform.rotation = Quaternion.Slerp(
             transform.rotation,
-            targetRotation,
+            Quaternion.Euler(euler),
             lookAtSpeed * Time.deltaTime
         );
     }
@@ -492,6 +487,8 @@ public class Spirimonz : GameBehaviour, IInteractable
 
     public void OnInteractStart()
     {
+        if (!isOnTheMap) return;
+        
         if (canInteract == false)
         {
             animator.SetTrigger("Nop");

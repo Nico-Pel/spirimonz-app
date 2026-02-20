@@ -19,7 +19,7 @@ public class AudioOcclusion : MonoBehaviour
         _source = GetComponent<AudioSource>();
         _lowPass = gameObject.AddComponent<AudioLowPassFilter>();
         
-        if(Camera.main.transform != null)
+        if(Camera.main != null)
             _listener = Camera.main.transform;
         
         _baseVolume = _source.volume;

@@ -6,6 +6,7 @@ public class SpmzRayDetector : Spirimonz
 {
     [Header("Detection Settings")]
     public float detectionDistance = 3f;
+    public LayerMask raycastLayers;
 
     [Header("Visuals")]
     public MeshRenderer[] meshRenderers;
@@ -60,7 +61,7 @@ public class SpmzRayDetector : Spirimonz
         RaycastHit hit;
         ActivitySource source = null;
 
-        if (Physics.Raycast(_cam.transform.position, _cam.transform.forward, out hit, detectionDistance))
+        if (Physics.Raycast(_cam.transform.position, _cam.transform.forward, out hit, detectionDistance, raycastLayers))
         {
             source = GetActivitySourceFromHit(hit.transform);
         }
@@ -170,5 +171,35 @@ public class SpmzRayDetector : Spirimonz
         float pitch = activityValue == 5 ? 1f : Mathf.Max(0.1f, basePitch + bonusPitchPerDetectionLevel * (activityValue - 1));
 
         SoundManager.Instance.PlaySound(clip, transform.position, soundVolume, pitch, -1f, 15f, false, transform);
+    }
+    
+    private void OnDisable()
+    {
+        // Stop toutes les coroutines de blinking
+        foreach (var kvp in _blinkingCoroutines)
+        {
+            if (kvp.Value != null)
+                StopCoroutine(kvp.Value);
+
+            // Reset le matériau
+            if (kvp.Key != null && kvp.Key.material.HasProperty("_EmissionColor"))
+            {
+                kvp.Key.material.SetColor("_EmissionColor", Color.black);
+                kvp.Key.material = detectionMatNull;
+            }
+        }
+        _blinkingCoroutines.Clear();
+
+        // Reset visuel global
+        foreach (var renderer in meshRenderers)
+        {
+            if (renderer != null)
+                renderer.material = detectionMatNull;
+        }
+
+        _isVisualPlaying = false;
+
+        // Stop la coroutine globale de visuel si elle tourne
+        StopAllCoroutines(); // ça arrête PlayVisualAndSound et BlinkEmission aussi
     }
 }
