@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.Events;
 using UnityEngine.SceneManagement;
 using UnityEngine.Serialization;
 
@@ -29,7 +30,19 @@ public class GameManager : GameBehaviour
 
     private InventoryManager _inventoryManager;
     private bool _isDead;
-    
+
+    public UnityEvent onMoneyUpdated;
+
+    private void Update()
+    {
+        # if UNITY_EDITOR
+        if (Input.GetKeyDown(KeyCode.Y))
+        {
+            AddMoney(100);
+        }
+        #endif
+    }
+
     void Awake()
     {
         if (Instance != null && Instance != this)
@@ -385,5 +398,102 @@ public class GameManager : GameBehaviour
     {
         QuestData qData = GetOrCreateQuestProgress(quest, contextID);
         return qData.completed;
+    }
+    
+    public void SetInt(string id, int value)
+    {
+        var entry = gameData.ints.Find(i => i.id == id);
+
+        if (entry == null)
+        {
+            gameData.ints.Add(new SaveVariableInt { id = id, value = value });
+        }
+        else
+        {
+            entry.value = value;
+        }
+
+        SaveGame();
+    }
+
+    public int GetInt(string id, int defaultValue = 0)
+    {
+        var entry = gameData.ints.Find(i => i.id == id);
+        return entry != null ? entry.value : defaultValue;
+    }
+    
+    public void SetBool(string id, bool value)
+    {
+        var entry = gameData.bools.Find(b => b.id == id);
+
+        if (entry == null)
+            gameData.bools.Add(new SaveVariableBool { id = id, value = value });
+        else
+            entry.value = value;
+
+        SaveGame();
+    }
+
+    public bool GetBool(string id, bool defaultValue = false)
+    {
+        var entry = gameData.bools.Find(b => b.id == id);
+        return entry != null ? entry.value : defaultValue;
+    }
+    
+    public void SetFloat(string id, float value)
+    {
+        var entry = gameData.floats.Find(f => f.id == id);
+
+        if (entry == null)
+            gameData.floats.Add(new SaveVariableFloat { id = id, value = value });
+        else
+            entry.value = value;
+
+        SaveGame();
+    }
+
+    public float GetFloat(string id, float defaultValue = 0f)
+    {
+        var entry = gameData.floats.Find(f => f.id == id);
+        return entry != null ? entry.value : defaultValue;
+    }
+    
+    public void SetString(string id, string value)
+    {
+        var entry = gameData.strings.Find(s => s.id == id);
+
+        if (entry == null)
+            gameData.strings.Add(new SaveVariableString { id = id, value = value });
+        else
+            entry.value = value;
+
+        SaveGame();
+    }
+
+    public string GetString(string id, string defaultValue = "")
+    {
+        var entry = gameData.strings.Find(s => s.id == id);
+        return entry != null ? entry.value : defaultValue;
+    }
+    
+    public bool CanBuy(int price)
+    {
+        return GetInt(SaveKeys.GOLD) >= price;
+    }
+
+    public bool Buy(int price)
+    {
+        if (CanBuy(price) == false) return false;
+        
+        SetInt(SaveKeys.GOLD, GetInt(SaveKeys.GOLD) - price);
+        onMoneyUpdated?.Invoke();
+        
+        return true;
+    }
+
+    public void AddMoney(int value)
+    {
+        SetInt(SaveKeys.GOLD, GetInt(SaveKeys.GOLD) + value);
+        onMoneyUpdated?.Invoke();
     }
 }

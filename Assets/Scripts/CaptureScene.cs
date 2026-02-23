@@ -76,7 +76,7 @@ public class CaptureScene : GameBehaviour
         
         foreach (Quest quest in _house.map.quests)
         {
-            if(quest.type == Quest.QuestType.TryToCapture)
+            if(quest.type == Quest.QuestType.Capture)
                 GameManager.Instance.UpdateQuestProgress(quest, _house.map.houseID, 1);
         }
     }

@@ -71,7 +71,7 @@ public class FlammableElement : GameBehaviour
             House house = House.Instance;
             foreach (Quest quest in house.map.quests)
             {
-                if(quest.type == Quest.QuestType.TryToCapture)
+                if(quest.type == Quest.QuestType.LightACandle)
                     GameManager.Instance.UpdateQuestProgress(quest, house.map.houseID, 1);
             }
         }

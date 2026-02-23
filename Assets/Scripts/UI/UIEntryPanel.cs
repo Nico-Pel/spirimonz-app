@@ -16,17 +16,19 @@ public class UIEntryPanel : GameBehaviour
     public TextMeshProUGUI tPrice;
 
     public Button bGo;
+    public Color goColorBase;
+    public Color goColorQuestsCompleted;
 
+    private GameManager _gameManager;
     private HouseEntry _entry;
+
+    private HouseEntry _currentEntry;
 
     public void OpenPanel(HouseEntry entry)
     {
-        gameObject.SetActive(true);
-        tTitleMap.text = entry.map.houseName;
-        tRoomsNb.text = entry.map.roomsNumber.ToString();
-        mapImage.sprite = entry.map.sprite;
-        tPrice.text = entry.map.entryPrince + "$";
+        _currentEntry = entry;
 
+        bool allQuestCompleted = true;
         for (int i = 0; i < quests.Length; i++)
         {
             bool isActive = i < entry.map.quests.Length;
@@ -34,18 +36,42 @@ public class UIEntryPanel : GameBehaviour
             if (isActive)
             {
                 quests[i].SetQuest(entry.map.quests[i], entry.map);
+                if (entry.map.quests[i].IsCompleted(entry.map.houseID) == false)
+                {
+                    allQuestCompleted = false;
+                }
             }
         }
+        
+        gameObject.SetActive(true);
+        tTitleMap.text = entry.map.houseName;
+        tRoomsNb.text = entry.map.roomsNumber.ToString();
+        mapImage.sprite = entry.map.sprite;
+        
+        bGo.image.color = allQuestCompleted ? goColorQuestsCompleted : goColorBase;
+        tPrice.text = allQuestCompleted ? "Enter" : (entry.map.entryPrince + "$");
 
         _entry = entry;
         
         bGo.onClick.RemoveAllListeners();
         bGo.onClick.AddListener(Go);
+
+        if (_gameManager == null)
+        {
+            _gameManager = GameManager.Instance;;
+        }
+        
+        bool enoughMoney = _gameManager.CanBuy(entry.map.entryPrince);
+        bGo.interactable = enoughMoney;
+        tPrice.color = enoughMoney ? Color.white : Color.red;
     }
 
     private void Go()
     {
-        UIGame.Instance.CloseAllWindows();
-        _entry.Entry(Player.Instance);
+        if (_gameManager.Buy(_currentEntry.map.entryPrince))
+        {
+            UIGame.Instance.CloseAllWindows();
+            _entry.Entry(Player.Instance);
+        }
     }
 }

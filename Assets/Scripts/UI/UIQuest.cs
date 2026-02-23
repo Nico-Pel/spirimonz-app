@@ -22,12 +22,19 @@ public class UIQuest : GameBehaviour
 
     private void Awake()
     {
-        _gameManager = GameManager.Instance;
         _backgroundBaseColor = iBackground.color;
+    }
+
+    private void Start()
+    {
+        _gameManager = GameManager.Instance;
     }
 
     public void SetQuest(Quest quest, HouseMap map)
     {
+        if(_gameManager == null)
+            _gameManager = GameManager.Instance;
+
         int questProgress = _gameManager.GetQuestProgress(quest, map.houseID);
         bool questComplete = false;
         

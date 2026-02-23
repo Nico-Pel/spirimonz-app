@@ -27,6 +27,7 @@ public class UIGame : UIManager
     public UITablet tablet;
 
     private Sprite _baseBigPointer;
+    private GameManager _gameManager;
 
     private void Awake()
     {
@@ -60,6 +61,9 @@ public class UIGame : UIManager
         });
 
         _player = Player.Instance;
+        _gameManager = GameManager.Instance;
+        _gameManager.onMoneyUpdated.AddListener(UpdateGold);
+        UpdateGold();
         
         EnableOverlay(true, 0);
         EnableOverlay(false, openSceneFadeDuration);
@@ -72,12 +76,13 @@ public class UIGame : UIManager
 
     private void OnEnable()
     {
-        UpdateGold();
+        if(_gameManager != null)
+            UpdateGold();
     }
 
     public void UpdateGold()
     {
-        tGold.text = "$" + SaveManager.GetInt(SaveKeys.GOLD);
+        tGold.text = "$" + _gameManager.GetInt(SaveKeys.GOLD);
     }
 
     private void Update()
