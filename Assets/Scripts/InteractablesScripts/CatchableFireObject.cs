@@ -56,7 +56,7 @@ public class CatchableFireObject : CatchableObject
         bool isProtected =
             Time.time - _dropTime < rotationProtectionDuration;
         
-        if (turnOffFireOnBigRotation && !isGrabbed)
+        if (rb.isKinematic == false && turnOffFireOnBigRotation && !isGrabbed)
         {
             if (isProtected)
                 return;

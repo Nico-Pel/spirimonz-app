@@ -149,6 +149,9 @@ public class Ghost : GameBehaviour
     private GamePlayer _player;
     
     int agentContacts = 0;
+    
+    private const string ACTIVITY_INVOKE = "Ghost.TriggerActivity";
+    private const string ORBS_INVOKE = "Ghost.SpiritOrbs";
 
     private void Start()
     {
@@ -160,9 +163,9 @@ public class Ghost : GameBehaviour
     {
         house = h;
 
-        if (house.possibleGhosts.Length > 0)
+        if (house.map.possibleGhosts.Length > 0)
         {
-            ghostParameters = house.possibleGhostParameters[Random.Range(0, house.possibleGhostParameters.Length)];
+            ghostParameters = house.map.possibleGhostParameters[Random.Range(0, house.map.possibleGhostParameters.Length)];
         }
         
         # if UNITY_EDITOR
@@ -211,17 +214,14 @@ public class Ghost : GameBehaviour
         #endif
         
         //Fist activity if called later
-        this.Invoke(nextActivityTime * 2, TriggerActivity);
+        this.Invoke(ACTIVITY_INVOKE, nextActivityTime * 2, TriggerActivity);
         
         ghostModel.SetActive(false);
 
         if (ghostParameters.HasEvidence(GhostInvestigator.EvidenceType.SpiritOrbs))
         {
             float delayBeforeNextGhostOrbs = Random.Range(ghostParameters.nextOrbsDelayMin, ghostParameters.nextOrbsDelayMax);
-            this.Invoke(delayBeforeNextGhostOrbs, () =>
-            {
-                CreateSpiritOrbs();
-            });
+            this.Invoke(ORBS_INVOKE, delayBeforeNextGhostOrbs, CreateSpiritOrbs);
         }
     }
 
@@ -639,7 +639,9 @@ public class Ghost : GameBehaviour
         agent.speed = ghostParameters.normalSpeedBase;
         
         float nextActivityTime = Random.Range(averageActivityTime - activityTimeVariation, averageActivityTime + activityTimeVariation);
-        this.Invoke(nextActivityTime, TriggerActivity);
+        
+        CancelInvoke(ACTIVITY_INVOKE);
+        this.Invoke(ACTIVITY_INVOKE, nextActivityTime, TriggerActivity);
 
         if (ghostParameters.HasEvidence(GhostInvestigator.EvidenceType.Radioactivity))
         {
@@ -702,7 +704,8 @@ public class Ghost : GameBehaviour
         //Do not trigger activity during a hunt, re-roll timer
         if (currentState == GhostState.huntingState)
         {
-            this.Invoke(nextActivityTime, TriggerActivity);
+            CancelInvoke(ACTIVITY_INVOKE);
+            this.Invoke(ACTIVITY_INVOKE, nextActivityTime, TriggerActivity);
             return;
         }
         
@@ -757,7 +760,9 @@ public class Ghost : GameBehaviour
                 }
                 else
                 {
-                    TriggerActivity();
+                    CancelInvoke(ACTIVITY_INVOKE);
+                    this.Invoke(ACTIVITY_INVOKE, 0.1f, TriggerActivity);
+                    return;
                     //Debug.Log("Activity triggered : Reroll activity " + Time.time);
                     return;
                 }
@@ -775,7 +780,9 @@ public class Ghost : GameBehaviour
                 }
                 else
                 {
-                    TriggerActivity();
+                    CancelInvoke(ACTIVITY_INVOKE);
+                    this.Invoke(ACTIVITY_INVOKE, 0.1f, TriggerActivity);
+                    return;
                     return;
                 }
                 break;
@@ -800,7 +807,8 @@ public class Ghost : GameBehaviour
         }
         #endif
         
-        this.Invoke(nextActivityTime, TriggerActivity);
+        CancelInvoke(ACTIVITY_INVOKE);
+        this.Invoke(ACTIVITY_INVOKE, nextActivityTime, TriggerActivity);
     }
 
     private void InteractWithAStandardClickable()
@@ -1227,6 +1235,7 @@ public class Ghost : GameBehaviour
 
     public void LockGhost()
     {
+        CancelInvoke(ORBS_INVOKE);
         _isLocked = true;
     }
     

@@ -6,6 +6,13 @@ using UnityEngine.Events;
 
 public class FlammableElement : GameBehaviour
 {
+    public enum FlammableType
+    {
+        None,
+        Candle
+    }
+
+    public FlammableType type;
     public bool startOnFire;
     public bool turnOffOnThrow;
     public Room optionalLinkedRoom;
@@ -23,6 +30,8 @@ public class FlammableElement : GameBehaviour
     private bool _isOnFire;
 
     public UnityEvent<bool> onChangeFireState;
+
+    private bool _usedForAQuest;
 
     private void Start()
     {
@@ -53,6 +62,17 @@ public class FlammableElement : GameBehaviour
             if (useGhostSoundClip && blowUpByGhostSoundClip != null)
             {
                 SoundManager.Instance.PlaySound(blowUpByGhostSoundClip, transform.position, ghostVolume, ghostPitch, -1f, 10f);
+            }
+        }
+
+        if (enable && type != FlammableType.Candle && _usedForAQuest == false)
+        {
+            _usedForAQuest = true;
+            House house = House.Instance;
+            foreach (Quest quest in house.map.quests)
+            {
+                if(quest.type == Quest.QuestType.TryToCapture)
+                    GameManager.Instance.UpdateQuestProgress(quest, house.map.houseID, 1);
             }
         }
         

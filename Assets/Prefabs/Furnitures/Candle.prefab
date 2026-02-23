@@ -91,6 +91,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ef689f8e73963493ca15d37dc00fb176, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  type: 1
   startOnFire: 0
   turnOffOnThrow: 1
   optionalLinkedRoom: {fileID: 0}
@@ -208,7 +209,7 @@ Rigidbody:
   m_IsKinematic: 0
   m_Interpolate: 0
   m_Constraints: 0
-  m_CollisionDetection: 1
+  m_CollisionDetection: 0
 --- !u!135 &69738007879831577
 SphereCollider:
   m_ObjectHideFlags: 0

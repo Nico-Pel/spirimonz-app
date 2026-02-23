@@ -339,4 +339,51 @@ public class GameManager : GameBehaviour
         }
 #endif
     }
+    
+    public QuestData GetOrCreateQuestProgress(Quest quest, string contextID)
+    {
+        if (gameData == null) return null;
+
+        // Cherche la progression existante
+        QuestData qData = gameData.questProgression
+            .Find(q => q.questID == quest.name && q.contextID == contextID);
+
+        // Si aucune progression existante, en crée une
+        if (qData == null)
+        {
+            qData = new QuestData(quest.name, contextID);
+            gameData.questProgression.Add(qData);
+            SaveGame();
+        }
+
+        return qData;
+    }
+
+    public void UpdateQuestProgress(Quest quest, string contextID, int progressToAdd)
+    {
+        QuestData qData = GetOrCreateQuestProgress(quest, contextID);
+        if (qData.completed) return;
+
+        qData.progress += progressToAdd;
+        if (qData.progress >= quest.goal)
+        {
+            qData.progress = quest.goal;
+            qData.completed = true;
+            Debug.Log($"Quest '{quest.questName}' completed in context '{contextID}' !");
+        }
+
+        SaveGame();
+    }
+
+    public int GetQuestProgress(Quest quest, string contextID)
+    {
+        QuestData qData = GetOrCreateQuestProgress(quest, contextID);
+        return qData.progress;
+    }
+
+    public bool IsQuestCompleted(Quest quest, string contextID)
+    {
+        QuestData qData = GetOrCreateQuestProgress(quest, contextID);
+        return qData.completed;
+    }
 }

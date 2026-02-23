@@ -196,7 +196,7 @@ public class SpmzDetector : Spirimonz
     public override void InteractionStarted()
     {
         //You can't disturb the Spirimonz Detector during its hunt
-        if (CurrentBehaviour() == SpirimonzBehaviourState.Special) return;
+        if (_currentActivitySourceDetected || CurrentBehaviour() == SpirimonzBehaviourState.Special) return;
         
         base.InteractionStarted();
     }

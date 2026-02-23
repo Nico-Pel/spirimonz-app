@@ -6,10 +6,14 @@ using UnityEngine.AI;
 using UnityEngine.Serialization;
 using Random = UnityEngine.Random;
 
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
+
 public class House : GameBehaviour
 {
     public static House Instance { get; private set; }
-    
+    public HouseMap map;
        
 # if UNITY_EDITOR
     public bool useDebugs;
@@ -24,11 +28,21 @@ public class House : GameBehaviour
     
     [Space]
 
-    public HouseBiome biome;
     public HouseEntry houseEntry;
-    public GhostParameters[] possibleGhostParameters;
     
     public Room[] rooms;
+    
+#if UNITY_EDITOR
+    public void BakeRoomsCount()
+    {
+        if (map == null) return;
+
+        map.roomsNumber = rooms.Length;
+        EditorUtility.SetDirty(map);
+        Debug.Log($"Baked {rooms.Length} rooms into {map.name}");
+    }
+#endif
+    
     public Room[] hauntableRooms;
     public bool electricCurrentEnabled = true;
 
@@ -36,7 +50,6 @@ public class House : GameBehaviour
     public float temperatureMaxRoomVariation = 3.5f;
     public float temperatureMaxHouseVariation = 3.5f;
 
-    public Ghost[] possibleGhosts;
     [ReadOnly] public Ghost currentGhost;
     
     public Player currentPlayer;
@@ -93,7 +106,7 @@ public class House : GameBehaviour
 
     public void InstantiateGhost()
     {
-        currentGhost = Instantiate(possibleGhosts[Random.Range(0, possibleGhosts.Length)]);
+        currentGhost = Instantiate(map.possibleGhosts[Random.Range(0, map.possibleGhosts.Length)]);
         currentGhost.Initialize(this);
     }
 
@@ -170,7 +183,7 @@ public class House : GameBehaviour
 
     public SpirimonzSettings GetSpirimonzSettings()
     {
-        return biome.GetCapturedSpirimonz(currentGhost.ghostParameters.ghostTypeData.ghostType);
+        return map.linkedHouseBiome.GetCapturedSpirimonz(currentGhost.ghostParameters.ghostTypeData.ghostType);
     }
     
     public void ExpelPlayerFromHouse()

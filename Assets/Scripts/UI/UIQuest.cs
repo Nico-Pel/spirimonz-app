@@ -1,0 +1,52 @@
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+using TMPro;
+using UnityEngine.UI;
+
+public class UIQuest : GameBehaviour
+{
+    public TextMeshProUGUI tTitle;
+    public TextMeshProUGUI tProgression;
+    public TextMeshProUGUI tDescription;
+
+    public Image iBackground;
+    public GameObject validationMarker;
+
+    public Color textColorBase;
+    public Color textColorValidate;
+
+    private Color _backgroundBaseColor;
+    private GameManager _gameManager;
+
+    private void Awake()
+    {
+        _gameManager = GameManager.Instance;
+        _backgroundBaseColor = iBackground.color;
+    }
+
+    public void SetQuest(Quest quest, HouseMap map)
+    {
+        int questProgress = _gameManager.GetQuestProgress(quest, map.houseID);
+        bool questComplete = false;
+        
+        if (questProgress >= quest.goal)
+        {
+            questProgress = quest.goal;
+            questComplete = true;
+        }
+        
+        tTitle.text = quest.questName;
+        tTitle.color = questComplete ? textColorValidate : textColorBase;
+        
+        tProgression.text = questProgress + "/" + quest.goal;
+        tProgression.color = questComplete ? textColorValidate : textColorBase;
+        
+        tDescription.text = quest.questDescription;
+
+        iBackground.color = questComplete ? new Color(_backgroundBaseColor.r, _backgroundBaseColor.g, _backgroundBaseColor.b, _backgroundBaseColor.a / 2) : _backgroundBaseColor;
+        
+        validationMarker.gameObject.SetActive(questComplete);
+    }
+}

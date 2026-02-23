@@ -7,6 +7,7 @@ public class HouseEntry : GameBehaviour
 {
     [FormerlySerializedAs("houseSceneName")] public string sceneName;
     public int houseID = -1;
+    public HouseMap map;
     public bool isExit;
     public FakeInteractable doorInteractable;
     public Animator animator;
@@ -51,6 +52,18 @@ public class HouseEntry : GameBehaviour
         }
         
         this.Invoke(_securityTime, () => _canBeTriggered = true);
+        
+        if(isExit == false)
+            InitHouseQuests(map);
+    }
+    
+    public void InitHouseQuests(HouseMap house)
+    {
+        foreach (var quest in house.quests)
+        {
+            QuestData qData = GameManager.Instance.GetOrCreateQuestProgress(quest, house.houseID);
+            Debug.Log($"Quest '{quest.questName}' progress: {qData.progress}/{quest.goal}");
+        }
     }
 
     private void LockDoor()
@@ -85,13 +98,20 @@ public class HouseEntry : GameBehaviour
         Player player = other.GetComponentInParent<Player>();
         if (player)
         {
-            hasEntered = true;
-            Entry(player);
+            if (isExit)
+            {
+                Entry(player);
+            }
+            else
+            {
+                UIGame.Instance.tablet.OpenEntryPanel(this);
+            }
         }
     }
 
     public void Entry(Player player, bool useDeadAnimation = false)
     {
+        hasEntered = true;
         player.LockControls(true);
         
         UIGame.Instance?.EnableOverlay(true, fadeDuration);

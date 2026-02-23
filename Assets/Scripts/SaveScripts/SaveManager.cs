@@ -2,16 +2,19 @@ using System;
 using System.IO;
 using UnityEngine;
 using UnityEngine.Serialization;
+using System.Collections.Generic;
 
 [Serializable]
 public class GameData
 {
     public SpirimonzData[] spirimonzCollection;
 
-    public string lastWorldSceneName; // Le dernier world visité
-    public Vector3 playerPosition;    // Position dans ce world
-    public Quaternion playerRotation; // Rotation dans ce world
-    public int currentHouseID = -1;        // House actuelle si on est dans une house
+    public string lastWorldSceneName;
+    public Vector3 playerPosition;
+    public Quaternion playerRotation;
+    public int currentHouseID = -1;
+
+    public List<QuestData> questProgression = new List<QuestData>();
 }
 
 [Serializable]
@@ -30,6 +33,23 @@ public class SpirimonzData
         inTeam = false;
         teamPosition = 0;
         level = 1;
+    }
+}
+
+[System.Serializable]
+public class QuestData
+{
+    public string questID;     // ID unique du Quest ScriptableObject
+    public string contextID;   // ID du contexte (ex: map ou house)
+    public int progress;       // progression actuelle
+    public bool completed;     // terminé ou pas
+
+    public QuestData(string questID, string contextID)
+    {
+        this.questID = questID;
+        this.contextID = contextID;
+        progress = 0;
+        completed = false;
     }
 }
 

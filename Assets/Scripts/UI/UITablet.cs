@@ -17,6 +17,7 @@ public class UITablet : MonoBehaviour
     public GameObject tabsObject;
     public GameObject[] tabWindows;
     public GameObject[] privateWindows;
+    public UIEntryPanel entryPanel;
 
     private Color _baseColor;
     private Color _baseIconColor;
@@ -48,13 +49,9 @@ public class UITablet : MonoBehaviour
     public void OpenTab(int tabID, bool canTurnOffTablet)
     {
         //The tab is already open, close it
-        if (canTurnOffTablet && tabWindows[tabID].activeInHierarchy)
-        {
-            tabWindows[tabID].SetActive(false);
-            gameObject.SetActive(false);
-            return;
-        }
+        CloseAllTabs();
         
+        //Open right panel
         for (int i = 0; i < tabWindows.Length; i++)
         {
             bool selected = tabID == i;
@@ -63,6 +60,8 @@ public class UITablet : MonoBehaviour
             tabIcons[i].color = selected ? selectIconColor : _baseIconColor;
         }
 
+        CloseEntryPanel();
+        CloseAllPrivateWindows();
         tabsObject.SetActive(true);
     }
     
@@ -85,14 +84,9 @@ public class UITablet : MonoBehaviour
 
     public void TurnOffTablet()
     {
-        foreach (GameObject g in tabWindows)
-        {
-            g.SetActive(false);
-        }
-        foreach (GameObject g in privateWindows)
-        {
-            g.SetActive(false);
-        }
+        CloseAllTabs();
+        CloseAllPrivateWindows();
+        CloseEntryPanel();
         gameObject.SetActive(false);
     }
 
@@ -119,5 +113,17 @@ public class UITablet : MonoBehaviour
         
         tabsObject.SetActive(false);
         privateWindows[windowID].SetActive(true);
+    }
+
+    public void OpenEntryPanel(HouseEntry entry)
+    {
+        gameObject.SetActive(true);
+        tabsObject.SetActive(false);
+        entryPanel.OpenPanel(entry);
+    }
+
+    private void CloseEntryPanel()
+    {
+        entryPanel.gameObject.SetActive(false);
     }
 }

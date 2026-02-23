@@ -23,6 +23,15 @@ public class CaptureScene : GameBehaviour
     public float delayBeforeStartingWinAnimation = 0.5f;
 
     private GameObject _capturedSpirimonz;
+    private House _house;
+
+    private void Start()
+    {
+        if (_house == null)
+        {
+            _house = House.Instance;
+        }
+    }
 
     private void OnEnable()
     {
@@ -35,6 +44,12 @@ public class CaptureScene : GameBehaviour
     //Animation Event
     public void TriggerSuccessOrNot()
     {
+        foreach (Quest quest in _house.map.quests)
+        {
+            if(quest.type == Quest.QuestType.TryToCapture)
+                GameManager.Instance.UpdateQuestProgress(quest, _house.map.houseID, 1);
+        }
+        
         if (GhostInvestigator.Instance.IsSuccess())
         {
             Win();
@@ -47,7 +62,7 @@ public class CaptureScene : GameBehaviour
 
     private void Win()
     {
-        SpirimonzSettings selectedSpirimonz = House.Instance.GetSpirimonzSettings();
+        SpirimonzSettings selectedSpirimonz = _house.GetSpirimonzSettings();
         
         smokeDarkWinEffect.SetActive(true);
         
@@ -58,6 +73,12 @@ public class CaptureScene : GameBehaviour
         UnlockSpirimonz(selectedSpirimonz.spirimonzID);
         
         this.Invoke(8, () => Exit(false));
+        
+        foreach (Quest quest in _house.map.quests)
+        {
+            if(quest.type == Quest.QuestType.TryToCapture)
+                GameManager.Instance.UpdateQuestProgress(quest, _house.map.houseID, 1);
+        }
     }
 
     private void UnlockSpirimonz(string spirimonzID)
@@ -104,6 +125,6 @@ public class CaptureScene : GameBehaviour
 
     private void Exit(bool isDead)
     {
-        House.Instance.houseEntry.Entry(Player.Instance, isDead);
+        _house.houseEntry.Entry(Player.Instance, isDead);
     }
 }
