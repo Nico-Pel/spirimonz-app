@@ -10,12 +10,20 @@ public class UIGame : UIManager
     public static UIGame Instance { get; private set; }
 
     public float openSceneFadeDuration = 3f;
+
+    [Space] [Header("Window elements")]
+    public TextMeshProUGUI tGold;
     
     [Space]
     
+    [Header("Cursor elements")]
     public GameObject pointerBase;
     public Image pointerON;
     public TextMeshProUGUI tGrab;
+    
+    [Space]
+    
+    [Header("Window elements")]
     public UITablet tablet;
 
     private Sprite _baseBigPointer;
@@ -60,6 +68,16 @@ public class UIGame : UIManager
         {
             InitControlTexts(_player.inputManager);
         });
+    }
+
+    private void OnEnable()
+    {
+        UpdateGold();
+    }
+
+    public void UpdateGold()
+    {
+        tGold.text = "$" + SaveManager.GetInt(SaveKeys.GOLD);
     }
 
     private void Update()

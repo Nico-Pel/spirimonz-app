@@ -4,6 +4,41 @@ using UnityEngine;
 using UnityEngine.Serialization;
 using System.Collections.Generic;
 
+public static class SaveKeys
+{
+    public const string GOLD = "gold";
+    public const string MUSIC_VOLUME = "music_volume"; //Example
+    public const string INTRO_DONE = "intro_done"; //Example
+}
+
+[Serializable]
+public class SaveVariableInt
+{
+    public string id;
+    public int value;
+}
+
+[Serializable]
+public class SaveVariableFloat
+{
+    public string id;
+    public float value;
+}
+
+[Serializable]
+public class SaveVariableBool
+{
+    public string id;
+    public bool value;
+}
+
+[Serializable]
+public class SaveVariableString
+{
+    public string id;
+    public string value;
+}
+
 [Serializable]
 public class GameData
 {
@@ -13,8 +48,14 @@ public class GameData
     public Vector3 playerPosition;
     public Quaternion playerRotation;
     public int currentHouseID = -1;
-
+    
     public List<QuestData> questProgression = new List<QuestData>();
+
+    // === Global save variables ===
+    public List<SaveVariableInt> ints = new();
+    public List<SaveVariableFloat> floats = new();
+    public List<SaveVariableBool> bools = new();
+    public List<SaveVariableString> strings = new();
 }
 
 [Serializable]
@@ -133,5 +174,89 @@ public static class SaveManager
 
         data.spirimonzCollection = spirimonzList.ToArray();
         return data;
+    }
+    
+    public static void SetInt(string id, int value)
+    {
+        GameData data = GameManager.Instance.GetGameData();
+        var entry = data.ints.Find(i => i.id == id);
+
+        if (entry == null)
+        {
+            data.ints.Add(new SaveVariableInt { id = id, value = value });
+        }
+        else
+        {
+            entry.value = value;
+        }
+
+        Save(data);
+    }
+
+    public static int GetInt(string id, int defaultValue = 0)
+    {
+        GameData data = GameManager.Instance.GetGameData();
+        var entry = data.ints.Find(i => i.id == id);
+        return entry != null ? entry.value : defaultValue;
+    }
+    
+    public static void SetBool(string id, bool value)
+    {
+        GameData data = GameManager.Instance.GetGameData();
+        var entry = data.bools.Find(b => b.id == id);
+
+        if (entry == null)
+            data.bools.Add(new SaveVariableBool { id = id, value = value });
+        else
+            entry.value = value;
+
+        Save(data);
+    }
+
+    public static bool GetBool(string id, bool defaultValue = false)
+    {
+        GameData data = GameManager.Instance.GetGameData();
+        var entry = data.bools.Find(b => b.id == id);
+        return entry != null ? entry.value : defaultValue;
+    }
+    
+    public static void SetFloat(string id, float value)
+    {
+        GameData data = GameManager.Instance.GetGameData();
+        var entry = data.floats.Find(f => f.id == id);
+
+        if (entry == null)
+            data.floats.Add(new SaveVariableFloat { id = id, value = value });
+        else
+            entry.value = value;
+
+        Save(data);
+    }
+
+    public static float GetFloat(string id, float defaultValue = 0f)
+    {
+        GameData data = GameManager.Instance.GetGameData();
+        var entry = data.floats.Find(f => f.id == id);
+        return entry != null ? entry.value : defaultValue;
+    }
+    
+    public static void SetString(string id, string value)
+    {
+        GameData data = GameManager.Instance.GetGameData();
+        var entry = data.strings.Find(s => s.id == id);
+
+        if (entry == null)
+            data.strings.Add(new SaveVariableString { id = id, value = value });
+        else
+            entry.value = value;
+
+        Save(data);
+    }
+
+    public static string GetString(string id, string defaultValue = "")
+    {
+        GameData data = GameManager.Instance.GetGameData();
+        var entry = data.strings.Find(s => s.id == id);
+        return entry != null ? entry.value : defaultValue;
     }
 }
