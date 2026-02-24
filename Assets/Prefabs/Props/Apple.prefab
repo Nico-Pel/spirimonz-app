@@ -10,6 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 7768482326401283276}
   - component: {fileID: 8262591445726675758}
+  - component: {fileID: 1212449069763459499}
   - component: {fileID: 7867104623987860100}
   - component: {fileID: 8703065535455570993}
   - component: {fileID: 7055402289030159528}
@@ -63,6 +64,7 @@ MonoBehaviour:
   collisionSoundVariationPitch: 0.1
   collisionSoundRange: 15
   minForceToPlayCollision: 1
+  collisionSoundParameters: {fileID: 1212449069763459499}
   disappearAfterEat: 0
   meshFilter: {fileID: 7867104623987860100}
   eatSteps:
@@ -74,6 +76,28 @@ MonoBehaviour:
   pitchMax: 1.2
   eatSound: {fileID: 8300000, guid: 5d4393359dafc4c018cd956d6727e6f5, type: 3}
   endEatSound: {fileID: 8300000, guid: a5ee26a5035924986aa42ce0d2d2229e, type: 3}
+--- !u!114 &1212449069763459499
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2848334809561120887}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 40b88c04d7940466da713f4000ddccc8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  possibleClips:
+  - {fileID: 8300000, guid: dde53e61495864f25a0d405b8967711f, type: 3}
+  volume: 0.5
+  pitchMin: 0.9
+  pitchMax: 1.1
+  duration: -1
+  range: 15
+  loop: 0
+  sourceParent: {fileID: 0}
+  ignoreAudioOcclusion: 0
 --- !u!33 &7867104623987860100
 MeshFilter:
   m_ObjectHideFlags: 0

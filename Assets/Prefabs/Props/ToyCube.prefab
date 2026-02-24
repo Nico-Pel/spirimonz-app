@@ -15,6 +15,7 @@ GameObject:
   - component: {fileID: 5623086964793101071}
   - component: {fileID: 4034057696328518024}
   - component: {fileID: 5468095178195236664}
+  - component: {fileID: 6273809935492472127}
   m_Layer: 9
   m_Name: ToyCube
   m_TagString: Untagged
@@ -67,6 +68,7 @@ MonoBehaviour:
   collisionSoundVariationPitch: 0.1
   collisionSoundRange: 15
   minForceToPlayCollision: 1
+  collisionSoundParameters: {fileID: 6273809935492472127}
 --- !u!54 &7055402289030159528
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -178,3 +180,29 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 0.20000005, y: 0.20000005, z: 0.20000005}
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &6273809935492472127
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2848334809561120887}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 40b88c04d7940466da713f4000ddccc8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  possibleClips:
+  - {fileID: 8300000, guid: 07b22f24460e24874b92c369d4ab0577, type: 3}
+  - {fileID: 8300000, guid: 29f8e4bfc3a9a4c818d65790b284b577, type: 3}
+  - {fileID: 8300000, guid: 66536dc052a674f719cb829f5372f592, type: 3}
+  - {fileID: 8300000, guid: 5c4ce70caf9774302aa739450da2b217, type: 3}
+  - {fileID: 8300000, guid: 28ae8f346019441f08973322594784dd, type: 3}
+  volume: 0.33
+  pitchMin: 0.9
+  pitchMax: 1.1
+  duration: -1
+  range: 15
+  loop: 0
+  sourceParent: {fileID: 0}
+  ignoreAudioOcclusion: 0

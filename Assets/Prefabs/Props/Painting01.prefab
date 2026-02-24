@@ -180,6 +180,7 @@ GameObject:
   - component: {fileID: 1868252378140319457}
   - component: {fileID: 3036173794050276212}
   - component: {fileID: 277698470866995510}
+  - component: {fileID: 1249745561794585959}
   m_Layer: 9
   m_Name: Painting01
   m_TagString: Untagged
@@ -229,6 +230,7 @@ MonoBehaviour:
   collisionSoundVariationPitch: 0.1
   collisionSoundRange: 15
   minForceToPlayCollision: 1
+  collisionSoundParameters: {fileID: 1249745561794585959}
 --- !u!65 &1868252378140319457
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -290,3 +292,25 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   activityValue: 0
+--- !u!114 &1249745561794585959
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3242151497798218707}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 40b88c04d7940466da713f4000ddccc8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  possibleClips:
+  - {fileID: 8300000, guid: ffabf64a8005840f6a64ffd39c565cba, type: 3}
+  volume: 0.5
+  pitchMin: 0.9
+  pitchMax: 1.1
+  duration: -1
+  range: 15
+  loop: 0
+  sourceParent: {fileID: 0}
+  ignoreAudioOcclusion: 0

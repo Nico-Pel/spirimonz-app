@@ -100,7 +100,7 @@ public class HouseEntry : GameBehaviour
         {
             if (isExit)
             {
-                Entry(player);
+                UIGame.Instance.OpenEndGame(UIEndGame.EndTypes.Escape, House.Instance);
             }
             else
             {

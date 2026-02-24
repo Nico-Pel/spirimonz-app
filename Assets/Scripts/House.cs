@@ -188,6 +188,9 @@ public class House : GameBehaviour
     
     public void ExpelPlayerFromHouse()
     {
-        this.Invoke(6, () => houseEntry.Entry(currentPlayer, true));
+        this.Invoke(6, () =>
+        {
+            UIGame.Instance.OpenEndGame(UIEndGame.EndTypes.Lose, this);
+        });
     }
 }

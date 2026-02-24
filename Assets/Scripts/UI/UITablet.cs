@@ -18,6 +18,7 @@ public class UITablet : MonoBehaviour
     public GameObject[] tabWindows;
     public GameObject[] privateWindows;
     public UIEntryPanel entryPanel;
+    public UIEndGame endGame;
 
     private Color _baseColor;
     private Color _baseIconColor;
@@ -87,6 +88,7 @@ public class UITablet : MonoBehaviour
         CloseAllTabs();
         CloseAllPrivateWindows();
         CloseEntryPanel();
+        CloseEndGamePanel();
         gameObject.SetActive(false);
     }
 
@@ -125,5 +127,16 @@ public class UITablet : MonoBehaviour
     private void CloseEntryPanel()
     {
         entryPanel.gameObject.SetActive(false);
+    }
+    
+    private void CloseEndGamePanel()
+    {
+        endGame.gameObject.SetActive(false);
+    }
+
+    public void OpenEndGame(UIEndGame.EndTypes endType, House house)
+    {
+        endGame.gameObject.SetActive(true);
+        endGame.SetTexts(endType, house);
     }
 }

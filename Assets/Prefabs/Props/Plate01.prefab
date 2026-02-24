@@ -15,6 +15,7 @@ GameObject:
   - component: {fileID: 4548168981673211613}
   - component: {fileID: 1814483217559483207}
   - component: {fileID: 4351937455504722753}
+  - component: {fileID: 8452386498614943480}
   m_Layer: 9
   m_Name: Plate01
   m_TagString: Untagged
@@ -63,6 +64,7 @@ MonoBehaviour:
   collisionSoundVariationPitch: 0.1
   collisionSoundRange: 15
   minForceToPlayCollision: 1
+  collisionSoundParameters: {fileID: 8452386498614943480}
 --- !u!54 &7055402289030159528
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -175,3 +177,25 @@ MeshCollider:
   m_Convex: 1
   m_CookingOptions: 30
   m_Mesh: {fileID: 3962392604961349191, guid: 25bb645ea70064daba3fe7b042f79378, type: 3}
+--- !u!114 &8452386498614943480
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2848334809561120887}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 40b88c04d7940466da713f4000ddccc8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  possibleClips:
+  - {fileID: 8300000, guid: 0e88b0731e98b4b00aaf5a5279cee8fd, type: 3}
+  volume: 0.5
+  pitchMin: 0.9
+  pitchMax: 1.1
+  duration: -1
+  range: 15
+  loop: 0
+  sourceParent: {fileID: 0}
+  ignoreAudioOcclusion: 0

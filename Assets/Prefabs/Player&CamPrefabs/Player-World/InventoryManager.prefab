@@ -10,6 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 4418191056032814332}
   - component: {fileID: 2487074071175901042}
+  - component: {fileID: 8812763484969328275}
   - component: {fileID: 7115160027579624800}
   m_Layer: 0
   m_Name: InventoryManager
@@ -45,6 +46,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7e1e0c369c96a48cbb12b35d0a4416e2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  articlesFoundInGame: []
+  bagSoundParameters: {fileID: 8812763484969328275}
   spirimonzTeamSettings:
   - {fileID: 0}
   - {fileID: 0}
@@ -60,6 +63,31 @@ MonoBehaviour:
   spirimonzMask:
     serializedVersion: 2
     m_Bits: 4096
+  onTeamChange:
+    m_PersistentCalls:
+      m_Calls: []
+--- !u!114 &8812763484969328275
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1444892977781374604}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 40b88c04d7940466da713f4000ddccc8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  possibleClips:
+  - {fileID: 8300000, guid: d82c2173807114435a0a6e18074b1908, type: 3}
+  volume: 1
+  pitchMin: 0.9
+  pitchMax: 1.1
+  duration: -1
+  range: 15
+  loop: 0
+  sourceParent: {fileID: 0}
+  ignoreAudioOcclusion: 0
 --- !u!114 &7115160027579624800
 MonoBehaviour:
   m_ObjectHideFlags: 0

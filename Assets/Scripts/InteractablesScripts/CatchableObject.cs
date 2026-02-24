@@ -17,17 +17,13 @@ public class CatchableObject : GameBehaviour, IInteractable
 
     [ReadOnly] public bool isGrabbed;
 
-    [Header("Sounds")] 
-    public AudioClip[] collisionSounds;
-    public float collisionSoundVolume = 0.5f;
-    public float collisionSoundAveragePitch = 1f;
-    public float collisionSoundVariationPitch = 0.1f;
-    public float collisionSoundRange = 15f;
+    [Header("Collisions sounds")]
+    public SoundParameters collisionSoundParameters;
     public float minForceToPlayCollision = 1f;
 
-    private bool _canCallCollisionSound = false;
-    private float _collisionSoundsMinDelay = 0.5f;
-    private float _collisionStartDelay = 1f;
+    protected bool _canCallCollisionSound = false;
+    protected float _collisionSoundsMinDelay = 0.5f;
+    protected float _collisionStartDelay = 1f;
 
     private Transform _currentHolder;
 
@@ -152,40 +148,14 @@ public class CatchableObject : GameBehaviour, IInteractable
 
     private void PlayCollisionSound(float impactForce)
     {
-        if (collisionSounds.Length == 0|| !_canCallCollisionSound) return;
-
-        AudioClip clipToUse = null;
-        clipToUse = collisionSounds[Random.Range(0, collisionSounds.Length)];
-        if (clipToUse == null)
-        {
-            //If selected clip is null, select first viable sound
-            foreach (AudioClip clip in collisionSounds)
-            {
-                if (clip != null)
-                {
-                    clipToUse = clip;
-                    break;
-                }
-            }
-        }
-
-        //No viable audio clip
-        if (clipToUse == null)
-            return;
+        if (collisionSoundParameters == null || !_canCallCollisionSound) return;
         
         _canCallCollisionSound = false;
         this.Invoke(_collisionSoundsMinDelay, () => _canCallCollisionSound = true);
 
         float volumeMultiplier = Mathf.Clamp01(impactForce / 10f); // normalise impactForce
-        float pitch = collisionSoundAveragePitch + Random.Range(-collisionSoundVariationPitch, collisionSoundVariationPitch);
 
-        SoundManager.Instance.PlaySound(
-            clipToUse,
-            position: transform.position,
-            volume: collisionSoundVolume * volumeMultiplier,
-            pitch: pitch,
-            range: collisionSoundRange
-        );
+        collisionSoundParameters.PlaySound(transform.position, collisionSoundParameters.volume * volumeMultiplier);
     }
     
     void CheckFall()

@@ -9,6 +9,10 @@ using UnityEngine.Serialization;
 public class InventoryManager : GameBehaviour
 {
     public static InventoryManager Instance { get; private set; }
+    
+    public List<Article> articlesFoundInGame = new List<Article>();
+    
+    public SoundParameters bagSoundParameters;
 
     public enum HandPoses
     {
@@ -449,5 +453,20 @@ public class InventoryManager : GameBehaviour
         }
 
         return false;
+    }
+
+    public void AddArticle(Article article, bool useSound = false)
+    {
+        articlesFoundInGame.Add(article);
+        if (useSound)
+        {
+            if (_gamePlayer != null)
+            {
+                _gamePlayer.handAnimator.SetBool("CanChangeState", false);
+                _gamePlayer.handAnimator.SetTrigger("PutInBag");
+                this.Invoke(2.4f, () => _gamePlayer.handAnimator.SetBool("CanChangeState", true));
+                bagSoundParameters.PlaySound(_gamePlayer.transform.position);
+            }
+        }
     }
 }

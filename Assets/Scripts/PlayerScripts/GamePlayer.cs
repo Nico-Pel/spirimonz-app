@@ -130,6 +130,7 @@ public class GamePlayer : Player
     public void Die()
     {
         _isDead = true;
+        inventoryManager.articlesFoundInGame.Clear();
         
         this.Invoke(2, () =>
         {
@@ -175,5 +176,15 @@ public class GamePlayer : Player
     public Vector3 GetForward()
     {
         return camera.transform.forward;
+    }
+    
+    public override void ReceiveArticle(Article article, bool useSound = false)
+    {
+        base.ReceiveArticle(article, useSound);
+        if (useSound)
+        {
+            interactionController.objectInHands = null;
+            handAnimator.SetInteger("HandPos", 1);
+        }
     }
 }

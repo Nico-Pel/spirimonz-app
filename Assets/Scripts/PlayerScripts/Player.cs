@@ -71,4 +71,9 @@ public class Player : GameBehaviour
     {
         return characterController.transform.rotation;
     }
+
+    public virtual void ReceiveArticle(Article article, bool useSound = false)
+    {
+        inventoryManager.AddArticle(article, useSound);
+    }
 }

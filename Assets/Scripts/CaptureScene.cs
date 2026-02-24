@@ -5,6 +5,10 @@ using UnityEngine;
 
 public class CaptureScene : GameBehaviour
 {
+    public Article alreadyCapturedArticle;
+
+    [Space]
+    
     public AudioClip victorySound;
     public float victoryVolume = 1f;
 
@@ -88,6 +92,10 @@ public class CaptureScene : GameBehaviour
         {
             gameManager.UnlockSpirimonz(spirimonzID);
         }
+        else
+        {
+            _house.currentPlayer.ReceiveArticle(alreadyCapturedArticle);
+        }
     }
 
     private void PlayWinAnimation()
@@ -125,6 +133,10 @@ public class CaptureScene : GameBehaviour
 
     private void Exit(bool isDead)
     {
-        _house.houseEntry.Entry(Player.Instance, isDead);
+        if(isDead)
+            _house.currentPlayer.inventoryManager.articlesFoundInGame.Clear();
+        
+        UIEndGame.EndTypes endType = isDead ? UIEndGame.EndTypes.Lose : UIEndGame.EndTypes.Win;
+        UIGame.Instance.OpenEndGame(endType, _house);
     }
 }

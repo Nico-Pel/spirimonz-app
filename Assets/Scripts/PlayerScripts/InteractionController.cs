@@ -282,6 +282,7 @@ public class InteractionController : GameBehaviour
         }
     
         objectInHands.Drop(dropPos, Vector3.zero);
+        _player.handAnimator.SetInteger("HandPos", 1);
         
         OnDropItem?.Invoke(objectInHands);
         objectInHands = null;
@@ -304,6 +305,7 @@ public class InteractionController : GameBehaviour
 
         objectInHands.ChangeLayer(_objectInHandLayerIndex, 0);
         objectInHands.Drop(dropPos, throwForce);
+        _player.handAnimator.SetInteger("HandPos", 1);
         
         OnDropItem?.Invoke(objectInHands);
         objectInHands = null;

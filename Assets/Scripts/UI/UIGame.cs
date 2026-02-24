@@ -142,19 +142,19 @@ public class UIGame : UIManager
 
     private void OpenTeamPanel()
     {
-        tablet.gameObject.SetActive(true);
+        CloseTablet();
         tablet.OpenTab(0, true);
     }
     
     private void OpenJournal()
     {
-        tablet.gameObject.SetActive(true);
+        CloseTablet();
         tablet.OpenTab(1, true);
     }
 
     public void OpenPrivateTabletWindow(int windowID)
     {
-        tablet.gameObject.SetActive(true);
+        CloseTablet();
         tablet.OpenPrivateWindow(windowID);
     }
 
@@ -173,5 +173,11 @@ public class UIGame : UIManager
     {
         base.CloseAllWindows();
         tablet.TurnOffTablet();
+    }
+
+    public void OpenEndGame(UIEndGame.EndTypes endType, House house)
+    {
+        tablet.gameObject.SetActive(true);
+        tablet.OpenEndGame(endType, house);
     }
 }

@@ -10,6 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 7768482326401283276}
   - component: {fileID: 6385392956307463315}
+  - component: {fileID: 4751463292568252980}
   - component: {fileID: 7055402289030159528}
   - component: {fileID: 3683657692521461788}
   - component: {fileID: 5623086964793101071}
@@ -63,6 +64,29 @@ MonoBehaviour:
   collisionSoundVariationPitch: 0.1
   collisionSoundRange: 15
   minForceToPlayCollision: 1
+  collisionSoundParameters: {fileID: 4751463292568252980}
+--- !u!114 &4751463292568252980
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2848334809561120887}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 40b88c04d7940466da713f4000ddccc8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  possibleClips:
+  - {fileID: 8300000, guid: 0e88b0731e98b4b00aaf5a5279cee8fd, type: 3}
+  volume: 0.5
+  pitchMin: 0.9
+  pitchMax: 1.1
+  duration: -1
+  range: 15
+  loop: 0
+  sourceParent: {fileID: 0}
+  ignoreAudioOcclusion: 0
 --- !u!54 &7055402289030159528
 Rigidbody:
   m_ObjectHideFlags: 0
