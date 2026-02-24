@@ -1,6 +1,3 @@
-using System;
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using TMPro;
 
@@ -9,10 +6,14 @@ public class UILootRecap : GameBehaviour
     public TextMeshProUGUI tName;
     public TextMeshProUGUI tValue;
 
-    public void Init(Article article, Color valueTextColor)
+    public void Init(Article article, int quantity, int totalValue, Color valueTextColor)
     {
-        tName.text = article.articleName;
-        tValue.text = article.value + "$";
+        tName.text = quantity > 1
+            ? $"{article.articleName} x{quantity}"
+            : article.articleName;
+
+        tValue.text = totalValue + "$";
+        tValue.color = valueTextColor;
     }
 
     private void OnDisable()

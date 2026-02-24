@@ -64,18 +64,42 @@ public class UIEndGame : GameBehaviour
         tSubtitle.text = string.Format(victoryText, house.currentGhost.ghostParameters.ghostTypeData.ghostType.ToString());
 
         int totalValue = 0;
+        bool isWin = endType == EndTypes.Win;
+
         List<Article> articlesFound = house.currentPlayer.inventoryManager.articlesFoundInGame;
-        if (articlesFound.Count > 0)
+
+// 1️⃣ Regroup article
+        Dictionary<Article, int> groupedArticles = new Dictionary<Article, int>();
+
+        foreach (var article in articlesFound)
         {
-            for (int i = 0; i < articlesFound.Count; i++)
-            {
-                bool isWin = endType == EndTypes.Win;
-                UILootRecap newUILoot = Instantiate(uiLootPrefab, uiLootPos);
-                Color valueColorToUse = isWin && articlesFound[i].winValueMultiplier > 1 ? winTextColor : normalTextColor;
-                newUILoot.Init(articlesFound[i], valueColorToUse);
-                int value = isWin ? (int)(articlesFound[i].value + articlesFound[i].winValueMultiplier) : articlesFound[i].value;
-                totalValue += value;
-            }
+            if (groupedArticles.ContainsKey(article))
+                groupedArticles[article]++;
+            else
+                groupedArticles.Add(article, 1);
+        }
+        
+        foreach (var pair in groupedArticles)
+        {
+            Article article = pair.Key;
+            int quantity = pair.Value;
+
+            UILootRecap newUILoot = Instantiate(uiLootPrefab, uiLootPos);
+
+            Color valueColorToUse =
+                isWin && article.winValueMultiplier > 1
+                    ? winTextColor
+                    : normalTextColor;
+
+            int unitValue = isWin
+                ? (int)(article.value * article.winValueMultiplier)
+                : article.value;
+
+            int totalArticleValue = unitValue * quantity;
+
+            newUILoot.Init(article, quantity, totalArticleValue, valueColorToUse);
+
+            totalValue += totalArticleValue;
         }
 
         tTotal.text = totalValue + "$";
