@@ -124,6 +124,10 @@ MonoBehaviour:
   canHold: 0
   canRelease: 0
   canBeClickedOnTriggerByGhostDuringHunt: 0
+  ignoreActivitySource: 0
+  onClick:
+    m_PersistentCalls:
+      m_Calls: []
   movePosition: 0
   moveRotation: 1
   offsetPosition: {x: 0, y: 0, z: 0}
@@ -133,7 +137,7 @@ MonoBehaviour:
   offsetRotation: {x: 90, y: 0, z: 0}
   rotateSpeed: 250
   rotateBackSpeed: 150
-  rotateEase: 27
+  rotateEase: 1
   rotateBackEase: 1
   moveSound: {fileID: 8300000, guid: d4f5b6b53d3954231b0a5b366d5df96c, type: 3}
   moveSoundBack: {fileID: 8300000, guid: d4f5b6b53d3954231b0a5b366d5df96c, type: 3}
@@ -346,6 +350,10 @@ MonoBehaviour:
   canHold: 0
   canRelease: 0
   canBeClickedOnTriggerByGhostDuringHunt: 0
+  ignoreActivitySource: 0
+  onClick:
+    m_PersistentCalls:
+      m_Calls: []
   printSources: []
   activableObject: {fileID: 4174476779459780072}
   animator: {fileID: 1778395068935296428}

@@ -5,6 +5,7 @@ using UnityEngine;
 
 public class CaptureScene : GameBehaviour
 {
+    public Article victoryArticle;
     public Article alreadyCapturedArticle;
 
     [Space]
@@ -67,6 +68,8 @@ public class CaptureScene : GameBehaviour
     private void Win()
     {
         SpirimonzSettings selectedSpirimonz = _house.GetSpirimonzSettings();
+        
+        _house.currentPlayer.ReceiveArticle(victoryArticle);
         
         smokeDarkWinEffect.SetActive(true);
         

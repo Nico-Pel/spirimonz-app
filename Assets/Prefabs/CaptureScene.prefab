@@ -657,6 +657,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 135f1ef1b8d21499a8e7dc0955d30420, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  victoryArticle: {fileID: 11400000, guid: 7c9edd30f4905494b9c47ef5a207a8af, type: 2}
+  alreadyCapturedArticle: {fileID: 11400000, guid: 515571a0f4f6949bba63836b86291c7a, type: 2}
   victorySound: {fileID: 8300000, guid: 8163c0b636fe74bc79499375189b77f3, type: 3}
   victoryVolume: 0.275
   smokeDarkWinEffect: {fileID: 2820984011003175384}
@@ -3155,6 +3157,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   range: 25
+  footstepVolume: 0.1
   footstepSounds:
   - groundTag: Untagged
     stepClips:
@@ -3219,7 +3222,6 @@ MonoBehaviour:
     volumeMultiplier: 1
     pitchMin: 0.95
     pitchMax: 1.05
-  footstepVolume: 0.1
   ignoreAudioOcclusion: 1
   groundCheckDistance: 1.2
   groundLayers:

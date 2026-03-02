@@ -97,6 +97,11 @@ public class UIEndGame : GameBehaviour
 
             int totalArticleValue = unitValue * quantity;
 
+            if (totalArticleValue == -1) //Is the Victory article
+            {
+                totalArticleValue = house.map.victoryReward;
+            }
+
             newUILoot.Init(article, quantity, totalArticleValue, valueColorToUse);
 
             totalValue += totalArticleValue;

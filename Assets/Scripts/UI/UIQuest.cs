@@ -17,13 +17,8 @@ public class UIQuest : GameBehaviour
     public Color textColorBase;
     public Color textColorValidate;
 
-    private Color _backgroundBaseColor;
+    public Color backgroundBaseColor;
     private GameManager _gameManager;
-
-    private void Awake()
-    {
-        _backgroundBaseColor = iBackground.color;
-    }
 
     private void Start()
     {
@@ -52,7 +47,8 @@ public class UIQuest : GameBehaviour
         
         tDescription.text = quest.questDescription;
 
-        iBackground.color = questComplete ? new Color(_backgroundBaseColor.r, _backgroundBaseColor.g, _backgroundBaseColor.b, _backgroundBaseColor.a / 2) : _backgroundBaseColor;
+        Color bc = backgroundBaseColor;
+        iBackground.color = questComplete ? new Color(bc.r, bc.g, bc.b, bc.a / 2) : backgroundBaseColor;
         
         validationMarker.gameObject.SetActive(questComplete);
     }

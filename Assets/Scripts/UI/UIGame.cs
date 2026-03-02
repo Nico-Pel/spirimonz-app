@@ -142,19 +142,19 @@ public class UIGame : UIManager
 
     private void OpenTeamPanel()
     {
-        CloseTablet();
+        tablet.gameObject.SetActive(true);
         tablet.OpenTab(0, true);
     }
     
     private void OpenJournal()
     {
-        CloseTablet();
+        tablet.gameObject.SetActive(true);
         tablet.OpenTab(1, true);
     }
 
     public void OpenPrivateTabletWindow(int windowID)
     {
-        CloseTablet();
+        tablet.gameObject.SetActive(true);
         tablet.OpenPrivateWindow(windowID);
     }
 
