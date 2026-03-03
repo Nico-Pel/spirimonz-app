@@ -45,6 +45,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 64340cb689d89442ab60d4a29e7813a0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  linkedSpirimonz: {fileID: 5483493701284287561}
   OnDetectionStart:
     m_PersistentCalls:
       m_Calls: []
@@ -280,6 +281,12 @@ MonoBehaviour:
   agent: {fileID: 8962021373609823196}
   collider: {fileID: 3096953366863121640}
   animator: {fileID: 8929576809189072374}
+  onDisable:
+    m_PersistentCalls:
+      m_Calls: []
+  onSetRoom:
+    m_PersistentCalls:
+      m_Calls: []
   radiationDetector: {fileID: 4202959178740558781}
   radiationFeedback: {fileID: 850268095237072072}
 --- !u!136 &3096953366863121640 stripped

@@ -52,13 +52,14 @@ public class SpmzRadiationDetector : Spirimonz
             radiationDetector.StopUsingSound(); // stop le son ici
     }
 
-    private void OnDisable()
+    protected override void OnDisable()
     {
         // On stop aussi le feedback si jamais il est encore actif
         TurnOffRadiationFeedback();
+        base.OnDisable();
     }
 
-    protected override void SetCurrentRoom(Room room)
+    public override void SetCurrentRoom(Room room)
     {
         base.SetCurrentRoom(room);
 

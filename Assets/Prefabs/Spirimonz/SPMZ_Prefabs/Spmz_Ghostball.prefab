@@ -5049,6 +5049,8 @@ MonoBehaviour:
   settings: {fileID: 11400000, guid: dd18591de3d124e0283bca7cf4909c16, type: 2}
   spirimonzGameObject: {fileID: 4336612164051074648}
   hidingGameObject: {fileID: 863767180749091856}
+  useDifferentHidingOrbPosForHands: 0
+  _handHidingOrbPos: {x: 0, y: 0, z: 0}
   isOnTheMap: 0
   canInteract: 0
   canBeDroppedOnMap: 0
@@ -5072,10 +5074,16 @@ MonoBehaviour:
   agent: {fileID: 4781829951833191395}
   collider: {fileID: 1511398959686120663}
   animator: {fileID: 8335605840680172990}
+  onDisable:
+    m_PersistentCalls:
+      m_Calls: []
+  onSetRoom:
+    m_PersistentCalls:
+      m_Calls: []
   maxEnergy: 100
   currentEnergy: 100
-  usingEnergyMaxSec: 10
-  rechargeMaxSec: 25
+  usingEnergyForSec: 16
+  rechargeForSec: 5
   minPercentToUse: 0.5
   powerActivator: {fileID: 4198745629820256881}
 --- !u!114 &4198745629820256881

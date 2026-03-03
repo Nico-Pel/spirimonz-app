@@ -255,6 +255,7 @@ public class Ghost : GameBehaviour
         
         if (other.TryGetComponent(out Room newRoom))
         {
+            Debug.Log("POUET GHOST NEW ROOM");
             currentRoom = newRoom;
         }
         else if (other.TryGetComponent(out Player touchedPlayer))
@@ -406,12 +407,13 @@ public class Ghost : GameBehaviour
     private void TriggerHunting(bool forceHunting = false)
     {
         if (_canHunt == false && forceHunting == false) return;
+        if (_willHunt) return; // Prevent double scheduling
 
         _willHunt = true;
         _canHunt = false;
-        
+
+        Invoke(nameof(StandingBeforeHunting), forecastTimeBeforeAHunt);
         onGhostCallForAHunt?.Invoke();
-        this.Invoke(forecastTimeBeforeAHunt, StandingBeforeHunting);
     }
 
     private void StandingBeforeHunting()
@@ -622,12 +624,25 @@ public class Ghost : GameBehaviour
             SelectNewHidingWaypoint();
         }
     }
+    
+    public void CancelHuntCompletely()
+    {
+        _willHunt = false;
+
+        CancelInvoke(nameof(StandingBeforeHunting));
+        CancelInvoke(nameof(StartHunting));
+
+        currentState = GhostState.hideState;
+
+        onGhostStopToHunt?.Invoke();
+    }
 
     public void StopHunting()
     {
         _willHunt = false;
+        CancelInvoke(nameof(StandingBeforeHunting));
         
-        if (huntingSound != null)
+        if (huntingSound != null && _huntingSound != null)
         {
             _huntingSound.Stop(false);
         }

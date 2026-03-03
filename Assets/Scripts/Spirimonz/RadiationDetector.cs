@@ -4,6 +4,8 @@ using UnityEngine.Events;
 
 public class RadiationDetector : GameBehaviour
 {
+    public Spirimonz linkedSpirimonz;
+
     private bool _radiation = false;
 
     private Room _currentRoom;
@@ -19,7 +21,17 @@ public class RadiationDetector : GameBehaviour
     
     private SoundManager.SoundInstance _radiationSound;
     private float _currentDuration;
-    
+
+    private void Awake()
+    {
+        if (linkedSpirimonz != null)
+        {
+            linkedSpirimonz.onSetRoom.AddListener(SetCurrentRoom);
+            Debug.Log("POUET SUBSCRIBE !!!");
+            //linkedSpirimonz.onDisable.AddListener(StopUsingSound);
+        }
+    }
+
     public void TriggerDetection(float duration)
     {
         if (duration > _currentDuration)
@@ -80,6 +92,12 @@ public class RadiationDetector : GameBehaviour
         }
     }
 
+    private void OnEnable()
+    {
+        if(linkedSpirimonz != null && linkedSpirimonz.currentRoom != null)
+            SetCurrentRoom(linkedSpirimonz.currentRoom);
+    }
+
     public bool IsDetectingRadiation()
     {
         return _radiation;
@@ -92,6 +110,7 @@ public class RadiationDetector : GameBehaviour
 
     public void SetCurrentRoom(Room room)
     {
+        Debug.Log("POUET DETECTOR SET ROOM");
         if (_currentRoom != null)
         {
             _currentRoom.OnRadiationStart.RemoveListener(TriggerDetection);

@@ -1,0 +1,35 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2da69e9a0e0f54f3c905a18b7cedd84c, type: 3}
+  m_Name: SPMZ_010
+  m_EditorClassIdentifier: 
+  unlockedByDefault: 0
+  spirimonzID: SPMZ_010
+  spirimonzName: Portebonoeil
+  spirimonzPrefab: {fileID: 3468454165884063629, guid: 16784bbe518ad4863b9a4d322c9ada07, type: 3}
+  spirimonzBodyPrefab: {fileID: 3531218130435456864, guid: d9d8c724cb78744579050b67e0563070, type: 3}
+  bodyPresentationOffset: {x: 0, y: -2.5, z: 0}
+  img: {fileID: 21300000, guid: f3a24fdfa763542f985561cabff97dd7, type: 3}
+  abilities:
+  - evidenceTypes: 
+    description: 'Portebonoeil can protect you from an attack; it bursts into flames
+      and disappears if the evil spirit attempts to start a hunt near it. '
+  - evidenceTypes: 06000000
+    description: The sensor on Yeti allows you to calculate the The flames of Portebonoeil
+      are green if the malevolent spirit thus stopped exhibits <color=#F9AB2D>radioactivity</color>
+      .
+  primarySPMZType: {fileID: 11400000, guid: 219545d2aae84444a90456d737e3cd02, type: 2}
+  secondarySPMZType: {fileID: 11400000, guid: 8389e95cfcd5d4e08894da1a2c0a9ec6, type: 2}
+  canUsePowerInHands: 0
+  canBeDroppedOnMap: 1
+  canBeTakenBackInHands: 1
+  canFollowPlayer: 0

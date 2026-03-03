@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AI;
+using UnityEngine.Events;
 using UnityEngine.Serialization;
 using Random = UnityEngine.Random;
 
@@ -74,6 +75,9 @@ public class Spirimonz : GameBehaviour, IInteractable
     private bool _isLocked;
     private bool _initialized;
     protected House _house;
+
+    public UnityEvent onDisable;
+    public UnityEvent<Room> onSetRoom;
 
     protected virtual void Start()
     {
@@ -292,9 +296,12 @@ public class Spirimonz : GameBehaviour, IInteractable
         
     }
 
-    protected virtual void SetCurrentRoom(Room room)
+    public virtual void SetCurrentRoom(Room room)
     {
+        Debug.Log("POUET SPMZ SET ROOM");
+
         currentRoom = room;
+        onSetRoom?.Invoke(room);
     }
 
     private void TryToOpenDoor(Door door)
@@ -580,4 +587,9 @@ public class Spirimonz : GameBehaviour, IInteractable
     }
     
     public bool IsInHidingMode() => _hidingFromAGhost;
+
+    protected virtual void OnDisable()
+    {
+        onDisable?.Invoke();
+    }
 }

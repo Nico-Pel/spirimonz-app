@@ -52,8 +52,17 @@ public class GamePlayer : Player
     {
         if (other.TryGetComponent(out Room room))
         {
-            currentRoom = room;
+            SetCurrentRoom(room);
         }
+    }
+
+    private void SetCurrentRoom(Room room)
+    {
+        currentRoom = room;
+
+        Spirimonz spirimonzInHands = inventoryManager.selectedSpirimonz;
+        if(spirimonzInHands != null)
+            spirimonzInHands.SetCurrentRoom(room);
     }
 
     public void UseSlashAnimation()

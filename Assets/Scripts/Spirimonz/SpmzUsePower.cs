@@ -1,20 +1,22 @@
 using System;
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.Serialization;
 
 public class SpmzUsePower : Spirimonz
 {
     [Header("Energy")]
     public float maxEnergy = 100f;
     [ReadOnly] public float currentEnergy = 100f;
-    public float usingEnergyMaxSec = 6f;
-    public float rechargeMaxSec = 25f;
+
+    [Tooltip("Energy consumed per second while using the power")]
+    public float usingEnergyForSec = 15f;
+
+    [Tooltip("Energy regenerated per second when not using the power")]
+    public float rechargeForSec = 20f;
+
     public float minPercentToUse = 0.25f;
 
     private float _timeDisabled;
-    
+
     [Header("Power")]
     public PowerActivator powerActivator;
 
@@ -24,7 +26,7 @@ public class SpmzUsePower : Spirimonz
     {
         if (!base.UpdateSpirimonzBehaviour())
             return false;
-        
+
         if (IsLocked()) return false;
 
         HandleInput();
@@ -35,41 +37,37 @@ public class SpmzUsePower : Spirimonz
 
     private void HandleInput()
     {
-        // Activation du pouvoir tant que clic droit maintenu
         if (Input.GetMouseButtonDown(1))
-        {
             TryActivate();
-        }
 
         if (Input.GetMouseButtonUp(1))
-        {
             StopPower();
-        }
     }
 
     private void UpdateEnergy()
     {
         if (_isUsingPower)
         {
-            // Consomme l'énergie
-            currentEnergy -= Time.deltaTime * (maxEnergy / usingEnergyMaxSec);
-            if (currentEnergy <= 0)
+            // Consume energy per second
+            currentEnergy -= usingEnergyForSec * Time.deltaTime;
+
+            if (currentEnergy <= 0f)
             {
-                currentEnergy = 0;
+                currentEnergy = 0f;
                 StopPower();
             }
         }
         else
         {
-            // Recharge l'énergie
-            currentEnergy += Time.deltaTime * (maxEnergy / rechargeMaxSec);
+            // Regenerate energy per second
+            currentEnergy += rechargeForSec * Time.deltaTime;
             currentEnergy = Mathf.Min(currentEnergy, maxEnergy);
         }
     }
 
     private void TryActivate()
     {
-        if (currentEnergy / maxEnergy < minPercentToUse)
+        if (CurrentEnergyFraction() < minPercentToUse)
         {
             animator.SetTrigger("Nop");
             return;
@@ -88,32 +86,31 @@ public class SpmzUsePower : Spirimonz
         powerActivator.Deactivate();
         animator.SetBool("CanUsePower", false);
     }
-    
+
     protected override void OnEnable()
     {
         base.OnEnable();
-        
-        // Si le Spirimonz avait été désactivé un moment
+
         if (_timeDisabled > 0f)
         {
             float timeOff = Time.realtimeSinceStartup - _timeDisabled;
 
-            // Recharge en fonction du temps passé off
-            float energyRecovered = timeOff * (maxEnergy / rechargeMaxSec);
+            // Regenerate based on time spent disabled
+            float energyRecovered = rechargeForSec * timeOff;
             currentEnergy = Mathf.Min(currentEnergy + energyRecovered, maxEnergy);
-        
-            _timeDisabled = 0f; // reset
+
+            _timeDisabled = 0f;
         }
     }
 
-    private void OnDisable()
+    protected override void OnDisable()
     {
         StopPower();
-    
-        // Enregistrer le moment où il est désactivé
+
         _timeDisabled = Time.realtimeSinceStartup;
+        base.OnDisable();
     }
-    
+
     public bool IsUsingPower() => _isUsingPower;
     public float CurrentEnergyFraction() => Mathf.Clamp01(currentEnergy / maxEnergy);
 }

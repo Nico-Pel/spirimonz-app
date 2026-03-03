@@ -198,10 +198,10 @@ public class InventoryManager : GameBehaviour
 
     private void UpdateGamePlayer()
     {
-        if (selectedSpirimonz != null && selectedSpirimonz.isOnTheMap == false)
+        /*if (selectedSpirimonz != null && selectedSpirimonz.isOnTheMap == false)
         {
-            selectedSpirimonz.currentRoom = _gamePlayer.currentRoom;
-        }
+            selectedSpirimonz.SetCurrentRoom(_gamePlayer.currentRoom);
+        }*/
         
         for (int i = 0; i < _player.inputManager.inventoryKeys.Length; i++)
         {
@@ -284,6 +284,7 @@ public class InventoryManager : GameBehaviour
         }
         
         selectedSpirimonz = spirimonzTeam[teamIndex];
+        selectedSpirimonz.SetCurrentRoom(_gamePlayer.currentRoom);
         
         if (selectedSpirimonz.isOnTheMap)
         {
