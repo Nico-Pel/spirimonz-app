@@ -26378,11 +26378,15 @@ MonoBehaviour:
   canBeThrownByGhost: 1
   canBeThrownByPlayer: 1
   setRotZeroOnDrop: 1
+  priority: 0
   rb: {fileID: 0}
   activitySource: {fileID: 0}
   isGrabbed: 0
   collisionSoundParameters: {fileID: 0}
   minForceToPlayCollision: 1
+  onGrab:
+    m_PersistentCalls:
+      m_Calls: []
 --- !u!114 &1453499724
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -38777,12 +38781,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   map: {fileID: 11400000, guid: bdeb4d0bd98f84d72a67fb487f2f61f5, type: 2}
-  useDebugs: 0
-  playerCantDie: 0
+  useDebugs: 1
+  playerCantDie: 1
   forcedGhostParameters: {fileID: 0}
-  forcedGhostActivity: 7
-  forcedFavoriteRoomID: -1
-  tripleActivityDebug: 0
+  forcedGhostActivity: 0
+  forcedFavoriteRoomID: 0
+  tripleActivityDebug: 1
   useHuntTimeMultiplierDebug: 0
   huntTimeMultiplierDebug: 10
   houseEntry: {fileID: 3423637249492515329}

@@ -32,6 +32,8 @@ public class CatchableObject : GameBehaviour, IInteractable
     protected float _collisionStartDelay = 1f;
 
     private Transform _currentHolder;
+    
+    public UnityEvent onGrab;
 
     private void Awake()
     {
@@ -120,8 +122,9 @@ public class CatchableObject : GameBehaviour, IInteractable
 
     public virtual void OnGrab()
     {
-        
+        onGrab?.Invoke();
     }
+    
     public virtual void OnThrow()
     {
         

@@ -1,5 +1,60 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
+--- !u!1 &2540488149502752769
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 6242313435383505006}
+  - component: {fileID: 2505510750402305001}
+  m_Layer: 12
+  m_Name: EatSoundParameters
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &6242313435383505006
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2540488149502752769}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 4471472783982374273}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &2505510750402305001
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2540488149502752769}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 40b88c04d7940466da713f4000ddccc8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  possibleClips:
+  - {fileID: 8300000, guid: a5ee26a5035924986aa42ce0d2d2229e, type: 3}
+  - {fileID: 8300000, guid: 5d4393359dafc4c018cd956d6727e6f5, type: 3}
+  volume: 0.6
+  pitchMin: 0.7
+  pitchMax: 0.9
+  duration: -1
+  range: 15
+  loop: 0
+  sourceParent: {fileID: 4471472783982374273}
+  ignoreAudioOcclusion: 0
 --- !u!1001 &2243313034530935874
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -184,10 +239,13 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 6657164899661425278, guid: 73b72ad84d9584d7e91279923787a2cc, type: 3}
       insertIndex: -1
       addedObject: {fileID: 6795148870182404162}
+    - targetCorrespondingSourceObject: {fileID: 6657164899661425278, guid: 73b72ad84d9584d7e91279923787a2cc, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 6242313435383505006}
     m_AddedComponents:
     - targetCorrespondingSourceObject: {fileID: 1928178831690860980, guid: 73b72ad84d9584d7e91279923787a2cc, type: 3}
       insertIndex: 1
-      addedObject: {fileID: 5124348347119688593}
+      addedObject: {fileID: 2544481049742227868}
     - targetCorrespondingSourceObject: {fileID: 1928178831690860980, guid: 73b72ad84d9584d7e91279923787a2cc, type: 3}
       insertIndex: -1
       addedObject: {fileID: 92552930443995213}
@@ -217,7 +275,7 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 1928178831690860980, guid: 73b72ad84d9584d7e91279923787a2cc, type: 3}
   m_PrefabInstance: {fileID: 7092849429985363967}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &5124348347119688593
+--- !u!114 &2544481049742227868
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -226,12 +284,14 @@ MonoBehaviour:
   m_GameObject: {fileID: 8695492743742393931}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f32dadd11b2ba4eaeb4815d5fe3879fe, type: 3}
+  m_Script: {fileID: 11500000, guid: a014e5a65aa784333ab29b8809817034, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   settings: {fileID: 11400000, guid: f3e2e31a8bc67407795da159bfa8e1b6, type: 2}
   spirimonzGameObject: {fileID: 4379240310019466513}
   hidingGameObject: {fileID: 6639258591873586872}
+  useDifferentHidingOrbPosForHands: 0
+  _handHidingOrbPos: {x: 0, y: 0, z: 0}
   isOnTheMap: 0
   canInteract: 1
   canBeDroppedOnMap: 1
@@ -255,22 +315,26 @@ MonoBehaviour:
   agent: {fileID: 1550272012376756555}
   collider: {fileID: 4838630129231533695}
   animator: {fileID: 2786587093153004379}
-  askingRange: 5
-  stopAskingRange: 6
+  onDisable:
+    m_PersistentCalls:
+      m_Calls: []
+  onSetRoom:
+    m_PersistentCalls:
+      m_Calls: []
+  askingRange: 6
+  stopAskingRange: 8
   timeBeforeIgnoringDroppedObject: 1
+  ignoreFruits: 1
   eatPos: {fileID: 4274004115069415793}
   sphereCollider: {fileID: 92552930443995213}
+  eatSoundParameters: {fileID: 2505510750402305001}
   fruitPrefab: {fileID: 3891066434320667354, guid: 40e33451754034099be424ede2213bf0, type: 3}
   spawnFruitPos: {fileID: 164773932396249733}
-  giveFruitForceForward: 120
-  giveFruitForceUp: 60
+  giveFruitForceForward: 5
+  giveFruitForceUp: 1
   percentageChancesToGiveFruit: 10
   percentageChancesUpOnFail: 15
-  delayBeforeGivingFruit: 0.4
-  eatSound: {fileID: 8300000, guid: a5ee26a5035924986aa42ce0d2d2229e, type: 3}
-  eatSoundVolume: 0.5
-  pitchSoundMin: 0.7
-  pitchSoundMax: 0.9
+  delayBeforeGivingFruit: 0.25
 --- !u!135 &92552930443995213
 SphereCollider:
   m_ObjectHideFlags: 0

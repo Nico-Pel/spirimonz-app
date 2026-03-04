@@ -213,6 +213,11 @@ public class Spirimonz : GameBehaviour, IInteractable
         }
 
         isOnTheMap = true;
+
+        if (baseBehaviour == SpirimonzBehaviourState.Wait)
+        {
+            animator.SetBool("Wait", true);
+        }
     }
 
     public virtual bool GoBackToHands(Transform handPos)

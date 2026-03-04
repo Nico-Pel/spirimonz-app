@@ -38,9 +38,9 @@ public class FlammableElement : GameBehaviour
         EnableFire(startOnFire, false);
     }
 
-    public void EnableFire(bool enable, bool useParticlesOff = true, bool useGhostSoundClip = false)
+    public void EnableFire(bool enable, bool useParticlesOff = true, bool useGhostSoundClip = false, bool forced = false)
     {
-        if (enable == true && canBeTurnedOn == false) return;
+        if (enable == true && (canBeTurnedOn == false && forced == false)) return;
         
         _isOnFire = enable;
         

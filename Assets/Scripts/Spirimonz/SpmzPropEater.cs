@@ -12,34 +12,23 @@ public class SpmzPropEater : Spirimonz
     public float stopAskingRange = 8f;
     public float timeBeforeIgnoringDroppedObject = 1f;
 
+    public bool ignoreFruits = true;
+    public bool ignoreCandles = true;
+
     [Header("Prop Eater Components")] 
     public Transform eatPos;
     public SphereCollider sphereCollider;
 
-    [Header("Fruit settings")]
-    public Fruit fruitPrefab;
-    public Transform spawnFruitPos;
-    public float giveFruitForceForward = 5f;
-    public float giveFruitForceUp = 1f;
-    public float percentageChancesToGiveFruit = 10f;
-    public float percentageChancesUpOnFail = 15f;
-    public float delayBeforeGivingFruit = 0.25f;
-
     [Header("Audio settings")] 
-    public AudioClip eatSound;
-    public float eatSoundVolume = 0.5f;
-    public float pitchSoundMin = 0.3f;
-    public float pitchSoundMax = 0.6f;
+    public SoundParameters eatSoundParameters;
     
-    private float _basePercentageChancesToGiveFruit;
-    
-    private bool _isAskingFruit;
+    private bool _isAskingItem;
     private bool _playerIsHoldingObject;
 
     private List<CatchableObject> _eatableObjects = new List<CatchableObject>();
     private InteractionController _interactionController;
 
-    private bool _askingForFruit;
+    private bool _askingForItem;
     private GamePlayer _player;
     
     protected override void Start()
@@ -50,13 +39,18 @@ public class SpmzPropEater : Spirimonz
         
         _interactionController.OnGrabItem.AddListener(PlayerGrabbedObject);
         _interactionController.OnDropItem.AddListener(PlayerDroppedObject);
-
-        _basePercentageChancesToGiveFruit = percentageChancesToGiveFruit;
     }
 
-    private void PlayerGrabbedObject(CatchableObject grabbedObject)
+    protected virtual void PlayerGrabbedObject(CatchableObject grabbedObject)
     {
-        _playerIsHoldingObject = grabbedObject is not Fruit;
+        if ((ignoreFruits && grabbedObject is Fruit) || (ignoreCandles && grabbedObject is CatchableFireObject))
+        {
+            _playerIsHoldingObject = false;
+        }
+        else
+        {
+            _playerIsHoldingObject = true;
+        }
         CancelInvoke(nameof(ResetPlayerHoldingObject));
     }
     
@@ -84,17 +78,17 @@ public class SpmzPropEater : Spirimonz
 
         float dist = Vector3.Distance(_interactionController.transform.position, transform.position);
 
-        bool shouldAskFruit = _isAskingFruit ? dist < stopAskingRange : dist < askingRange;
+        bool shouldAskFruit = _isAskingItem ? dist < stopAskingRange : dist < askingRange;
         if (_playerIsHoldingObject == false) shouldAskFruit = false;
 
-        if (shouldAskFruit && _isAskingFruit == false)
+        if (shouldAskFruit && _isAskingItem == false)
         {
-            animator.SetTrigger("AskFruit");
+            animator.SetTrigger("AskItem");
         }
         
-        _isAskingFruit = shouldAskFruit;
-        animator.SetBool("AskingFruit", _isAskingFruit);
-        sphereCollider.enabled = _isAskingFruit;
+        _isAskingItem = shouldAskFruit;
+        animator.SetBool("AskingItem", _isAskingItem);
+        sphereCollider.enabled = _isAskingItem;
         
         return true;
     }
@@ -106,7 +100,7 @@ public class SpmzPropEater : Spirimonz
 
     protected override void UpdateMovementBehaviour()
     {
-        if (_isAskingFruit)
+        if (_isAskingItem)
         {
             agent.speed = 0;
             LookAtPlayer();
@@ -134,7 +128,9 @@ public class SpmzPropEater : Spirimonz
 
     private void TryToEatItem(CatchableObject catchableObject)
     {
-        if (catchableObject is Fruit) return;
+        if (ignoreFruits && catchableObject is Fruit) return;
+        
+        if (ignoreCandles && catchableObject is CatchableFireObject) return;
         
         if (_eatableObjects.Contains(catchableObject))
         {
@@ -145,47 +141,26 @@ public class SpmzPropEater : Spirimonz
     private void EatObject(CatchableObject catchableObject)
     {
         PlayEatSound();
+
+        animator.SetTrigger("Eat");
+        
+        catchableObject.canBeGrabByPlayer = false;
+        catchableObject.canBeThrownByGhost = false;
         
         _eatableObjects.Remove(catchableObject);
         catchableObject.transform.DOMove(eatPos.position, 0.5f);
         catchableObject.transform.DOScale(Vector3.one * 0.01f, 0.5f).OnComplete(() =>
         {
-            TryToGiveFruit();
-            Destroy(catchableObject);
+            SwallowObject(catchableObject);
         });
     }
 
-    private void TryToGiveFruit()
+    protected virtual void SwallowObject(CatchableObject catchableObject)
     {
-        float roll = Random.Range(0f, 100f);
-        if (roll <= percentageChancesToGiveFruit)
-        {
-            GiveFruit();
-        }
-        else
-        {
-            FailToGiveFruit();
-        }
+        
     }
 
-    private void FailToGiveFruit()
-    {
-        percentageChancesToGiveFruit += percentageChancesUpOnFail;
-    }
-
-    private void GiveFruit()
-    {
-        percentageChancesToGiveFruit = _basePercentageChancesToGiveFruit;
-        animator.SetTrigger("DropFruit");
-        this.Invoke(delayBeforeGivingFruit, () =>
-        {
-            Fruit newFruit = Instantiate(fruitPrefab, spawnFruitPos.position, Quaternion.identity);
-            newFruit.transform.DOScale(Vector3.one, 0.5f).From(Vector3.one * 0.01f);
-            newFruit.rb.isKinematic = false;
-            newFruit.rb.AddForce(transform.forward * giveFruitForceForward + Vector3.up * giveFruitForceUp);
-        });
-    }
-
+    
     public override bool GoBackToHands(Transform handPos)
     {
         if (!base.GoBackToHands(handPos)) return false;
@@ -197,7 +172,7 @@ public class SpmzPropEater : Spirimonz
 
     private void PlayEatSound()
     {
-        if(eatSound != null)
-            SoundManager.Instance?.PlaySound(eatSound, transform.position, volume: eatSoundVolume, pitch: Random.Range(pitchSoundMin, pitchSoundMax));
+        if(eatSoundParameters != null)
+            eatSoundParameters.PlaySound(transform.position);
     }
 }
