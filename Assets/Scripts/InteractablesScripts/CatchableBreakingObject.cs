@@ -26,6 +26,13 @@ public class CatchableBreakingObject : CatchableObject
     {
         //Prevent object to break on start
         this.Invoke(3f, () => _canBreak = true);
+        this.Invoke(0.1f, SetPriority);
+    }
+
+    private void SetPriority()
+    {
+        if (House.Instance.currentGhost.ghostParameters.ghostTypeData.ghostType == GhostTypeData.GhostType.Trickster)
+            priority = 1;
     }
 
     protected override void OnCollision(Transform other, float impactForce)

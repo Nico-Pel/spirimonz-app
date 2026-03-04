@@ -7,11 +7,17 @@ using Random = UnityEngine.Random;
 [RequireComponent(typeof(ActivitySource))]
 public class CatchableObject : GameBehaviour, IInteractable
 {
+    [Header("Item Settings")]
     public bool canBeGrabByPlayer = true;
     public bool canBeThrownByGhost = true;
     public bool canBeThrownByPlayer = true;
     public bool setRotZeroOnDrop = true;
 
+    [Space] 
+    
+    public int priority;
+    
+    [Header("Base Components")]
     public Rigidbody rb;
     public ActivitySource activitySource;
 

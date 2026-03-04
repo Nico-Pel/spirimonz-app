@@ -95,6 +95,8 @@ public class Ghost : GameBehaviour
     private bool _losingPlayer;
     private bool _isLocked;
 
+    private float _averageHuntTime;
+
     [Header("Ghost Stats : Waypoints Hunting")]
 
     [ReadOnly] public float currentHuntTime;
@@ -108,6 +110,9 @@ public class Ghost : GameBehaviour
     public float throwDetectionRange = 5;
     public float throwTorqueMax = 90;
     public LayerMask throwableMask;
+    
+    public LayerMask blockingThrowMask; // Wall, Ground, Ceiling
+    public float visibilityHeightOffset = 1.2f; // hauteur du raycast
 
     [Header("Ghost Stats : Doors Playing")]
     public float doorDetectionRange = 8;
@@ -177,6 +182,8 @@ public class Ghost : GameBehaviour
         
         favoriteRoom = house.hauntableRooms[Random.Range(0, house.hauntableRooms.Length)];
         
+        _averageHuntTime = ghostParameters.averageHuntTime;
+        
         # if UNITY_EDITOR
         if (h.useDebugs && h.forcedFavoriteRoomID >= 0 && house.hauntableRooms.Length > h.forcedFavoriteRoomID && house.hauntableRooms[h.forcedFavoriteRoomID] != null)
         {
@@ -190,7 +197,7 @@ public class Ghost : GameBehaviour
 
         if (h.useDebugs && h.useHuntTimeMultiplierDebug)
         {
-            ghostParameters.averageHuntTime *= h.huntTimeMultiplierDebug;
+            _averageHuntTime *= h.huntTimeMultiplierDebug;
         }
         # endif
 
@@ -223,6 +230,7 @@ public class Ghost : GameBehaviour
             float delayBeforeNextGhostOrbs = Random.Range(ghostParameters.nextOrbsDelayMin, ghostParameters.nextOrbsDelayMax);
             this.Invoke(ORBS_INVOKE, delayBeforeNextGhostOrbs, CreateSpiritOrbs);
         }
+        
     }
 
     private void CreateSpiritOrbs()
@@ -255,7 +263,6 @@ public class Ghost : GameBehaviour
         
         if (other.TryGetComponent(out Room newRoom))
         {
-            Debug.Log("POUET GHOST NEW ROOM");
             currentRoom = newRoom;
         }
         else if (other.TryGetComponent(out Player touchedPlayer))
@@ -451,7 +458,7 @@ public class Ghost : GameBehaviour
         this.Invoke(forcedStartTargetingTime, () => _forcedStartTargeting = false);
         _targetingPlayer = true;
 
-        currentHuntTime = Random.Range(ghostParameters.averageHuntTime - huntTimeVariation, ghostParameters.averageHuntTime + huntTimeVariation);
+        currentHuntTime = Random.Range(_averageHuntTime - huntTimeVariation, _averageHuntTime + huntTimeVariation);
         //Debug.Log("Starting a HUNT for: " + currentHuntTime + " seconds");
     }
 
@@ -1081,22 +1088,81 @@ public class Ghost : GameBehaviour
             throwableMask
         );
 
-        List<CatchableObject> catchables = new List<CatchableObject>();
+        List<CatchableObject> validCatchables = new List<CatchableObject>();
 
         foreach (var hit in hits)
         {
-            if (hit.TryGetComponent(out CatchableObject catchable))
-            {
-                //Ignore objects from another stair
-                if (catchable.transform.position.y - transform.position.y > 3 || catchable.transform.position.y - transform.position.y < -3) continue;
-                if(!catchable.isGrabbed && catchable.canBeThrownByGhost)
-                    catchables.Add(catchable);
-            }
+            if (!hit.TryGetComponent(out CatchableObject catchable))
+                continue;
+
+            if (!IsCatchableValid(catchable))
+                continue;
+
+            if (!HasLineOfSightToCatchable(catchable))
+                continue;
+
+            validCatchables.Add(catchable);
         }
 
-        if (catchables.Count == 0) return null;
+        if (validCatchables.Count == 0)
+            return null;
 
-        return catchables[Random.Range(0, catchables.Count)];
+        return GetHighestPriorityRandom(validCatchables);
+    }
+    
+    private bool IsCatchableValid(CatchableObject catchable)
+    {
+        if (catchable.isGrabbed)
+            return false;
+
+        if (!catchable.canBeThrownByGhost)
+            return false;
+
+        float heightDiff = catchable.transform.position.y - transform.position.y;
+        if (Mathf.Abs(heightDiff) > 3f)
+            return false;
+
+        return true;
+    }
+    
+    private bool HasLineOfSightToCatchable(CatchableObject catchable)
+    {
+        Vector3 origin = transform.position + Vector3.up * visibilityHeightOffset;
+        Vector3 target = catchable.transform.position + Vector3.up * 0.5f;
+
+        Vector3 direction = (target - origin);
+        float distance = direction.magnitude;
+
+        direction.Normalize();
+
+        if (Physics.Raycast(origin, direction, out RaycastHit hit, distance, blockingThrowMask))
+        {
+            // Something blocks the view before reaching the object
+            return false;
+        }
+
+        return true;
+    }
+    
+    private CatchableObject GetHighestPriorityRandom(List<CatchableObject> catchables)
+    {
+        int highestPriority = int.MinValue;
+
+        foreach (var c in catchables)
+        {
+            if (c.priority > highestPriority)
+                highestPriority = c.priority;
+        }
+
+        List<CatchableObject> best = new List<CatchableObject>();
+
+        foreach (var c in catchables)
+        {
+            if (c.priority == highestPriority)
+                best.Add(c);
+        }
+
+        return best[Random.Range(0, best.Count)];
     }
     
     private FlammableElement GetRandomFlammableElement(bool enabledStateWanted)

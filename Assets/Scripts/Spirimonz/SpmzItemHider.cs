@@ -1,0 +1,129 @@
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
+using UnityEngine;
+using Random = UnityEngine.Random;
+using DG.Tweening;
+
+public class SpmzItemHider : Spirimonz
+{
+    [Header("Item Hiding Settings")]
+    public GameObject itemPrefab;
+    public float hideItemDelay = 3f;
+    public float[] hotAndColdStatesRanges;
+    
+    private bool _canInteractBase;
+    private bool _canBeTakenBackIntoHandsBase;
+    private float _lookAtSpeedBase;
+
+    private bool _itemFound;
+    private GameObject _spawnedItem;
+    private GamePlayer _gamePlayer;
+    
+    private void Awake()
+    {
+        _canInteractBase = canInteract;
+        _canBeTakenBackIntoHandsBase = canBeTakenBackIntoHands;
+        _lookAtSpeedBase = lookAtSpeed;
+    }
+
+    protected override void Start()
+    {
+        base.Start();
+        _gamePlayer = _house.currentPlayer as GamePlayer;
+
+        if (_gamePlayer != null)
+        {
+            _gamePlayer.interactionController.OnGrabItem.AddListener(CheckItemInPlayerHands);
+        }
+    }
+
+    private void CheckItemInPlayerHands(CatchableObject catchableObject)
+    {
+        if (_itemFound == false && _spawnedItem != null && catchableObject.gameObject == _spawnedItem)
+        {
+            _itemFound = true;
+        }
+    }
+    
+    public override void DroppingOnMap()
+    {
+        base.DroppingOnMap();
+        canInteract = false;
+        canBeTakenBackIntoHands = false;
+        lookAtSpeed = 0;
+        
+        animator.SetTrigger("InvokeItem");
+        this.Invoke(hideItemDelay, SpawnItem);
+
+        _currentBehaviour = SpirimonzBehaviourState.Wait;
+    }
+
+    private void SpawnItem()
+    {
+        Vector3 itemPos = ChoseItemPos();
+        
+        _spawnedItem = Instantiate(itemPrefab, itemPos + Vector3.up * 0.1f, Quaternion.identity);
+        Vector3 baseScale = _spawnedItem.transform.localScale;
+        _spawnedItem.transform.DOScale(baseScale, 1).From(0.1f).SetEase(Ease.OutBack);
+
+        canInteract = _canInteractBase;
+        canBeTakenBackIntoHands = _canBeTakenBackIntoHandsBase;
+        lookAtSpeed = _lookAtSpeedBase;
+
+        _currentBehaviour = baseBehaviour;
+    }
+
+    private Vector3 ChoseItemPos()
+    {
+        List<Vector3> possiblePosition = new List<Vector3>();
+
+        List<ArticleObject> allArticleObjects = new List<ArticleObject>(
+            FindObjectsByType<ArticleObject>(
+                FindObjectsInactive.Include,
+                FindObjectsSortMode.None
+            )
+        );
+        
+        var inactiveArticles = allArticleObjects
+            .Where(a => !a.gameObject.activeInHierarchy)
+            .ToList();
+
+        foreach (ArticleObject articleObject in inactiveArticles)
+        {
+            possiblePosition.Add(articleObject.transform.position);
+        }
+
+        return possiblePosition[Random.Range(0, possiblePosition.Count)];
+    }
+
+    public override void InteractionStarted()
+    {
+        if (_itemFound || _spawnedItem == null)
+        {
+            SwitchBehaviour();
+        }
+        else
+        {
+            float distFromItem = Vector3.Distance(
+                _spawnedItem.transform.position,
+                _gamePlayer.transform.position
+            );
+
+            int rangeState = hotAndColdStatesRanges.Length; // Coldest by default
+
+            for (int i = 0; i < hotAndColdStatesRanges.Length; i++)
+            {
+                if (distFromItem <= hotAndColdStatesRanges[i])
+                {
+                    rangeState = i;
+                    break;
+                }
+            }
+
+            animator.SetInteger("RangeFeedbackState", rangeState);
+            animator.SetTrigger("RangeFeedback");
+        }
+    }
+}

@@ -47,9 +47,9 @@ public class Spirimonz : GameBehaviour, IInteractable
     public SpirimonzBehaviourState secondaryBehaviour = SpirimonzBehaviourState.FollowPlayer;
     public float speed = 2;
     public float followingDistance = 2f;
-    [SerializeField] private float lookAtSpeed = 5f;
+    [SerializeField] protected float lookAtSpeed = 5f;
     
-    private SpirimonzBehaviourState _currentBehaviour;
+    protected SpirimonzBehaviourState _currentBehaviour;
     public Room currentRoom { get; set; }
 
     [Header("Spirimonz Settings : Escape")]
@@ -298,8 +298,6 @@ public class Spirimonz : GameBehaviour, IInteractable
 
     public virtual void SetCurrentRoom(Room room)
     {
-        Debug.Log("POUET SPMZ SET ROOM");
-
         currentRoom = room;
         onSetRoom?.Invoke(room);
     }

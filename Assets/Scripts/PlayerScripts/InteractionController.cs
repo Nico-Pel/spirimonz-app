@@ -118,7 +118,7 @@ public class InteractionController : GameBehaviour
             if (Input.GetMouseButtonDown(0))
                 _currentTarget.OnInteractStart();
 
-            if (Input.GetMouseButton(0))
+            if (Input.GetMouseButtonDown(0))
                 _currentTarget.OnInteractHold();
 
             if (Input.GetMouseButtonUp(0))

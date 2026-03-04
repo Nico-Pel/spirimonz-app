@@ -27,7 +27,6 @@ public class RadiationDetector : GameBehaviour
         if (linkedSpirimonz != null)
         {
             linkedSpirimonz.onSetRoom.AddListener(SetCurrentRoom);
-            Debug.Log("POUET SUBSCRIBE !!!");
             //linkedSpirimonz.onDisable.AddListener(StopUsingSound);
         }
     }
@@ -110,7 +109,6 @@ public class RadiationDetector : GameBehaviour
 
     public void SetCurrentRoom(Room room)
     {
-        Debug.Log("POUET DETECTOR SET ROOM");
         if (_currentRoom != null)
         {
             _currentRoom.OnRadiationStart.RemoveListener(TriggerDetection);

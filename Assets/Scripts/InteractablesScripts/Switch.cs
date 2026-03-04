@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
+using UnityEngine.Serialization;
 
 public class Switch : ClickableObject
 {
@@ -19,14 +20,35 @@ public class Switch : ClickableObject
     
     private SoundManager.SoundInstance _soundInstance;
 
-    [Header("Special settings")] 
-    public bool isOnStateSwitch;
+    [FormerlySerializedAs("isOnStateSwitch")] [Header("Special settings")] 
+    public bool isOneStateSwitch;
     
     private int _state = 0;
     
     public override void OnClick()
     {
         base.OnClick();
+        
+        int newState = _state == 1 ? 0 : 1;
+        SwitchState(newState);
+    }
+    
+    public override void OnHold()
+    {
+        base.OnHold();
+        SwitchState(1);
+    }
+
+    public override void OnRelease()
+    {
+        base.OnRelease();
+        SwitchState(0);
+    }
+
+    private void SwitchState(int state)
+    {
+        if (isOneStateSwitch && activableObject.isActivated) return;
+        
         if (activableObject != null)
         {        
             activableObject.Operate();
@@ -34,9 +56,8 @@ public class Switch : ClickableObject
 
         if (animator != null)
         {
-            int newState = _state == 1 ? 0 : 1;
-            animator.SetInteger("State", newState);
-            _state = newState;
+            animator.SetInteger("State", state);
+            _state = state;
         }
         
         //Play sound
@@ -46,7 +67,7 @@ public class Switch : ClickableObject
             PlaySound(clip);
 
         //Reset
-        if (isOnStateSwitch)
+        if (isOneStateSwitch)
         {
             this.Invoke(0.1f, () =>
             {

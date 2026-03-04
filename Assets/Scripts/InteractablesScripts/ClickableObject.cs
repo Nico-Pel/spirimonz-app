@@ -30,7 +30,7 @@ public class ClickableObject : GameBehaviour, IInteractable
             );
         }
 
-        if (canClick == false)
+        if (canClick == false && canHold == false)
             LockInteraction(true);
     }
 

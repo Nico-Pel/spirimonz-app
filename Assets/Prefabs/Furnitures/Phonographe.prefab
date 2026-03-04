@@ -353,6 +353,15 @@ MonoBehaviour:
   loopSound: {fileID: 8300000, guid: 5a25908f8893b4ddb90a90d2e438485c, type: 3}
   volume: 2.5
   range: 25
+  pitch: 1
+  OnActivated:
+    m_PersistentCalls:
+      m_Calls: []
+  OnDeactivated:
+    m_PersistentCalls:
+      m_Calls: []
+  useAutomaticDisable: 0
+  automaticDisableTime: 0.5
 --- !u!114 &2901560844691527000
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -366,9 +375,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   activitySource: {fileID: 6983235608434038108}
-  canClick: 1
-  canHold: 0
-  canRelease: 0
+  canClick: 0
+  canHold: 1
+  canRelease: 1
+  canBeClickedOnTriggerByGhostDuringHunt: 0
+  ignoreActivitySource: 0
+  onClick:
+    m_PersistentCalls:
+      m_Calls: []
   printSources: []
   activableObject: {fileID: 9096095472690554412}
   animator: {fileID: 8230352797285001790}
@@ -378,6 +392,7 @@ MonoBehaviour:
   volume: 0.1
   pitchMin: 0.3
   pitchMax: 0.5
+  isOnStateSwitch: 0
 --- !u!114 &6983235608434038108
 MonoBehaviour:
   m_ObjectHideFlags: 0
