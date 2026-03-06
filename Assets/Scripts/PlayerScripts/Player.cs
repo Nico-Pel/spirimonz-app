@@ -10,15 +10,29 @@ public class Player : GameBehaviour
 
     public Camera camera;
 
+    public Transform head;
+
     public CharacterController characterController;
     [ReadOnly] public InputManager inputManager;
     [ReadOnly] public InventoryManager inventoryManager;
+
+    [Header("NPC Interactions")] 
+    public bool detectNPC;
+    [SerializeField] float interactionDistance = 3f;
+    [SerializeField] float interactionAngle = 45f;
+    [SerializeField] LayerMask npcLayer;
+
+    [ReadOnly] public NPC currentNPC;
     
     [Space]
     
     [ReadOnly] private bool lockControls;
     [ReadOnly] private bool lockCamera;
     protected bool _isDead;
+    
+    public bool IsLocked() => lockControls;
+    public bool IsCameraLocked() => lockCamera;
+    public bool IsDead() => _isDead;
 
     private void Awake()
     {
@@ -41,10 +55,66 @@ public class Player : GameBehaviour
         if (movementsOnly == false)
             lockCamera = enable;
     }
+
+    protected virtual void Update()
+    {
+        if (detectNPC && IsLocked() == false)
+        {
+            DetectNPC();
+
+            if (currentNPC != null && Input.GetKeyDown(inputManager.worldInteractions))
+            {
+                if (currentNPC.CanInteract())
+                {
+                    LockControls(true);
+                    currentNPC.Interact(this);
+                }
+            }
+        }
+    }
+
+    public void EndDialogue()
+    {
+        currentNPC.Reset();
+        currentNPC = null;
+    }
     
-    public bool IsLocked() => lockControls;
-    public bool IsCameraLocked() => lockCamera;
-    public bool IsDead() => _isDead;
+    void DetectNPC()
+    {
+        Collider[] hits = Physics.OverlapSphere(characterController.transform.position + Vector3.up, interactionDistance, npcLayer);
+
+        if (hits.Length == 0 && currentNPC != null)
+        {
+            currentNPC.CloseCTA();
+            currentNPC = null;
+            return;
+        }
+
+        foreach (var hit in hits)
+        {
+            NPC npc = hit.GetComponent<NPC>();
+            if (npc == null) continue;
+
+            Vector3 dirToNPC = (npc.transform.position - characterController.transform.position).normalized;
+
+            float angle = Vector3.Angle(characterController.transform.forward, dirToNPC);
+
+            if (angle <= interactionAngle && npc.CanInteract())
+            {
+                if (currentNPC != npc)
+                {
+                    currentNPC = npc;
+                    npc.OpenCTA(this);
+                }
+                break;
+            }
+            else if (currentNPC == npc)
+            {
+                npc.CloseCTA();
+                currentNPC = null;
+            }
+        }
+    }
 
     public void SetPosition(Vector3 newPos)
     {

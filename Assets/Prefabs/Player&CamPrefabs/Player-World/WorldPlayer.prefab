@@ -48,9 +48,17 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   camera: {fileID: 2984373488158513844}
+  head: {fileID: 8690009070974263298}
   characterController: {fileID: 2411241786677898641}
   inputManager: {fileID: 0}
   inventoryManager: {fileID: 0}
+  detectNPC: 1
+  interactionDistance: 3
+  interactionAngle: 45
+  npcLayer:
+    serializedVersion: 2
+    m_Bits: 524288
+  currentNPC: {fileID: 0}
   tpsController: {fileID: 547142108896892342}
 --- !u!1001 &5797229822508640443
 PrefabInstance:
@@ -132,6 +140,11 @@ CharacterController:
 --- !u!4 &2646475044184370688 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 8415484741543134907, guid: 91c1e739329d34a15b6833b4656ac5d0, type: 3}
+  m_PrefabInstance: {fileID: 5797229822508640443}
+  m_PrefabAsset: {fileID: 0}
+--- !u!4 &8690009070974263298 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 2948442665701230777, guid: 91c1e739329d34a15b6833b4656ac5d0, type: 3}
   m_PrefabInstance: {fileID: 5797229822508640443}
   m_PrefabAsset: {fileID: 0}
 --- !u!4 &9020672824244093902 stripped

@@ -11,7 +11,7 @@ public class UIGame : UIManager
 
     public float openSceneFadeDuration = 3f;
 
-    [Space] [Header("Window elements")]
+    [Space] [Header("Money elements")]
     public TextMeshProUGUI tGold;
     
     [Space]
@@ -25,6 +25,7 @@ public class UIGame : UIManager
     
     [Header("Window elements")]
     public UITablet tablet;
+    public UIDialogue uiDialogue;
 
     private Sprite _baseBigPointer;
     private GameManager _gameManager;

@@ -62,7 +62,6 @@ public class HouseEntry : GameBehaviour
         foreach (var quest in house.quests)
         {
             QuestData qData = GameManager.Instance.GetOrCreateQuestProgress(quest, house.houseID);
-            Debug.Log($"Quest '{quest.questName}' progress: {qData.progress}/{quest.goal}");
         }
     }
 

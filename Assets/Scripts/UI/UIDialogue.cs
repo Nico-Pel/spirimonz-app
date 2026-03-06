@@ -1,0 +1,217 @@
+using System;
+using UnityEngine;
+using UnityEngine.UI;
+using TMPro;
+using DG.Tweening;
+using Random = UnityEngine.Random;
+
+public class UIDialogue : GameBehaviour
+{
+    [SerializeField] private float dialogueSpeed = 0.1f;
+    [SerializeField] private float dialogueSoundVolume = 0.075f;
+
+    [SerializeField] private GameObject dialogueBox;
+    [SerializeField] private TextMeshProUGUI titleText;
+    [SerializeField] private TextMeshProUGUI boxText;
+    [SerializeField] private Button bNext;
+    [SerializeField] private Button bBox;
+    [SerializeField] private TextMeshProUGUI tNext;
+
+    private int _currentLine;
+    private Dialogue _currentDialogue;
+
+    private bool _dialogueActive = false;
+    private InputManager _inputManager;
+    private SoundManager _soundManager;
+    private Player _player;
+    
+    // Clip réutilisable
+    private AudioClip _letterBeepClip;
+    private float _minPitch = 0.9f;
+    private float _maxPitch = 1.1f;
+
+    private void Awake()
+    {
+        _letterBeepClip = GenerateBeep(440f, 0.05f);
+    }
+
+    private void Start()
+    {
+        bNext.onClick.AddListener(NextDialogue);
+        bBox.onClick.AddListener(SkipTexting);
+    }
+
+    private void OnEnable()
+    {
+        this.Invoke(0.1f, () =>
+        {
+            if(_inputManager == null)
+                _inputManager = InputManager.Instance;
+            
+            if(_soundManager == null)
+                _soundManager = SoundManager.Instance;
+            
+            if (_player == null)
+                _player = Player.Instance;
+
+            if(_inputManager != null)
+                tNext.text = _inputManager.worldInteractions.ToString();
+        });
+
+        bNext.gameObject.SetActive(false);
+    }
+
+    private void Update()
+    {
+        // Press "E" to go to next line
+        if (_dialogueActive && Input.GetKeyDown(_inputManager.worldInteractions))
+        {
+            NextDialogue();
+        }
+    }
+
+    public void StartDialogue(Dialogue dialogue)
+    {
+        if (_dialogueActive) return;
+    
+        UIGame.Instance.AddShowCursor();
+        _currentLine = 0;
+        dialogueBox.SetActive(true);
+        _currentDialogue = dialogue;
+        _dialogueActive = true;
+
+        titleText.text = dialogue.npcName;
+
+        // --- On initialise le son des lettres ---
+        SetLetterSoundProfile(dialogue);
+
+        SetText();
+    }
+
+    private void NextDialogue()
+    {
+        if (_writingText)
+        {
+            SkipTexting();
+            return;
+        }
+        
+        _currentLine++;
+
+        if (_currentDialogue.lines.Count > _currentLine)
+        {
+            SetText();
+        }
+        else
+        {
+            EndDialogue();
+        }
+    }
+
+    private void SkipTexting()
+    {
+        if (_writingText == false) return;
+        
+        boxText.DOKill(true);
+        EnableNextButton();
+    }
+
+    private void EnableNextButton()
+    {
+        bNext.gameObject.SetActive(true);
+        bNext.transform.DOScale(1, 0.2f).SetEase(Ease.OutBack).From(0);
+    }
+
+    private bool _writingText;
+    private void SetText()
+    {
+        bNext.gameObject.SetActive(false);
+
+        DialogueLine line = _currentDialogue.lines[_currentLine];
+
+        boxText.text = "";
+
+        string text = line.GetText();
+        _writingText = true;
+
+        int previousLength = 0;
+
+        // DOTween DOText
+        boxText.DOText(text, text.Length * dialogueSpeed, richTextEnabled: true)
+            .SetEase(Ease.Linear)
+            .OnUpdate(() =>
+            {
+                int currentLength = boxText.text.Length;
+                if (currentLength > previousLength)
+                {
+                    if(_player == null) _player = Player.Instance;
+                    
+                    Vector3 pos = _player != null ? _player.characterController.transform.position : Camera.main.transform.position;
+                    PlayLetterSoundUI(pos);
+                }
+                previousLength = currentLength;
+            })
+            .OnComplete(() =>
+            {
+                EnableNextButton();
+                _writingText = false;
+            });
+    }
+    
+    private void SetLetterSoundProfile(Dialogue dialogue)
+    {
+        if (dialogue.letterSoundProfile != null && dialogue.letterSoundProfile.baseBeep != null)
+        {
+            _letterBeepClip = dialogue.letterSoundProfile.baseBeep;
+            _minPitch = dialogue.letterSoundProfile.minPitch;
+            _maxPitch = dialogue.letterSoundProfile.maxPitch;
+        }
+        else
+        {
+            // Fallback si pas de profil : génère un beep classique
+            _letterBeepClip = GenerateBeep(440f, 0.05f);
+            _minPitch = 0.9f;
+            _maxPitch = 1.1f;
+        }
+    }
+
+    private void PlayLetterSoundUI(Vector3 position)
+    {
+        if (_soundManager == null) _soundManager = SoundManager.Instance;
+
+        float pitch = Random.Range(_minPitch, _maxPitch);
+
+        _soundManager.PlaySound(
+            _letterBeepClip,
+            position,
+            volume: dialogueSoundVolume,
+            pitch: pitch,
+            duration: 0.05f
+        );
+    }
+
+    private AudioClip GenerateBeep(float frequency, float duration)
+    {
+        int sampleRate = 44100;
+        int sampleLength = Mathf.CeilToInt(sampleRate * duration);
+        float[] samples = new float[sampleLength];
+
+        for (int i = 0; i < sampleLength; i++)
+        {
+            samples[i] = Mathf.Sin(2 * Mathf.PI * frequency * i / sampleRate);
+        }
+
+        AudioClip clip = AudioClip.Create("LetterBeep", sampleLength, 1, sampleRate, false);
+        clip.SetData(samples, 0);
+        return clip;
+    }
+
+    private void EndDialogue()
+    {
+        dialogueBox.SetActive(false);
+        _dialogueActive = false;
+        
+        UIGame.Instance.RemoveShowCursor();
+        Player.Instance.EndDialogue();
+    }
+}

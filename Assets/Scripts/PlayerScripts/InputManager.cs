@@ -26,6 +26,7 @@ public class InputManager : GameBehaviour
     public KeyCode secondaryNext = KeyCode.E;
     public KeyCode secondaryPrevious = KeyCode.A;
     public KeyCode[] inventoryKeys = new KeyCode[6];
+    public KeyCode worldInteractions = KeyCode.E;
     
     private void Awake()
     {

@@ -15,9 +15,6 @@ public class GamePlayer : Player
     [ReadOnly] public Room currentRoom;
     [ReadOnly] public House house;
 
-    public Transform head;
-    public Transform body;
-
     [Header("Sounds")] 
     public AudioClip deathSound;
     public float deathVolume = 1f;
@@ -91,9 +88,11 @@ public class GamePlayer : Player
         }
     }
 
-    private void Update()
+    protected override void Update()
     {
         if (_isDead) return;
+        
+        base.Update();
         
         HandleHeartBeat();
 
