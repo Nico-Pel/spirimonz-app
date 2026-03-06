@@ -178,6 +178,7 @@ public class UIGame : UIManager
 
     public void OpenEndGame(UIEndGame.EndTypes endType, House house)
     {
+        EnableOverlay(false, 0.5f);
         tablet.gameObject.SetActive(true);
         tablet.OpenEndGame(endType, house);
     }

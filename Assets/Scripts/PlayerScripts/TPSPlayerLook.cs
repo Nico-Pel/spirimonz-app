@@ -64,21 +64,25 @@ public class TPSPlayerLook : MonoBehaviour
             lookDir = characterRoot.forward + Vector3.up * verticalLookOffset;
         }
 
-        // 4️⃣ Direction dans l'espace local du parent du cou
         Vector3 localLookDir = neck.parent.InverseTransformDirection(lookDir);
 
-        // 5️⃣ Calcul des angles
         float yaw = Mathf.Atan2(localLookDir.x, localLookDir.z) * Mathf.Rad2Deg;
-        float pitch = -Mathf.Asin(localLookDir.y) * Mathf.Rad2Deg;
 
-        // 6️⃣ Clamp des angles
+        float y = Mathf.Clamp(localLookDir.y, -1f, 1f);
+        float pitch = -Mathf.Asin(y) * Mathf.Rad2Deg;
+
+        if (float.IsNaN(yaw) || float.IsNaN(pitch))
+            return;
+
         yaw = Mathf.Clamp(yaw, -maxLeftAngle, maxRightAngle);
         pitch = Mathf.Clamp(pitch, -maxUpAngle, maxDownAngle);
 
-        // 7️⃣ Rotation finale
         Quaternion targetRotation = Quaternion.Euler(pitch, yaw, 0f) * initialLocalRotation;
 
-        // 8️⃣ Lissage
-        neck.localRotation = Quaternion.Slerp(neck.localRotation, targetRotation, Time.deltaTime * rotationSpeed);
+        neck.localRotation = Quaternion.Slerp(
+            neck.localRotation,
+            targetRotation,
+            Time.deltaTime * rotationSpeed
+        );
     }
 }
