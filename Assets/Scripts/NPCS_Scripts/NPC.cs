@@ -19,6 +19,7 @@ public class NPC : GameBehaviour
     public float maxNeckAngle = 60f;
     public bool mustBeInFront = true;
     public float bodyTurnDuration = 0.25f;
+    public bool useAnimationTalk = true;
 
     private Vector3 _neckRotationBase;
     private bool _canInteract = true;
@@ -42,7 +43,8 @@ public class NPC : GameBehaviour
         CloseCTA();
 
         // Animation de dialogue
-        animator.SetBool("Talking", true);
+        if(useAnimationTalk)
+            animator.SetBool("Talking", true);
 
         // Calcul direction + angle
         Vector3 dirToPlayer = (player.head.position - neck.position).normalized;
@@ -52,7 +54,7 @@ public class NPC : GameBehaviour
         void StartDialogueAndCamera()
         {
             // La tête regarde le joueur
-            neck.DOLookAt(player.head.position, 0.2f);
+            neck.DOLookAt(player.head.position - Vector3.up * 0.2f, 0.2f);
 
             // Démarre le dialogue UI
             UIGame.Instance.uiDialogue.StartDialogue(dialogue);
@@ -112,7 +114,9 @@ public class NPC : GameBehaviour
 
     public void Reset(Player player = null)
     {
-        animator.SetBool("Talking", false);
+        if(useAnimationTalk)
+            animator.SetBool("Talking", false);
+        
         neck.DOLocalRotate(_neckRotationBase, 0.25f);
 
         // Désactive la caméra

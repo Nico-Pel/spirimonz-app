@@ -17,6 +17,7 @@ public class CTA : GameBehaviour
     private void Awake()
     {
         _ctaBaseScale = ctaBox.transform.localScale;
+        ctaBox.SetActive(false);
     }
 
     public void SetCallToAction(bool enable, Player player)
