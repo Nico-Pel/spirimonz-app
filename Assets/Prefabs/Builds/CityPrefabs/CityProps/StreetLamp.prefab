@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 6647979883275152979}
   - component: {fileID: 8025108215211357431}
   - component: {fileID: 7909103238026186976}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: Fireflies
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -4848,7 +4848,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 3756530208429823628}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: LightAnchor
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -4883,7 +4883,7 @@ GameObject:
   - component: {fileID: 8826156296097078051}
   - component: {fileID: 5901011814128724162}
   - component: {fileID: 4135599101816567583}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: lightBall
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -5000,7 +5000,7 @@ GameObject:
   m_Component:
   - component: {fileID: 3793689055286326542}
   - component: {fileID: 4978198151290000321}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: Point Light
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -5143,6 +5143,10 @@ PrefabInstance:
     - target: {fileID: 919132149155446097, guid: 8010f38670b254c898b24a92ab33a74b, type: 3}
       propertyPath: m_Name
       value: StreetLamp
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 8010f38670b254c898b24a92ab33a74b, type: 3}
+      propertyPath: m_Layer
+      value: 3
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
