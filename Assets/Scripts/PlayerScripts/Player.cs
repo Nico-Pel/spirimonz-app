@@ -64,7 +64,7 @@ public class Player : GameBehaviour
 
             if (currentNPC != null && Input.GetKeyDown(inputManager.worldInteractions))
             {
-                if (currentNPC.CanInteract())
+                if (currentNPC.CanInteract(this))
                 {
                     LockControls(true);
                     currentNPC.Interact(this);
@@ -75,7 +75,8 @@ public class Player : GameBehaviour
 
     public void EndDialogue()
     {
-        currentNPC.Reset();
+        Player player = Player.Instance;
+        currentNPC.Reset(player);
         currentNPC = null;
     }
     
@@ -99,7 +100,7 @@ public class Player : GameBehaviour
 
             float angle = Vector3.Angle(characterController.transform.forward, dirToNPC);
 
-            if (angle <= interactionAngle && npc.CanInteract())
+            if (angle <= interactionAngle && npc.CanInteract(this))
             {
                 if (currentNPC != npc)
                 {

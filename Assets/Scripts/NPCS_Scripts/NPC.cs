@@ -31,8 +31,17 @@ public class NPC : GameBehaviour
 
     public void Interact(Player player)
     {
-        if (!_canInteract) return;
-        if (mustBeInFront && !IsPlayerInFront(player)) return;
+        if (!_canInteract)
+        {
+            player.LockControls(false);
+            return;
+        }
+
+        if (mustBeInFront && !IsPlayerInFront(player))
+        {
+            player.LockControls(false);
+            return;
+        }
 
         _canInteract = false;
 
@@ -129,7 +138,21 @@ public class NPC : GameBehaviour
         player?.LockControls(false);
     }
 
-    public bool CanInteract() => _canInteract;
+    public bool CanInteract(Player player)
+    {
+        if (!_canInteract)
+        {
+            return false;
+        }
+
+        if (mustBeInFront && !IsPlayerInFront(player))
+        {
+            return false;
+
+        }
+        
+        return _canInteract;
+    }
 
     private bool IsPlayerInFront(Player player)
     {
