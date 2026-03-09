@@ -50,6 +50,24 @@ public class SpmzItemHider : Spirimonz
     public override void DroppingOnMap()
     {
         base.DroppingOnMap();
+        StartInvokeItem();
+    }
+
+    protected override void OnHuntEnd()
+    {
+        base.OnHuntEnd();
+
+        if (_spawnedItem == false)
+        {
+            StartInvokeItem();
+        }else if (canInteract == false)
+        {
+            canInteract = true;
+        }
+    }
+
+    private void StartInvokeItem()
+    {
         canInteract = false;
         canBeTakenBackIntoHands = false;
         lookAtSpeed = 0;
@@ -106,10 +124,22 @@ public class SpmzItemHider : Spirimonz
         }
         else
         {
-            float distFromItem = Vector3.Distance(
-                _spawnedItem.transform.position,
-                _gamePlayer.transform.position
-            );
+            float distFromItem = -1;
+            int tries = 0;
+            while (distFromItem == -1 || tries > 5)
+            {
+                distFromItem = this.PathDistance(_gamePlayer.transform.position, _spawnedItem.transform.position, tries + 0.1f);
+                if (distFromItem == -1)
+                {
+                    tries += 1;
+                }
+            }
+
+            if (distFromItem == -1)
+            {
+                _itemFound = true;
+                return;
+            }
 
             int rangeState = hotAndColdStatesRanges.Length; // Coldest by default
 

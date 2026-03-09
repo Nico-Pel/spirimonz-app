@@ -50,8 +50,22 @@ public class Switch : ClickableObject
         if (isOneStateSwitch && activableObject.isActivated) return;
         
         if (activableObject != null)
-        {        
-            activableObject.Operate();
+        {
+            if (canClick)
+            {
+                activableObject.Operate();
+            }
+            else
+            {
+                if (state == 1)
+                {
+                    activableObject.Activate();
+                }
+                else
+                {
+                    activableObject.Deactivate();
+                }
+            }
         }
 
         if (animator != null)

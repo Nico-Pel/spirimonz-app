@@ -90,6 +90,8 @@ public class UITablet : MonoBehaviour
         CloseEntryPanel();
         CloseEndGamePanel();
         gameObject.SetActive(false);
+        
+        Player.Instance.LockControls(false);
     }
 
     private void CloseAllTabs()

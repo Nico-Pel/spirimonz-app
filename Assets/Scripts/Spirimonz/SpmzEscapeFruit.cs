@@ -8,7 +8,7 @@ public class SpmzEscapeFruit : Spirimonz
     public float spawnFruitForwardOffset = 0.5f;
     public float spawnFruitUpOffset = 0.5f;
     
-    public override void EscapePointReached()
+    protected override void EscapePointReached()
     {
         base.EscapePointReached();
         

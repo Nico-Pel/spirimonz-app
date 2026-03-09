@@ -425,7 +425,7 @@ public class Ghost : GameBehaviour
 
     private void StandingBeforeHunting()
     {
-        if (_isLocked) return;
+        if (_isLocked || _willHunt == false) return; //If willHunt is false, hunt has been canceled
         
         fxApparition.Play();
         SoundManager.Instance.PlaySound(apparitionSound, transform.position, 1f, 1f, -1f, 25f);
@@ -640,11 +640,17 @@ public class Ghost : GameBehaviour
         CancelInvoke(nameof(StartHunting));
 
         currentState = GhostState.hideState;
+        
+        _canHunt = false;
+        this.Invoke(ghostParameters.minimumPeaceTime, () =>
+        {
+            _canHunt = true;
+        });
 
         onGhostStopToHunt?.Invoke();
     }
 
-    public void StopHunting()
+    private void StopHunting()
     {
         _willHunt = false;
         CancelInvoke(nameof(StandingBeforeHunting));

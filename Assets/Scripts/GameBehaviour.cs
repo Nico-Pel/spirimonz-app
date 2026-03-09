@@ -112,7 +112,7 @@ public class GameBehaviour : MonoBehaviour
         }
     }
     
-    public bool IsNearFromMyAgent(
+    protected bool IsNearFromMyAgent(
         NavMeshAgent mAgent,
         Transform mTransform,
         float maxPathDistance = 10f,
@@ -147,7 +147,7 @@ public class GameBehaviour : MonoBehaviour
         return pathLength <= maxPathDistance;
     }
 
-    public float PathDistanceForAnAgent(NavMeshAgent mAgent,
+    protected float PathDistanceForAnAgent(NavMeshAgent mAgent,
         Vector3 positionToTarget,
         float sampleRadius = 0.1f)
     {
@@ -173,6 +173,39 @@ public class GameBehaviour : MonoBehaviour
             return -1f;
 
         // 3. Calcul de la longueur du chemin
+        float pathLength = 0f;
+        Vector3[] corners = path.corners;
+
+        for (int i = 1; i < corners.Length; i++)
+        {
+            pathLength += Vector3.Distance(corners[i - 1], corners[i]);
+        }
+
+        return pathLength;
+    }
+    
+    protected float PathDistance(
+        Vector3 startPosition,
+        Vector3 targetPosition,
+        float sampleRadius = 0.1f)
+    {
+        // 1️⃣ Projection du point de départ sur le NavMesh
+        if (!NavMesh.SamplePosition(startPosition, out NavMeshHit startHit, sampleRadius, NavMesh.AllAreas))
+            return -1f;
+
+        // 2️⃣ Projection de la cible sur le NavMesh
+        if (!NavMesh.SamplePosition(targetPosition, out NavMeshHit targetHit, sampleRadius, NavMesh.AllAreas))
+            return -1f;
+
+        // 3️⃣ Calcul du path
+        NavMeshPath path = new NavMeshPath();
+        if (!NavMesh.CalculatePath(startHit.position, targetHit.position, NavMesh.AllAreas, path))
+            return -1f;
+
+        if (path.status != NavMeshPathStatus.PathComplete)
+            return -1f;
+
+        // 4️⃣ Calcul de la longueur du chemin
         float pathLength = 0f;
         Vector3[] corners = path.corners;
 

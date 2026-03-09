@@ -103,7 +103,7 @@ BoxCollider:
   m_LayerOverridePriority: 0
   m_IsTrigger: 0
   m_ProvidesContacts: 0
-  m_Enabled: 1
+  m_Enabled: 0
   serializedVersion: 3
   m_Size: {x: 1.15, y: 1.15, z: 0.2}
   m_Center: {x: 0, y: 0, z: 0.05}
@@ -525,6 +525,42 @@ MonoBehaviour:
   agent: {fileID: 5162619802091896451}
   collider: {fileID: 1225162727433894327}
   animator: {fileID: 4774819731051456432}
+  onDisable:
+    m_PersistentCalls:
+      m_Calls: []
+  onDroppedOnMap:
+    m_PersistentCalls:
+      m_Calls:
+      - m_Target: {fileID: 1259009616839382201}
+        m_TargetAssemblyTypeName: UnityEngine.Collider, UnityEngine
+        m_MethodName: set_enabled
+        m_Mode: 6
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 1
+        m_CallState: 2
+  onGoingBackToHands:
+    m_PersistentCalls:
+      m_Calls:
+      - m_Target: {fileID: 1259009616839382201}
+        m_TargetAssemblyTypeName: UnityEngine.Collider, UnityEngine
+        m_MethodName: set_enabled
+        m_Mode: 6
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
+  onSetRoom:
+    m_PersistentCalls:
+      m_Calls: []
   tTemperature: {fileID: 7363435880969223519}
   clickableObject: {fileID: 1803781974116894098}
   temperatureLerpSpeed: 5

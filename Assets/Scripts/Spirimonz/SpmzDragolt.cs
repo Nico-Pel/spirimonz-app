@@ -81,7 +81,7 @@ public class SpmzDragolt : SpmzPropEater
         this.Invoke(candleAnimationDelay, () =>
         {
             candle.transform.DOLocalMove(Vector3.zero, candleAnimationDuration);
-            candle.transform.DOScale(1, candleAnimationDuration).OnComplete(() =>
+            candle.transform.DOScale(1, candleAnimationDuration).SetEase(Ease.OutBack).OnComplete(() =>
             {
                 candle.linkedFlammableElement.EnableFire(true, forced: true);
                 candle.canBeGrabByPlayer = true;

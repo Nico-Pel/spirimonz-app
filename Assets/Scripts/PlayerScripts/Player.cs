@@ -50,6 +50,9 @@ public class Player : GameBehaviour
 
     public void LockControls(bool enable, bool movementsOnly = false)
     {
+        if (_isDead)
+            enable = true;
+            
         lockControls = enable;
         
         if (movementsOnly == false)

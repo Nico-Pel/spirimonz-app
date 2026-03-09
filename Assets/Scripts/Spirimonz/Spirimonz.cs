@@ -77,6 +77,8 @@ public class Spirimonz : GameBehaviour, IInteractable
     protected House _house;
 
     public UnityEvent onDisable;
+    public UnityEvent onDroppedOnMap;
+    public UnityEvent onGoingBackToHands;
     public UnityEvent<Room> onSetRoom;
 
     protected virtual void Start()
@@ -218,6 +220,8 @@ public class Spirimonz : GameBehaviour, IInteractable
         {
             animator.SetBool("Wait", true);
         }
+        
+        onDroppedOnMap?.Invoke();
     }
 
     public virtual bool GoBackToHands(Transform handPos)
@@ -235,6 +239,8 @@ public class Spirimonz : GameBehaviour, IInteractable
         
         animator.SetBool("Hands", true);
 
+        onGoingBackToHands?.Invoke();
+        
         return true;
     }
     
@@ -447,6 +453,8 @@ public class Spirimonz : GameBehaviour, IInteractable
 
     private void FollowingPlayer()
     {
+        if (isOnTheMap == false) return;
+        
         Vector3 playerPos = _house.currentPlayer.transform.position;
         float dist = Vector3.Distance(transform.position, playerPos);
         agent.speed = dist > followingDistance ? speed : 0;
@@ -487,7 +495,7 @@ public class Spirimonz : GameBehaviour, IInteractable
         }
     }
 
-    public virtual void EscapePointReached()
+    protected virtual void EscapePointReached()
     {
         
     }
@@ -548,7 +556,7 @@ public class Spirimonz : GameBehaviour, IInteractable
     public void EnableSpirimonz(bool enable)
     {
         gameObject.SetActive(enable);
-        agent.enabled = enable && _house.currentGhost.IsHunting() == false;
+        agent.enabled = enable;
         collider.enabled = enable;
         isOnTheMap = enable;
 

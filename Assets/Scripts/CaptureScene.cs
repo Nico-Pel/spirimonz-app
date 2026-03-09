@@ -141,5 +141,8 @@ public class CaptureScene : GameBehaviour
         
         UIEndGame.EndTypes endType = isDead ? UIEndGame.EndTypes.Lose : UIEndGame.EndTypes.Win;
         UIGame.Instance.OpenEndGame(endType, _house);
+        
+        if(isDead)
+            gameObject.SetActive(false);
     }
 }
