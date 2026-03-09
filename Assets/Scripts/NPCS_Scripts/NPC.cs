@@ -18,6 +18,7 @@ public class NPC : GameBehaviour
     [Header("Interaction")]
     public float maxNeckAngle = 60f;
     public bool mustBeInFront = true;
+    public bool turnBodyToTalk = true;
     public float bodyTurnDuration = 0.25f;
     public bool useAnimationTalk = true;
 
@@ -79,7 +80,7 @@ public class NPC : GameBehaviour
         }
 
         // Si l’angle est trop grand, tourner le corps d’abord
-        if (angle > maxNeckAngle)
+        if (angle > maxNeckAngle && turnBodyToTalk)
         {
             transform.DORotateQuaternion(Quaternion.LookRotation(dirToPlayer), bodyTurnDuration)
                 .SetEase(Ease.OutSine)
