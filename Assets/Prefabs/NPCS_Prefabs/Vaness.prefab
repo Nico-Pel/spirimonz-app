@@ -10,6 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 3011202450829826844}
   - component: {fileID: 1555853676409998785}
+  - component: {fileID: 6391049045904456427}
   m_Layer: 0
   m_Name: TshirtUndervest01
   m_TagString: Untagged
@@ -52,7 +53,7 @@ SkinnedMeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: a443c987f2e5a4189a62ff936a56dfae, type: 2}
+  - {fileID: 2100000, guid: 889699261d2434b36a089f5f32cc9434, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -152,6 +153,20 @@ SkinnedMeshRenderer:
     m_Center: {x: 0, y: 0.35570264, z: -0.055243112}
     m_Extent: {x: 0.30268127, y: 0.34624207, z: 0.2649891}
   m_DirtyAABB: 0
+--- !u!114 &6391049045904456427
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 84182237605378573}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d7ec16d79bbf9406c82446733a3dc4ac, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  renderer: {fileID: 1555853676409998785}
+  color: {r: 0.9490196, g: 0.39215687, b: 0.9529412, a: 1}
 --- !u!1 &1030634788687221135
 GameObject:
   m_ObjectHideFlags: 0
@@ -549,6 +564,7 @@ GameObject:
   m_Component:
   - component: {fileID: 7192710278723183715}
   - component: {fileID: 2731462529256555101}
+  - component: {fileID: 196271263834512935}
   m_Layer: 0
   m_Name: Pants01
   m_TagString: Untagged
@@ -591,7 +607,7 @@ SkinnedMeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 219e7acbf87e14c7dbb7e15ebd5ba95c, type: 2}
+  - {fileID: 2100000, guid: 889699261d2434b36a089f5f32cc9434, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -691,6 +707,20 @@ SkinnedMeshRenderer:
     m_Center: {x: 0, y: -0.26881248, z: 0.08014966}
     m_Extent: {x: 0.34127033, y: 0.5984619, z: 0.31567508}
   m_DirtyAABB: 0
+--- !u!114 &196271263834512935
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6356344474670947582}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d7ec16d79bbf9406c82446733a3dc4ac, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  renderer: {fileID: 2731462529256555101}
+  color: {r: 0.32941177, g: 0.22352941, b: 0.31764707, a: 1}
 --- !u!1 &6725050395563100769
 GameObject:
   m_ObjectHideFlags: 0
@@ -784,7 +814,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 245821514649008220, guid: 6580fec8bdf5c4c408911844b1d86b83, type: 3}
       propertyPath: m_Name
-      value: V
+      value: Vaness
       objectReference: {fileID: 0}
     - target: {fileID: 907006976908331526, guid: 6580fec8bdf5c4c408911844b1d86b83, type: 3}
       propertyPath: m_Controller
