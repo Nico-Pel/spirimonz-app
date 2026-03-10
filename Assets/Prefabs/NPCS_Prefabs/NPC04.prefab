@@ -10,7 +10,6 @@ GameObject:
   m_Component:
   - component: {fileID: 3423061597241116594}
   - component: {fileID: 4563366839418081815}
-  - component: {fileID: 1411899426984345450}
   m_Layer: 0
   m_Name: Pants01
   m_TagString: Untagged
@@ -153,20 +152,6 @@ SkinnedMeshRenderer:
     m_Center: {x: 0, y: -0.26881248, z: 0.08014966}
     m_Extent: {x: 0.34127033, y: 0.5984619, z: 0.31567508}
   m_DirtyAABB: 0
---- !u!114 &1411899426984345450
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1683047445445556188}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: d7ec16d79bbf9406c82446733a3dc4ac, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  renderer: {fileID: 4563366839418081815}
-  color: {r: 0.32941177, g: 0.22352941, b: 0.31764707, a: 1}
 --- !u!1 &2525641706785851791
 GameObject:
   m_ObjectHideFlags: 0
@@ -177,6 +162,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1963916493457239260}
   - component: {fileID: 381196129520540491}
+  - component: {fileID: 8677289816808048053}
   m_Layer: 0
   m_Name: TshirtUndervest01
   m_TagString: Untagged
@@ -219,7 +205,7 @@ SkinnedMeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 889699261d2434b36a089f5f32cc9434, type: 2}
+  - {fileID: 2100000, guid: 7aa791fc2318342d9849c36229e06654, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -319,6 +305,23 @@ SkinnedMeshRenderer:
     m_Center: {x: 0, y: 0.35570264, z: -0.055243112}
     m_Extent: {x: 0.30268127, y: 0.34624207, z: 0.2649891}
   m_DirtyAABB: 0
+--- !u!114 &8677289816808048053
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2525641706785851791}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d7ec16d79bbf9406c82446733a3dc4ac, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  targetRenderer: {fileID: 381196129520540491}
+  shirtColor: {r: 0.35686275, g: 0.17254902, b: 0.80784315, a: 1}
+  logoColor: {r: 1, g: 0.7957734, b: 0, a: 1}
+  logoAtlas: {fileID: 2800000, guid: 74c689d92d0d94e98b84c1655d246fb2, type: 3}
+  logoID: 3
 --- !u!1 &6173069650604576820
 GameObject:
   m_ObjectHideFlags: 0

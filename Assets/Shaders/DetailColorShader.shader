@@ -2,65 +2,59 @@ Shader "Custom/StandardDetailColor"
 {
     Properties
     {
-        _Color ("Main Color", Color) = (1,1,1,1)
-        _MainTex ("Albedo", 2D) = "white" {}
+        _MainTex ("Shirt Texture (UV1)", 2D) = "white" {}
+        _Color ("Shirt Color", Color) = (1,1,1,1)
+
+        _DetailTex ("Logo Texture (UV2)", 2D) = "white" {}
+        _DetailColor ("Logo Color", Color) = (1,1,1,1)
 
         _Metallic ("Metallic", Range(0,1)) = 0
-        _Glossiness ("Smoothness", Range(0,1)) = 0.5
-
-        _BumpMap ("Normal Map", 2D) = "bump" {}
-
-        _DetailTex ("Detail Albedo", 2D) = "gray" {}
-        _DetailColor ("Detail Color", Color) = (1,1,1,1)
-        _DetailStrength ("Detail Strength", Range(0,2)) = 1
-
-        _UseUV2 ("Use UV2 for Detail", Float) = 0
+        _Smoothness ("Smoothness", Range(0,1)) = 0.5
     }
 
     SubShader
     {
         Tags { "RenderType"="Opaque" }
-        LOD 300
+        LOD 200
 
         CGPROGRAM
         #pragma surface surf Standard fullforwardshadows
 
         sampler2D _MainTex;
         sampler2D _DetailTex;
-        sampler2D _BumpMap;
+
+        fixed4 _Color;
+        fixed4 _DetailColor;
+
+        half _Metallic;
+        half _Smoothness;
 
         struct Input
         {
             float2 uv_MainTex;
-            float2 uv_DetailTex;
             float2 uv2_DetailTex;
         };
 
-        half _Glossiness;
-        half _Metallic;
-
-        fixed4 _Color;
-
-        fixed4 _DetailColor;
-        float _DetailStrength;
-        float _UseUV2;
-
         void surf (Input IN, inout SurfaceOutputStandard o)
         {
-            float2 detailUV = (_UseUV2 > 0.5) ? IN.uv2_DetailTex : IN.uv_DetailTex;
+            // Base shirt texture
+            fixed4 baseTex = tex2D(_MainTex, IN.uv_MainTex);
+            fixed3 shirt = baseTex.rgb * _Color.rgb;
 
-            fixed4 albedo = tex2D(_MainTex, IN.uv_MainTex) * _Color;
+            // Logo texture using UV2
+            fixed4 logoTex = tex2D(_DetailTex, IN.uv2_DetailTex);
 
-            fixed4 detail = tex2D(_DetailTex, detailUV) * _DetailColor;
-            detail *= _DetailStrength;
+            // Use logo texture as mask
+            fixed3 logo = logoTex.rgb * _DetailColor.rgb;
+            float mask = logoTex.a;
 
-            fixed3 finalColor = albedo.rgb + detail.rgb;
+            // Combine independently
+            fixed3 finalColor = lerp(shirt, logo, mask);
 
             o.Albedo = finalColor;
             o.Metallic = _Metallic;
-            o.Smoothness = _Glossiness;
-            o.Normal = UnpackNormal(tex2D(_BumpMap, IN.uv_MainTex));
-            o.Alpha = albedo.a;
+            o.Smoothness = _Smoothness;
+            o.Alpha = 1;
         }
         ENDCG
     }
