@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEditor;
 
 public class ColoredMat : MonoBehaviour
 {
@@ -17,13 +18,13 @@ public class ColoredMat : MonoBehaviour
     const int atlasSize = 4;
 
     MaterialPropertyBlock mpb;
-
-    void Awake()
+    
+    private void Awake()
     {
         Apply();
     }
 
-    void Apply()
+    public void Apply()
     {
         if (targetRenderer == null)
             targetRenderer = GetComponent<Renderer>();
@@ -44,7 +45,6 @@ public class ColoredMat : MonoBehaviour
             int y = logoID / atlasSize;
 
             Vector2 tiling = new Vector2(0.2f, 0.2f);
-
             float offsetX = 0.02f + (0.25f * x);
             float offsetY = 0.76f - (0.25f * y);
 
@@ -52,5 +52,22 @@ public class ColoredMat : MonoBehaviour
         }
 
         targetRenderer.SetPropertyBlock(mpb);
+    }
+    
+}
+
+[CustomEditor(typeof(ColoredMat))]
+public class ColoredMatEditor : Editor
+{
+    public override void OnInspectorGUI()
+    {
+        DrawDefaultInspector(); // garde l’Inspector normal
+
+        ColoredMat matScript = (ColoredMat)target;
+
+        if (GUILayout.Button("Test T-Shirt"))
+        {
+            matScript.Apply();
+        }
     }
 }

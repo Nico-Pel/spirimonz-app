@@ -106,7 +106,8 @@ public class NPC : GameBehaviour
         dialogueVCam.transform.position = camTargetPos;
 
         dialogueVCam.transform.LookAt(neck.position);
-        Vector3 neckOffset = useRightShoulder ? dialogueVCam.transform.right * -1 : dialogueVCam.transform.right * 1;
+        float dist = Vector3.Distance(player.characterController.transform.position, transform.position);
+        Vector3 neckOffset = useRightShoulder ? dialogueVCam.transform.right * (-dist / 3) : dialogueVCam.transform.right * (dist / 3);
         dialogueVCam.transform.LookAt(neck.position + neckOffset);
     }
 

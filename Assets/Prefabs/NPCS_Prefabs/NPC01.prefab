@@ -245,6 +245,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1963916493457239260}
   - component: {fileID: 381196129520540491}
+  - component: {fileID: 138497553365282807}
   m_Layer: 0
   m_Name: TshirtUndervest01
   m_TagString: Untagged
@@ -287,7 +288,7 @@ SkinnedMeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: e49068df287da4b3f8972008669c5349, type: 2}
+  - {fileID: 2100000, guid: 7aa791fc2318342d9849c36229e06654, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -312,7 +313,7 @@ SkinnedMeshRenderer:
   m_Quality: 0
   m_UpdateWhenOffscreen: 0
   m_SkinnedMotionVectors: 1
-  m_Mesh: {fileID: 5282121486347432822, guid: 8d056bdf628a543bbaf38be9a21e60b8, type: 3}
+  m_Mesh: {fileID: 977378895844687403, guid: 8d056bdf628a543bbaf38be9a21e60b8, type: 3}
   m_Bones:
   - {fileID: 6013625298249374234}
   - {fileID: 7578125611664456411}
@@ -387,6 +388,23 @@ SkinnedMeshRenderer:
     m_Center: {x: 0, y: 0.35570264, z: -0.055243112}
     m_Extent: {x: 0.30268127, y: 0.34624207, z: 0.2649891}
   m_DirtyAABB: 0
+--- !u!114 &138497553365282807
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2525641706785851791}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d7ec16d79bbf9406c82446733a3dc4ac, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  targetRenderer: {fileID: 381196129520540491}
+  shirtColor: {r: 0.14509805, g: 0.15686275, b: 0.17254902, a: 1}
+  logoColor: {r: 0.254717, g: 0.254717, b: 0.254717, a: 1}
+  logoAtlas: {fileID: 2800000, guid: a9001b14695e742f7a3fb00bd7b52b9e, type: 3}
+  logoID: 2
 --- !u!1 &5901911753761375793
 GameObject:
   m_ObjectHideFlags: 0
