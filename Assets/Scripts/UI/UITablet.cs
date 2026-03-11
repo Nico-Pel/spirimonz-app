@@ -71,6 +71,7 @@ public class UITablet : MonoBehaviour
         TabletOpenAnimation();
     }
 
+    private Player _player;
     private void TabletOpenAnimation()
     {
         tabletPanel.DOKill();
@@ -90,8 +91,12 @@ public class UITablet : MonoBehaviour
         CloseEntryPanel();
         CloseEndGamePanel();
         gameObject.SetActive(false);
+
+        if(_player == null)
+            _player = Player.Instance;
         
-        Player.Instance.LockControls(false);
+        if(_player != null)
+            _player.LockControls(false);
     }
 
     private void CloseAllTabs()

@@ -1828,7 +1828,7 @@ Transform:
   m_GameObject: {fileID: 3454733607160796222}
   serializedVersion: 2
   m_LocalRotation: {x: -0.17571124, y: -0.0000000027939677, z: 6.9849193e-10, w: 0.98444176}
-  m_LocalPosition: {x: -0.04653506, y: 0.18989119, z: 0.14934781}
+  m_LocalPosition: {x: -0.049, y: 0.18989119, z: 0.1493}
   m_LocalScale: {x: 1.2615926, y: 1.2615925, z: 1.2615926}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -4044,6 +4044,7 @@ GameObject:
   m_Component:
   - component: {fileID: 4844483797257102156}
   - component: {fileID: 5371876497036844193}
+  - component: {fileID: 4016249940103823329}
   m_Layer: 7
   m_Name: Face01
   m_TagString: Untagged
@@ -4186,6 +4187,31 @@ SkinnedMeshRenderer:
     m_Center: {x: 0.000000014901161, y: 0.87981325, z: -0.08949061}
     m_Extent: {x: 0.14369775, y: 0.156537, z: 0.12894888}
   m_DirtyAABB: 0
+--- !u!114 &4016249940103823329
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8480858406418427745}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d7ec16d79bbf9406c82446733a3dc4ac, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  targetRenderer: {fileID: 5371876497036844193}
+  shirtColor: {r: 1, g: 1, b: 1, a: 1}
+  logoColor: {r: 1, g: 1, b: 1, a: 1}
+  mainTexture: {fileID: 2800000, guid: 75d23f2f1c4414f24aa3c04513c42100, type: 3}
+  atlasTexture: {fileID: 2800000, guid: 89d2763eb545c4ec2b1ee4fae39a6c0e, type: 3}
+  columns: 3
+  rows: 4
+  imageID: 0
+  stepX: 1.333
+  stepY: 0.25
+  baseOffsetX: 0
+  baseOffsetY: 0
+  tiling: {x: 1, y: 1}
 --- !u!1 &8587540216257274381
 GameObject:
   m_ObjectHideFlags: 0
@@ -4334,7 +4360,7 @@ MonoBehaviour:
   GroundedRadius: 0.28
   GroundLayers:
     serializedVersion: 2
-    m_Bits: 513
+    m_Bits: 2049
   mouseSensitivity: 5
   CinemachineCameraTarget: {fileID: 880139881522364491}
   TopClamp: 70

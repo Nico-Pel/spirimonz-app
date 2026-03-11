@@ -57,6 +57,7 @@ MonoBehaviour:
   cameraMoveDuration: 0.5
   maxNeckAngle: 60
   mustBeInFront: 0
+  turnBodyToTalk: 1
   bodyTurnDuration: 0.25
   useAnimationTalk: 1
 --- !u!136 &755661240916915054
@@ -2346,6 +2347,7 @@ GameObject:
   m_Component:
   - component: {fileID: 8209879806219161082}
   - component: {fileID: 3841176715106763764}
+  - component: {fileID: 324570971805694289}
   m_Layer: 19
   m_Name: Face06
   m_TagString: Untagged
@@ -2388,7 +2390,7 @@ SkinnedMeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 76a65d87b1e004dc0b75e6f03b5299b9, type: 2}
+  - {fileID: 2100000, guid: 47d346770d04b420d8deba8ad40aebcc, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -2413,7 +2415,7 @@ SkinnedMeshRenderer:
   m_Quality: 0
   m_UpdateWhenOffscreen: 0
   m_SkinnedMotionVectors: 1
-  m_Mesh: {fileID: 6054227699789379953, guid: 8d056bdf628a543bbaf38be9a21e60b8, type: 3}
+  m_Mesh: {fileID: -199579955804814660, guid: 8d056bdf628a543bbaf38be9a21e60b8, type: 3}
   m_Bones:
   - {fileID: 3176897009167735105}
   - {fileID: 1605748429173684608}
@@ -2488,6 +2490,31 @@ SkinnedMeshRenderer:
     m_Center: {x: -0.0006519556, y: 0.87981325, z: -0.08949061}
     m_Extent: {x: 0.14304578, y: 0.156537, z: 0.12894888}
   m_DirtyAABB: 0
+--- !u!114 &324570971805694289
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6201235483981101091}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d7ec16d79bbf9406c82446733a3dc4ac, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  targetRenderer: {fileID: 3841176715106763764}
+  shirtColor: {r: 1, g: 1, b: 1, a: 1}
+  logoColor: {r: 1, g: 1, b: 1, a: 1}
+  mainTexture: {fileID: 2800000, guid: f0d12cd0e6c0046169388a618c47ceac, type: 3}
+  atlasTexture: {fileID: 2800000, guid: 89d2763eb545c4ec2b1ee4fae39a6c0e, type: 3}
+  columns: 3
+  rows: 4
+  imageID: 6
+  stepX: 1.333
+  stepY: 0.25
+  baseOffsetX: 0
+  baseOffsetY: 0
+  tiling: {x: 1, y: 1}
 --- !u!1 &6317450437569694998
 GameObject:
   m_ObjectHideFlags: 0

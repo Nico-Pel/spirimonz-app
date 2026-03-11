@@ -403,8 +403,16 @@ MonoBehaviour:
   targetRenderer: {fileID: 381196129520540491}
   shirtColor: {r: 0.14509805, g: 0.15686275, b: 0.17254902, a: 1}
   logoColor: {r: 0.254717, g: 0.254717, b: 0.254717, a: 1}
-  logoAtlas: {fileID: 2800000, guid: a9001b14695e742f7a3fb00bd7b52b9e, type: 3}
-  logoID: 2
+  mainTexture: {fileID: 0}
+  atlasTexture: {fileID: 0}
+  columns: 4
+  rows: 4
+  imageID: 0
+  stepX: 0.25
+  stepY: 0.25
+  baseOffsetX: 0.02
+  baseOffsetY: 0.76
+  tiling: {x: 0.2, y: 0.2}
 --- !u!1 &5901911753761375793
 GameObject:
   m_ObjectHideFlags: 0
@@ -696,6 +704,14 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: -1.0858054
       objectReference: {fileID: 0}
+    - target: {fileID: 324570971805694289, guid: 6580fec8bdf5c4c408911844b1d86b83, type: 3}
+      propertyPath: imageID
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 324570971805694289, guid: 6580fec8bdf5c4c408911844b1d86b83, type: 3}
+      propertyPath: mainTexture
+      value: 
+      objectReference: {fileID: 2800000, guid: 753cd302cb3d64bf88adcd219c4ff53d, type: 3}
     - target: {fileID: 503227770786650782, guid: 6580fec8bdf5c4c408911844b1d86b83, type: 3}
       propertyPath: m_LocalEulerAnglesHint.x
       value: 23.118546
@@ -911,11 +927,11 @@ PrefabInstance:
     - target: {fileID: 3841176715106763764, guid: 6580fec8bdf5c4c408911844b1d86b83, type: 3}
       propertyPath: m_Mesh
       value: 
-      objectReference: {fileID: 5181553090510325581, guid: 8d056bdf628a543bbaf38be9a21e60b8, type: 3}
+      objectReference: {fileID: -199579955804814660, guid: 8d056bdf628a543bbaf38be9a21e60b8, type: 3}
     - target: {fileID: 3841176715106763764, guid: 6580fec8bdf5c4c408911844b1d86b83, type: 3}
       propertyPath: m_Materials.Array.data[0]
       value: 
-      objectReference: {fileID: 2100000, guid: a8fd14d2302474665baa7ca534c88062, type: 2}
+      objectReference: {fileID: 2100000, guid: 47d346770d04b420d8deba8ad40aebcc, type: 2}
     - target: {fileID: 3872123518851650533, guid: 6580fec8bdf5c4c408911844b1d86b83, type: 3}
       propertyPath: m_LocalEulerAnglesHint.x
       value: 13.137499

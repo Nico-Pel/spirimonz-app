@@ -320,8 +320,16 @@ MonoBehaviour:
   targetRenderer: {fileID: 381196129520540491}
   shirtColor: {r: 0.35686275, g: 0.17254902, b: 0.80784315, a: 1}
   logoColor: {r: 1, g: 0.7957734, b: 0, a: 1}
-  logoAtlas: {fileID: 2800000, guid: 74c689d92d0d94e98b84c1655d246fb2, type: 3}
-  logoID: 3
+  mainTexture: {fileID: 0}
+  atlasTexture: {fileID: 0}
+  columns: 4
+  rows: 4
+  imageID: 0
+  stepX: 0.25
+  stepY: 0.25
+  baseOffsetX: 0.02
+  baseOffsetY: 0.76
+  tiling: {x: 0.2, y: 0.2}
 --- !u!1 &6173069650604576820
 GameObject:
   m_ObjectHideFlags: 0
@@ -549,7 +557,7 @@ PrefabInstance:
     - target: {fileID: 1014404553189179529, guid: 6580fec8bdf5c4c408911844b1d86b83, type: 3}
       propertyPath: m_Materials.Array.data[0]
       value: 
-      objectReference: {fileID: 2100000, guid: d05e7b37a7c3b455e9d132ead2fd5246, type: 2}
+      objectReference: {fileID: 2100000, guid: 47d346770d04b420d8deba8ad40aebcc, type: 2}
     - target: {fileID: 1403901742422902156, guid: 6580fec8bdf5c4c408911844b1d86b83, type: 3}
       propertyPath: m_LocalEulerAnglesHint.x
       value: 18.508007
@@ -1220,6 +1228,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 6446700414586450078, guid: 6580fec8bdf5c4c408911844b1d86b83, type: 3}
       insertIndex: -1
       addedObject: {fileID: 93838365580883898}
+    - targetCorrespondingSourceObject: {fileID: 1538263021761936240, guid: 6580fec8bdf5c4c408911844b1d86b83, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 8296724600372712484}
   m_SourcePrefab: {fileID: 100100000, guid: 6580fec8bdf5c4c408911844b1d86b83, type: 3}
 --- !u!4 &50049093364081605 stripped
 Transform:
@@ -1542,6 +1553,36 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 1605748429173684608, guid: 6580fec8bdf5c4c408911844b1d86b83, type: 3}
   m_PrefabInstance: {fileID: 9178945889782547291}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &7654756757590800427 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 1538263021761936240, guid: 6580fec8bdf5c4c408911844b1d86b83, type: 3}
+  m_PrefabInstance: {fileID: 9178945889782547291}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &8296724600372712484
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7654756757590800427}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d7ec16d79bbf9406c82446733a3dc4ac, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  targetRenderer: {fileID: 8174536035076932562}
+  shirtColor: {r: 1, g: 1, b: 1, a: 1}
+  logoColor: {r: 1, g: 1, b: 1, a: 1}
+  mainTexture: {fileID: 2800000, guid: 773be60b6bfba4456b1d9b4c9cc14277, type: 3}
+  atlasTexture: {fileID: 2800000, guid: 89d2763eb545c4ec2b1ee4fae39a6c0e, type: 3}
+  columns: 3
+  rows: 4
+  imageID: 7
+  stepX: 1.333
+  stepY: 0.25
+  baseOffsetX: 0
+  baseOffsetY: 0
+  tiling: {x: 1, y: 1}
 --- !u!4 &7731396476386160304 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 1452791888081939947, guid: 6580fec8bdf5c4c408911844b1d86b83, type: 3}
@@ -1550,6 +1591,11 @@ Transform:
 --- !u!4 &7789401709803865815 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 1403901742422902156, guid: 6580fec8bdf5c4c408911844b1d86b83, type: 3}
+  m_PrefabInstance: {fileID: 9178945889782547291}
+  m_PrefabAsset: {fileID: 0}
+--- !u!23 &8174536035076932562 stripped
+MeshRenderer:
+  m_CorrespondingSourceObject: {fileID: 1014404553189179529, guid: 6580fec8bdf5c4c408911844b1d86b83, type: 3}
   m_PrefabInstance: {fileID: 9178945889782547291}
   m_PrefabAsset: {fileID: 0}
 --- !u!4 &8468810327985664891 stripped

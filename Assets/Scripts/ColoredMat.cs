@@ -9,16 +9,30 @@ public class ColoredMat : MonoBehaviour
     public Color shirtColor = Color.white;
     public Color logoColor = Color.white;
 
-    [Header("Logo Atlas")]
-    public Texture2D logoAtlas;
+    [Header("Texture")]
+    public Texture2D mainTexture;
+    public Texture2D atlasTexture;
 
-    [Range(0, 15)]
-    public int logoID;
+    [Header("Atlas Settings")]
+    public int columns = 4;
+    public int rows = 4;
 
-    const int atlasSize = 4;
+    [Range(0, 100)]
+    public int imageID;
+
+    [Header("Atlas Offset Steps")]
+    public float stepX = 0.25f;
+    public float stepY = 0.25f;
+
+    [Header("Base Offset")]
+    public float baseOffsetX = 0.02f;
+    public float baseOffsetY = 0.76f;
+
+    [Header("Tiling")]
+    public Vector2 tiling = new Vector2(0.2f, 0.2f);
 
     MaterialPropertyBlock mpb;
-    
+
     private void Awake()
     {
         Apply();
@@ -37,23 +51,28 @@ public class ColoredMat : MonoBehaviour
         mpb.SetColor("_Color", shirtColor);
         mpb.SetColor("_DetailColor", logoColor);
 
-        if (logoAtlas != null)
+        if (mainTexture != null)
+            mpb.SetTexture("_MainTex", mainTexture);
+
+        if (atlasTexture != null)
         {
-            mpb.SetTexture("_DetailTex", logoAtlas);
+            mpb.SetTexture("_DetailTex", atlasTexture);
 
-            int x = logoID % atlasSize;
-            int y = logoID / atlasSize;
+            int maxImages = columns * rows;
+            imageID = Mathf.Clamp(imageID, 0, maxImages - 1);
 
-            Vector2 tiling = new Vector2(0.2f, 0.2f);
-            float offsetX = 0.02f + (0.25f * x);
-            float offsetY = 0.76f - (0.25f * y);
+            int x = imageID % columns;
+            int y = imageID / columns;
 
-            mpb.SetVector("_DetailTex_ST", new Vector4(tiling.x, tiling.y, offsetX, offsetY));
+            float offsetX = baseOffsetX + (stepX * x);
+            float offsetY = baseOffsetY - (stepY * y);
+
+            mpb.SetVector("_DetailTex_ST",
+                new Vector4(tiling.x, tiling.y, offsetX, offsetY));
         }
 
         targetRenderer.SetPropertyBlock(mpb);
     }
-    
 }
 
 [CustomEditor(typeof(ColoredMat))]
@@ -61,13 +80,14 @@ public class ColoredMatEditor : Editor
 {
     public override void OnInspectorGUI()
     {
-        DrawDefaultInspector(); // garde l’Inspector normal
+        DrawDefaultInspector();
 
         ColoredMat matScript = (ColoredMat)target;
 
-        if (GUILayout.Button("Test T-Shirt"))
+        if (GUILayout.Button("Test"))
         {
             matScript.Apply();
+            SceneView.RepaintAll();
         }
     }
 }
