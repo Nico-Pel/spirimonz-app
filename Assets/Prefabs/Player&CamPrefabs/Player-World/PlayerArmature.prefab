@@ -4257,6 +4257,7 @@ GameObject:
   - component: {fileID: 6333243152443948301}
   - component: {fileID: 4968586118364523614}
   - component: {fileID: 3262768175179773471}
+  - component: {fileID: 73842556081432027}
   m_Layer: 7
   m_Name: PlayerArmature
   m_TagString: Player
@@ -4421,6 +4422,22 @@ MonoBehaviour:
   maxRightAngle: 60
   maxAngleFromForward: 120
   rotationSpeed: 8
+--- !u!208 &73842556081432027
+NavMeshObstacle:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8693110901382048774}
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Shape: 0
+  m_Extents: {x: 0.5, y: 1, z: 0.5}
+  m_MoveThreshold: 0.1
+  m_Carve: 1
+  m_CarveOnlyStationary: 1
+  m_Center: {x: 0, y: 1, z: 0}
+  m_TimeToStationary: 0.5
 --- !u!1 &8705315420881882718
 GameObject:
   m_ObjectHideFlags: 0

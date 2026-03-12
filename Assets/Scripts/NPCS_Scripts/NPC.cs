@@ -1,9 +1,21 @@
 using System;
 using UnityEngine;
 using DG.Tweening;
+using UnityEngine.AI;
+using Random = UnityEngine.Random;
 
 public class NPC : GameBehaviour
 {
+    public enum MovingType
+    {
+        none,
+        walk
+    }
+
+    public MovingType movingType = MovingType.none;
+    
+    [Space]
+    
     [Header("Dialogue")]
     public Dialogue dialogue;
     public Transform neck;
@@ -13,7 +25,7 @@ public class NPC : GameBehaviour
     [Header("Camera")]
     public Cinemachine.CinemachineVirtualCamera dialogueVCam;
     public bool dynamicCamera = true;
-    public float cameraMoveDuration = 0.35f;
+    //public float cameraMoveDuration = 0.35f;
 
     [Header("Interaction")]
     public float maxNeckAngle = 60f;
@@ -22,12 +34,69 @@ public class NPC : GameBehaviour
     public float bodyTurnDuration = 0.25f;
     public bool useAnimationTalk = true;
 
+    [Header("Moving Settings")] 
+    public NPCMovingPoint firstMovingPoint;
+    public NPCMovingPoint lastSupposedMovingPoint;
+    public NavMeshAgent agent;
+    public float speed = 2f;
+    public float minDistToNextPoint = 0.1f;
+    public float maxDistToNextPoint = 2f;
+
     private Vector3 _neckRotationBase;
     private bool _canInteract = true;
+    
+    private NPCMovingPoint _currentMovingPoint;
+    private NPCMovingPoint _lastMovingPoint;
+    private float _distToNextPoint;
+
+    public NPCMovingPoint GetLastMovingPoint() => _lastMovingPoint;
 
     private void Awake()
     {
         _neckRotationBase = neck.localEulerAngles;
+
+        if (agent == null || firstMovingPoint == null)
+        {
+            movingType = MovingType.none;
+            agent.enabled = false;
+        }
+        else
+        {
+            if (movingType == MovingType.walk)
+            {
+                animator.SetBool("Walking", true);
+
+            }
+        }
+    }
+
+    private void Start()
+    {
+        if (movingType != MovingType.none)
+        {
+            _distToNextPoint = Random.Range(minDistToNextPoint, maxDistToNextPoint);
+            _currentMovingPoint = firstMovingPoint;
+            _lastMovingPoint = lastSupposedMovingPoint != null ? lastSupposedMovingPoint : _currentMovingPoint;
+
+            agent.speed = speed;
+            agent.SetDestination(firstMovingPoint.transform.position);
+        }
+    }
+
+    private void Update()
+    {
+        if (movingType != MovingType.none)
+        {
+            float dist = Vector3.Distance(transform.position, _currentMovingPoint.transform.position);
+            if (dist < _distToNextPoint)
+            {
+                _distToNextPoint = Random.Range(minDistToNextPoint, maxDistToNextPoint);
+                NPCMovingPoint reachedPoint = _currentMovingPoint;
+                _currentMovingPoint = _currentMovingPoint.SelectNextMovingPoint(this);
+                _lastMovingPoint = reachedPoint;
+                agent.SetDestination(_currentMovingPoint.transform.position);
+            }
+        }
     }
 
     public void Interact(Player player)
@@ -63,6 +132,11 @@ public class NPC : GameBehaviour
         // Fonction locale pour démarrer dialogue + caméra
         void StartDialogueAndCamera()
         {
+            if (agent.enabled)
+            {
+                agent.speed = 0;
+                agent.isStopped = true;
+            }
             // La tête regarde le joueur
             neck.DOLookAt(player.head.position - Vector3.up * 0.2f, 0.2f);
 
@@ -95,7 +169,7 @@ public class NPC : GameBehaviour
     private void PositionDialogueCamera(Player player)
     {
         if (dialogueVCam == null) return;
-        
+    
         Vector3 directionToTarget = transform.position - player.characterController.transform.position;
         float dot = Vector3.Dot(player.characterController.transform.right, directionToTarget);
 
@@ -105,10 +179,12 @@ public class NPC : GameBehaviour
         Vector3 camTargetPos = player.head.position + shoulderOffset + player.head.forward * -0.5f;
         dialogueVCam.transform.position = camTargetPos;
 
-        dialogueVCam.transform.LookAt(neck.position);
         float dist = Vector3.Distance(player.characterController.transform.position, transform.position);
-        Vector3 neckOffset = useRightShoulder ? dialogueVCam.transform.right * (-dist / 3) : dialogueVCam.transform.right * (dist / 3);
-        dialogueVCam.transform.LookAt(neck.position + neckOffset);
+        Vector3 neckOffset = useRightShoulder 
+            ? dialogueVCam.transform.right * (-dist / 3) 
+            : dialogueVCam.transform.right * (dist / 3);
+
+        dialogueVCam.transform.LookAt(neck.position + neckOffset, Vector3.up);
     }
 
     public void OpenCTA(Player player)
@@ -138,6 +214,12 @@ public class NPC : GameBehaviour
 
         // Déverrouille le joueur
         player?.LockControls(false);
+        
+        if (agent.enabled)
+        {
+            agent.isStopped = false;
+            agent.speed = speed;
+        }
     }
 
     public bool CanInteract(Player player)

@@ -34,6 +34,8 @@ public class Player : GameBehaviour
     public bool IsCameraLocked() => lockCamera;
     public bool IsDead() => _isDead;
 
+    private bool _canStartDialogue = true;
+
     private void Awake()
     {
         Instance = this;
@@ -61,12 +63,13 @@ public class Player : GameBehaviour
 
     protected virtual void Update()
     {
-        if (detectNPC && IsLocked() == false)
+        if (_canStartDialogue && detectNPC && IsLocked() == false)
         {
             DetectNPC();
 
             if (currentNPC != null && Input.GetKeyDown(inputManager.worldInteractions))
             {
+                _canStartDialogue = false;
                 if (currentNPC.CanInteract(this))
                 {
                     LockControls(true);
@@ -81,6 +84,8 @@ public class Player : GameBehaviour
         Player player = Player.Instance;
         currentNPC.Reset(player);
         currentNPC = null;
+        
+        this.Invoke(0.5f, () => _canStartDialogue = true);
     }
     
     void DetectNPC()
@@ -105,7 +110,7 @@ public class Player : GameBehaviour
 
             if (angle <= interactionAngle && npc.CanInteract(this))
             {
-                if (currentNPC != npc)
+                if (currentNPC == null)
                 {
                     currentNPC = npc;
                     npc.OpenCTA(this);

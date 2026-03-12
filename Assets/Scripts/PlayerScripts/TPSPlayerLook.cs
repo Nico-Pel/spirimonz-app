@@ -21,6 +21,7 @@ public class TPSPlayerLook : MonoBehaviour
     public float rotationSpeed = 8f; // vitesse de rotation
 
     private Quaternion initialLocalRotation;
+    private Player _player;
 
     void Start()
     {
@@ -42,6 +43,8 @@ public class TPSPlayerLook : MonoBehaviour
         }
 
         initialLocalRotation = neck.localRotation;
+
+        _player = Player.Instance;
     }
 
     void LateUpdate()
@@ -52,7 +55,7 @@ public class TPSPlayerLook : MonoBehaviour
     void UpdateNeckRotation()
     {
         // 1️⃣ Direction caméra + offset vertical
-        Vector3 lookDir = cameraTransform.forward + Vector3.up * verticalLookOffset;
+        Vector3 lookDir = (_player != null && _player.currentNPC != null) ? _player.currentNPC.neck.transform.position : cameraTransform.forward + Vector3.up * verticalLookOffset;
         lookDir.Normalize();
 
         // 2️⃣ Calcul angle entre forward personnage et direction caméra
