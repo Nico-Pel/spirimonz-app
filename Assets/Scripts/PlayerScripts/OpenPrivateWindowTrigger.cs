@@ -31,7 +31,7 @@ public class OpenPrivateWindowTrigger : GameBehaviour
         }
     }
 
-    private void OpenWindow()
+    public void OpenWindow()
     {
         if (_uiGame == null) return;
         

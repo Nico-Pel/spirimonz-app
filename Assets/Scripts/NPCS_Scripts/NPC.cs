@@ -2,6 +2,7 @@ using System;
 using UnityEngine;
 using DG.Tweening;
 using UnityEngine.AI;
+using UnityEngine.Events;
 using Random = UnityEngine.Random;
 
 public class NPC : GameBehaviour
@@ -48,6 +49,8 @@ public class NPC : GameBehaviour
     private NPCMovingPoint _currentMovingPoint;
     private NPCMovingPoint _lastMovingPoint;
     private float _distToNextPoint;
+
+    public UnityEvent onDialogueEnd;
 
     public NPCMovingPoint GetLastMovingPoint() => _lastMovingPoint;
 
@@ -220,6 +223,8 @@ public class NPC : GameBehaviour
             agent.isStopped = false;
             agent.speed = speed;
         }
+        
+        onDialogueEnd?.Invoke();
     }
 
     public bool CanInteract(Player player)
