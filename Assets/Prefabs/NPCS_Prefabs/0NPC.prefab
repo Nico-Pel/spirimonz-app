@@ -67,6 +67,9 @@ MonoBehaviour:
   speed: 1.5
   minDistToNextPoint: 0.1
   maxDistToNextPoint: 2
+  onDialogueEnd:
+    m_PersistentCalls:
+      m_Calls: []
 --- !u!136 &755661240916915054
 CapsuleCollider:
   m_ObjectHideFlags: 0
@@ -87,9 +90,9 @@ CapsuleCollider:
   m_Enabled: 1
   serializedVersion: 2
   m_Radius: 0.25
-  m_Height: 1.7
+  m_Height: 1.6770923
   m_Direction: 1
-  m_Center: {x: 0, y: 0.84249556, z: -0}
+  m_Center: {x: 0, y: 0.8539494, z: -0}
 --- !u!195 &2242164648724589774
 NavMeshAgent:
   m_ObjectHideFlags: 0
@@ -109,7 +112,7 @@ NavMeshAgent:
   m_AutoBraking: 1
   m_AutoRepath: 1
   m_Height: 2
-  m_BaseOffset: 0
+  m_BaseOffset: -0.02
   m_WalkableMask: 4294967295
   m_ObstacleAvoidanceType: 4
 --- !u!1 &258810566341137805

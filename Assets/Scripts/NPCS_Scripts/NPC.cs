@@ -1,6 +1,7 @@
 using System;
 using UnityEngine;
 using DG.Tweening;
+using Unity.Mathematics;
 using UnityEngine.AI;
 using UnityEngine.Events;
 using Random = UnityEngine.Random;
@@ -182,12 +183,22 @@ public class NPC : GameBehaviour
         Vector3 camTargetPos = player.head.position + shoulderOffset + player.head.forward * -0.5f;
         dialogueVCam.transform.position = camTargetPos;
 
-        float dist = Vector3.Distance(player.characterController.transform.position, transform.position);
-        Vector3 neckOffset = useRightShoulder 
-            ? dialogueVCam.transform.right * (-dist / 3) 
-            : dialogueVCam.transform.right * (dist / 3);
+        if (math.abs(player.characterController.transform.position.y - transform.position.y) > 1f)
+        {
+            float dist = Vector3.Distance(player.characterController.transform.position, transform.position);
+            Vector3 neckOffset = useRightShoulder 
+                ? dialogueVCam.transform.right * (-dist / 3) 
+                : dialogueVCam.transform.right * (dist / 3);
 
-        dialogueVCam.transform.LookAt(neck.position + neckOffset, Vector3.up);
+            dialogueVCam.transform.LookAt(neck.position + neckOffset, Vector3.up);
+        }
+        else
+        {
+            dialogueVCam.transform.LookAt(neck.position);
+            float dist = Vector3.Distance(player.characterController.transform.position, transform.position);
+            Vector3 neckOffset = useRightShoulder ? dialogueVCam.transform.right * (-dist / 3) : dialogueVCam.transform.right * (dist / 3);
+            dialogueVCam.transform.LookAt(neck.position + neckOffset);
+        }
     }
 
     public void OpenCTA(Player player)

@@ -17,12 +17,16 @@ public class NPCMovingPoint : GameBehaviour
         {
             possibleWaypoints.Remove(lastNpcMovingPoint);
         }
-            
-        NPCMovingPoint movingPointToUse = possibleWaypoints[Random.Range(0, possibleWaypoints.Count)];
 
-        if (movingPointToUse == null)
+        if (possibleWaypoints.Count > 0)
+        {
+            NPCMovingPoint movingPointToUse = possibleWaypoints[Random.Range(0, possibleWaypoints.Count)];
+            return movingPointToUse;
+
+        }
+        else
+        {
             return lastNpcMovingPoint;
-
-        return movingPointToUse;
+        }
     }
 }
