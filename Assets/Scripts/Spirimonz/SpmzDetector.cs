@@ -58,6 +58,8 @@ public class SpmzDetector : Spirimonz
         
         foreach (ActivitySource activitySource in activitySources)
         {
+            if (activitySource == null) continue;
+            
             //If there is no spirit activity or the activity is already detected, ignore it
             if (activitySource.activityValue == 0 || activitySource == _currentActivitySourceDetected) continue;
             

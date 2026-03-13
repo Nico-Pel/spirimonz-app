@@ -11,7 +11,7 @@ public class InteractionController : GameBehaviour
     public LayerMask interactableLayer;
     public LayerMask groundLayer;
     public float rayOffset = 0.2f;
-    public float sphereRadius = 0.1f;
+    private float sphereRadius = 0.05f;
 
     private int _objectInHandLayerIndex;
 
@@ -86,13 +86,54 @@ public class InteractionController : GameBehaviour
             targetingGround = (groundLayer.value & (1 << hit.collider.gameObject.layer)) != 0;
             _lastGroundPosTargeted = hit.point;
             newTarget = hit.collider.GetComponent<IInteractable>();
-            
-            if (newTarget != null && newTarget.InteractionLocked) 
+
+            if (newTarget != null && newTarget.InteractionLocked)
                 newTarget = null;
-            
+
             if (newTarget != null && objectInHands != null && newTarget is CatchableObject)
-            {
                 newTarget = null;
+
+            // Prioriser un Catchable centré à l'écran (si on ne porte rien).
+            if (objectInHands == null)
+            {
+                RaycastHit[] hits = Physics.SphereCastAll(ray, sphereRadius, interactionDistance, interactableLayer, QueryTriggerInteraction.Ignore);
+                IInteractable bestCatchable = null;
+                float bestScreenDist = Mathf.Infinity;
+                float bestDistance = Mathf.Infinity;
+                const float screenEpsilon = 0.000001f;
+
+                for (int i = 0; i < hits.Length; i++)
+                {
+                    IInteractable candidate = hits[i].collider.GetComponent<IInteractable>();
+                    if (candidate == null)
+                        continue;
+                    if (candidate.InteractionLocked)
+                        continue;
+                    if (candidate is not CatchableObject)
+                        continue;
+
+                    Vector3 center = hits[i].collider.bounds.center;
+                    if (!IsVisibleFromCamera(rayOrigin, center, candidate))
+                        continue;
+                    Vector3 viewport = _cam.WorldToViewportPoint(center);
+                    if (viewport.z < 0f)
+                        continue;
+
+                    float dx = viewport.x - 0.5f;
+                    float dy = viewport.y - 0.5f;
+                    float screenDist = (dx * dx) + (dy * dy);
+
+                    if (screenDist < bestScreenDist - screenEpsilon ||
+                        (Mathf.Abs(screenDist - bestScreenDist) <= screenEpsilon && hits[i].distance < bestDistance))
+                    {
+                        bestScreenDist = screenDist;
+                        bestDistance = hits[i].distance;
+                        bestCatchable = candidate;
+                    }
+                }
+
+                if (bestCatchable != null)
+                    newTarget = bestCatchable;
             }
         }
         else
@@ -106,6 +147,45 @@ public class InteractionController : GameBehaviour
             _currentTarget = newTarget;
             RefreshCursorUI();
         }
+    }
+
+    private bool IsVisibleFromCamera(Vector3 origin, Vector3 targetPoint, IInteractable candidate)
+    {
+        Vector3 toTarget = targetPoint - origin;
+        float distance = toTarget.magnitude;
+        if (distance <= 0.001f)
+            return true;
+
+        Vector3 direction = toTarget / distance;
+        RaycastHit[] hits = Physics.RaycastAll(origin, direction, distance, ~0, QueryTriggerInteraction.Ignore);
+        if (hits.Length == 0)
+            return true;
+
+        float nearestDistance = Mathf.Infinity;
+        RaycastHit nearestHit = default;
+        bool found = false;
+
+        for (int i = 0; i < hits.Length; i++)
+        {
+            Collider col = hits[i].collider;
+            if (col == null)
+                continue;
+            if (_player != null && col.transform.IsChildOf(_player.transform))
+                continue;
+
+            if (hits[i].distance < nearestDistance)
+            {
+                nearestDistance = hits[i].distance;
+                nearestHit = hits[i];
+                found = true;
+            }
+        }
+
+        if (!found)
+            return true;
+
+        IInteractable hitInteractable = nearestHit.collider.GetComponentInParent<IInteractable>();
+        return hitInteractable == candidate;
     }
 
     // =========================

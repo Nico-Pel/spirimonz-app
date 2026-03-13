@@ -16017,7 +16017,8 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 2100000, guid: abcee36f355674bc9a7022e12c4c76af, type: 2}
     m_RemovedComponents: []
-    m_RemovedGameObjects: []
+    m_RemovedGameObjects:
+    - {fileID: 4255616048972129305, guid: 8fa937decc2e948b39a77ddd337a7361, type: 3}
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 8fa937decc2e948b39a77ddd337a7361, type: 3}
@@ -16404,6 +16405,9 @@ MonoBehaviour:
   isGrabbed: 0
   collisionSoundParameters: {fileID: 0}
   minForceToPlayCollision: 1
+  onGrab:
+    m_PersistentCalls:
+      m_Calls: []
 --- !u!114 &1453499724
 MonoBehaviour:
   m_ObjectHideFlags: 0

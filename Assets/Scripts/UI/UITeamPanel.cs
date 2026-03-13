@@ -127,6 +127,10 @@ public class UITeamPanel : GameBehaviour
 
     private void SelectSpirimonz(int teamID)
     {
+        if (teamID < 0) return;
+        if (_inventoryManager.spirimonzTeamSettings.Count >= teamID) return;
+        if (_inventoryManager.spirimonzTeamSettings[teamID] == null) return;
+        
         SpirimonzSettings spmz = _inventoryManager.spirimonzTeamSettings[teamID];
         spmzInfoSetter.SetSpirimonz(spmz);
 
