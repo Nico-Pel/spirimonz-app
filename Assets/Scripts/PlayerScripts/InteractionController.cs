@@ -195,25 +195,25 @@ public class InteractionController : GameBehaviour
     {
         if (_currentTarget != null)
         {
-            if (Input.GetMouseButtonDown(0))
+            if ((!MobileInput.Enabled && Input.GetMouseButtonDown(0)) || MobileInput.PrimaryDown)
                 _currentTarget.OnInteractStart();
 
-            if (Input.GetMouseButtonDown(0))
+            if ((!MobileInput.Enabled && Input.GetMouseButton(0)) || MobileInput.PrimaryHeld)
                 _currentTarget.OnInteractHold();
 
-            if (Input.GetMouseButtonUp(0))
+            if ((!MobileInput.Enabled && Input.GetMouseButtonUp(0)) || MobileInput.PrimaryUp)
                 _currentTarget.OnInteractEnd();
         }
 
         if (objectInHands != null)
         {
-            if (Input.GetMouseButtonDown(1))
+            if ((!MobileInput.Enabled && Input.GetMouseButtonDown(1)) || MobileInput.SecondaryDown)
                 objectInHands.SpecialActionInHandsOnClick();
 
-            if (Input.GetKeyDown(_player.inputManager.dropObject))
+            if ((!MobileInput.Enabled && Input.GetKeyDown(_player.inputManager.dropObject)) || MobileInput.DropDown)
                 DropObject();
 
-            if (Input.GetKeyDown(_player.inputManager.throwObject))
+            if ((!MobileInput.Enabled && Input.GetKeyDown(_player.inputManager.throwObject)) || MobileInput.ThrowDown)
             {
                 if (objectInHands.canBeThrownByPlayer)
                     ThrowObject();
@@ -225,7 +225,7 @@ public class InteractionController : GameBehaviour
         {
             if (_player.inventoryManager.OccupedHands()) return;
 
-            if (Input.GetKeyDown(_player.inputManager.grabObject))
+            if ((!MobileInput.Enabled && Input.GetKeyDown(_player.inputManager.grabObject)) || MobileInput.GrabDown)
             {
                 if (targetedCatchable.canBeGrabByPlayer && !targetedCatchable.isGrabbed)
                 {
@@ -236,7 +236,7 @@ public class InteractionController : GameBehaviour
         }
         else if (_currentTarget is Spirimonz spirimonz && spirimonz.isOnTheMap)
         {
-            if (Input.GetKeyDown(_player.inputManager.grabObject))
+            if ((!MobileInput.Enabled && Input.GetKeyDown(_player.inputManager.grabObject)) || MobileInput.GrabDown)
                 _player.inventoryManager.SpirimonzGoBackToHands(spirimonz);
         }
     }
@@ -289,7 +289,11 @@ public class InteractionController : GameBehaviour
     // =========================
     private void HandleDoor()
     {
-        if (Input.GetMouseButtonUp(0))
+        bool primaryDown = (!MobileInput.Enabled && Input.GetMouseButtonDown(0)) || MobileInput.PrimaryDown;
+        bool primaryHeld = (!MobileInput.Enabled && Input.GetMouseButton(0)) || MobileInput.PrimaryHeld;
+        bool primaryUp = (!MobileInput.Enabled && Input.GetMouseButtonUp(0)) || MobileInput.PrimaryUp;
+
+        if (primaryUp)
         {
             if (_targetedDoor != null)
             {
@@ -309,7 +313,7 @@ public class InteractionController : GameBehaviour
                     _targetedDoor = door;
             }
             
-            if (Input.GetMouseButtonDown(0) && _targetedDoor != null)
+            if (primaryDown && _targetedDoor != null)
             {
                 Rigidbody rb = _targetedDoor.rb;
                 HingeJoint hinge = _targetedDoor.hingeJoint;
@@ -324,7 +328,7 @@ public class InteractionController : GameBehaviour
                 }
             }
         }
-        else if (!Input.GetMouseButton(0) && _targetedDoor != null && _grabbedDoor == null)
+        else if (!primaryHeld && _targetedDoor != null && _grabbedDoor == null)
         {
             _targetedDoor = null;
         }
@@ -335,7 +339,7 @@ public class InteractionController : GameBehaviour
             Vector3 targetPos = _cam.transform.position + _cam.transform.forward * _grabDistance;
             rb.velocity = (targetPos - rb.position) * 30f;
 
-            if (Input.GetMouseButtonUp(0))
+            if (primaryUp)
             {
                 if(_targetedDoor != null)
                     _targetedDoor.Release();

@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using UnityEngine;
 using UnityEditor;
 using System.Collections.Generic;
@@ -101,3 +102,4 @@ public class FindMissingScriptsInProject : EditorWindow
         Debug.Log($"Scan complete. Found {missingAssets.Count} assets with missing scripts.");
     }
 }
+#endif

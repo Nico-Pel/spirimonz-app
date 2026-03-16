@@ -20,6 +20,14 @@ public class FPSControllerNoPhysics : Controller
     public float mouseSensitivityY = 2.0f;
     public float maxLookAngle = 80f;
 
+    [Header("Mobile Look")]
+    public float mobileLookSensitivityX = 2.0f;
+    public float mobileLookSensitivityY = 2.0f;
+    public float mobileLookSensitivityMultiplier = 0.45f;
+
+    [Header("Mobile Sprint")]
+    [Range(0.1f, 1f)] public float mobileSprintThreshold = 0.75f;
+
     [Header("Crouch")]
     public float crouchHeight = 1f;
     public float crouchCameraHeight = 0.5f;
@@ -86,6 +94,8 @@ public class FPSControllerNoPhysics : Controller
 
     private Vector3 armsStartLocalPos;
     private Quaternion armsStartLocalRot;
+    private Vector2 _lastMobileLookScaled;
+    private bool _lastMobileEnabled;
 
     private Player _player;
 
@@ -99,8 +109,8 @@ public class FPSControllerNoPhysics : Controller
         cameraStandingPos = cameraStartLocalPos;
         standingHeight = controller.height;
 
-        Cursor.lockState = CursorLockMode.Locked;
-        Cursor.visible = false;
+        _lastMobileEnabled = MobileInput.Enabled;
+        ApplyCursorState(_lastMobileEnabled);
 
         if (armsTransform != null)
         {
@@ -118,6 +128,12 @@ public class FPSControllerNoPhysics : Controller
 
     void Update()
     {
+        if (_lastMobileEnabled != MobileInput.Enabled)
+        {
+            _lastMobileEnabled = MobileInput.Enabled;
+            ApplyCursorState(_lastMobileEnabled);
+        }
+
         if (_player.IsLocked()) return;
         
         HandleLook();
@@ -133,8 +149,21 @@ public class FPSControllerNoPhysics : Controller
     {
         if (_player.IsCameraLocked()) return;
         
-        float mouseX = Input.GetAxis("Mouse X") * mouseSensitivityX * 100f * Time.deltaTime;
-        float mouseY = Input.GetAxis("Mouse Y") * mouseSensitivityY * 100f * Time.deltaTime;
+        float mouseX = 0f;
+        float mouseY = 0f;
+        if (!MobileInput.Enabled)
+        {
+            mouseX = Input.GetAxis("Mouse X") * mouseSensitivityX * 100f * Time.deltaTime;
+            mouseY = Input.GetAxis("Mouse Y") * mouseSensitivityY * 100f * Time.deltaTime;
+        }
+        Vector2 mobileLook = MobileInput.GetLookDelta();
+        _lastMobileLookScaled = new Vector2(
+            mobileLook.x * mobileLookSensitivityX * mobileLookSensitivityMultiplier * 100f * Time.deltaTime,
+            mobileLook.y * mobileLookSensitivityY * mobileLookSensitivityMultiplier * 100f * Time.deltaTime
+        );
+
+        mouseX += _lastMobileLookScaled.x;
+        mouseY += _lastMobileLookScaled.y;
 
         xRotation -= mouseY;
         xRotation = Mathf.Clamp(xRotation, -maxLookAngle, maxLookAngle);
@@ -148,12 +177,23 @@ public class FPSControllerNoPhysics : Controller
     {
         if (_player.IsLocked()) return;
         
-        float x = (Input.GetKey(_player.inputManager.rightKey) ? 1f : 0f) - (Input.GetKey(_player.inputManager.leftKey) ? 1f : 0f);
-        float z = (Input.GetKey(_player.inputManager.forwardKey) ? 1f : 0f) - (Input.GetKey(_player.inputManager.backwardKey) ? 1f : 0f);
+        float x = 0f;
+        float z = 0f;
+        if (!MobileInput.Enabled)
+        {
+            x = (Input.GetKey(_player.inputManager.rightKey) ? 1f : 0f) - (Input.GetKey(_player.inputManager.leftKey) ? 1f : 0f);
+            z = (Input.GetKey(_player.inputManager.forwardKey) ? 1f : 0f) - (Input.GetKey(_player.inputManager.backwardKey) ? 1f : 0f);
+        }
+        Vector2 mobileMove = MobileInput.Move;
+        x += mobileMove.x;
+        z += mobileMove.y;
+        x = Mathf.Clamp(x, -1f, 1f);
+        z = Mathf.Clamp(z, -1f, 1f);
 
         Vector3 input = new Vector3(x, 0, z).normalized;
         bool isMoving = input.magnitude > 0.1f;
-        bool wantsToSprint = Input.GetKey(_player.inputManager.sprintKey);
+        bool mobileSprint = MobileInput.Enabled && mobileMove.sqrMagnitude >= (mobileSprintThreshold * mobileSprintThreshold);
+        bool wantsToSprint = (!MobileInput.Enabled && Input.GetKey(_player.inputManager.sprintKey)) || MobileInput.SprintHeld || mobileSprint;
         bool canSprint = wantsToSprint && isMoving && !staminaDepleted;
 
         // Mise à jour stamina
@@ -206,7 +246,7 @@ public class FPSControllerNoPhysics : Controller
     {
         if (_player.IsLocked()) return;
         
-        if (Input.GetKeyDown(_player.inputManager.crouchKey))
+        if ((!MobileInput.Enabled && Input.GetKeyDown(_player.inputManager.crouchKey)) || MobileInput.CrouchDown)
         {
             isCrouching = !isCrouching;
 
@@ -256,7 +296,7 @@ public class FPSControllerNoPhysics : Controller
             return;
         }
 
-        bool isSprinting = Input.GetKey(_player.inputManager.sprintKey) && !staminaDepleted;
+        bool isSprinting = ((!MobileInput.Enabled && Input.GetKey(_player.inputManager.sprintKey)) || MobileInput.SprintHeld) && !staminaDepleted;
         float stepTime = isSprinting ? stepDuration * sprintStepMultiplier : stepDuration;
 
         float previousStepTimer = stepTimer;
@@ -318,8 +358,13 @@ public class FPSControllerNoPhysics : Controller
     {
         if (armsTransform == null || _player.IsCameraLocked()) return;
 
-        float mouseX = Input.GetAxis("Mouse X");
-        float mouseY = Input.GetAxis("Mouse Y");
+        float mouseX = _lastMobileLookScaled.x;
+        float mouseY = _lastMobileLookScaled.y;
+        if (!MobileInput.Enabled)
+        {
+            mouseX += Input.GetAxis("Mouse X");
+            mouseY += Input.GetAxis("Mouse Y");
+        }
 
         // Rotation cible basée sur la rotation de départ + sway
         Quaternion swayRot = Quaternion.Euler(
@@ -343,7 +388,7 @@ public class FPSControllerNoPhysics : Controller
     {
         if (_player.IsLocked()) return;
         
-        if (Input.GetKeyDown(_player.inputManager.turnLight) && mLight != null)
+        if (((!MobileInput.Enabled && Input.GetKeyDown(_player.inputManager.turnLight)) || MobileInput.ToggleLightDown) && mLight != null)
         {
             bool enable = !mLight.gameObject.activeSelf;
 
@@ -388,5 +433,19 @@ public class FPSControllerNoPhysics : Controller
     {
         if(noStaminaSound != null)
             SoundManager.Instance.PlaySound(noStaminaSound, transform.position, 1f);
+    }
+
+    private void ApplyCursorState(bool mobileEnabled)
+    {
+        if (mobileEnabled)
+        {
+            Cursor.lockState = CursorLockMode.None;
+            Cursor.visible = !Application.isMobilePlatform;
+        }
+        else
+        {
+            Cursor.lockState = CursorLockMode.Locked;
+            Cursor.visible = false;
+        }
     }
 }

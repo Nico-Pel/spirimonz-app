@@ -13,6 +13,12 @@ public class GameManager : GameBehaviour
     [Header("Debug")] 
     public bool ignoreAllHouseDebugs;
     public bool considerEverySpirimonzUnlocked;
+
+    [Header("Mobile Controls")]
+    public bool mobileControlsEnabled;
+
+    [Header("Mobile Light Optimization")]
+    public bool mobileLightOptimizationEnabled = true;
     
     [Space]
 
@@ -53,6 +59,14 @@ public class GameManager : GameBehaviour
 
         Instance = this;
         DontDestroyOnLoad(gameObject);
+        MobileInput.SetEnabled(mobileControlsEnabled);
+        MobileControlsBootstrap.EnsureExists();
+        MobileLightOptimizerManager.EnsureExists();
+        MobileCinemachineInputGate.EnsureExists();
+
+        if (mobileControlsEnabled)
+            mobileLightOptimizationEnabled = true;
+        MobileLightOptimizerManager.Instance.SetEnabled(mobileLightOptimizationEnabled);
 
         CheckUniqueSpirimonzIDs();
 
@@ -109,6 +123,47 @@ public class GameManager : GameBehaviour
         SceneManager.sceneLoaded += OnSceneLoaded;
     }
 
+    private void OnValidate()
+    {
+        if (Application.isPlaying)
+        {
+            MobileInput.SetEnabled(mobileControlsEnabled);
+            MobileLightOptimizerManager.EnsureExists();
+            MobileLightOptimizerManager.Instance.SetEnabled(mobileLightOptimizationEnabled);
+        }
+    }
+
+    public void SetMobileControlsEnabled(bool enable)
+    {
+        mobileControlsEnabled = enable;
+        MobileInput.SetEnabled(enable);
+
+        if (enable)
+            mobileLightOptimizationEnabled = true;
+
+        MobileLightOptimizerManager.EnsureExists();
+        MobileLightOptimizerManager.Instance.SetEnabled(mobileLightOptimizationEnabled);
+    }
+
+    public void SetMobileLightOptimizationEnabled(bool enable)
+    {
+        mobileLightOptimizationEnabled = enable;
+        MobileLightOptimizerManager.EnsureExists();
+        MobileLightOptimizerManager.Instance.SetEnabled(enable);
+    }
+
+    [ContextMenu("Toggle Mobile Light Optimization")]
+    private void ToggleMobileLightOptimization()
+    {
+        SetMobileLightOptimizationEnabled(!mobileLightOptimizationEnabled);
+    }
+
+    [ContextMenu("Toggle Mobile Controls")]
+    private void ToggleMobileControls()
+    {
+        SetMobileControlsEnabled(!mobileControlsEnabled);
+    }
+
     private void Start()
     {
         _inventoryManager = InventoryManager.Instance;
@@ -159,6 +214,13 @@ public class GameManager : GameBehaviour
     {
         if (player == null)
             player = FindObjectOfType<Player>();
+
+        // Re-apply mobile state after scene load (House / World).
+        MobileInput.SetEnabled(mobileControlsEnabled);
+        MobileControlsBootstrap.EnsureExists();
+        MobileCinemachineInputGate.EnsureExists();
+        MobileLightOptimizerManager.EnsureExists();
+        MobileLightOptimizerManager.Instance.SetEnabled(mobileLightOptimizationEnabled);
 
         if (player == null)
         {

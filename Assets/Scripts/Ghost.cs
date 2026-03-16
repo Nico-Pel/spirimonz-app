@@ -11,13 +11,12 @@ using Random = UnityEngine.Random;
 public class Ghost : GameBehaviour
 {
    [ReadOnly] public GhostParameters ghostParameters;
-   
-   [Space]
-   
-    # if UNITY_EDITOR
-        [ReadOnly] public GhostActivities forcedGhostActivity = GhostActivities.Nothing;
-        [ReadOnly] public bool tripleActivityDebug;
-    #endif
+
+#if UNITY_EDITOR
+    [Space]
+    [ReadOnly] public GhostActivities forcedGhostActivity = GhostActivities.Nothing;
+    [ReadOnly] public bool tripleActivityDebug;
+#endif
 
     public enum GhostState
     {
@@ -689,7 +688,9 @@ public class Ghost : GameBehaviour
     private void Kill()
     {
         if (_isLocked) return;
+#if UNITY_EDITOR
         if (house.useDebugs && house.playerCantDie) return;
+#endif
 
         _player.Die();
         house.ExpelPlayerFromHouse();

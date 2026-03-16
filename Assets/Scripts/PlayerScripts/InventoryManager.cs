@@ -205,7 +205,7 @@ public class InventoryManager : GameBehaviour
         
         for (int i = 0; i < _player.inputManager.inventoryKeys.Length; i++)
         {
-            if (Input.GetKeyDown(_player.inputManager.inventoryKeys[i]))
+            if ((!MobileInput.Enabled && Input.GetKeyDown(_player.inputManager.inventoryKeys[i])) || MobileInput.InventoryDown(i))
             {
                 currentSelectedIndex = i;
                 if (i == 0)
@@ -219,17 +219,17 @@ public class InventoryManager : GameBehaviour
             }
         }
 
-        if (Input.GetMouseButtonDown(0))
+        if ((!MobileInput.Enabled && Input.GetMouseButtonDown(0)) || MobileInput.PrimaryDown)
         {
             TryToDropSpirimonz();
         }
         
-        if (Input.GetMouseButtonDown(1) && _gamePlayer.handAnimator.GetInteger("HandPos") == (int)HandPoses.LightAim)
+        if (((!MobileInput.Enabled && Input.GetMouseButtonDown(1)) || MobileInput.SecondaryDown) && _gamePlayer.handAnimator.GetInteger("HandPos") == (int)HandPoses.LightAim)
         {
             TurnOnNightVision();
         }
         
-        if (Input.GetMouseButtonUp(1) && _gamePlayer.handAnimator.GetInteger("HandPos") == (int)HandPoses.CameraAim)
+        if (((!MobileInput.Enabled && Input.GetMouseButtonUp(1)) || MobileInput.SecondaryUp) && _gamePlayer.handAnimator.GetInteger("HandPos") == (int)HandPoses.CameraAim)
         {
             TurnOffNightVision();
         }

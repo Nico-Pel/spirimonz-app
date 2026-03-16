@@ -82,12 +82,12 @@ public class UITeamPanel : GameBehaviour
     {
         if (_inventoryManager != null)
         {
-            if (Input.GetKeyDown(_inputManager.primaryNext) || Input.GetKeyDown(_inputManager.secondaryNext))
+            if ((!MobileInput.Enabled && (Input.GetKeyDown(_inputManager.primaryNext) || Input.GetKeyDown(_inputManager.secondaryNext))) || MobileInput.NextDown)
             {
                 NextSpirimonz();
             }
         
-            if (Input.GetKeyDown(_inputManager.primaryPrevious) || Input.GetKeyDown(_inputManager.secondaryPrevious))
+            if ((!MobileInput.Enabled && (Input.GetKeyDown(_inputManager.primaryPrevious) || Input.GetKeyDown(_inputManager.secondaryPrevious))) || MobileInput.PreviousDown)
             {
                 PreviousSpirimonz();
             }
@@ -128,7 +128,7 @@ public class UITeamPanel : GameBehaviour
     private void SelectSpirimonz(int teamID)
     {
         if (teamID < 0) return;
-        if (_inventoryManager.spirimonzTeamSettings.Count >= teamID) return;
+        if (teamID >= _inventoryManager.spirimonzTeamSettings.Count) return;
         if (_inventoryManager.spirimonzTeamSettings[teamID] == null) return;
         
         SpirimonzSettings spmz = _inventoryManager.spirimonzTeamSettings[teamID];

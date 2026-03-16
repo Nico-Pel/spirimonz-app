@@ -11,6 +11,7 @@ public class UIManager : GameBehaviour
 
     private bool _currentCursorState;
     private int _showCursorsActivatedCount;
+    public bool IsCursorActive => _showCursorsActivatedCount > 0;
 
     protected Player _player;
 
@@ -61,10 +62,19 @@ public class UIManager : GameBehaviour
     
     private void ShowCursor(bool enable)
     {
-        _currentCursorState = enable;
-
-        Cursor.visible = enable;
-        Cursor.lockState = enable ? CursorLockMode.None : CursorLockMode.Locked;
+        if (MobileInput.Enabled)
+        {
+            bool showCursor = !Application.isMobilePlatform;
+            _currentCursorState = showCursor;
+            Cursor.visible = showCursor;
+            Cursor.lockState = CursorLockMode.None;
+        }
+        else
+        {
+            _currentCursorState = enable;
+            Cursor.visible = enable;
+            Cursor.lockState = enable ? CursorLockMode.None : CursorLockMode.Locked;
+        }
 
         if(_player != null && enable == true)
             _player.LockControls(true);

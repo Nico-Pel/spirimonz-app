@@ -37,10 +37,10 @@ public class SpmzUsePower : Spirimonz
 
     private void HandleInput()
     {
-        if (Input.GetMouseButtonDown(1))
+        if ((!MobileInput.Enabled && Input.GetMouseButtonDown(1)) || MobileInput.SecondaryDown)
             TryActivate();
 
-        if (Input.GetMouseButtonUp(1))
+        if ((!MobileInput.Enabled && Input.GetMouseButtonUp(1)) || MobileInput.SecondaryUp)
             StopPower();
     }
 

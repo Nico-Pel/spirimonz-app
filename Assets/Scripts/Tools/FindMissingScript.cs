@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using UnityEngine;
 using UnityEditor;
 
@@ -53,3 +54,4 @@ public class FindMissingScript : EditorWindow
         return path;
     }
 }
+#endif

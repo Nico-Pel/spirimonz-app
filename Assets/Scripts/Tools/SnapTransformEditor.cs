@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using UnityEditor;
 using UnityEngine;
 
@@ -70,3 +71,4 @@ public static class SnapTransformEditor
         return SnapFloat(angle);
     }
 }
+#endif

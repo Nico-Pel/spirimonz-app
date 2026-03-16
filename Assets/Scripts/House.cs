@@ -67,6 +67,7 @@ public class House : GameBehaviour
         InitializeHouse();
     }
 
+#if UNITY_EDITOR
     private void CheckIgnoreDebugs()
     {
         GameManager gameManager = GameManager.Instance;
@@ -80,6 +81,9 @@ public class House : GameBehaviour
                 useDebugs = false;
         }
     }
+#else
+    private void CheckIgnoreDebugs() { }
+#endif
 
     private void Start()
     {

@@ -1,5 +1,7 @@
 using UnityEngine;
+#if UNITY_EDITOR
 using UnityEditor;
+#endif
 
 public class ColoredMat : MonoBehaviour
 {
@@ -75,6 +77,7 @@ public class ColoredMat : MonoBehaviour
     }
 }
 
+#if UNITY_EDITOR
 [CustomEditor(typeof(ColoredMat))]
 public class ColoredMatEditor : Editor
 {
@@ -91,3 +94,4 @@ public class ColoredMatEditor : Editor
         }
     }
 }
+#endif

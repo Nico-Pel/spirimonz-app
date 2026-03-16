@@ -93,17 +93,19 @@ public class UIGame : UIManager
     
     private void HandleUI()
     {
-        if (Input.GetKeyDown(_player.inputManager.openJournal) && _player.IsDead() == false)
+        bool endGameOpen = tablet != null && tablet.endGame != null && tablet.endGame.gameObject.activeSelf;
+
+        if (!endGameOpen && ((!MobileInput.Enabled && Input.GetKeyDown(_player.inputManager.openJournal)) || MobileInput.OpenJournalDown) && _player.IsDead() == false)
         {
             OpenJournal();
         }
         
-        if (Input.GetKeyDown(_player.inputManager.openTeamMenu) && _player.IsDead() == false)
+        if (!endGameOpen && ((!MobileInput.Enabled && Input.GetKeyDown(_player.inputManager.openTeamMenu)) || MobileInput.OpenTeamMenuDown) && _player.IsDead() == false)
         {
             OpenTeamPanel();
         }
 
-        if (Input.GetKeyDown(_player.inputManager.exitMenus))
+        if ((!MobileInput.Enabled && Input.GetKeyDown(_player.inputManager.exitMenus)) || MobileInput.ExitMenusDown)
         {
             ExitLastMenu();
         }

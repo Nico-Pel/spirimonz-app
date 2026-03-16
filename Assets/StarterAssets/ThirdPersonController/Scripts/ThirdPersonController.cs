@@ -24,6 +24,10 @@ public class ThirdPersonController : MonoBehaviour
     
     [Header("Camera Sensitivity")]
     public float mouseSensitivity = 1.5f;
+    public float mobileLookSensitivityMultiplier = 0.1f;
+
+    [Header("Mobile Sprint")]
+    [Range(0.1f, 1f)] public float mobileSprintThreshold = 0.75f;
 
     [Header("Cinemachine")]
     public GameObject CinemachineCameraTarget;
@@ -115,8 +119,19 @@ public class ThirdPersonController : MonoBehaviour
     {
         if (LockCameraPosition || _player.IsCameraLocked()) return;
 
-        float mouseX = Input.GetAxis("Mouse X") * mouseSensitivity;
-        float mouseY = Input.GetAxis("Mouse Y") * mouseSensitivity;
+        float mouseX = 0f;
+        float mouseY = 0f;
+        if (!MobileInput.Enabled)
+        {
+            mouseX = Input.GetAxis("Mouse X") * mouseSensitivity;
+            mouseY = Input.GetAxis("Mouse Y") * mouseSensitivity;
+        }
+        else
+        {
+            Vector2 look = MobileInput.GetLookDelta();
+            mouseX = look.x * mouseSensitivity * mobileLookSensitivityMultiplier * 100f * Time.deltaTime;
+            mouseY = look.y * mouseSensitivity * mobileLookSensitivityMultiplier * 100f * Time.deltaTime;
+        }
 
         _cinemachineTargetYaw += mouseX;
         _cinemachineTargetPitch -= mouseY;
@@ -129,12 +144,20 @@ public class ThirdPersonController : MonoBehaviour
     private void Move()
     {
         Vector2 moveInput = Vector2.zero;
-        if (Input.GetKey(_inputManager.forwardKey)) moveInput.y += 1f;
-        if (Input.GetKey(_inputManager.backwardKey)) moveInput.y -= 1f;
-        if (Input.GetKey(_inputManager.leftKey)) moveInput.x -= 1f;
-        if (Input.GetKey(_inputManager.rightKey)) moveInput.x += 1f;
+        if (!MobileInput.Enabled)
+        {
+            if (Input.GetKey(_inputManager.forwardKey)) moveInput.y += 1f;
+            if (Input.GetKey(_inputManager.backwardKey)) moveInput.y -= 1f;
+            if (Input.GetKey(_inputManager.leftKey)) moveInput.x -= 1f;
+            if (Input.GetKey(_inputManager.rightKey)) moveInput.x += 1f;
+        }
+        else
+        {
+            moveInput = MobileInput.Move;
+        }
 
-        bool sprintInput = Input.GetKey(_inputManager.sprintKey);
+        bool mobileSprint = MobileInput.Enabled && moveInput.sqrMagnitude >= (mobileSprintThreshold * mobileSprintThreshold);
+        bool sprintInput = (!MobileInput.Enabled && Input.GetKey(_inputManager.sprintKey)) || MobileInput.SprintHeld || mobileSprint;
 
         float targetSpeed = sprintInput ? SprintSpeed : MoveSpeed;
         if (moveInput == Vector2.zero) targetSpeed = 0f;

@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using UnityEngine;
 using UnityEditor;
 
@@ -33,3 +34,4 @@ public class FindMissingComponents : EditorWindow
             Debug.Log($"Found {missingCount} missing components.");
     }
 }
+#endif

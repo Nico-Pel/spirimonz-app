@@ -1,0 +1,192 @@
+using UnityEngine;
+
+public static class MobileInput
+{
+    public static bool Enabled { get; private set; }
+
+    private static Vector2 _move;
+    private static Vector2 _lookDelta;
+    private static int _lookFrame = -1;
+    private static Vector2 _lookAxis;
+
+    private static int _primaryDownFrame = -1;
+    private static int _primaryUpFrame = -1;
+    private static bool _primaryHeld;
+
+    private static int _secondaryDownFrame = -1;
+    private static int _secondaryUpFrame = -1;
+    private static bool _secondaryHeld;
+
+    private static bool _sprintHeld;
+
+    private static int _grabDownFrame = -1;
+    private static int _dropDownFrame = -1;
+    private static int _throwDownFrame = -1;
+    private static int _crouchDownFrame = -1;
+    private static int _jumpDownFrame = -1;
+    private static int _toggleLightDownFrame = -1;
+    private static int _openJournalDownFrame = -1;
+    private static int _openTeamDownFrame = -1;
+    private static int _exitMenusDownFrame = -1;
+    private static int _nextDownFrame = -1;
+    private static int _previousDownFrame = -1;
+    private static int[] _inventoryDownFrames = new int[6];
+
+    public static void SetEnabled(bool enabled)
+    {
+        Enabled = enabled;
+        if (!enabled)
+            ResetState();
+    }
+
+    private static void ResetState()
+    {
+        _move = Vector2.zero;
+        _lookDelta = Vector2.zero;
+        _lookFrame = -1;
+        _lookAxis = Vector2.zero;
+
+        _primaryDownFrame = -1;
+        _primaryUpFrame = -1;
+        _primaryHeld = false;
+
+        _secondaryDownFrame = -1;
+        _secondaryUpFrame = -1;
+        _secondaryHeld = false;
+
+        _sprintHeld = false;
+
+        _grabDownFrame = -1;
+        _dropDownFrame = -1;
+        _throwDownFrame = -1;
+        _crouchDownFrame = -1;
+        _jumpDownFrame = -1;
+        _toggleLightDownFrame = -1;
+        _openJournalDownFrame = -1;
+        _openTeamDownFrame = -1;
+        _exitMenusDownFrame = -1;
+        _nextDownFrame = -1;
+        _previousDownFrame = -1;
+        for (int i = 0; i < _inventoryDownFrames.Length; i++)
+            _inventoryDownFrames[i] = -1;
+    }
+
+    public static Vector2 Move => Enabled ? _move : Vector2.zero;
+
+    public static void SetMove(Vector2 value)
+    {
+        if (!Enabled) return;
+        _move = Vector2.ClampMagnitude(value, 1f);
+    }
+
+    public static void AddLookDelta(Vector2 delta)
+    {
+        if (!Enabled) return;
+
+        if (_lookFrame != Time.frameCount)
+        {
+            _lookDelta = Vector2.zero;
+            _lookFrame = Time.frameCount;
+        }
+
+        _lookDelta += delta;
+    }
+
+    public static void SetLookAxis(Vector2 value)
+    {
+        if (!Enabled) return;
+        _lookAxis = Vector2.ClampMagnitude(value, 1f);
+    }
+
+    public static Vector2 GetLookDelta()
+    {
+        if (!Enabled)
+            return Vector2.zero;
+
+        Vector2 delta = _lookFrame == Time.frameCount ? _lookDelta : Vector2.zero;
+        return delta + _lookAxis;
+    }
+
+    // Primary action (equivalent to mouse left)
+    public static void SetPrimaryHeld(bool held)
+    {
+        if (!Enabled) return;
+        if (held && !_primaryHeld) _primaryDownFrame = Time.frameCount;
+        if (!held && _primaryHeld) _primaryUpFrame = Time.frameCount;
+        _primaryHeld = held;
+    }
+
+    public static bool PrimaryHeld => Enabled && _primaryHeld;
+    public static bool PrimaryDown => Enabled && _primaryDownFrame == Time.frameCount;
+    public static bool PrimaryUp => Enabled && _primaryUpFrame == Time.frameCount;
+
+    // Secondary action (equivalent to mouse right)
+    public static void SetSecondaryHeld(bool held)
+    {
+        if (!Enabled) return;
+        if (held && !_secondaryHeld) _secondaryDownFrame = Time.frameCount;
+        if (!held && _secondaryHeld) _secondaryUpFrame = Time.frameCount;
+        _secondaryHeld = held;
+    }
+
+    public static bool SecondaryHeld => Enabled && _secondaryHeld;
+    public static bool SecondaryDown => Enabled && _secondaryDownFrame == Time.frameCount;
+    public static bool SecondaryUp => Enabled && _secondaryUpFrame == Time.frameCount;
+
+    // Sprint
+    public static void SetSprintHeld(bool held)
+    {
+        if (!Enabled) return;
+        _sprintHeld = held;
+    }
+
+    public static bool SprintHeld => Enabled && _sprintHeld;
+
+    // One-shot actions
+    public static void PressGrab() { if (Enabled) _grabDownFrame = Time.frameCount; }
+    public static bool GrabDown => Enabled && _grabDownFrame == Time.frameCount;
+
+    public static void PressDrop() { if (Enabled) _dropDownFrame = Time.frameCount; }
+    public static bool DropDown => Enabled && _dropDownFrame == Time.frameCount;
+
+    public static void PressThrow() { if (Enabled) _throwDownFrame = Time.frameCount; }
+    public static bool ThrowDown => Enabled && _throwDownFrame == Time.frameCount;
+
+    public static void PressCrouch() { if (Enabled) _crouchDownFrame = Time.frameCount; }
+    public static bool CrouchDown => Enabled && _crouchDownFrame == Time.frameCount;
+
+    public static void PressJump() { if (Enabled) _jumpDownFrame = Time.frameCount; }
+    public static bool JumpDown => Enabled && _jumpDownFrame == Time.frameCount;
+
+    public static void PressToggleLight() { if (Enabled) _toggleLightDownFrame = Time.frameCount; }
+    public static bool ToggleLightDown => Enabled && _toggleLightDownFrame == Time.frameCount;
+
+    public static void PressOpenJournal() { if (Enabled) _openJournalDownFrame = Time.frameCount; }
+    public static bool OpenJournalDown => Enabled && _openJournalDownFrame == Time.frameCount;
+
+    public static void PressOpenTeamMenu() { if (Enabled) _openTeamDownFrame = Time.frameCount; }
+    public static bool OpenTeamMenuDown => Enabled && _openTeamDownFrame == Time.frameCount;
+
+    public static void PressExitMenus() { if (Enabled) _exitMenusDownFrame = Time.frameCount; }
+    public static bool ExitMenusDown => Enabled && _exitMenusDownFrame == Time.frameCount;
+
+    public static void PressNext() { if (Enabled) _nextDownFrame = Time.frameCount; }
+    public static bool NextDown => Enabled && _nextDownFrame == Time.frameCount;
+
+    public static void PressPrevious() { if (Enabled) _previousDownFrame = Time.frameCount; }
+    public static bool PreviousDown => Enabled && _previousDownFrame == Time.frameCount;
+
+    public static void PressInventorySlot(int index)
+    {
+        if (!Enabled) return;
+        if (index < 0 || index >= _inventoryDownFrames.Length) return;
+        _inventoryDownFrames[index] = Time.frameCount;
+    }
+
+    public static bool InventoryDown(int index)
+    {
+        if (!Enabled) return false;
+        if (index < 0 || index >= _inventoryDownFrames.Length) return false;
+        return _inventoryDownFrames[index] == Time.frameCount;
+    }
+}

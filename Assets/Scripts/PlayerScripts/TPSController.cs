@@ -14,20 +14,52 @@ public class TPSController : Controller
     public float sprintSpeed = 6f;
     public float rotationSpeed = 10f; // smooth rotation
 
+    [Header("Mobile Look")]
+    public bool enableMobileLook = true;
+    public float mobileLookSensitivityX = 2.0f;
+    public float mobileLookSensitivityY = 2.0f;
+    public float mobileLookSensitivityMultiplier = 0.06666667f;
+    public float mobileMinPitch = -35f;
+    public float mobileMaxPitch = 60f;
+
+    [Header("Mobile Sprint")]
+    [Range(0.1f, 1f)] public float mobileSprintThreshold = 0.75f;
+
     [Header("Gravity")]
     public float gravity = -20f;
     private Vector3 velocity;
+    private bool _mobileAnglesInitialized;
+    private float _mobileYaw;
+    private float _mobilePitch;
+    private Player _player;
+
+    private void Start()
+    {
+        _player = Player.Instance;
+    }
 
     void Update()
     {
+        if (_player != null && _player.IsLocked())
+            return;
+
         HandleMovement();
+        HandleMobileLook();
     }
 
     void HandleMovement()
 {
     // 1️⃣ Input
-    float h = Input.GetAxis("Horizontal"); // A/D ou flèches
-    float v = Input.GetAxis("Vertical");   // W/S ou flèches
+    float h = 0f;
+    float v = 0f;
+    if (!MobileInput.Enabled)
+    {
+        h = Input.GetAxis("Horizontal"); // A/D ou flèches
+        v = Input.GetAxis("Vertical");   // W/S ou flèches
+    }
+    Vector2 mobileMove = MobileInput.Move;
+    h += mobileMove.x;
+    v += mobileMove.y;
     Vector3 inputDir = new Vector3(h, 0f, v).normalized;
 
     // 2️⃣ Vérifier si on bouge
@@ -50,7 +82,8 @@ public class TPSController : Controller
 
         // 5️⃣ Vitesse
         float speed = runSpeed;
-        if (Input.GetKey(KeyCode.LeftShift)) // sprint
+        bool mobileSprint = MobileInput.Enabled && mobileMove.sqrMagnitude >= (mobileSprintThreshold * mobileSprintThreshold);
+        if ((!MobileInput.Enabled && Input.GetKey(KeyCode.LeftShift)) || MobileInput.SprintHeld || mobileSprint) // sprint
             speed = sprintSpeed;
         else
             speed = walkSpeed;
@@ -91,4 +124,36 @@ public class TPSController : Controller
     }
 }
 
+    private void HandleMobileLook()
+    {
+        if (_player != null && _player.IsCameraLocked())
+            return;
+
+        if (!enableMobileLook || !MobileInput.Enabled || camTransform == null)
+            return;
+
+        if (!_mobileAnglesInitialized)
+        {
+            Vector3 euler = camTransform.localEulerAngles;
+            _mobileYaw = euler.y;
+            _mobilePitch = NormalizePitch(euler.x);
+            _mobileAnglesInitialized = true;
+        }
+
+        Vector2 look = MobileInput.GetLookDelta();
+        if (look.sqrMagnitude < 0.00001f)
+            return;
+
+        _mobileYaw += look.x * mobileLookSensitivityX * mobileLookSensitivityMultiplier * 100f * Time.deltaTime;
+        _mobilePitch -= look.y * mobileLookSensitivityY * mobileLookSensitivityMultiplier * 100f * Time.deltaTime;
+        _mobilePitch = Mathf.Clamp(_mobilePitch, mobileMinPitch, mobileMaxPitch);
+
+        camTransform.localRotation = Quaternion.Euler(_mobilePitch, _mobileYaw, 0f);
+    }
+
+    private float NormalizePitch(float x)
+    {
+        if (x > 180f) x -= 360f;
+        return x;
+    }
 }

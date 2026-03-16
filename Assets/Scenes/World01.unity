@@ -33200,6 +33200,10 @@ PrefabInstance:
       value: SceneManagers
       objectReference: {fileID: 0}
     - target: {fileID: 5856197954553738249, guid: 790460373b15f4e2bb203fd631c26813, type: 3}
+      propertyPath: mobileControlsEnabled
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 5856197954553738249, guid: 790460373b15f4e2bb203fd631c26813, type: 3}
       propertyPath: spawnPoints.Array.data[1]
       value: 
       objectReference: {fileID: 0}
@@ -50564,7 +50568,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1334788620}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 36.2986, y: 8.932921, z: 16.143507}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
@@ -50575,7 +50579,7 @@ Transform:
   - {fileID: 1440184064}
   - {fileID: 432418691}
   - {fileID: 1460929402}
-  m_Father: {fileID: 0}
+  m_Father: {fileID: 1872218937}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!4 &1342576649 stripped
 Transform:
@@ -70770,6 +70774,7 @@ Transform:
   - {fileID: 995118453}
   - {fileID: 675452572}
   - {fileID: 673518403}
+  - {fileID: 1334788621}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &1872218938
@@ -82049,4 +82054,3 @@ SceneRoots:
   - {fileID: 3070242414788049932}
   - {fileID: 857648292}
   - {fileID: 168617913}
-  - {fileID: 1334788621}

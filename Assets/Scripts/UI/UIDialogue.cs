@@ -64,7 +64,7 @@ public class UIDialogue : GameBehaviour
     private void Update()
     {
         // Press "E" to go to next line
-        if (_dialogueActive && Input.GetKeyDown(_inputManager.worldInteractions))
+        if (_dialogueActive && ((!MobileInput.Enabled && Input.GetKeyDown(_inputManager.worldInteractions)) || MobileInput.GrabDown))
         {
             NextDialogue();
         }
