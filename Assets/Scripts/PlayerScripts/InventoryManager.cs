@@ -224,14 +224,32 @@ public class InventoryManager : GameBehaviour
             TryToDropSpirimonz();
         }
         
-        if (((!MobileInput.Enabled && Input.GetMouseButtonDown(1)) || MobileInput.SecondaryDown) && _gamePlayer.handAnimator.GetInteger("HandPos") == (int)HandPoses.LightAim)
+        bool hasObjectInHands = _gamePlayer.interactionController != null && _gamePlayer.interactionController.objectInHands != null;
+        bool hasSpirimonzInHands = selectedSpirimonz != null && !selectedSpirimonz.isOnTheMap;
+        bool allowNightVision = !hasObjectInHands && !hasSpirimonzInHands;
+
+        if (MobileInput.Enabled)
         {
-            TurnOnNightVision();
+            if (allowNightVision && MobileInput.SecondaryDown)
+            {
+                int handPos = _gamePlayer.handAnimator.GetInteger("HandPos");
+                if (handPos == (int)HandPoses.LightAim)
+                    TurnOnNightVision();
+                else if (handPos == (int)HandPoses.CameraAim)
+                    TurnOffNightVision();
+            }
         }
-        
-        if (((!MobileInput.Enabled && Input.GetMouseButtonUp(1)) || MobileInput.SecondaryUp) && _gamePlayer.handAnimator.GetInteger("HandPos") == (int)HandPoses.CameraAim)
+        else
         {
-            TurnOffNightVision();
+            if (Input.GetMouseButtonDown(1) && _gamePlayer.handAnimator.GetInteger("HandPos") == (int)HandPoses.LightAim)
+            {
+                TurnOnNightVision();
+            }
+        
+            if (Input.GetMouseButtonUp(1) && _gamePlayer.handAnimator.GetInteger("HandPos") == (int)HandPoses.CameraAim)
+            {
+                TurnOffNightVision();
+            }
         }
     }
 

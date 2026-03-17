@@ -20,6 +20,8 @@ public class UITablet : MonoBehaviour
     public UIEntryPanel entryPanel;
     public UIEndGame endGame;
 
+    public Button bClose;
+
     private Color _baseColor;
     private Color _baseIconColor;
     
@@ -36,6 +38,8 @@ public class UITablet : MonoBehaviour
         _baseIconColor = tabIcons[0].color;
         
         _targetWidth = tabletPanel.sizeDelta.x;
+        
+        bClose.onClick.AddListener(TurnOffTablet);
     }
 
     private void Start()

@@ -24,7 +24,8 @@ public class ThirdPersonController : MonoBehaviour
     
     [Header("Camera Sensitivity")]
     public float mouseSensitivity = 1.5f;
-    public float mobileLookSensitivityMultiplier = 0.1f;
+    public float mobileLookSensitivityMultiplier = 0.08f;
+    public float mobileLookVerticalMultiplier = 0.6f;
 
     [Header("Mobile Sprint")]
     [Range(0.1f, 1f)] public float mobileSprintThreshold = 0.75f;
@@ -130,7 +131,7 @@ public class ThirdPersonController : MonoBehaviour
         {
             Vector2 look = MobileInput.GetLookDelta();
             mouseX = look.x * mouseSensitivity * mobileLookSensitivityMultiplier * 100f * Time.deltaTime;
-            mouseY = look.y * mouseSensitivity * mobileLookSensitivityMultiplier * 100f * Time.deltaTime;
+            mouseY = look.y * mouseSensitivity * mobileLookSensitivityMultiplier * mobileLookVerticalMultiplier * 100f * Time.deltaTime;
         }
 
         _cinemachineTargetYaw += mouseX;

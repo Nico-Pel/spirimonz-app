@@ -1,0 +1,430 @@
+using UnityEngine;
+using UnityEngine.EventSystems;
+
+[DefaultExecutionOrder(-100)]
+public class MobileJoystickInputRouter : MonoBehaviour
+{
+    public RectTransform joystickRoot;
+    public MobileJoystick moveJoystick;
+    public MobileLookJoystick lookJoystick;
+
+    [Header("Floating")]
+    public bool freezeFloatingWhenDoorGrabbed = true;
+
+    [Header("Tap For Primary")]
+    public bool enablePrimaryTouch = true;
+    public float joystickActivationThreshold = 12f;
+
+    [Header("Mouse Simulation")]
+    public bool enableMouseSimulation = true;
+
+    private int _leftId = int.MinValue;
+    private int _rightId = int.MinValue;
+    private int _primaryId = int.MinValue;
+    private int _clearPrimaryScreenFrame = -1;
+
+    private struct PendingTouch
+    {
+        public int id;
+        public Vector2 startPos;
+        public Vector2 lastPos;
+        public bool active;
+    }
+
+    private PendingTouch _pendingLeft;
+    private PendingTouch _pendingRight;
+
+    private InteractionController _interaction;
+
+    private void Update()
+    {
+        if (!MobileInput.Enabled)
+        {
+            ResetAll();
+            return;
+        }
+
+        if (_clearPrimaryScreenFrame >= 0 && Time.frameCount >= _clearPrimaryScreenFrame && _primaryId == int.MinValue)
+        {
+            MobileInput.ClearPrimaryScreenPos();
+            _clearPrimaryScreenFrame = -1;
+        }
+
+        bool doorGrabbed = freezeFloatingWhenDoorGrabbed && IsDoorGrabbed();
+        HandleTouches(doorGrabbed);
+
+        if (enableMouseSimulation && Input.touchCount == 0)
+            HandleMouse(doorGrabbed);
+    }
+
+    private void HandleTouches(bool doorGrabbed)
+    {
+        int touchCount = Input.touchCount;
+        if (touchCount == 0)
+            return;
+
+        float halfWidth = Screen.width * 0.5f;
+        float thresholdSqr = joystickActivationThreshold * joystickActivationThreshold;
+
+        for (int i = 0; i < touchCount; i++)
+        {
+            Touch touch = Input.touches[i];
+            int id = touch.fingerId;
+
+            if (touch.phase == TouchPhase.Began)
+            {
+                if (IsOverUI(id))
+                    continue;
+
+                if (enablePrimaryTouch && IsDoorUnderScreenPoint(touch.position) && !IsTouchOnJoystick(touch.position))
+                {
+                    _primaryId = id;
+                    MobileInput.SetPrimaryHeld(true);
+                    MobileInput.SetPrimaryScreenPos(touch.position);
+                    continue;
+                }
+
+                bool isLeftHalf = touch.position.x < halfWidth;
+
+                if (IsTouchOnJoystick(touch.position))
+                {
+                    if (isLeftHalf && _leftId == int.MinValue)
+                    {
+                        _leftId = id;
+                        moveJoystick.ProcessPointerDown(touch.position, null, joystickRoot, !doorGrabbed);
+                    }
+                    else if (!isLeftHalf && _rightId == int.MinValue)
+                    {
+                        _rightId = id;
+                        lookJoystick.ProcessPointerDown(touch.position, null, joystickRoot, !doorGrabbed);
+                    }
+
+                    continue;
+                }
+
+                StartPending(isLeftHalf, id, touch.position);
+            }
+
+            if (id == _leftId)
+            {
+                if (touch.phase == TouchPhase.Moved || touch.phase == TouchPhase.Stationary)
+                    moveJoystick.ProcessDrag(touch.position, null);
+                else if (touch.phase == TouchPhase.Ended || touch.phase == TouchPhase.Canceled)
+                {
+                    moveJoystick.ProcessPointerUp(true);
+                    _leftId = int.MinValue;
+                }
+            }
+            else if (id == _rightId)
+            {
+                if (touch.phase == TouchPhase.Moved || touch.phase == TouchPhase.Stationary)
+                    lookJoystick.ProcessDrag(touch.position, null);
+                else if (touch.phase == TouchPhase.Ended || touch.phase == TouchPhase.Canceled)
+                {
+                    lookJoystick.ProcessPointerUp(true);
+                    _rightId = int.MinValue;
+                }
+            }
+            else if (id == _primaryId)
+            {
+                if (touch.phase == TouchPhase.Moved || touch.phase == TouchPhase.Stationary)
+                    MobileInput.SetPrimaryScreenPos(touch.position);
+                if (touch.phase == TouchPhase.Ended || touch.phase == TouchPhase.Canceled)
+                {
+                    MobileInput.SetPrimaryHeld(false);
+                    MobileInput.ClearPrimaryScreenPos();
+                    _primaryId = int.MinValue;
+                }
+            }
+            else if (IsPendingLeft(id))
+            {
+                if (touch.phase == TouchPhase.Moved || touch.phase == TouchPhase.Stationary)
+                {
+                    UpdatePending(ref _pendingLeft, touch.position);
+                    if (_leftId == int.MinValue && (_pendingLeft.lastPos - _pendingLeft.startPos).sqrMagnitude >= thresholdSqr)
+                    {
+                        _leftId = id;
+                        moveJoystick.ProcessPointerDown(_pendingLeft.startPos, null, joystickRoot, !doorGrabbed);
+                        moveJoystick.ProcessDrag(touch.position, null);
+                        ClearPending(ref _pendingLeft);
+                    }
+                }
+                if (touch.phase == TouchPhase.Ended)
+                {
+                    TriggerPrimaryTap(_pendingLeft.lastPos);
+                    ClearPending(ref _pendingLeft);
+                }
+                else if (touch.phase == TouchPhase.Canceled)
+                {
+                    ClearPending(ref _pendingLeft);
+                }
+            }
+            else if (IsPendingRight(id))
+            {
+                if (touch.phase == TouchPhase.Moved || touch.phase == TouchPhase.Stationary)
+                {
+                    UpdatePending(ref _pendingRight, touch.position);
+                    if (_rightId == int.MinValue && (_pendingRight.lastPos - _pendingRight.startPos).sqrMagnitude >= thresholdSqr)
+                    {
+                        _rightId = id;
+                        lookJoystick.ProcessPointerDown(_pendingRight.startPos, null, joystickRoot, !doorGrabbed);
+                        lookJoystick.ProcessDrag(touch.position, null);
+                        ClearPending(ref _pendingRight);
+                    }
+                }
+                if (touch.phase == TouchPhase.Ended)
+                {
+                    TriggerPrimaryTap(_pendingRight.lastPos);
+                    ClearPending(ref _pendingRight);
+                }
+                else if (touch.phase == TouchPhase.Canceled)
+                {
+                    ClearPending(ref _pendingRight);
+                }
+            }
+        }
+    }
+
+    private void HandleMouse(bool doorGrabbed)
+    {
+        float halfWidth = Screen.width * 0.5f;
+        float thresholdSqr = joystickActivationThreshold * joystickActivationThreshold;
+        Vector2 mousePos = Input.mousePosition;
+
+        if (Input.GetMouseButtonDown(0))
+        {
+            if (IsOverUI(-1))
+                return;
+
+            if (enablePrimaryTouch && IsDoorUnderScreenPoint(mousePos) && !IsTouchOnJoystick(mousePos))
+            {
+                _primaryId = -1;
+                MobileInput.SetPrimaryHeld(true);
+                MobileInput.SetPrimaryScreenPos(mousePos);
+                return;
+            }
+
+            bool isLeftHalf = mousePos.x < halfWidth;
+
+            if (IsTouchOnJoystick(mousePos))
+            {
+                if (isLeftHalf && _leftId == int.MinValue)
+                {
+                    _leftId = -1;
+                    moveJoystick.ProcessPointerDown(mousePos, null, joystickRoot, !doorGrabbed);
+                }
+                else if (!isLeftHalf && _rightId == int.MinValue)
+                {
+                    _rightId = -1;
+                    lookJoystick.ProcessPointerDown(mousePos, null, joystickRoot, !doorGrabbed);
+                }
+
+                return;
+            }
+
+            StartPending(isLeftHalf, -1, mousePos);
+        }
+
+        if (Input.GetMouseButton(0))
+        {
+            if (_leftId == -1)
+            {
+                moveJoystick.ProcessDrag(mousePos, null);
+            }
+            else if (_rightId == -1)
+            {
+                lookJoystick.ProcessDrag(mousePos, null);
+            }
+            else if (_primaryId == -1)
+            {
+                MobileInput.SetPrimaryScreenPos(mousePos);
+            }
+            else if (IsPendingLeft(-1))
+            {
+                UpdatePending(ref _pendingLeft, mousePos);
+                if (_leftId == int.MinValue && (_pendingLeft.lastPos - _pendingLeft.startPos).sqrMagnitude >= thresholdSqr)
+                {
+                    _leftId = -1;
+                    moveJoystick.ProcessPointerDown(_pendingLeft.startPos, null, joystickRoot, !doorGrabbed);
+                    moveJoystick.ProcessDrag(mousePos, null);
+                    ClearPending(ref _pendingLeft);
+                }
+            }
+            else if (IsPendingRight(-1))
+            {
+                UpdatePending(ref _pendingRight, mousePos);
+                if (_rightId == int.MinValue && (_pendingRight.lastPos - _pendingRight.startPos).sqrMagnitude >= thresholdSqr)
+                {
+                    _rightId = -1;
+                    lookJoystick.ProcessPointerDown(_pendingRight.startPos, null, joystickRoot, !doorGrabbed);
+                    lookJoystick.ProcessDrag(mousePos, null);
+                    ClearPending(ref _pendingRight);
+                }
+            }
+        }
+
+        if (Input.GetMouseButtonUp(0))
+        {
+            if (_leftId == -1)
+            {
+                moveJoystick.ProcessPointerUp(true);
+                _leftId = int.MinValue;
+            }
+            else if (_rightId == -1)
+            {
+                lookJoystick.ProcessPointerUp(true);
+                _rightId = int.MinValue;
+            }
+
+            if (_primaryId == -1)
+            {
+                MobileInput.SetPrimaryHeld(false);
+                MobileInput.ClearPrimaryScreenPos();
+                _primaryId = int.MinValue;
+            }
+            else if (IsPendingLeft(-1))
+            {
+                TriggerPrimaryTap(_pendingLeft.lastPos);
+                ClearPending(ref _pendingLeft);
+            }
+            else if (IsPendingRight(-1))
+            {
+                TriggerPrimaryTap(_pendingRight.lastPos);
+                ClearPending(ref _pendingRight);
+            }
+        }
+    }
+
+    private bool IsOverUI(int pointerId)
+    {
+        if (EventSystem.current == null)
+            return false;
+
+        if (pointerId < 0)
+            return EventSystem.current.IsPointerOverGameObject();
+
+        return EventSystem.current.IsPointerOverGameObject(pointerId);
+    }
+
+    private bool IsDoorGrabbed()
+    {
+        if (_interaction == null)
+        {
+            GamePlayer gp = Player.Instance as GamePlayer;
+            if (gp != null)
+                _interaction = gp.interactionController;
+        }
+
+        return _interaction != null && _interaction.IsDoorGrabbed();
+    }
+
+    private bool IsDoorUnderScreenPoint(Vector2 screenPos)
+    {
+        if (_interaction == null)
+        {
+            GamePlayer gp = Player.Instance as GamePlayer;
+            if (gp != null)
+                _interaction = gp.interactionController;
+        }
+
+        if (_interaction == null)
+            return false;
+
+        return _interaction.TryGetDoorUnderScreenPoint(screenPos, out _);
+    }
+
+    private bool IsTouchOnJoystick(Vector2 screenPos)
+    {
+        if (moveJoystick != null && moveJoystick.ContainsScreenPoint(screenPos, null))
+            return true;
+        if (lookJoystick != null && lookJoystick.ContainsScreenPoint(screenPos, null))
+            return true;
+        return false;
+    }
+
+    private void ResetAll()
+    {
+        if (_leftId != int.MinValue)
+        {
+            moveJoystick.ProcessPointerUp(true);
+            _leftId = int.MinValue;
+        }
+
+        if (_rightId != int.MinValue)
+        {
+            lookJoystick.ProcessPointerUp(true);
+            _rightId = int.MinValue;
+        }
+
+        if (_primaryId != int.MinValue)
+        {
+            MobileInput.SetPrimaryHeld(false);
+            MobileInput.ClearPrimaryScreenPos();
+            _primaryId = int.MinValue;
+        }
+
+        ClearPending(ref _pendingLeft);
+        ClearPending(ref _pendingRight);
+        _clearPrimaryScreenFrame = -1;
+        MobileInput.ClearPrimaryScreenPos();
+    }
+
+    private void StartPending(bool isLeftHalf, int id, Vector2 position)
+    {
+        if (isLeftHalf)
+        {
+            if (!_pendingLeft.active)
+            {
+                _pendingLeft.active = true;
+                _pendingLeft.id = id;
+                _pendingLeft.startPos = position;
+                _pendingLeft.lastPos = position;
+            }
+        }
+        else
+        {
+            if (!_pendingRight.active)
+            {
+                _pendingRight.active = true;
+                _pendingRight.id = id;
+                _pendingRight.startPos = position;
+                _pendingRight.lastPos = position;
+            }
+        }
+    }
+
+    private static void UpdatePending(ref PendingTouch pending, Vector2 position)
+    {
+        if (!pending.active)
+            return;
+        pending.lastPos = position;
+    }
+
+    private static void ClearPending(ref PendingTouch pending)
+    {
+        pending.active = false;
+        pending.id = int.MinValue;
+        pending.startPos = Vector2.zero;
+        pending.lastPos = Vector2.zero;
+    }
+
+    private bool IsPendingLeft(int id)
+    {
+        return _pendingLeft.active && _pendingLeft.id == id;
+    }
+
+    private bool IsPendingRight(int id)
+    {
+        return _pendingRight.active && _pendingRight.id == id;
+    }
+
+    private void TriggerPrimaryTap(Vector2 screenPos)
+    {
+        if (!enablePrimaryTouch || _primaryId != int.MinValue)
+            return;
+
+        MobileInput.SetPrimaryScreenPos(screenPos);
+        MobileInput.PressPrimary();
+        _clearPrimaryScreenFrame = Time.frameCount + 1;
+    }
+}

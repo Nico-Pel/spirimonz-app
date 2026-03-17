@@ -86,6 +86,11 @@ public class MobileLightOptimizedLight : MonoBehaviour
         {
             Initialize(gameplayLight: false);
         }
+        else if (_baseRange <= 0f && targetLight.range > 0f)
+        {
+            // Some lights get their range set after Awake/OnEnable in House scenes.
+            CacheBase();
+        }
 
         if (ignoreOptimization || targetLight.type != LightType.Point)
         {

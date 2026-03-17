@@ -28,6 +28,26 @@ public class MobileControlsBootstrap : MonoBehaviour
     public Color keyButtonColor = new Color(0f, 0f, 0f, 0.55f);
     public Color keyButtonTextColor = new Color(1f, 1f, 1f, 0.9f);
 
+    [Header("Action Buttons")]
+    public bool createActionButtons = true;
+    public float actionButtonSize = 120f;
+    public float actionButtonRadius = 200f;
+    public float actionButtonCenterYOffset = 40f;
+    public float actionButtonAngleLeft = 120f;  // F
+    public float actionButtonAngleCenter = 90f; // E
+    public float actionButtonAngleRight = 60f;  // G
+    public Vector2 actionButtonsOffset = new Vector2(-120f, 80f);
+    public string secondaryButtonLabel = "R";
+    public int actionButtonFontSize = 30;
+    public Color actionButtonColor = new Color(0f, 0f, 0f, 0.55f);
+    public Color actionButtonTextColor = new Color(1f, 1f, 1f, 0.95f);
+
+    [Header("Torch Button")]
+    public bool createTorchButton = true;
+    public float torchButtonSize = 80f;
+    public Vector2 torchButtonOffset = new Vector2(-170f, -120f);
+    public string torchButtonLabel = "T";
+
     private static bool _created;
 
     public static void EnsureExists()
@@ -103,8 +123,13 @@ public class MobileControlsBootstrap : MonoBehaviour
         keysVisibility.hideWhenEndGame = false;
         keysVisibility.alwaysVisibleWhenMobile = true;
 
-        CreateMoveJoystick(joysticksRoot, baseSprite, handleSprite);
-        CreateLookJoystick(joysticksRoot, baseSprite, handleSprite);
+        MobileJoystick moveJoystick = CreateMoveJoystick(joysticksRoot, baseSprite, handleSprite);
+        MobileLookJoystick lookJoystick = CreateLookJoystick(joysticksRoot, baseSprite, handleSprite);
+
+        CreateJoystickRouter(canvasGO, joysticksRoot, moveJoystick, lookJoystick);
+
+        if (createActionButtons)
+            CreateActionButtons(joysticksRoot, moveJoystick, lookJoystick);
 
         if (createKeyButtons)
             CreateKeyButtons(keysRoot);
@@ -124,7 +149,7 @@ public class MobileControlsBootstrap : MonoBehaviour
         return rect;
     }
 
-    private void CreateMoveJoystick(Transform parent, Sprite baseSpriteToUse, Sprite handleSpriteToUse)
+    private MobileJoystick CreateMoveJoystick(Transform parent, Sprite baseSpriteToUse, Sprite handleSpriteToUse)
     {
         GameObject baseGO = new GameObject("MoveJoystick", typeof(RectTransform), typeof(Image), typeof(MobileJoystick));
         baseGO.transform.SetParent(parent, false);
@@ -139,7 +164,7 @@ public class MobileControlsBootstrap : MonoBehaviour
         Image baseImg = baseGO.GetComponent<Image>();
         baseImg.sprite = baseSpriteToUse;
         baseImg.color = baseColor;
-        baseImg.raycastTarget = true;
+        baseImg.raycastTarget = false;
 
         RectTransform handle = CreateHandle(baseRect, handleSpriteToUse);
 
@@ -147,9 +172,12 @@ public class MobileControlsBootstrap : MonoBehaviour
         joystick.handle = handle;
         joystick.handleRange = handleRange;
         joystick.deadZone = deadZone;
+        joystick.CacheStartPositions();
+
+        return joystick;
     }
 
-    private void CreateLookJoystick(Transform parent, Sprite baseSpriteToUse, Sprite handleSpriteToUse)
+    private MobileLookJoystick CreateLookJoystick(Transform parent, Sprite baseSpriteToUse, Sprite handleSpriteToUse)
     {
         GameObject baseGO = new GameObject("LookJoystick", typeof(RectTransform), typeof(Image), typeof(MobileLookJoystick));
         baseGO.transform.SetParent(parent, false);
@@ -164,7 +192,7 @@ public class MobileControlsBootstrap : MonoBehaviour
         Image baseImg = baseGO.GetComponent<Image>();
         baseImg.sprite = baseSpriteToUse;
         baseImg.color = baseColor;
-        baseImg.raycastTarget = true;
+        baseImg.raycastTarget = false;
 
         RectTransform handle = CreateHandle(baseRect, handleSpriteToUse);
 
@@ -172,6 +200,9 @@ public class MobileControlsBootstrap : MonoBehaviour
         joystick.handle = handle;
         joystick.handleRange = handleRange;
         joystick.deadZone = deadZone;
+        joystick.CacheStartPositions();
+
+        return joystick;
     }
 
     private RectTransform CreateHandle(RectTransform parent, Sprite sprite)
@@ -209,7 +240,7 @@ public class MobileControlsBootstrap : MonoBehaviour
         {
             ("ESC", MobileButton.Action.ExitMenus),
             ("TAB", MobileButton.Action.OpenTeamMenu),
-            ("E", MobileButton.Action.Grab),
+            ("Y", MobileButton.Action.KeyY),
             ("1", MobileButton.Action.Inventory1),
             ("2", MobileButton.Action.Inventory2),
             ("3", MobileButton.Action.Inventory3),
@@ -266,6 +297,99 @@ public class MobileControlsBootstrap : MonoBehaviour
         if (keyButtonFont == null)
             keyButtonFont = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
         text.font = keyButtonFont;
+    }
+
+    private void CreateJoystickRouter(GameObject canvasGO, RectTransform joystickRoot, MobileJoystick moveJoystick, MobileLookJoystick lookJoystick)
+    {
+        MobileJoystickInputRouter router = canvasGO.AddComponent<MobileJoystickInputRouter>();
+        router.joystickRoot = joystickRoot;
+        router.moveJoystick = moveJoystick;
+        router.lookJoystick = lookJoystick;
+        router.freezeFloatingWhenDoorGrabbed = true;
+        router.enablePrimaryTouch = true;
+    }
+
+    private void CreateActionButtons(RectTransform parent, MobileJoystick moveJoystick, MobileLookJoystick lookJoystick)
+    {
+        GameObject group = new GameObject("MobileActionButtons", typeof(RectTransform));
+        group.transform.SetParent(parent, false);
+
+        RectTransform groupRect = group.GetComponent<RectTransform>();
+        groupRect.anchorMin = new Vector2(1f, 0f);
+        groupRect.anchorMax = new Vector2(1f, 0f);
+        groupRect.pivot = new Vector2(0.5f, 0.5f);
+        groupRect.anchoredPosition = Vector2.zero;
+
+        Vector2 arcCenter = rightJoystickAnchoredPos + new Vector2(0f, actionButtonCenterYOffset) + actionButtonsOffset;
+        Vector2 leftPos = arcCenter + AngleToOffset(actionButtonAngleLeft, actionButtonRadius);
+        Vector2 rightPos = arcCenter + AngleToOffset(actionButtonAngleRight, actionButtonRadius);
+
+        GameObject grabButton = CreateActionButton(groupRect, "Action_E", "E", MobileButton.Action.Grab, leftPos, actionButtonSize);
+        GameObject secondaryButton = CreateActionButton(groupRect, "Action_R", secondaryButtonLabel, MobileButton.Action.Secondary,
+            rightPos, actionButtonSize);
+        GameObject dropButton = CreateActionButton(groupRect, "Action_F", "F", MobileButton.Action.Drop, leftPos, actionButtonSize);
+        GameObject throwButton = CreateActionButton(groupRect, "Action_G", "G", MobileButton.Action.Throw, rightPos, actionButtonSize);
+
+        GameObject torchButton = null;
+        if (createTorchButton)
+        {
+            Vector2 torchPos = rightJoystickAnchoredPos + torchButtonOffset;
+            torchButton = CreateActionButton(groupRect, "Action_Torch", torchButtonLabel, MobileButton.Action.ToggleLight, torchPos, torchButtonSize);
+        }
+
+        MobileActionButtons actionButtons = group.AddComponent<MobileActionButtons>();
+        actionButtons.grabButton = grabButton;
+        actionButtons.dropButton = dropButton;
+        actionButtons.throwButton = throwButton;
+        actionButtons.secondaryButton = secondaryButton;
+        actionButtons.torchButton = torchButton;
+    }
+
+    private GameObject CreateActionButton(RectTransform parent, string name, string label, MobileButton.Action action, Vector2 anchoredPos, float size)
+    {
+        GameObject btnGO = new GameObject(name, typeof(RectTransform), typeof(Image), typeof(Button), typeof(MobileButton));
+        btnGO.transform.SetParent(parent, false);
+
+        RectTransform rect = btnGO.GetComponent<RectTransform>();
+        rect.anchorMin = new Vector2(1f, 0f);
+        rect.anchorMax = new Vector2(1f, 0f);
+        rect.pivot = new Vector2(0.5f, 0.5f);
+        rect.sizeDelta = new Vector2(size, size);
+        rect.anchoredPosition = anchoredPos;
+
+        Image img = btnGO.GetComponent<Image>();
+        img.sprite = baseSprite != null ? baseSprite : CreateCircleSprite(128, 0.95f);
+        img.color = actionButtonColor;
+        img.raycastTarget = true;
+
+        MobileButton mobileButton = btnGO.GetComponent<MobileButton>();
+        mobileButton.action = action;
+
+        GameObject textGO = new GameObject("Label", typeof(RectTransform), typeof(Text));
+        textGO.transform.SetParent(btnGO.transform, false);
+
+        RectTransform textRect = textGO.GetComponent<RectTransform>();
+        textRect.anchorMin = Vector2.zero;
+        textRect.anchorMax = Vector2.one;
+        textRect.offsetMin = Vector2.zero;
+        textRect.offsetMax = Vector2.zero;
+
+        Text text = textGO.GetComponent<Text>();
+        text.text = label;
+        text.alignment = TextAnchor.MiddleCenter;
+        text.color = actionButtonTextColor;
+        text.fontSize = actionButtonFontSize;
+        if (keyButtonFont == null)
+            keyButtonFont = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+        text.font = keyButtonFont;
+
+        return btnGO;
+    }
+
+    private Vector2 AngleToOffset(float angleDeg, float radius)
+    {
+        float rad = angleDeg * Mathf.Deg2Rad;
+        return new Vector2(Mathf.Cos(rad), Mathf.Sin(rad)) * radius;
     }
 
     private Sprite CreateCircleSprite(int size, float radius01)

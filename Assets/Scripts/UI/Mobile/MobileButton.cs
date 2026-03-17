@@ -19,6 +19,7 @@ public class MobileButton : MonoBehaviour, IPointerDownHandler, IPointerUpHandle
         ExitMenus,
         Next,
         Previous,
+        KeyY,
         Inventory1,
         Inventory2,
         Inventory3,
@@ -74,6 +75,9 @@ public class MobileButton : MonoBehaviour, IPointerDownHandler, IPointerUpHandle
                 break;
             case Action.Previous:
                 MobileInput.PressPrevious();
+                break;
+            case Action.KeyY:
+                MobileInput.PressY();
                 break;
             case Action.Inventory1:
                 MobileInput.PressInventorySlot(0);

@@ -31,6 +31,9 @@ public static class MobileInput
     private static int _nextDownFrame = -1;
     private static int _previousDownFrame = -1;
     private static int[] _inventoryDownFrames = new int[6];
+    private static int _yDownFrame = -1;
+    private static Vector2 _primaryScreenPos;
+    private static bool _primaryScreenPosValid;
 
     public static void SetEnabled(bool enabled)
     {
@@ -67,6 +70,8 @@ public static class MobileInput
         _exitMenusDownFrame = -1;
         _nextDownFrame = -1;
         _previousDownFrame = -1;
+        _yDownFrame = -1;
+        _primaryScreenPosValid = false;
         for (int i = 0; i < _inventoryDownFrames.Length; i++)
             _inventoryDownFrames[i] = -1;
     }
@@ -119,6 +124,13 @@ public static class MobileInput
     public static bool PrimaryHeld => Enabled && _primaryHeld;
     public static bool PrimaryDown => Enabled && _primaryDownFrame == Time.frameCount;
     public static bool PrimaryUp => Enabled && _primaryUpFrame == Time.frameCount;
+
+    public static void PressPrimary()
+    {
+        if (!Enabled) return;
+        _primaryDownFrame = Time.frameCount;
+        _primaryUpFrame = Time.frameCount;
+    }
 
     // Secondary action (equivalent to mouse right)
     public static void SetSecondaryHeld(bool held)
@@ -175,6 +187,24 @@ public static class MobileInput
 
     public static void PressPrevious() { if (Enabled) _previousDownFrame = Time.frameCount; }
     public static bool PreviousDown => Enabled && _previousDownFrame == Time.frameCount;
+
+    public static void PressY() { if (Enabled) _yDownFrame = Time.frameCount; }
+    public static bool YDown => Enabled && _yDownFrame == Time.frameCount;
+
+    public static void SetPrimaryScreenPos(Vector2 pos)
+    {
+        if (!Enabled) return;
+        _primaryScreenPos = pos;
+        _primaryScreenPosValid = true;
+    }
+
+    public static void ClearPrimaryScreenPos()
+    {
+        _primaryScreenPosValid = false;
+    }
+
+    public static bool HasPrimaryScreenPos => Enabled && _primaryScreenPosValid;
+    public static Vector2 PrimaryScreenPos => _primaryScreenPos;
 
     public static void PressInventorySlot(int index)
     {

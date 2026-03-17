@@ -17,10 +17,12 @@ public class TPSController : Controller
     [Header("Mobile Look")]
     public bool enableMobileLook = true;
     public float mobileLookSensitivityX = 2.0f;
-    public float mobileLookSensitivityY = 2.0f;
-    public float mobileLookSensitivityMultiplier = 0.06666667f;
+    public float mobileLookSensitivityY = 1.2f;
+    public float mobileLookSensitivityMultiplier = 0.055f;
     public float mobileMinPitch = -35f;
     public float mobileMaxPitch = 60f;
+    public float mobileIdleLookMultiplier = 2f;
+    public float mobileIdleLookLerpSpeed = 6f;
 
     [Header("Mobile Sprint")]
     [Range(0.1f, 1f)] public float mobileSprintThreshold = 0.75f;
@@ -32,6 +34,8 @@ public class TPSController : Controller
     private float _mobileYaw;
     private float _mobilePitch;
     private Player _player;
+    private bool _isMoving;
+    private float _mobileIdleMultiplier = 1f;
 
     private void Start()
     {
@@ -63,7 +67,8 @@ public class TPSController : Controller
     Vector3 inputDir = new Vector3(h, 0f, v).normalized;
 
     // 2️⃣ Vérifier si on bouge
-    if (inputDir.magnitude >= 0.1f)
+    _isMoving = inputDir.magnitude >= 0.1f;
+    if (_isMoving)
     {
         // 3️⃣ Mouvement relatif à la caméra
         Vector3 camForward = camTransform.forward;
@@ -129,8 +134,14 @@ public class TPSController : Controller
         if (_player != null && _player.IsCameraLocked())
             return;
 
-        if (!enableMobileLook || !MobileInput.Enabled || camTransform == null)
+        if (!enableMobileLook || camTransform == null)
             return;
+
+        if (!MobileInput.Enabled)
+        {
+            _mobileIdleMultiplier = 1f;
+            return;
+        }
 
         if (!_mobileAnglesInitialized)
         {
@@ -140,12 +151,16 @@ public class TPSController : Controller
             _mobileAnglesInitialized = true;
         }
 
+        float targetMultiplier = _isMoving ? 1f : mobileIdleLookMultiplier;
+        _mobileIdleMultiplier = Mathf.Lerp(_mobileIdleMultiplier, targetMultiplier, mobileIdleLookLerpSpeed * Time.deltaTime);
+
         Vector2 look = MobileInput.GetLookDelta();
         if (look.sqrMagnitude < 0.00001f)
             return;
 
-        _mobileYaw += look.x * mobileLookSensitivityX * mobileLookSensitivityMultiplier * 100f * Time.deltaTime;
-        _mobilePitch -= look.y * mobileLookSensitivityY * mobileLookSensitivityMultiplier * 100f * Time.deltaTime;
+        float sensitivity = mobileLookSensitivityMultiplier * _mobileIdleMultiplier;
+        _mobileYaw += look.x * mobileLookSensitivityX * sensitivity * 100f * Time.deltaTime;
+        _mobilePitch -= look.y * mobileLookSensitivityY * sensitivity * 100f * Time.deltaTime;
         _mobilePitch = Mathf.Clamp(_mobilePitch, mobileMinPitch, mobileMaxPitch);
 
         camTransform.localRotation = Quaternion.Euler(_mobilePitch, _mobileYaw, 0f);

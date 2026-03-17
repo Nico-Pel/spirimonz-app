@@ -22,8 +22,10 @@ public class FPSControllerNoPhysics : Controller
 
     [Header("Mobile Look")]
     public float mobileLookSensitivityX = 2.0f;
-    public float mobileLookSensitivityY = 2.0f;
-    public float mobileLookSensitivityMultiplier = 0.45f;
+    public float mobileLookSensitivityY = 0.8f;
+    public float mobileLookSensitivityMultiplier = 0.25f;
+    public float mobileIdleLookMultiplier = 2f;
+    public float mobileIdleLookLerpSpeed = 6f;
 
     [Header("Mobile Sprint")]
     [Range(0.1f, 1f)] public float mobileSprintThreshold = 0.75f;
@@ -96,6 +98,8 @@ public class FPSControllerNoPhysics : Controller
     private Quaternion armsStartLocalRot;
     private Vector2 _lastMobileLookScaled;
     private bool _lastMobileEnabled;
+    private bool _isMoving;
+    private float _mobileIdleMultiplier = 1f;
 
     private Player _player;
 
@@ -156,10 +160,22 @@ public class FPSControllerNoPhysics : Controller
             mouseX = Input.GetAxis("Mouse X") * mouseSensitivityX * 100f * Time.deltaTime;
             mouseY = Input.GetAxis("Mouse Y") * mouseSensitivityY * 100f * Time.deltaTime;
         }
+        float idleMultiplier = 1f;
+        if (MobileInput.Enabled)
+        {
+            float targetMultiplier = _isMoving ? 1f : mobileIdleLookMultiplier;
+            _mobileIdleMultiplier = Mathf.Lerp(_mobileIdleMultiplier, targetMultiplier, mobileIdleLookLerpSpeed * Time.deltaTime);
+            idleMultiplier = _mobileIdleMultiplier;
+        }
+        else
+        {
+            _mobileIdleMultiplier = 1f;
+        }
+
         Vector2 mobileLook = MobileInput.GetLookDelta();
         _lastMobileLookScaled = new Vector2(
-            mobileLook.x * mobileLookSensitivityX * mobileLookSensitivityMultiplier * 100f * Time.deltaTime,
-            mobileLook.y * mobileLookSensitivityY * mobileLookSensitivityMultiplier * 100f * Time.deltaTime
+            mobileLook.x * mobileLookSensitivityX * mobileLookSensitivityMultiplier * idleMultiplier * 100f * Time.deltaTime,
+            mobileLook.y * mobileLookSensitivityY * mobileLookSensitivityMultiplier * idleMultiplier * 100f * Time.deltaTime
         );
 
         mouseX += _lastMobileLookScaled.x;
@@ -206,6 +222,7 @@ public class FPSControllerNoPhysics : Controller
         currentMove = Vector3.Lerp(currentMove, targetMove, acceleration * Time.deltaTime);
 
         smoothedMove = Vector3.Lerp(smoothedMove, currentMove, Time.deltaTime * 8f);
+        _isMoving = smoothedMove.sqrMagnitude > 0.0001f;
 
         // Gravité
         if (controller.isGrounded)

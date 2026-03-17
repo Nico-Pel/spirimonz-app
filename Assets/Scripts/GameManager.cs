@@ -42,7 +42,7 @@ public class GameManager : GameBehaviour
     private void Update()
     {
         # if UNITY_EDITOR
-        if (Input.GetKeyDown(KeyCode.Y))
+        if ((!MobileInput.Enabled && Input.GetKeyDown(KeyCode.Y)) || MobileInput.YDown)
         {
             AddMoney(100);
         }

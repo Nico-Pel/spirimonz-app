@@ -76,8 +76,19 @@ public class InteractionController : GameBehaviour
     // =========================
     void DetectInteractable()
     {
-        Vector3 rayOrigin = _cam.transform.position + _cam.transform.forward * rayOffset;
-        Ray ray = new Ray(rayOrigin, _cam.transform.forward);
+        Vector3 rayOrigin;
+        Ray ray;
+        if (MobileInput.Enabled && MobileInput.HasPrimaryScreenPos && _cam != null)
+        {
+            ray = _cam.ScreenPointToRay(MobileInput.PrimaryScreenPos);
+            rayOrigin = ray.origin + ray.direction * rayOffset;
+            ray.origin = rayOrigin;
+        }
+        else
+        {
+            rayOrigin = _cam.transform.position + _cam.transform.forward * rayOffset;
+            ray = new Ray(rayOrigin, _cam.transform.forward);
+        }
 
         IInteractable newTarget = null;
 
@@ -302,7 +313,9 @@ public class InteractionController : GameBehaviour
             }
         }
 
-        Ray ray = new Ray(_cam.transform.position, _cam.transform.forward);
+        Ray ray = (MobileInput.Enabled && MobileInput.HasPrimaryScreenPos)
+            ? _cam.ScreenPointToRay(MobileInput.PrimaryScreenPos)
+            : new Ray(_cam.transform.position, _cam.transform.forward);
 
         if (Physics.Raycast(ray, out RaycastHit hit, interactionDoorsDistance, doorLayer))
         {
@@ -322,7 +335,7 @@ public class InteractionController : GameBehaviour
                 {
                     _grabbedDoor = _targetedDoor;
                     _targetedDoor.Grab();
-                    _grabDistance = Vector3.Distance(_cam.transform.position, _grabbedDoor.transform.position);
+                    _grabDistance = hit.distance;
                     rb.useGravity = false;
                     rb.freezeRotation = false;
                 }
@@ -336,7 +349,10 @@ public class InteractionController : GameBehaviour
         if (_grabbedDoor != null)
         {
             Rigidbody rb = _grabbedDoor.GetComponent<Rigidbody>();
-            Vector3 targetPos = _cam.transform.position + _cam.transform.forward * _grabDistance;
+            Ray dragRay = (MobileInput.Enabled && MobileInput.HasPrimaryScreenPos)
+                ? _cam.ScreenPointToRay(MobileInput.PrimaryScreenPos)
+                : new Ray(_cam.transform.position, _cam.transform.forward);
+            Vector3 targetPos = dragRay.origin + dragRay.direction * _grabDistance;
             rb.velocity = (targetPos - rb.position) * 30f;
 
             if (primaryUp)
@@ -438,11 +454,48 @@ public class InteractionController : GameBehaviour
 
     public Vector3 GetLastGroundPos()
     {
+        if (MobileInput.Enabled && MobileInput.HasPrimaryScreenPos && _cam != null)
+        {
+            Ray ray = _cam.ScreenPointToRay(MobileInput.PrimaryScreenPos);
+            if (Physics.Raycast(ray, out RaycastHit hit, interactionDistance, groundLayer, QueryTriggerInteraction.Ignore))
+                return hit.point;
+        }
+
         return targetingGround ? _lastGroundPosTargeted : Vector3.zero;
     }
 
     public bool HasTarget()
     {
         return _currentTarget != null;
+    }
+
+    public bool IsDoorGrabbed()
+    {
+        return _grabbedDoor != null;
+    }
+
+    public bool IsDoorTargeted()
+    {
+        return _targetedDoor != null;
+    }
+
+    public bool TryGetDoorUnderScreenPoint(Vector2 screenPos, out Door door)
+    {
+        door = null;
+        if (_cam == null)
+            return false;
+
+        Ray ray = _cam.ScreenPointToRay(screenPos);
+        if (Physics.Raycast(ray, out RaycastHit hit, interactionDoorsDistance, doorLayer))
+        {
+            Door d = hit.collider.GetComponent<Door>();
+            if (d != null && !d.InteractionLocked)
+            {
+                door = d;
+                return true;
+            }
+        }
+
+        return false;
     }
 }
