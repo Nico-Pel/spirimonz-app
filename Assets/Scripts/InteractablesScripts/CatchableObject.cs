@@ -12,6 +12,8 @@ public class CatchableObject : GameBehaviour, IInteractable
     public bool canBeThrownByGhost = true;
     public bool canBeThrownByPlayer = true;
     public bool setRotZeroOnDrop = true;
+    public Vector3 offsetPosInHands = Vector3.zero;
+    public Vector3 offsetRotInHands = Vector3.zero;
 
     [Space] 
     
@@ -83,8 +85,8 @@ public class CatchableObject : GameBehaviour, IInteractable
 
         transform.SetParent(handPosition);
         rb.isKinematic = true;
-        transform.localPosition = Vector3.zero;
-        transform.localRotation = Quaternion.identity;
+        transform.localPosition = offsetPosInHands;
+        transform.localRotation = Quaternion.Euler(offsetRotInHands);
         
         OnGrab();
     }
