@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -118,5 +119,15 @@ public class UIEndGame : GameBehaviour
             house.currentPlayer.inventoryManager.articlesFoundInGame.Clear();
             UIGame.Instance.CloseAllWindows();
         });
+    }
+
+    private void OnEnable()
+    {
+        UIGame.Instance.tablet.bClose.gameObject.SetActive(false);
+    }
+    
+    private void OnDisable()
+    {
+        UIGame.Instance.tablet.bClose.gameObject.SetActive(true);
     }
 }

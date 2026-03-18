@@ -205,7 +205,7 @@ public class InventoryManager : GameBehaviour
         
         for (int i = 0; i < _player.inputManager.inventoryKeys.Length; i++)
         {
-            if ((!MobileInput.Enabled && Input.GetKeyDown(_player.inputManager.inventoryKeys[i])) || MobileInput.InventoryDown(i))
+            if ((!MobileInput.Enabled && _player.inputManager.GetInventoryDown(i)) || MobileInput.InventoryDown(i))
             {
                 currentSelectedIndex = i;
                 if (i == 0)
@@ -215,6 +215,49 @@ public class InventoryManager : GameBehaviour
                 else
                 {
                     EquipSpirimonz(i - 1);
+                }
+            }
+        }
+
+        if (MobileInput.Enabled && (MobileInput.NextDown || MobileInput.PreviousDown))
+        {
+            int slotCount = _player.inputManager.inventoryKeys.Length;
+            if (slotCount > 0)
+            {
+                int baseIndex = currentSelectedIndex;
+                if (baseIndex < 0 || baseIndex >= slotCount)
+                    baseIndex = 0;
+
+                int delta = MobileInput.NextDown ? 1 : -1;
+                int newIndex = baseIndex;
+                int attempts = 0;
+                while (attempts < slotCount)
+                {
+                    newIndex += delta;
+                    if (newIndex >= slotCount)
+                        newIndex = 0;
+                    else if (newIndex < 0)
+                        newIndex = slotCount - 1;
+
+                    if (newIndex == 0)
+                        break;
+
+                    int teamIndex = newIndex - 1;
+                    Spirimonz candidate = (teamIndex >= 0 && teamIndex < spirimonzTeam.Count) ? spirimonzTeam[teamIndex] : null;
+                    if (candidate == null || !candidate.isOnTheMap)
+                        break;
+
+                    attempts++;
+                }
+
+                currentSelectedIndex = newIndex;
+                if (newIndex == 0)
+                {
+                    UseWatchObject();
+                }
+                else
+                {
+                    EquipSpirimonz(newIndex - 1);
                 }
             }
         }

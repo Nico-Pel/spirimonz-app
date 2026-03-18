@@ -221,10 +221,10 @@ public class InteractionController : GameBehaviour
             if ((!MobileInput.Enabled && Input.GetMouseButtonDown(1)) || MobileInput.SecondaryDown)
                 objectInHands.SpecialActionInHandsOnClick();
 
-            if ((!MobileInput.Enabled && Input.GetKeyDown(_player.inputManager.dropObject)) || MobileInput.DropDown)
+            if ((!MobileInput.Enabled && _player.inputManager.GetDropDown()) || MobileInput.DropDown)
                 DropObject();
 
-            if ((!MobileInput.Enabled && Input.GetKeyDown(_player.inputManager.throwObject)) || MobileInput.ThrowDown)
+            if ((!MobileInput.Enabled && _player.inputManager.GetThrowDown()) || MobileInput.ThrowDown)
             {
                 if (objectInHands.canBeThrownByPlayer)
                     ThrowObject();
@@ -236,7 +236,7 @@ public class InteractionController : GameBehaviour
         {
             if (_player.inventoryManager.OccupedHands()) return;
 
-            if ((!MobileInput.Enabled && Input.GetKeyDown(_player.inputManager.grabObject)) || MobileInput.GrabDown)
+            if ((!MobileInput.Enabled && _player.inputManager.GetGrabDown()) || MobileInput.GrabDown)
             {
                 if (targetedCatchable.canBeGrabByPlayer && !targetedCatchable.isGrabbed)
                 {
@@ -247,7 +247,7 @@ public class InteractionController : GameBehaviour
         }
         else if (_currentTarget is Spirimonz spirimonz && spirimonz.isOnTheMap)
         {
-            if ((!MobileInput.Enabled && Input.GetKeyDown(_player.inputManager.grabObject)) || MobileInput.GrabDown)
+            if ((!MobileInput.Enabled && _player.inputManager.GetGrabDown()) || MobileInput.GrabDown)
                 _player.inventoryManager.SpirimonzGoBackToHands(spirimonz);
         }
     }

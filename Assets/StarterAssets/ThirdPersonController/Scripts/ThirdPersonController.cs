@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using DG.Tweening;
 using UnityEngine.Serialization;
 
 [RequireComponent(typeof(CharacterController))]
@@ -26,9 +27,15 @@ public class ThirdPersonController : MonoBehaviour
     public float mouseSensitivity = 1.5f;
     public float mobileLookSensitivityMultiplier = 0.08f;
     public float mobileLookVerticalMultiplier = 0.6f;
+    public float mobileLookSensitivityBoost = 2.5f;
+    public float mobileMoveLookDivisor = 3f;
+    public float mobileLookLerpSpeed = 6f;
 
     [Header("Mobile Sprint")]
     [Range(0.1f, 1f)] public float mobileSprintThreshold = 0.75f;
+
+    [Header("Debug / Testing")]
+    public bool allowKeyboardMovementWhenMobile = true;
 
     [Header("Cinemachine")]
     public GameObject CinemachineCameraTarget;
@@ -59,6 +66,11 @@ public class ThirdPersonController : MonoBehaviour
     private float _rotationVelocity;
     private float _verticalVelocity;
     private float _terminalVelocity = 53f;
+    private bool _isMoving;
+    private float _mobileLookMultiplierCurrent = 1f;
+    private float _lookAtYawOffset;
+    private float _lookAtPitchOffset;
+    private Tween _lookAtTween;
 
     private float _jumpTimeoutDelta;
     private float _fallTimeoutDelta;
@@ -80,6 +92,7 @@ public class ThirdPersonController : MonoBehaviour
         _cinemachineTargetYaw = CinemachineCameraTarget.transform.rotation.eulerAngles.y;
 
         _controller = GetComponent<CharacterController>();
+        _mobileLookMultiplierCurrent = mobileLookSensitivityMultiplier;
 
         if (_inputManager == null)
             Debug.LogError("InputManager manquant sur le Player !");
@@ -122,43 +135,81 @@ public class ThirdPersonController : MonoBehaviour
 
         float mouseX = 0f;
         float mouseY = 0f;
+        float sensitivity = mouseSensitivity;
+        if (_inputManager != null)
+            sensitivity *= _inputManager.tpsLookSensitivityMultiplier;
         if (!MobileInput.Enabled)
         {
-            mouseX = Input.GetAxis("Mouse X") * mouseSensitivity;
-            mouseY = Input.GetAxis("Mouse Y") * mouseSensitivity;
+            mouseX = Input.GetAxis("Mouse X") * sensitivity;
+            mouseY = Input.GetAxis("Mouse Y") * sensitivity;
         }
         else
         {
             Vector2 look = MobileInput.GetLookDelta();
-            mouseX = look.x * mouseSensitivity * mobileLookSensitivityMultiplier * 100f * Time.deltaTime;
-            mouseY = look.y * mouseSensitivity * mobileLookSensitivityMultiplier * mobileLookVerticalMultiplier * 100f * Time.deltaTime;
+            bool usingLook = look.sqrMagnitude >= 0.00001f;
+            float targetMultiplier = mobileLookSensitivityMultiplier;
+            if (_isMoving && usingLook)
+                targetMultiplier = mobileLookSensitivityMultiplier / mobileMoveLookDivisor;
+            _mobileLookMultiplierCurrent = Mathf.Lerp(_mobileLookMultiplierCurrent, targetMultiplier, mobileLookLerpSpeed * Time.deltaTime);
+
+            mouseX = look.x * sensitivity * _mobileLookMultiplierCurrent * mobileLookSensitivityBoost * 100f * Time.deltaTime;
+            mouseY = look.y * sensitivity * _mobileLookMultiplierCurrent * mobileLookSensitivityBoost * mobileLookVerticalMultiplier * 100f * Time.deltaTime;
         }
 
         _cinemachineTargetYaw += mouseX;
         _cinemachineTargetPitch -= mouseY;
         _cinemachineTargetPitch = Mathf.Clamp(_cinemachineTargetPitch, BottomClamp, TopClamp);
 
-        CinemachineCameraTarget.transform.rotation = Quaternion.Euler(_cinemachineTargetPitch + CameraAngleOverride,
-                                                                      _cinemachineTargetYaw, 0f);
+        float finalYaw = _cinemachineTargetYaw + _lookAtYawOffset;
+        float finalPitch = _cinemachineTargetPitch + _lookAtPitchOffset;
+
+        CinemachineCameraTarget.transform.rotation = Quaternion.Euler(finalPitch + CameraAngleOverride,
+                                                                      finalYaw, 0f);
+    }
+
+    public void TweenLookAt(Transform target, float duration = 0.6f)
+    {
+        if (target == null || CinemachineCameraTarget == null)
+            return;
+
+        Vector3 dir = target.position - CinemachineCameraTarget.transform.position;
+        if (dir.sqrMagnitude < 0.0001f)
+            return;
+
+        dir.Normalize();
+        float targetYaw = Mathf.Atan2(dir.x, dir.z) * Mathf.Rad2Deg;
+        float targetPitch = Mathf.Asin(dir.y) * Mathf.Rad2Deg;
+        targetPitch = Mathf.Clamp(targetPitch, BottomClamp, TopClamp);
+
+        float yawDelta = Mathf.DeltaAngle(_cinemachineTargetYaw, targetYaw);
+        float pitchDelta = targetPitch - _cinemachineTargetPitch;
+
+        _lookAtTween?.Kill();
+        _lookAtTween = DOVirtual.Float(0f, 1f, duration, t =>
+        {
+            _lookAtYawOffset = Mathf.LerpAngle(yawDelta, 0f, t);
+            _lookAtPitchOffset = Mathf.Lerp(pitchDelta, 0f, t);
+        }).SetEase(Ease.OutSine);
     }
 
     private void Move()
     {
         Vector2 moveInput = Vector2.zero;
-        if (!MobileInput.Enabled)
+        if (!MobileInput.Enabled || allowKeyboardMovementWhenMobile)
         {
-            if (Input.GetKey(_inputManager.forwardKey)) moveInput.y += 1f;
-            if (Input.GetKey(_inputManager.backwardKey)) moveInput.y -= 1f;
-            if (Input.GetKey(_inputManager.leftKey)) moveInput.x -= 1f;
-            if (Input.GetKey(_inputManager.rightKey)) moveInput.x += 1f;
+            if (_inputManager.GetMoveForward()) moveInput.y += 1f;
+            if (_inputManager.GetMoveBackward()) moveInput.y -= 1f;
+            if (_inputManager.GetMoveLeft()) moveInput.x -= 1f;
+            if (_inputManager.GetMoveRight()) moveInput.x += 1f;
         }
-        else
-        {
-            moveInput = MobileInput.Move;
-        }
+        if (MobileInput.Enabled)
+            moveInput += MobileInput.Move;
 
-        bool mobileSprint = MobileInput.Enabled && moveInput.sqrMagnitude >= (mobileSprintThreshold * mobileSprintThreshold);
-        bool sprintInput = (!MobileInput.Enabled && Input.GetKey(_inputManager.sprintKey)) || MobileInput.SprintHeld || mobileSprint;
+        moveInput = Vector2.ClampMagnitude(moveInput, 1f);
+
+        Vector2 mobileMove = MobileInput.Move;
+        bool mobileSprint = MobileInput.Enabled && mobileMove.sqrMagnitude >= (mobileSprintThreshold * mobileSprintThreshold);
+        bool sprintInput = (!MobileInput.Enabled && _inputManager.GetSprint()) || MobileInput.SprintHeld || mobileSprint;
 
         float targetSpeed = sprintInput ? SprintSpeed : MoveSpeed;
         if (moveInput == Vector2.zero) targetSpeed = 0f;
@@ -195,6 +246,10 @@ public class ThirdPersonController : MonoBehaviour
 
         _controller.Move(targetDirection.normalized * (_speed * Time.deltaTime) +
                          new Vector3(0f, _verticalVelocity, 0f) * Time.deltaTime);
+
+        Vector3 horizontalVelocity = _controller.velocity;
+        horizontalVelocity.y = 0f;
+        _isMoving = horizontalVelocity.sqrMagnitude > 0.01f;
 
         animator.SetFloat("Speed", _animationBlend);
         animator.SetFloat("MotionSpeed", inputMagnitude);

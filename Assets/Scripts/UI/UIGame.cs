@@ -13,6 +13,7 @@ public class UIGame : UIManager
 
     [Space] [Header("Money elements")]
     public TextMeshProUGUI tGold;
+    public bool forceShowMoney = true;
     
     [Space]
     
@@ -26,9 +27,16 @@ public class UIGame : UIManager
     [Header("Window elements")]
     public UITablet tablet;
     public UIDialogue uiDialogue;
+    public UISettingsMenu settingsMenu;
 
     private Sprite _baseBigPointer;
     private GameManager _gameManager;
+    private RectTransform _moneyRect;
+    private Vector2 _moneyBasePos;
+    private bool _moneyBaseCached;
+    private Rect _lastMoneySafeArea;
+    private Vector2Int _lastMoneyScreenSize;
+    private Canvas _canvas;
 
     private void Awake()
     {
@@ -40,6 +48,7 @@ public class UIGame : UIManager
 
         Instance = this;
         CloseAllWindows();
+        _canvas = GetComponent<Canvas>();
 
         if(pointerON != null)
             _baseBigPointer = pointerON.sprite;
@@ -64,7 +73,12 @@ public class UIGame : UIManager
         _player = Player.Instance;
         _gameManager = GameManager.Instance;
         _gameManager.onMoneyUpdated.AddListener(UpdateGold);
+        EnsureMoneyVisible();
+        ApplyMoneySafeArea();
         UpdateGold();
+
+        if (settingsMenu == null)
+            settingsMenu = UISettingsMenu.EnsureExists(this);
         
         EnableOverlay(true, 0);
         EnableOverlay(false, openSceneFadeDuration);
@@ -78,16 +92,78 @@ public class UIGame : UIManager
     private void OnEnable()
     {
         if(_gameManager != null)
+        {
+            EnsureMoneyVisible();
+            ApplyMoneySafeArea();
             UpdateGold();
+        }
     }
 
     public void UpdateGold()
     {
+        if (tGold == null)
+            return;
         tGold.text = "$" + _gameManager.GetInt(SaveKeys.GOLD);
+    }
+
+    private void EnsureMoneyVisible()
+    {
+        bool shouldForce = forceShowMoney || MobileInput.Enabled;
+        if (!shouldForce || tGold == null)
+            return;
+
+        Transform parent = tGold.transform.parent;
+        if (parent != null && !parent.gameObject.activeSelf)
+            parent.gameObject.SetActive(true);
+        if (!tGold.gameObject.activeSelf)
+            tGold.gameObject.SetActive(true);
+    }
+
+    private void CacheMoneyRect()
+    {
+        if (_moneyBaseCached || tGold == null)
+            return;
+
+        _moneyRect = tGold.transform.parent as RectTransform;
+        if (_moneyRect == null)
+            return;
+
+        _moneyBasePos = _moneyRect.anchoredPosition;
+        _moneyBaseCached = true;
+    }
+
+    private void ApplyMoneySafeArea()
+    {
+        if (!MobileInput.Enabled)
+            return;
+
+        CacheMoneyRect();
+        if (_moneyRect == null)
+            return;
+
+        if (Screen.width == 0 || Screen.height == 0)
+            return;
+
+        Rect safe = Screen.safeArea;
+        if (_lastMoneySafeArea == safe && _lastMoneyScreenSize.x == Screen.width && _lastMoneyScreenSize.y == Screen.height)
+            return;
+
+        float rightInset = Screen.width - (safe.x + safe.width);
+        float topInset = Screen.height - (safe.y + safe.height);
+        float scale = _canvas != null ? _canvas.scaleFactor : 1f;
+
+        _moneyRect.anchoredPosition = new Vector2(
+            _moneyBasePos.x - (rightInset / scale),
+            _moneyBasePos.y - (topInset / scale)
+        );
+
+        _lastMoneySafeArea = safe;
+        _lastMoneyScreenSize = new Vector2Int(Screen.width, Screen.height);
     }
 
     private void Update()
     {
+        ApplyMoneySafeArea();
         HandleUI();
     }
     
@@ -95,25 +171,41 @@ public class UIGame : UIManager
     {
         bool endGameOpen = tablet != null && tablet.endGame != null && tablet.endGame.gameObject.activeSelf;
 
-        if (!endGameOpen && ((!MobileInput.Enabled && Input.GetKeyDown(_player.inputManager.openJournal)) || MobileInput.OpenJournalDown) && _player.IsDead() == false)
+        if (!endGameOpen && ((!MobileInput.Enabled && _player.inputManager.GetOpenJournalDown()) || MobileInput.OpenJournalDown) && _player.IsDead() == false)
         {
             OpenJournal();
         }
         
-        if (!endGameOpen && ((!MobileInput.Enabled && Input.GetKeyDown(_player.inputManager.openTeamMenu)) || MobileInput.OpenTeamMenuDown) && _player.IsDead() == false)
+        if (!endGameOpen && ((!MobileInput.Enabled && _player.inputManager.GetOpenTeamMenuDown()) || MobileInput.OpenTeamMenuDown) && _player.IsDead() == false)
         {
             OpenTeamPanel();
         }
 
-        if ((!MobileInput.Enabled && Input.GetKeyDown(_player.inputManager.exitMenus)) || MobileInput.ExitMenusDown)
+        if ((!MobileInput.Enabled && _player.inputManager.GetExitMenusDown()) || MobileInput.ExitMenusDown)
         {
+            bool tabletActive = tablet != null && tablet.gameObject.activeSelf;
+            if (tabletActive)
+            {
+                ExitLastMenu();
+                return;
+            }
+
+            if (settingsMenu != null && settingsMenu.IsCapturingKey)
+                return;
+
+            if (settingsMenu != null)
+            {
+                settingsMenu.Toggle();
+                return;
+            }
+
             ExitLastMenu();
         }
     }
 
     public void InitControlTexts(InputManager controller)
     {
-        tGrab.text = "Grab Item [" + controller.grabObject + "]";
+        tGrab.text = "Grab Item [" + controller.GetKeyDisplay(controller.grabObject, controller.grabObjectAlt) + "]";
     }
 
     public void EnablePointer(bool enable)
@@ -170,12 +262,16 @@ public class UIGame : UIManager
     {
         base.ExitLastMenu();
         tablet.TurnOffTablet();
+        if (settingsMenu != null && settingsMenu.IsOpen)
+            settingsMenu.SetVisible(false);
     }
 
     public override void CloseAllWindows()
     {
         base.CloseAllWindows();
         tablet.TurnOffTablet();
+        if (settingsMenu != null && settingsMenu.IsOpen)
+            settingsMenu.SetVisible(false);
     }
 
     public void OpenEndGame(UIEndGame.EndTypes endType, House house)

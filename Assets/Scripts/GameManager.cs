@@ -13,6 +13,7 @@ public class GameManager : GameBehaviour
     [Header("Debug")] 
     public bool ignoreAllHouseDebugs;
     public bool considerEverySpirimonzUnlocked;
+    public bool enableDebugMoneyButton = true;
 
     [Header("Mobile Controls")]
     public bool mobileControlsEnabled;
@@ -41,12 +42,10 @@ public class GameManager : GameBehaviour
 
     private void Update()
     {
-        # if UNITY_EDITOR
-        if ((!MobileInput.Enabled && Input.GetKeyDown(KeyCode.Y)) || MobileInput.YDown)
+        if (enableDebugMoneyButton && ((!MobileInput.Enabled && Input.GetKeyDown(KeyCode.Y)) || MobileInput.ConsumeYDown()))
         {
             AddMoney(100);
         }
-        #endif
     }
 
     void Awake()
@@ -63,15 +62,19 @@ public class GameManager : GameBehaviour
         MobileControlsBootstrap.EnsureExists();
         MobileLightOptimizerManager.EnsureExists();
         MobileCinemachineInputGate.EnsureExists();
+        MobilePerformanceManager.EnsureExists();
 
         if (mobileControlsEnabled)
             mobileLightOptimizationEnabled = true;
         MobileLightOptimizerManager.Instance.SetEnabled(mobileLightOptimizationEnabled);
+        MobilePerformanceManager.Instance.SetEnabled(mobileControlsEnabled);
 
         CheckUniqueSpirimonzIDs();
 
         SaveManager.allSpirimonzSettings = allSpirimonzSettings;
         gameData = SaveManager.Load();
+        EnsureSaveDefaults();
+        ApplyInputBindingsIfReady();
 
         Scene currentScene = SceneManager.GetActiveScene();
 
@@ -123,6 +126,18 @@ public class GameManager : GameBehaviour
         SceneManager.sceneLoaded += OnSceneLoaded;
     }
 
+    private void EnsureSaveDefaults()
+    {
+        if (gameData == null)
+            return;
+
+        if (gameData.ints.Find(i => i.id == SaveKeys.GOLD) == null)
+        {
+            gameData.ints.Add(new SaveVariableInt { id = SaveKeys.GOLD, value = 0 });
+            SaveGame();
+        }
+    }
+
     private void OnValidate()
     {
         if (Application.isPlaying)
@@ -130,6 +145,8 @@ public class GameManager : GameBehaviour
             MobileInput.SetEnabled(mobileControlsEnabled);
             MobileLightOptimizerManager.EnsureExists();
             MobileLightOptimizerManager.Instance.SetEnabled(mobileLightOptimizationEnabled);
+            MobilePerformanceManager.EnsureExists();
+            MobilePerformanceManager.Instance.SetEnabled(mobileControlsEnabled);
         }
     }
 
@@ -143,6 +160,9 @@ public class GameManager : GameBehaviour
 
         MobileLightOptimizerManager.EnsureExists();
         MobileLightOptimizerManager.Instance.SetEnabled(mobileLightOptimizationEnabled);
+
+        MobilePerformanceManager.EnsureExists();
+        MobilePerformanceManager.Instance.SetEnabled(enable);
     }
 
     public void SetMobileLightOptimizationEnabled(bool enable)
@@ -166,6 +186,7 @@ public class GameManager : GameBehaviour
 
     private void Start()
     {
+        ApplyInputBindingsIfReady();
         _inventoryManager = InventoryManager.Instance;
         _inventoryManager.LoadTeamFromSave();
 
@@ -221,6 +242,8 @@ public class GameManager : GameBehaviour
         MobileCinemachineInputGate.EnsureExists();
         MobileLightOptimizerManager.EnsureExists();
         MobileLightOptimizerManager.Instance.SetEnabled(mobileLightOptimizationEnabled);
+        MobilePerformanceManager.EnsureExists();
+        MobilePerformanceManager.Instance.SetEnabled(mobileControlsEnabled);
 
         if (player == null)
         {
@@ -375,6 +398,7 @@ public class GameManager : GameBehaviour
             gameData.currentHouseID = currentHouseID;
         }
 
+        SaveManager.SaveInputBindings(gameData, InputManager.Instance);
         SaveManager.Save(gameData);
         Debug.Log("Game saved!");
     }
@@ -396,6 +420,28 @@ public class GameManager : GameBehaviour
     
     public bool IsWorld() => _isWorld;
     public GameData GetGameData() => gameData;
+
+    public void SaveInputBindings()
+    {
+        if (gameData == null)
+            return;
+        InputManager input = InputManager.Instance;
+        if (input == null)
+            return;
+
+        SaveManager.SaveInputBindings(gameData, input);
+        SaveManager.Save(gameData);
+    }
+
+    private void ApplyInputBindingsIfReady()
+    {
+        if (gameData == null)
+            return;
+        InputManager input = InputManager.Instance;
+        if (input == null)
+            return;
+        SaveManager.LoadInputBindings(gameData, input);
+    }
 
     private void CheckUniqueSpirimonzIDs()
     {

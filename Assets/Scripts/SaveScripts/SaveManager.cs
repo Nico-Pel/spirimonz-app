@@ -40,6 +40,14 @@ public class SaveVariableString
 }
 
 [Serializable]
+public class InputBindingData
+{
+    public string id;
+    public int primary;
+    public int secondary;
+}
+
+[Serializable]
 public class GameData
 {
     public SpirimonzData[] spirimonzCollection;
@@ -56,6 +64,7 @@ public class GameData
     public List<SaveVariableFloat> floats = new();
     public List<SaveVariableBool> bools = new();
     public List<SaveVariableString> strings = new();
+    public List<InputBindingData> inputBindings = new();
 }
 
 [Serializable]
@@ -131,6 +140,53 @@ public static class SaveManager
     {
         if (File.Exists(filePath))
             File.Delete(filePath);
+    }
+
+    public static void SaveInputBindings(GameData data, InputManager input)
+    {
+        if (data == null || input == null)
+            return;
+
+        if (data.inputBindings == null)
+            data.inputBindings = new List<InputBindingData>();
+        else
+            data.inputBindings.Clear();
+
+        List<InputManager.BindingDefinition> defs = input.GetBindingDefinitions();
+        foreach (var def in defs)
+        {
+            data.inputBindings.Add(new InputBindingData
+            {
+                id = def.id,
+                primary = (int)def.getPrimary(),
+                secondary = (int)(def.getSecondary != null ? def.getSecondary() : KeyCode.None)
+            });
+        }
+    }
+
+    public static void LoadInputBindings(GameData data, InputManager input)
+    {
+        if (data == null || input == null)
+            return;
+        if (data.inputBindings == null || data.inputBindings.Count == 0)
+            return;
+
+        Dictionary<string, InputBindingData> map = new Dictionary<string, InputBindingData>();
+        foreach (var entry in data.inputBindings)
+        {
+            if (entry != null && !string.IsNullOrEmpty(entry.id))
+                map[entry.id] = entry;
+        }
+
+        List<InputManager.BindingDefinition> defs = input.GetBindingDefinitions();
+        foreach (var def in defs)
+        {
+            if (map.TryGetValue(def.id, out InputBindingData saved))
+            {
+                def.setPrimary?.Invoke((KeyCode)saved.primary);
+                def.setSecondary?.Invoke((KeyCode)saved.secondary);
+            }
+        }
     }
 
     // Crée une nouvelle GameData à partir des prefabs

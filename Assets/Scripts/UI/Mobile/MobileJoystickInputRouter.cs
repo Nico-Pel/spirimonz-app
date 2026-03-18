@@ -41,7 +41,27 @@ public class MobileJoystickInputRouter : MonoBehaviour
         if (!MobileInput.Enabled)
         {
             ResetAll();
+            ApplyJoystickVisibility(false, false);
             return;
+        }
+
+        bool allowMove = true;
+        bool allowLook = true;
+        bool allowPrimary = true;
+        if (!ResolveInputPermissions(ref allowMove, ref allowLook, ref allowPrimary))
+        {
+            ResetAll();
+            ApplyJoystickVisibility(false, false);
+            return;
+        }
+
+        ApplyJoystickVisibility(allowMove, allowLook);
+
+        if (!allowPrimary && _primaryId != int.MinValue)
+        {
+            MobileInput.SetPrimaryHeld(false);
+            MobileInput.ClearPrimaryScreenPos();
+            _primaryId = int.MinValue;
         }
 
         if (_clearPrimaryScreenFrame >= 0 && Time.frameCount >= _clearPrimaryScreenFrame && _primaryId == int.MinValue)
@@ -51,13 +71,13 @@ public class MobileJoystickInputRouter : MonoBehaviour
         }
 
         bool doorGrabbed = freezeFloatingWhenDoorGrabbed && IsDoorGrabbed();
-        HandleTouches(doorGrabbed);
+        HandleTouches(doorGrabbed, allowMove, allowLook, allowPrimary);
 
         if (enableMouseSimulation && Input.touchCount == 0)
-            HandleMouse(doorGrabbed);
+            HandleMouse(doorGrabbed, allowMove, allowLook, allowPrimary);
     }
 
-    private void HandleTouches(bool doorGrabbed)
+    private void HandleTouches(bool doorGrabbed, bool allowMove, bool allowLook, bool allowPrimary)
     {
         int touchCount = Input.touchCount;
         if (touchCount == 0)
@@ -76,7 +96,7 @@ public class MobileJoystickInputRouter : MonoBehaviour
                 if (IsOverUI(id))
                     continue;
 
-                if (enablePrimaryTouch && IsDoorUnderScreenPoint(touch.position) && !IsTouchOnJoystick(touch.position))
+                if (allowPrimary && enablePrimaryTouch && IsDoorUnderScreenPoint(touch.position) && !IsTouchOnJoystick(touch.position))
                 {
                     _primaryId = id;
                     MobileInput.SetPrimaryHeld(true);
@@ -88,12 +108,12 @@ public class MobileJoystickInputRouter : MonoBehaviour
 
                 if (IsTouchOnJoystick(touch.position))
                 {
-                    if (isLeftHalf && _leftId == int.MinValue)
+                    if (allowMove && isLeftHalf && _leftId == int.MinValue)
                     {
                         _leftId = id;
                         moveJoystick.ProcessPointerDown(touch.position, null, joystickRoot, !doorGrabbed);
                     }
-                    else if (!isLeftHalf && _rightId == int.MinValue)
+                    else if (allowLook && !isLeftHalf && _rightId == int.MinValue)
                     {
                         _rightId = id;
                         lookJoystick.ProcessPointerDown(touch.position, null, joystickRoot, !doorGrabbed);
@@ -102,7 +122,8 @@ public class MobileJoystickInputRouter : MonoBehaviour
                     continue;
                 }
 
-                StartPending(isLeftHalf, id, touch.position);
+                if ((isLeftHalf && allowMove) || (!isLeftHalf && allowLook))
+                    StartPending(isLeftHalf, id, touch.position);
             }
 
             if (id == _leftId)
@@ -127,6 +148,14 @@ public class MobileJoystickInputRouter : MonoBehaviour
             }
             else if (id == _primaryId)
             {
+                if (!allowPrimary)
+                {
+                    MobileInput.SetPrimaryHeld(false);
+                    MobileInput.ClearPrimaryScreenPos();
+                    _primaryId = int.MinValue;
+                    continue;
+                }
+
                 if (touch.phase == TouchPhase.Moved || touch.phase == TouchPhase.Stationary)
                     MobileInput.SetPrimaryScreenPos(touch.position);
                 if (touch.phase == TouchPhase.Ended || touch.phase == TouchPhase.Canceled)
@@ -138,6 +167,12 @@ public class MobileJoystickInputRouter : MonoBehaviour
             }
             else if (IsPendingLeft(id))
             {
+                if (!allowMove)
+                {
+                    ClearPending(ref _pendingLeft);
+                    continue;
+                }
+
                 if (touch.phase == TouchPhase.Moved || touch.phase == TouchPhase.Stationary)
                 {
                     UpdatePending(ref _pendingLeft, touch.position);
@@ -161,6 +196,12 @@ public class MobileJoystickInputRouter : MonoBehaviour
             }
             else if (IsPendingRight(id))
             {
+                if (!allowLook)
+                {
+                    ClearPending(ref _pendingRight);
+                    continue;
+                }
+
                 if (touch.phase == TouchPhase.Moved || touch.phase == TouchPhase.Stationary)
                 {
                     UpdatePending(ref _pendingRight, touch.position);
@@ -185,7 +226,7 @@ public class MobileJoystickInputRouter : MonoBehaviour
         }
     }
 
-    private void HandleMouse(bool doorGrabbed)
+    private void HandleMouse(bool doorGrabbed, bool allowMove, bool allowLook, bool allowPrimary)
     {
         float halfWidth = Screen.width * 0.5f;
         float thresholdSqr = joystickActivationThreshold * joystickActivationThreshold;
@@ -196,7 +237,7 @@ public class MobileJoystickInputRouter : MonoBehaviour
             if (IsOverUI(-1))
                 return;
 
-            if (enablePrimaryTouch && IsDoorUnderScreenPoint(mousePos) && !IsTouchOnJoystick(mousePos))
+            if (allowPrimary && enablePrimaryTouch && IsDoorUnderScreenPoint(mousePos) && !IsTouchOnJoystick(mousePos))
             {
                 _primaryId = -1;
                 MobileInput.SetPrimaryHeld(true);
@@ -208,12 +249,12 @@ public class MobileJoystickInputRouter : MonoBehaviour
 
             if (IsTouchOnJoystick(mousePos))
             {
-                if (isLeftHalf && _leftId == int.MinValue)
+                if (allowMove && isLeftHalf && _leftId == int.MinValue)
                 {
                     _leftId = -1;
                     moveJoystick.ProcessPointerDown(mousePos, null, joystickRoot, !doorGrabbed);
                 }
-                else if (!isLeftHalf && _rightId == int.MinValue)
+                else if (allowLook && !isLeftHalf && _rightId == int.MinValue)
                 {
                     _rightId = -1;
                     lookJoystick.ProcessPointerDown(mousePos, null, joystickRoot, !doorGrabbed);
@@ -222,7 +263,8 @@ public class MobileJoystickInputRouter : MonoBehaviour
                 return;
             }
 
-            StartPending(isLeftHalf, -1, mousePos);
+            if ((isLeftHalf && allowMove) || (!isLeftHalf && allowLook))
+                StartPending(isLeftHalf, -1, mousePos);
         }
 
         if (Input.GetMouseButton(0))
@@ -237,10 +279,22 @@ public class MobileJoystickInputRouter : MonoBehaviour
             }
             else if (_primaryId == -1)
             {
+                if (!allowPrimary)
+                {
+                    MobileInput.SetPrimaryHeld(false);
+                    MobileInput.ClearPrimaryScreenPos();
+                    _primaryId = int.MinValue;
+                }
                 MobileInput.SetPrimaryScreenPos(mousePos);
             }
             else if (IsPendingLeft(-1))
             {
+                if (!allowMove)
+                {
+                    ClearPending(ref _pendingLeft);
+                    return;
+                }
+
                 UpdatePending(ref _pendingLeft, mousePos);
                 if (_leftId == int.MinValue && (_pendingLeft.lastPos - _pendingLeft.startPos).sqrMagnitude >= thresholdSqr)
                 {
@@ -252,6 +306,12 @@ public class MobileJoystickInputRouter : MonoBehaviour
             }
             else if (IsPendingRight(-1))
             {
+                if (!allowLook)
+                {
+                    ClearPending(ref _pendingRight);
+                    return;
+                }
+
                 UpdatePending(ref _pendingRight, mousePos);
                 if (_rightId == int.MinValue && (_pendingRight.lastPos - _pendingRight.startPos).sqrMagnitude >= thresholdSqr)
                 {
@@ -335,9 +395,9 @@ public class MobileJoystickInputRouter : MonoBehaviour
 
     private bool IsTouchOnJoystick(Vector2 screenPos)
     {
-        if (moveJoystick != null && moveJoystick.ContainsScreenPoint(screenPos, null))
+        if (moveJoystick != null && moveJoystick.gameObject.activeInHierarchy && moveJoystick.ContainsScreenPoint(screenPos, null))
             return true;
-        if (lookJoystick != null && lookJoystick.ContainsScreenPoint(screenPos, null))
+        if (lookJoystick != null && lookJoystick.gameObject.activeInHierarchy && lookJoystick.ContainsScreenPoint(screenPos, null))
             return true;
         return false;
     }
@@ -367,6 +427,88 @@ public class MobileJoystickInputRouter : MonoBehaviour
         ClearPending(ref _pendingRight);
         _clearPrimaryScreenFrame = -1;
         MobileInput.ClearPrimaryScreenPos();
+    }
+
+    private bool ResolveInputPermissions(ref bool allowMove, ref bool allowLook, ref bool allowPrimary)
+    {
+        if (Player.Instance != null && Player.Instance.IsLocked())
+        {
+            if (Player.Instance.IsDead())
+            {
+                allowMove = false;
+                allowPrimary = false;
+                allowLook = true;
+            }
+            else
+            {
+                return false;
+            }
+        }
+
+        if (joystickRoot != null)
+        {
+            CanvasGroup group = joystickRoot.GetComponent<CanvasGroup>();
+            if (group != null)
+            {
+                bool visible = group.interactable && group.alpha > 0.001f;
+                if (!visible)
+                    return false;
+            }
+        }
+
+        return true;
+    }
+
+    private void ApplyJoystickVisibility(bool moveVisible, bool lookVisible)
+    {
+        if (!moveVisible)
+        {
+            ClearPending(ref _pendingLeft);
+            if (_leftId != int.MinValue)
+            {
+                moveJoystick.ProcessPointerUp(true);
+                _leftId = int.MinValue;
+            }
+        }
+
+        if (!lookVisible)
+        {
+            ClearPending(ref _pendingRight);
+            if (_rightId != int.MinValue)
+            {
+                lookJoystick.ProcessPointerUp(true);
+                _rightId = int.MinValue;
+            }
+        }
+
+        SetJoystickActive(moveJoystick, moveVisible);
+        SetJoystickActive(lookJoystick, lookVisible);
+    }
+
+    private void SetJoystickActive(MobileJoystick joystick, bool active)
+    {
+        if (joystick == null)
+            return;
+        if (joystick.gameObject.activeSelf == active)
+            return;
+
+        if (!active)
+            joystick.ProcessPointerUp(true);
+
+        joystick.gameObject.SetActive(active);
+    }
+
+    private void SetJoystickActive(MobileLookJoystick joystick, bool active)
+    {
+        if (joystick == null)
+            return;
+        if (joystick.gameObject.activeSelf == active)
+            return;
+
+        if (!active)
+            joystick.ProcessPointerUp(true);
+
+        joystick.gameObject.SetActive(active);
     }
 
     private void StartPending(bool isLeftHalf, int id, Vector2 position)

@@ -24,11 +24,16 @@ public class FPSControllerNoPhysics : Controller
     public float mobileLookSensitivityX = 2.0f;
     public float mobileLookSensitivityY = 0.8f;
     public float mobileLookSensitivityMultiplier = 0.25f;
-    public float mobileIdleLookMultiplier = 2f;
+    public float mobileLookBoostThreshold = 0.7f;
+    public float mobileLookBoostMultiplier = 1.6f;
+    public float mobileIdleLookMultiplier = 4f;
     public float mobileIdleLookLerpSpeed = 6f;
 
     [Header("Mobile Sprint")]
     [Range(0.1f, 1f)] public float mobileSprintThreshold = 0.75f;
+
+    [Header("Debug / Testing")]
+    public bool allowKeyboardMovementWhenMobile = true;
 
     [Header("Crouch")]
     public float crouchHeight = 1f;
@@ -151,20 +156,23 @@ public class FPSControllerNoPhysics : Controller
     // ---------------- LOOK ----------------
     void HandleLook()
     {
-        if (_player.IsCameraLocked()) return;
-        
+        if (_player.IsCameraLocked() && !_player.IsDead()) return;
+
         float mouseX = 0f;
         float mouseY = 0f;
+        float fpsSensitivityMultiplier = (_player != null && _player.inputManager != null)
+            ? _player.inputManager.fpsLookSensitivityMultiplier
+            : 1f;
         if (!MobileInput.Enabled)
         {
-            mouseX = Input.GetAxis("Mouse X") * mouseSensitivityX * 100f * Time.deltaTime;
-            mouseY = Input.GetAxis("Mouse Y") * mouseSensitivityY * 100f * Time.deltaTime;
+            mouseX = Input.GetAxis("Mouse X") * mouseSensitivityX * fpsSensitivityMultiplier * 100f * Time.deltaTime;
+            mouseY = Input.GetAxis("Mouse Y") * mouseSensitivityY * fpsSensitivityMultiplier * 100f * Time.deltaTime;
         }
         float idleMultiplier = 1f;
         if (MobileInput.Enabled)
         {
-            float targetMultiplier = _isMoving ? 1f : mobileIdleLookMultiplier;
-            _mobileIdleMultiplier = Mathf.Lerp(_mobileIdleMultiplier, targetMultiplier, mobileIdleLookLerpSpeed * Time.deltaTime);
+            float targetMultiplier = mobileIdleLookMultiplier / 3f;
+            _mobileIdleMultiplier = targetMultiplier;
             idleMultiplier = _mobileIdleMultiplier;
         }
         else
@@ -173,9 +181,21 @@ public class FPSControllerNoPhysics : Controller
         }
 
         Vector2 mobileLook = MobileInput.GetLookDelta();
+        float lookBoost = 1f;
+        if (MobileInput.Enabled)
+        {
+            float mag = Mathf.Clamp01(mobileLook.magnitude);
+            if (mag > mobileLookBoostThreshold)
+            {
+                float t = (mag - mobileLookBoostThreshold) / Mathf.Max(0.0001f, 1f - mobileLookBoostThreshold);
+                lookBoost = Mathf.Lerp(1f, mobileLookBoostMultiplier, t);
+            }
+        }
+
+        float mobileLookSensitivity = mobileLookSensitivityX * fpsSensitivityMultiplier;
         _lastMobileLookScaled = new Vector2(
-            mobileLook.x * mobileLookSensitivityX * mobileLookSensitivityMultiplier * idleMultiplier * 100f * Time.deltaTime,
-            mobileLook.y * mobileLookSensitivityY * mobileLookSensitivityMultiplier * idleMultiplier * 100f * Time.deltaTime
+            mobileLook.x * mobileLookSensitivity * mobileLookSensitivityMultiplier * idleMultiplier * lookBoost * 100f * Time.deltaTime,
+            mobileLook.y * mobileLookSensitivity * mobileLookSensitivityMultiplier * idleMultiplier * lookBoost * 100f * Time.deltaTime
         );
 
         mouseX += _lastMobileLookScaled.x;
@@ -195,10 +215,10 @@ public class FPSControllerNoPhysics : Controller
         
         float x = 0f;
         float z = 0f;
-        if (!MobileInput.Enabled)
+        if (!MobileInput.Enabled || allowKeyboardMovementWhenMobile)
         {
-            x = (Input.GetKey(_player.inputManager.rightKey) ? 1f : 0f) - (Input.GetKey(_player.inputManager.leftKey) ? 1f : 0f);
-            z = (Input.GetKey(_player.inputManager.forwardKey) ? 1f : 0f) - (Input.GetKey(_player.inputManager.backwardKey) ? 1f : 0f);
+            x = (_player.inputManager.GetMoveRight() ? 1f : 0f) - (_player.inputManager.GetMoveLeft() ? 1f : 0f);
+            z = (_player.inputManager.GetMoveForward() ? 1f : 0f) - (_player.inputManager.GetMoveBackward() ? 1f : 0f);
         }
         Vector2 mobileMove = MobileInput.Move;
         x += mobileMove.x;
@@ -206,10 +226,12 @@ public class FPSControllerNoPhysics : Controller
         x = Mathf.Clamp(x, -1f, 1f);
         z = Mathf.Clamp(z, -1f, 1f);
 
-        Vector3 input = new Vector3(x, 0, z).normalized;
-        bool isMoving = input.magnitude > 0.1f;
+        Vector2 rawInput = new Vector2(x, z);
+        float rawMagnitude = rawInput.magnitude;
+        Vector3 input = rawMagnitude > 0.0001f ? new Vector3(x, 0, z).normalized : Vector3.zero;
+        bool isMoving = rawMagnitude > 0.1f;
         bool mobileSprint = MobileInput.Enabled && mobileMove.sqrMagnitude >= (mobileSprintThreshold * mobileSprintThreshold);
-        bool wantsToSprint = (!MobileInput.Enabled && Input.GetKey(_player.inputManager.sprintKey)) || MobileInput.SprintHeld || mobileSprint;
+        bool wantsToSprint = (!MobileInput.Enabled && _player.inputManager.GetSprint()) || MobileInput.SprintHeld || mobileSprint;
         bool canSprint = wantsToSprint && isMoving && !staminaDepleted;
 
         // Mise à jour stamina
@@ -222,7 +244,6 @@ public class FPSControllerNoPhysics : Controller
         currentMove = Vector3.Lerp(currentMove, targetMove, acceleration * Time.deltaTime);
 
         smoothedMove = Vector3.Lerp(smoothedMove, currentMove, Time.deltaTime * 8f);
-        _isMoving = smoothedMove.sqrMagnitude > 0.0001f;
 
         // Gravité
         if (controller.isGrounded)
@@ -231,6 +252,10 @@ public class FPSControllerNoPhysics : Controller
             velocity.y += gravity * Time.deltaTime;
 
         controller.Move((smoothedMove + velocity) * Time.deltaTime);
+
+        Vector3 horizontalVelocity = controller.velocity;
+        horizontalVelocity.y = 0f;
+        _isMoving = horizontalVelocity.sqrMagnitude > 0.01f;
     }
     
     //Stamina to use Sprint
@@ -263,7 +288,7 @@ public class FPSControllerNoPhysics : Controller
     {
         if (_player.IsLocked()) return;
         
-        if ((!MobileInput.Enabled && Input.GetKeyDown(_player.inputManager.crouchKey)) || MobileInput.CrouchDown)
+        if ((!MobileInput.Enabled && _player.inputManager.GetCrouchDown()) || MobileInput.CrouchDown)
         {
             isCrouching = !isCrouching;
 
@@ -313,7 +338,7 @@ public class FPSControllerNoPhysics : Controller
             return;
         }
 
-        bool isSprinting = ((!MobileInput.Enabled && Input.GetKey(_player.inputManager.sprintKey)) || MobileInput.SprintHeld) && !staminaDepleted;
+        bool isSprinting = ((!MobileInput.Enabled && _player.inputManager.GetSprint()) || MobileInput.SprintHeld) && !staminaDepleted;
         float stepTime = isSprinting ? stepDuration * sprintStepMultiplier : stepDuration;
 
         float previousStepTimer = stepTimer;
@@ -405,7 +430,7 @@ public class FPSControllerNoPhysics : Controller
     {
         if (_player.IsLocked()) return;
         
-        if (((!MobileInput.Enabled && Input.GetKeyDown(_player.inputManager.turnLight)) || MobileInput.ToggleLightDown) && mLight != null)
+        if (((!MobileInput.Enabled && _player.inputManager.GetTurnLightDown()) || MobileInput.ToggleLightDown) && mLight != null)
         {
             bool enable = !mLight.gameObject.activeSelf;
 

@@ -82,12 +82,12 @@ public class UITeamPanel : GameBehaviour
     {
         if (_inventoryManager != null)
         {
-            if ((!MobileInput.Enabled && (Input.GetKeyDown(_inputManager.primaryNext) || Input.GetKeyDown(_inputManager.secondaryNext))) || MobileInput.NextDown)
+            if ((!MobileInput.Enabled && _inputManager.GetNextDown()) || MobileInput.NextDown)
             {
                 NextSpirimonz();
             }
         
-            if ((!MobileInput.Enabled && (Input.GetKeyDown(_inputManager.primaryPrevious) || Input.GetKeyDown(_inputManager.secondaryPrevious))) || MobileInput.PreviousDown)
+            if ((!MobileInput.Enabled && _inputManager.GetPreviousDown()) || MobileInput.PreviousDown)
             {
                 PreviousSpirimonz();
             }

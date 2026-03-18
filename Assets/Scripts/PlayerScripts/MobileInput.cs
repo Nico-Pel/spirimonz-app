@@ -32,6 +32,7 @@ public static class MobileInput
     private static int _previousDownFrame = -1;
     private static int[] _inventoryDownFrames = new int[6];
     private static int _yDownFrame = -1;
+    private static bool _yDownPending;
     private static Vector2 _primaryScreenPos;
     private static bool _primaryScreenPosValid;
 
@@ -71,6 +72,7 @@ public static class MobileInput
         _nextDownFrame = -1;
         _previousDownFrame = -1;
         _yDownFrame = -1;
+        _yDownPending = false;
         _primaryScreenPosValid = false;
         for (int i = 0; i < _inventoryDownFrames.Length; i++)
             _inventoryDownFrames[i] = -1;
@@ -188,8 +190,22 @@ public static class MobileInput
     public static void PressPrevious() { if (Enabled) _previousDownFrame = Time.frameCount; }
     public static bool PreviousDown => Enabled && _previousDownFrame == Time.frameCount;
 
-    public static void PressY() { if (Enabled) _yDownFrame = Time.frameCount; }
+    public static void PressY()
+    {
+        if (!Enabled) return;
+        _yDownFrame = Time.frameCount;
+        _yDownPending = true;
+    }
     public static bool YDown => Enabled && _yDownFrame == Time.frameCount;
+
+    // Use this when a one-shot must not be missed due to Update order.
+    public static bool ConsumeYDown()
+    {
+        if (!Enabled) return false;
+        if (!_yDownPending) return false;
+        _yDownPending = false;
+        return true;
+    }
 
     public static void SetPrimaryScreenPos(Vector2 pos)
     {

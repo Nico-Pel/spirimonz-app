@@ -27,6 +27,8 @@ public class MobileControlsBootstrap : MonoBehaviour
     public int keyButtonFontSize = 22;
     public Color keyButtonColor = new Color(0f, 0f, 0f, 0.55f);
     public Color keyButtonTextColor = new Color(1f, 1f, 1f, 0.9f);
+    public Vector2 keyButtonsSafePaddingMin = Vector2.zero;
+    public Vector2 keyButtonsSafePaddingMax = Vector2.zero;
 
     [Header("Action Buttons")]
     public bool createActionButtons = true;
@@ -122,6 +124,10 @@ public class MobileControlsBootstrap : MonoBehaviour
         keysVisibility.hideWhenDialogue = false;
         keysVisibility.hideWhenEndGame = false;
         keysVisibility.alwaysVisibleWhenMobile = true;
+
+        SafeAreaFitter keysSafeArea = keysRoot.gameObject.AddComponent<SafeAreaFitter>();
+        keysSafeArea.extraPaddingMin = keyButtonsSafePaddingMin;
+        keysSafeArea.extraPaddingMax = keyButtonsSafePaddingMax;
 
         MobileJoystick moveJoystick = CreateMoveJoystick(joysticksRoot, baseSprite, handleSprite);
         MobileLookJoystick lookJoystick = CreateLookJoystick(joysticksRoot, baseSprite, handleSprite);
@@ -239,26 +245,34 @@ public class MobileControlsBootstrap : MonoBehaviour
         (string label, MobileButton.Action action)[] keys =
         {
             ("ESC", MobileButton.Action.ExitMenus),
-            ("TAB", MobileButton.Action.OpenTeamMenu),
+            ("J", MobileButton.Action.OpenJournal),
             ("Y", MobileButton.Action.KeyY),
-            ("1", MobileButton.Action.Inventory1),
-            ("2", MobileButton.Action.Inventory2),
-            ("3", MobileButton.Action.Inventory3),
-            ("4", MobileButton.Action.Inventory4),
-            ("5", MobileButton.Action.Inventory5),
-            ("6", MobileButton.Action.Inventory6),
+            ("Prev", MobileButton.Action.Previous),
+            ("Nxt", MobileButton.Action.Next),
         };
 
         float totalHeight = (keyButtonSize.y * keys.Length) + (keyButtonSpacing * (keys.Length - 1));
         groupRect.sizeDelta = new Vector2(keyButtonSize.x, totalHeight);
 
+        GameObject yButton = null;
+        GameObject prevButton = null;
+        GameObject nextButton = null;
+
         for (int i = 0; i < keys.Length; i++)
         {
-            CreateKeyButton(groupRect, keys[i].label, keys[i].action, 0, i);
+            GameObject btn = CreateKeyButton(groupRect, keys[i].label, keys[i].action, 0, i);
+            if (keys[i].label == "Y") yButton = btn;
+            else if (keys[i].label == "Prev") prevButton = btn;
+            else if (keys[i].label == "Nxt") nextButton = btn;
         }
+
+        MobileKeyButtonsVisibility visibility = group.AddComponent<MobileKeyButtonsVisibility>();
+        visibility.yButton = yButton;
+        visibility.prevButton = prevButton;
+        visibility.nextButton = nextButton;
     }
 
-    private void CreateKeyButton(RectTransform parent, string label, MobileButton.Action action, int col, int row)
+    private GameObject CreateKeyButton(RectTransform parent, string label, MobileButton.Action action, int col, int row)
     {
         GameObject btnGO = new GameObject($"Key_{label}", typeof(RectTransform), typeof(Image), typeof(Button), typeof(MobileButton));
         btnGO.transform.SetParent(parent, false);
@@ -297,6 +311,8 @@ public class MobileControlsBootstrap : MonoBehaviour
         if (keyButtonFont == null)
             keyButtonFont = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
         text.font = keyButtonFont;
+
+        return btnGO;
     }
 
     private void CreateJoystickRouter(GameObject canvasGO, RectTransform joystickRoot, MobileJoystick moveJoystick, MobileLookJoystick lookJoystick)

@@ -13,6 +13,8 @@ public class SoundManager : GameBehaviour
     
     public AudioClip ambientSound;
     public float ambientSoundVolume = 0.2f;
+    [Range(0.5f, 1.5f)] public float ambientVolumeMultiplier = 1f;
+    [Range(0.5f, 1.5f)] public float sfxVolumeMultiplier = 1f;
 
     private AudioSource _ambientSource;
     private Ghost _ghost;
@@ -65,7 +67,7 @@ public class SoundManager : GameBehaviour
 
         emitter.Init(
             clip,
-            volume,
+            volume * sfxVolumeMultiplier,
             pitch,
             range,
             loop,
@@ -119,9 +121,21 @@ public class SoundManager : GameBehaviour
         }
 
         _ambientSource.clip = clip;
-        _ambientSource.volume = volume;
+        _ambientSource.volume = volume * ambientVolumeMultiplier;
         _ambientSource.loop = loop;
         _ambientSource.Play();
+    }
+
+    public void SetAmbientVolumeMultiplier(float multiplier)
+    {
+        ambientVolumeMultiplier = multiplier;
+        if (_ambientSource != null)
+            _ambientSource.volume = ambientSoundVolume * ambientVolumeMultiplier;
+    }
+
+    public void SetSfxVolumeMultiplier(float multiplier)
+    {
+        sfxVolumeMultiplier = multiplier;
     }
 
     private Coroutine _ambientFadeCoroutine;

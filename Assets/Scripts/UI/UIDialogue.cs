@@ -55,7 +55,7 @@ public class UIDialogue : GameBehaviour
                 _player = Player.Instance;
 
             if(_inputManager != null)
-                tNext.text = _inputManager.worldInteractions.ToString();
+                tNext.text = _inputManager.GetKeyDisplay(_inputManager.worldInteractions, _inputManager.worldInteractionsAlt);
         });
 
         bNext.gameObject.SetActive(false);
@@ -64,7 +64,7 @@ public class UIDialogue : GameBehaviour
     private void Update()
     {
         // Press "E" to go to next line
-        if (_dialogueActive && ((!MobileInput.Enabled && Input.GetKeyDown(_inputManager.worldInteractions)) || MobileInput.GrabDown))
+        if (_dialogueActive && ((!MobileInput.Enabled && _inputManager.GetWorldInteractionDown()) || MobileInput.GrabDown))
         {
             NextDialogue();
         }

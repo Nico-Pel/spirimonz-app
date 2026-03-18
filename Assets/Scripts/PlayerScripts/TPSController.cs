@@ -21,11 +21,14 @@ public class TPSController : Controller
     public float mobileLookSensitivityMultiplier = 0.055f;
     public float mobileMinPitch = -35f;
     public float mobileMaxPitch = 60f;
-    public float mobileIdleLookMultiplier = 2f;
+    public float mobileIdleLookMultiplier = 4f;
     public float mobileIdleLookLerpSpeed = 6f;
 
     [Header("Mobile Sprint")]
     [Range(0.1f, 1f)] public float mobileSprintThreshold = 0.75f;
+
+    [Header("Debug / Testing")]
+    public bool allowKeyboardMovementWhenMobile = true;
 
     [Header("Gravity")]
     public float gravity = -20f;
@@ -56,7 +59,7 @@ public class TPSController : Controller
     // 1️⃣ Input
     float h = 0f;
     float v = 0f;
-    if (!MobileInput.Enabled)
+    if (!MobileInput.Enabled || allowKeyboardMovementWhenMobile)
     {
         h = Input.GetAxis("Horizontal"); // A/D ou flèches
         v = Input.GetAxis("Vertical");   // W/S ou flèches
@@ -66,9 +69,10 @@ public class TPSController : Controller
     v += mobileMove.y;
     Vector3 inputDir = new Vector3(h, 0f, v).normalized;
 
-    // 2️⃣ Vérifier si on bouge
-    _isMoving = inputDir.magnitude >= 0.1f;
-    if (_isMoving)
+    // 2️⃣ Vérifier si on bouge (évite la normalisation qui force magnitude=1)
+    float rawInputMagnitude = new Vector2(h, v).magnitude;
+    bool wantsToMove = rawInputMagnitude >= 0.1f;
+    if (wantsToMove)
     {
         // 3️⃣ Mouvement relatif à la caméra
         Vector3 camForward = camTransform.forward;
@@ -88,7 +92,7 @@ public class TPSController : Controller
         // 5️⃣ Vitesse
         float speed = runSpeed;
         bool mobileSprint = MobileInput.Enabled && mobileMove.sqrMagnitude >= (mobileSprintThreshold * mobileSprintThreshold);
-        if ((!MobileInput.Enabled && Input.GetKey(KeyCode.LeftShift)) || MobileInput.SprintHeld || mobileSprint) // sprint
+        if ((!MobileInput.Enabled && _player.inputManager.GetSprint()) || MobileInput.SprintHeld || mobileSprint) // sprint
             speed = sprintSpeed;
         else
             speed = walkSpeed;
@@ -127,6 +131,11 @@ public class TPSController : Controller
             velocity.y = -2f;
         }
     }
+
+    // 9️⃣ Déterminer si le controller bouge réellement (idle = vitesse 0)
+    Vector3 horizontalVelocity = controller.velocity;
+    horizontalVelocity.y = 0f;
+    _isMoving = horizontalVelocity.sqrMagnitude > 0.01f;
 }
 
     private void HandleMobileLook()
@@ -151,11 +160,16 @@ public class TPSController : Controller
             _mobileAnglesInitialized = true;
         }
 
-        float targetMultiplier = _isMoving ? 1f : mobileIdleLookMultiplier;
+        Vector2 look = MobileInput.GetLookDelta();
+        bool usingLook = look.sqrMagnitude >= 0.00001f;
+
+        float targetMultiplier = mobileIdleLookMultiplier;
+        if (_isMoving && usingLook)
+            targetMultiplier = mobileIdleLookMultiplier / 3f;
+
         _mobileIdleMultiplier = Mathf.Lerp(_mobileIdleMultiplier, targetMultiplier, mobileIdleLookLerpSpeed * Time.deltaTime);
 
-        Vector2 look = MobileInput.GetLookDelta();
-        if (look.sqrMagnitude < 0.00001f)
+        if (!usingLook)
             return;
 
         float sensitivity = mobileLookSensitivityMultiplier * _mobileIdleMultiplier;

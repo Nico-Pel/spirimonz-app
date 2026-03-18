@@ -105,6 +105,9 @@ public class MobileLightOptimizerManager : MonoBehaviour
     {
         _lights.Clear();
 
+        if (!IsWorldScene())
+            return;
+
         HashSet<Light> gameplayLights = CollectGameplayLights();
         Light[] allLights = Resources.FindObjectsOfTypeAll<Light>();
 
@@ -147,6 +150,12 @@ public class MobileLightOptimizerManager : MonoBehaviour
             opt.Initialize(gameplay);
             Register(opt);
         }
+    }
+
+    private bool IsWorldScene()
+    {
+        Scene scene = SceneManager.GetActiveScene();
+        return scene.IsValid() && scene.name.ToLower().StartsWith("world");
     }
 
     private void UpdateLights()

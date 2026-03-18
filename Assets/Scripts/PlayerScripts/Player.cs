@@ -67,7 +67,7 @@ public class Player : GameBehaviour
         {
             DetectNPC();
 
-            if (currentNPC != null && ((!MobileInput.Enabled && Input.GetKeyDown(inputManager.worldInteractions)) || MobileInput.GrabDown))
+            if (currentNPC != null && ((!MobileInput.Enabled && inputManager.GetWorldInteractionDown()) || MobileInput.GrabDown))
             {
                 _canStartDialogue = false;
                 if (currentNPC.CanInteract(this))
