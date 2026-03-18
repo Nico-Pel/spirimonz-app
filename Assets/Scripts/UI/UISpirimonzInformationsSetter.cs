@@ -38,6 +38,12 @@ public class UISpirimonzInformationsSetter : GameBehaviour
 
     public void SetSpirimonz(SpirimonzSettings spmz)
     {
+        if (spmz == null)
+            return;
+
+        if (_lastSpirimonzSettings == spmz && currentSpirimonzBody != null)
+            return;
+
         if(tSpirimonzName != null)
             tSpirimonzName.text = spmz.spirimonzName;
 

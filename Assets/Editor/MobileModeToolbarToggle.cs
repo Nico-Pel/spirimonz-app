@@ -9,7 +9,6 @@ using UnityEngine.UIElements;
 [InitializeOnLoad]
 public static class MobileModeToolbarToggle
 {
-    private const string ButtonLabel = "Mobile";
     private const string ButtonTooltip = "Toggle Mobile Controls (GameManager.mobileControlsEnabled)";
     private static bool _installed;
 
@@ -63,7 +62,8 @@ public static class MobileModeToolbarToggle
             bool hasManager = gm != null;
             bool current = hasManager && gm.mobileControlsEnabled;
 
-            GUIContent content = new GUIContent(ButtonLabel, ButtonTooltip);
+            string label = current ? "Mobile" : "PC";
+            GUIContent content = new GUIContent(label, ButtonTooltip);
             using (new EditorGUI.DisabledScope(!hasManager))
             {
                 bool next = GUILayout.Toggle(current, content, EditorStyles.toolbarButton, GUILayout.Width(70f));

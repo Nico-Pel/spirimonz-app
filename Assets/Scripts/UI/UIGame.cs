@@ -237,6 +237,20 @@ public class UIGame : UIManager
 
     private void OpenTeamPanel()
     {
+        if (tablet == null)
+            return;
+
+        bool isTeamOpen = tablet.gameObject.activeSelf &&
+                          tablet.tabWindows != null &&
+                          tablet.tabWindows.Length > 0 &&
+                          tablet.tabWindows[0].activeSelf;
+
+        if (isTeamOpen)
+        {
+            tablet.TurnOffTablet();
+            return;
+        }
+
         tablet.gameObject.SetActive(true);
         tablet.OpenTab(0, true);
     }

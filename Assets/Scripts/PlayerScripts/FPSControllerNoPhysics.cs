@@ -165,8 +165,9 @@ public class FPSControllerNoPhysics : Controller
             : 1f;
         if (!MobileInput.Enabled)
         {
-            mouseX = Input.GetAxis("Mouse X") * mouseSensitivityX * fpsSensitivityMultiplier * 100f * Time.deltaTime;
-            mouseY = Input.GetAxis("Mouse Y") * mouseSensitivityY * fpsSensitivityMultiplier * 100f * Time.deltaTime;
+            const float pcSensitivityScale = 0.5f;
+            mouseX = Input.GetAxis("Mouse X") * mouseSensitivityX * fpsSensitivityMultiplier * pcSensitivityScale * 100f * Time.deltaTime;
+            mouseY = Input.GetAxis("Mouse Y") * mouseSensitivityY * fpsSensitivityMultiplier * pcSensitivityScale * 100f * Time.deltaTime;
         }
         float idleMultiplier = 1f;
         if (MobileInput.Enabled)

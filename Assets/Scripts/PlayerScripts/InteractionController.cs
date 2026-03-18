@@ -317,33 +317,39 @@ public class InteractionController : GameBehaviour
             ? _cam.ScreenPointToRay(MobileInput.PrimaryScreenPos)
             : new Ray(_cam.transform.position, _cam.transform.forward);
 
-        if (Physics.Raycast(ray, out RaycastHit hit, interactionDoorsDistance, doorLayer))
+        if (_grabbedDoor == null)
         {
-            if (_targetedDoor == null)
+            if (Physics.Raycast(ray, out RaycastHit hit, interactionDoorsDistance, doorLayer))
             {
-                Door door =  hit.collider.GetComponent<Door>();
-                if(door.InteractionLocked == false)
+                Door door = hit.collider.GetComponent<Door>();
+                if (door != null && door.InteractionLocked == false)
                     _targetedDoor = door;
-            }
-            
-            if (primaryDown && _targetedDoor != null)
-            {
-                Rigidbody rb = _targetedDoor.rb;
-                HingeJoint hinge = _targetedDoor.hingeJoint;
+                else if (!primaryHeld)
+                    _targetedDoor = null;
 
-                if (rb != null && hinge != null)
+                if (primaryDown && _targetedDoor != null)
                 {
-                    _grabbedDoor = _targetedDoor;
-                    _targetedDoor.Grab();
-                    _grabDistance = hit.distance;
-                    rb.useGravity = false;
-                    rb.freezeRotation = false;
+                    Rigidbody rb = _targetedDoor.rb;
+                    HingeJoint hinge = _targetedDoor.hingeJoint;
+
+                    if (rb != null && hinge != null)
+                    {
+                        _grabbedDoor = _targetedDoor;
+                        _targetedDoor.Grab();
+                        _grabDistance = hit.distance;
+                        rb.useGravity = false;
+                        rb.freezeRotation = false;
+                    }
                 }
             }
+            else if (!primaryHeld && _targetedDoor != null)
+            {
+                _targetedDoor = null;
+            }
         }
-        else if (!primaryHeld && _targetedDoor != null && _grabbedDoor == null)
+        else
         {
-            _targetedDoor = null;
+            _targetedDoor = _grabbedDoor;
         }
 
         if (_grabbedDoor != null)

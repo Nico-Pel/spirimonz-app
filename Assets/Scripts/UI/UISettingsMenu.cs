@@ -23,6 +23,7 @@ public class UISettingsMenu : GameBehaviour
     public Text sfxValue;
     public Text tpsValue;
     public Text fpsValue;
+    public Dropdown languageDropdown;
     public GameObject keybindingsRoot;
     public GameObject keybindingsHeader;
     public GameObject keybindingsContainer;
@@ -94,7 +95,7 @@ public class UISettingsMenu : GameBehaviour
         if (!_isOpen)
             return;
 
-        bool showBindings = !Application.isMobilePlatform;
+        bool showBindings = !Application.isMobilePlatform && !MobileInput.Enabled;
         if (keybindingsContainer != null)
             keybindingsContainer.SetActive(showBindings);
         if (keybindingsRoot != null)
@@ -133,6 +134,9 @@ public class UISettingsMenu : GameBehaviour
         else
             CancelCapture();
 
+        if (visible && Player.Instance != null)
+            Player.Instance.LockControls(true);
+
         if (!visible && _uiManager != null && !_uiManager.IsCursorActive && Player.Instance != null)
             Player.Instance.LockControls(false);
     }
@@ -156,6 +160,7 @@ public class UISettingsMenu : GameBehaviour
 
         UpdateValueTexts();
         RefreshBindingTexts();
+        RefreshLanguageDropdown();
 
         if (_input != null && keybindingsRoot != null)
         {
@@ -398,6 +403,9 @@ public class UISettingsMenu : GameBehaviour
         tpsSensitivitySlider = CreateSliderRow(contentGO.transform, "TPS Camera Sensitivity", _font, out tpsValue);
         fpsSensitivitySlider = CreateSliderRow(contentGO.transform, "FPS Camera Sensitivity", _font, out fpsValue);
 
+        CreateHeader(contentGO.transform, "Language", _font, AllTextSize);
+        languageDropdown = CreateLanguageDropdownRow(contentGO.transform, "Language", _font);
+
         keybindingsHeader = CreateHeader(contentGO.transform, "Key Bindings", _font, AllTextSize);
         GameObject keyRoot = new GameObject("KeybindingsRoot", typeof(RectTransform));
         keyRoot.transform.SetParent(contentGO.transform, false);
@@ -421,6 +429,7 @@ public class UISettingsMenu : GameBehaviour
         _bindingsBuilt = _bindings.Count > 0;
 
         HookSliders();
+        HookLanguageDropdown();
     }
 
     private GameObject CreateHeader(Transform parent, string title, Font font, int size = 24)
@@ -550,6 +559,210 @@ public class UISettingsMenu : GameBehaviour
         valueLayout.minWidth = 160f;
 
         return slider;
+    }
+
+    private Dropdown CreateLanguageDropdownRow(Transform parent, string label, Font font)
+    {
+        GameObject row = new GameObject($"Row_{label}", typeof(RectTransform));
+        row.transform.SetParent(parent, false);
+        HorizontalLayoutGroup layout = row.AddComponent<HorizontalLayoutGroup>();
+        layout.childAlignment = TextAnchor.MiddleCenter;
+        layout.childControlHeight = true;
+        layout.childControlWidth = true;
+        layout.childForceExpandHeight = false;
+        layout.childForceExpandWidth = true;
+        layout.spacing = 16f;
+
+        float rowHeight = Mathf.Max(AllTextSize + 20f, 80f);
+        LayoutElement rowLayout = row.AddComponent<LayoutElement>();
+        rowLayout.preferredHeight = rowHeight;
+        rowLayout.flexibleHeight = 0f;
+
+        GameObject labelGO = new GameObject("Label", typeof(RectTransform));
+        labelGO.transform.SetParent(row.transform, false);
+        Text labelText = labelGO.AddComponent<Text>();
+        labelText.text = label;
+        labelText.font = font;
+        labelText.fontSize = AllTextSize;
+        labelText.color = Color.white;
+        labelText.alignment = TextAnchor.MiddleLeft;
+        labelText.horizontalOverflow = HorizontalWrapMode.Wrap;
+        labelText.verticalOverflow = VerticalWrapMode.Overflow;
+        LayoutElement labelLayout = labelGO.AddComponent<LayoutElement>();
+        labelLayout.minWidth = 320f;
+        labelLayout.preferredWidth = 420f;
+        labelLayout.flexibleWidth = 1f;
+
+        Dropdown dropdown = CreateDropdown(row.transform, font);
+        return dropdown;
+    }
+
+    private Dropdown CreateDropdown(Transform parent, Font font)
+    {
+        GameObject dropdownGO = new GameObject("Dropdown", typeof(RectTransform), typeof(Image), typeof(Dropdown));
+        dropdownGO.transform.SetParent(parent, false);
+        Image bg = dropdownGO.GetComponent<Image>();
+        bg.color = new Color(1f, 1f, 1f, 0.15f);
+
+        RectTransform dropdownRect = dropdownGO.GetComponent<RectTransform>();
+        dropdownRect.sizeDelta = new Vector2(0f, BindingButtonHeight);
+        LayoutElement dropdownLayout = dropdownGO.AddComponent<LayoutElement>();
+        dropdownLayout.minWidth = BindingButtonMinWidth * 2f;
+        dropdownLayout.preferredWidth = 0f;
+        dropdownLayout.flexibleWidth = 1f;
+        dropdownLayout.minHeight = BindingButtonHeight;
+        dropdownLayout.preferredHeight = BindingButtonHeight;
+
+        Dropdown dropdown = dropdownGO.GetComponent<Dropdown>();
+        dropdown.targetGraphic = bg;
+
+        GameObject labelGO = new GameObject("Label", typeof(RectTransform));
+        labelGO.transform.SetParent(dropdownGO.transform, false);
+        Text label = labelGO.AddComponent<Text>();
+        label.font = font;
+        label.fontSize = AllTextSize;
+        label.color = Color.white;
+        label.alignment = TextAnchor.MiddleLeft;
+        RectTransform labelRect = labelGO.GetComponent<RectTransform>();
+        labelRect.anchorMin = new Vector2(0f, 0f);
+        labelRect.anchorMax = new Vector2(1f, 1f);
+        labelRect.offsetMin = new Vector2(18f, 0f);
+        labelRect.offsetMax = new Vector2(-60f, 0f);
+        dropdown.captionText = label;
+
+        GameObject arrowGO = new GameObject("Arrow", typeof(RectTransform), typeof(Image));
+        arrowGO.transform.SetParent(dropdownGO.transform, false);
+        Image arrowImg = arrowGO.GetComponent<Image>();
+        arrowImg.color = _accentColor;
+        arrowImg.sprite = CreateTriangleSprite();
+        RectTransform arrowRect = arrowGO.GetComponent<RectTransform>();
+        arrowRect.anchorMin = new Vector2(1f, 0.5f);
+        arrowRect.anchorMax = new Vector2(1f, 0.5f);
+        arrowRect.sizeDelta = new Vector2(24f, 18f);
+        arrowRect.anchoredPosition = new Vector2(-24f, 0f);
+
+        GameObject templateGO = new GameObject("Template", typeof(RectTransform), typeof(Image), typeof(ScrollRect));
+        templateGO.transform.SetParent(dropdownGO.transform, false);
+        templateGO.SetActive(false);
+        Image templateBg = templateGO.GetComponent<Image>();
+        templateBg.color = new Color(0.07f, 0.1f, 0.16f, 0.98f);
+
+        RectTransform templateRect = templateGO.GetComponent<RectTransform>();
+        templateRect.anchorMin = new Vector2(0f, 0f);
+        templateRect.anchorMax = new Vector2(1f, 0f);
+        templateRect.pivot = new Vector2(0.5f, 1f);
+        templateRect.anchoredPosition = new Vector2(0f, -8f);
+        templateRect.sizeDelta = new Vector2(0f, 220f);
+
+        ScrollRect templateScroll = templateGO.GetComponent<ScrollRect>();
+        templateScroll.horizontal = false;
+        templateScroll.vertical = true;
+        templateScroll.movementType = ScrollRect.MovementType.Clamped;
+        templateScroll.scrollSensitivity = 24f;
+
+        GameObject viewportGO = new GameObject("Viewport", typeof(RectTransform), typeof(Image), typeof(Mask));
+        viewportGO.transform.SetParent(templateGO.transform, false);
+        Image viewportImg = viewportGO.GetComponent<Image>();
+        viewportImg.color = new Color(1f, 1f, 1f, 0.02f);
+        Mask viewportMask = viewportGO.GetComponent<Mask>();
+        viewportMask.showMaskGraphic = false;
+        RectTransform viewportRect = viewportGO.GetComponent<RectTransform>();
+        viewportRect.anchorMin = Vector2.zero;
+        viewportRect.anchorMax = Vector2.one;
+        viewportRect.offsetMin = new Vector2(6f, 6f);
+        viewportRect.offsetMax = new Vector2(-6f, -6f);
+
+        GameObject contentGO = new GameObject("Content", typeof(RectTransform));
+        contentGO.transform.SetParent(viewportGO.transform, false);
+        RectTransform contentRect = contentGO.GetComponent<RectTransform>();
+        contentRect.anchorMin = new Vector2(0f, 1f);
+        contentRect.anchorMax = new Vector2(1f, 1f);
+        contentRect.pivot = new Vector2(0.5f, 1f);
+        contentRect.anchoredPosition = Vector2.zero;
+        contentRect.sizeDelta = Vector2.zero;
+
+        VerticalLayoutGroup contentLayout = contentGO.AddComponent<VerticalLayoutGroup>();
+        contentLayout.childControlHeight = true;
+        contentLayout.childControlWidth = true;
+        contentLayout.childForceExpandHeight = false;
+        contentLayout.childForceExpandWidth = true;
+        contentLayout.spacing = 6f;
+        contentLayout.padding = new RectOffset(4, 4, 4, 4);
+
+        ContentSizeFitter contentFitter = contentGO.AddComponent<ContentSizeFitter>();
+        contentFitter.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
+        contentFitter.horizontalFit = ContentSizeFitter.FitMode.Unconstrained;
+
+        templateScroll.viewport = viewportRect;
+        templateScroll.content = contentRect;
+
+        GameObject itemGO = new GameObject("Item", typeof(RectTransform), typeof(Toggle));
+        itemGO.transform.SetParent(contentGO.transform, false);
+        Toggle itemToggle = itemGO.GetComponent<Toggle>();
+        itemToggle.isOn = true;
+        RectTransform itemRect = itemGO.GetComponent<RectTransform>();
+        itemRect.sizeDelta = new Vector2(0f, BindingButtonHeight);
+        LayoutElement itemLayout = itemGO.AddComponent<LayoutElement>();
+        itemLayout.minHeight = BindingButtonHeight;
+        itemLayout.preferredHeight = BindingButtonHeight;
+        itemLayout.flexibleWidth = 1f;
+
+        GameObject itemBgGO = new GameObject("Item Background", typeof(RectTransform), typeof(Image));
+        itemBgGO.transform.SetParent(itemGO.transform, false);
+        Image itemBg = itemBgGO.GetComponent<Image>();
+        itemBg.color = new Color(1f, 1f, 1f, 0.08f);
+        RectTransform itemBgRect = itemBgGO.GetComponent<RectTransform>();
+        itemBgRect.anchorMin = Vector2.zero;
+        itemBgRect.anchorMax = Vector2.one;
+        itemBgRect.offsetMin = Vector2.zero;
+        itemBgRect.offsetMax = Vector2.zero;
+
+        GameObject itemCheckGO = new GameObject("Item Checkmark", typeof(RectTransform), typeof(Image));
+        itemCheckGO.transform.SetParent(itemGO.transform, false);
+        Image itemCheck = itemCheckGO.GetComponent<Image>();
+        itemCheck.color = _accentColor;
+        RectTransform itemCheckRect = itemCheckGO.GetComponent<RectTransform>();
+        itemCheckRect.anchorMin = new Vector2(0f, 0.5f);
+        itemCheckRect.anchorMax = new Vector2(0f, 0.5f);
+        itemCheckRect.sizeDelta = new Vector2(18f, 18f);
+        itemCheckRect.anchoredPosition = new Vector2(16f, 0f);
+
+        GameObject itemLabelGO = new GameObject("Item Label", typeof(RectTransform));
+        itemLabelGO.transform.SetParent(itemGO.transform, false);
+        Text itemLabel = itemLabelGO.AddComponent<Text>();
+        itemLabel.font = font;
+        itemLabel.fontSize = AllTextSize;
+        itemLabel.color = Color.white;
+        itemLabel.alignment = TextAnchor.MiddleLeft;
+        RectTransform itemLabelRect = itemLabelGO.GetComponent<RectTransform>();
+        itemLabelRect.anchorMin = new Vector2(0f, 0f);
+        itemLabelRect.anchorMax = new Vector2(1f, 1f);
+        itemLabelRect.offsetMin = new Vector2(44f, 0f);
+        itemLabelRect.offsetMax = new Vector2(-10f, 0f);
+
+        itemToggle.targetGraphic = itemBg;
+        itemToggle.graphic = itemCheck;
+
+        dropdown.template = templateRect;
+        dropdown.itemText = itemLabel;
+        dropdown.captionText = label;
+
+        return dropdown;
+    }
+
+    private Sprite CreateTriangleSprite()
+    {
+        Texture2D tex = new Texture2D(32, 32, TextureFormat.ARGB32, false);
+        tex.SetPixels32(new Color32[32 * 32]);
+        for (int y = 0; y < 18; y++)
+        {
+            int start = 16 - y;
+            int end = 16 + y;
+            for (int x = start; x <= end; x++)
+                tex.SetPixel(x, y + 7, Color.white);
+        }
+        tex.Apply();
+        return Sprite.Create(tex, new Rect(0, 0, tex.width, tex.height), new Vector2(0.5f, 0.5f), 32f);
     }
 
     private void BuildBindingsUI(Transform parent, Font font)
@@ -733,6 +946,41 @@ public class UISettingsMenu : GameBehaviour
                     _input.fpsLookSensitivityMultiplier = SliderToSensitivityMultiplier(value);
                 UpdateValueTexts();
             });
+    }
+
+    private void HookLanguageDropdown()
+    {
+        if (languageDropdown == null)
+            return;
+
+        languageDropdown.onValueChanged.RemoveAllListeners();
+        languageDropdown.onValueChanged.AddListener(index =>
+        {
+            Language[] languages = (Language[])Enum.GetValues(typeof(Language));
+            if (index >= 0 && index < languages.Length)
+                LanguageManager.CurrentLanguage = languages[index];
+        });
+
+        RefreshLanguageDropdown();
+    }
+
+    private void RefreshLanguageDropdown()
+    {
+        if (languageDropdown == null)
+            return;
+
+        Language[] languages = (Language[])Enum.GetValues(typeof(Language));
+        List<string> options = new List<string>();
+        foreach (Language language in languages)
+            options.Add(language.ToString());
+
+        languageDropdown.ClearOptions();
+        languageDropdown.AddOptions(options);
+
+        int currentIndex = Array.IndexOf(languages, LanguageManager.CurrentLanguage);
+        if (currentIndex < 0) currentIndex = 0;
+        languageDropdown.SetValueWithoutNotify(currentIndex);
+        languageDropdown.RefreshShownValue();
     }
 
     private float SliderToVolumeMultiplier(float value)

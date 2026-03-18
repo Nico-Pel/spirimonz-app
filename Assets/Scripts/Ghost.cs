@@ -1258,6 +1258,9 @@ public class Ghost : GameBehaviour
             Random.Range(-throwTorqueMax, throwTorqueMax)
         );
 
+        if (objectToThrow is CatchableBook book)
+            book.OnGhostThrow();
+
         objectToThrow.ApplyForce(randomForce, randomTorque);
         ActivateActivitySource(objectToThrow.activitySource);
     }

@@ -14,6 +14,7 @@ public class MobilePerformanceManager : MonoBehaviour
     [Header("State")]
     public bool autoAdjust = true;
     public PerfLevel startLevel = PerfLevel.Medium;
+    public bool affectLightingSettings = false;
 
     [Header("FPS Detection")]
     public float checkInterval = 0.5f;
@@ -219,16 +220,20 @@ public class MobilePerformanceManager : MonoBehaviour
         AnisotropicFiltering aniso, bool realtimeReflections, bool softParticles)
     {
         Application.targetFrameRate = targetFps;
-        QualitySettings.pixelLightCount = Mathf.Max(0, pixelLights);
         QualitySettings.antiAliasing = Mathf.Max(0, aa);
         QualitySettings.globalTextureMipmapLimit = Mathf.Max(0, textureLimit);
-        QualitySettings.shadowDistance = Mathf.Max(0f, shadowDistance);
-        QualitySettings.shadowResolution = shadowResolution;
-        QualitySettings.shadowCascades = Mathf.Clamp(shadowCascades, 0, 4);
         QualitySettings.lodBias = Mathf.Max(0.1f, lodBias);
         QualitySettings.anisotropicFiltering = aniso;
-        QualitySettings.realtimeReflectionProbes = realtimeReflections;
         QualitySettings.softParticles = softParticles;
+
+        if (affectLightingSettings)
+        {
+            QualitySettings.pixelLightCount = Mathf.Max(0, pixelLights);
+            QualitySettings.shadowDistance = Mathf.Max(0f, shadowDistance);
+            QualitySettings.shadowResolution = shadowResolution;
+            QualitySettings.shadowCascades = Mathf.Clamp(shadowCascades, 0, 4);
+            QualitySettings.realtimeReflectionProbes = realtimeReflections;
+        }
     }
 
     private void CaptureBaseline()
