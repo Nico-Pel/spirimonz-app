@@ -11,4 +11,9 @@ public class EvidenceParameter : ScriptableObject
     [Header("Texts Settings")]
     public string title;
     public string info;
+
+    [Header("Evidence in Books")] 
+    public Material linkedMaterial;
+    public float offsetYYes = 0f;
+    public float offsetYNo = 0.25f;
 }

@@ -39,7 +39,13 @@ public class CatchableBook : CatchableObject
     public SoundParameters manualOpenSoundParameters;
     public SoundParameters manualCloseSoundParameters;
 
+    [Header("Evidence Pages")]
+    public EvidenceParameter[] evidenceParameters;
+    [Range(0f, 1f)] public float evidencePagesChance = 0.1f;
+
     [Header("Material Variations")]
+    public bool randomizeCoverMaterial = true;
+    public Material[] coverMaterialOptions;
     public bool randomizePagesOffset = true;
     [Min(0)] public int pageMaterialIndex = 1;
     public float[] pageOffsetOptions = { 0f, 0.25f, 0.75f };
@@ -50,12 +56,15 @@ public class CatchableBook : CatchableObject
     private Tween _openTween;
     private float _lastSyncedWeight = float.NaN;
     private bool _materialsRandomized;
+    private bool _hasEvidencePage;
+    private Material _selectedEvidenceMaterial;
+    private float _selectedEvidenceOffset;
     private MaterialPropertyBlock _pagePropertyBlock;
     private static readonly int MainTexST = Shader.PropertyToID("_MainTex_ST");
 
     private void Awake()
     {
-        SelectModelVariant();
+        base.Awake();
         InitializeColliderDefaults();
         RefreshBlendshapeBindings();
         SyncStateFromBlendshape(applyCollider: false);
@@ -63,6 +72,11 @@ public class CatchableBook : CatchableObject
 
     private void Start()
     {
+        _hasEvidencePage = TrySelectEvidencePage(out _selectedEvidenceMaterial, out _selectedEvidenceOffset);
+        if (!_hasEvidencePage)
+            SelectModelVariant();
+
+        RefreshBlendshapeBindings();
         SyncStateFromBlendshape(applyCollider: true);
         ApplyRandomizedMaterials();
     }
@@ -275,7 +289,7 @@ public class CatchableBook : CatchableObject
 
     private void ApplyRandomizedMaterials()
     {
-        if (!randomizePagesOffset || _materialsRandomized || bookRenderer == null)
+        if (_materialsRandomized || bookRenderer == null)
             return;
 
         _materialsRandomized = true;
@@ -284,32 +298,57 @@ public class CatchableBook : CatchableObject
         if (materials == null || materials.Length == 0)
             return;
 
+        if (randomizeCoverMaterial && coverMaterialOptions != null && coverMaterialOptions.Length > 0)
+        {
+            int coverIndex = 0;
+            if (coverIndex >= 0 && coverIndex < materials.Length)
+            {
+                Material chosenCover = coverMaterialOptions[Random.Range(0, coverMaterialOptions.Length)];
+                if (chosenCover != null)
+                    materials[coverIndex] = chosenCover;
+            }
+        }
+
+        if (!randomizePagesOffset)
+        {
+            bookRenderer.materials = materials;
+            return;
+        }
+
         int materialIndex = pageMaterialIndex;
         if (materialIndex < 0 || materialIndex >= materials.Length)
             materialIndex = Mathf.Clamp(materialIndex, 0, materials.Length - 1);
 
-        float offsetY = GetRandomPageOffset();
         Material target = materials[materialIndex];
         if (target == null)
             return;
 
-        Vector2 scale = target.mainTextureScale;
-        if (!Mathf.Approximately(scale.y, 1f))
-            target.mainTextureScale = new Vector2(scale.x, 1f);
+        if (_hasEvidencePage && _selectedEvidenceMaterial != null)
+        {
+            Material evidenceInstance = new Material(_selectedEvidenceMaterial);
+            ApplyPageOffsetToMaterial(evidenceInstance, _selectedEvidenceOffset);
+            materials[materialIndex] = evidenceInstance;
+            bookRenderer.materials = materials;
+            return;
+        }
 
-        Vector2 offset = target.mainTextureOffset;
-        target.mainTextureOffset = new Vector2(offset.x, offsetY);
+        float offsetY = GetRandomPageOffset();
+        ApplyPageOffsetToMaterial(target, offsetY);
         materials[materialIndex] = target;
         bookRenderer.materials = materials;
     }
 
-    private void ApplyAtlasToMaterial(Material material, float offsetY)
+    private void ApplyPageOffsetToMaterial(Material material, float offsetY)
     {
         if (material == null)
             return;
 
-        material.mainTextureScale = atlasScale;
-        material.mainTextureOffset = new Vector2(0f, offsetY);
+        Vector2 scale = material.mainTextureScale;
+        if (!Mathf.Approximately(scale.y, 1f))
+            material.mainTextureScale = new Vector2(scale.x, 1f);
+
+        Vector2 offset = material.mainTextureOffset;
+        material.mainTextureOffset = new Vector2(offset.x, offsetY);
     }
 
     private float GetRandomPageOffset()
@@ -319,6 +358,51 @@ public class CatchableBook : CatchableObject
 
         int index = Random.Range(0, pageOffsetOptions.Length);
         return pageOffsetOptions[index];
+    }
+
+    private bool TrySelectEvidencePage(out Material evidenceMaterial, out float offsetY)
+    {
+        evidenceMaterial = null;
+        offsetY = 0f;
+
+        if (!randomizePagesOffset)
+            return false;
+
+        float chance = Mathf.Clamp01(evidencePagesChance);
+        if (chance <= 0f || Random.value > chance)
+            return false;
+
+        return TryGetEvidencePage(out evidenceMaterial, out offsetY);
+    }
+
+    private bool TryGetEvidencePage(out Material evidenceMaterial, out float offsetY)
+    {
+        evidenceMaterial = null;
+        offsetY = 0f;
+        Ghost currentGhost = House.Instance != null ? House.Instance.currentGhost : null;
+        GhostParameters ghostParameters = currentGhost != null ? currentGhost.ghostParameters : null;
+        if (ghostParameters == null)
+            return false;
+
+        if (evidenceParameters == null || evidenceParameters.Length == 0)
+            return false;
+
+        List<EvidenceParameter> validEvidences = new List<EvidenceParameter>(evidenceParameters.Length);
+        for (int i = 0; i < evidenceParameters.Length; i++)
+        {
+            EvidenceParameter evidence = evidenceParameters[i];
+            if (evidence != null && evidence.linkedMaterial != null)
+                validEvidences.Add(evidence);
+        }
+
+        if (validEvidences.Count == 0)
+            return false;
+
+        EvidenceParameter chosen = validEvidences[Random.Range(0, validEvidences.Count)];
+        evidenceMaterial = chosen.linkedMaterial;
+        bool hasEvidence = ghostParameters.HasEvidence(chosen.evidenceType);
+        offsetY = hasEvidence ? chosen.offsetYYes : chosen.offsetYNo;
+        return true;
     }
 
     private void SelectModelVariant()

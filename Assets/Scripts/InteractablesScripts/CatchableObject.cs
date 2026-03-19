@@ -37,7 +37,7 @@ public class CatchableObject : GameBehaviour, IInteractable
     
     public UnityEvent onGrab;
 
-    private void Awake()
+    protected virtual void Awake()
     {
         if (activitySource == null)
             activitySource = GetComponent<ActivitySource>();

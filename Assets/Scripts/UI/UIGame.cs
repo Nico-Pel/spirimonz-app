@@ -171,9 +171,13 @@ public class UIGame : UIManager
     {
         bool endGameOpen = tablet != null && tablet.endGame != null && tablet.endGame.gameObject.activeSelf;
 
-        if (!endGameOpen && ((!MobileInput.Enabled && _player.inputManager.GetOpenJournalDown()) || MobileInput.OpenJournalDown) && _player.IsDead() == false)
+        bool journalDown = (!MobileInput.Enabled && _player.inputManager.GetOpenJournalDown()) || MobileInput.OpenJournalDown;
+        if (!endGameOpen && journalDown && _player.IsDead() == false)
         {
-            OpenJournal();
+            if (IsJournalOpen())
+                tablet.TurnOffTablet();
+            else
+                OpenJournal();
         }
         
         if (!endGameOpen && ((!MobileInput.Enabled && _player.inputManager.GetOpenTeamMenuDown()) || MobileInput.OpenTeamMenuDown) && _player.IsDead() == false)
@@ -257,8 +261,22 @@ public class UIGame : UIManager
     
     private void OpenJournal()
     {
+        if (tablet == null)
+            return;
+
         tablet.gameObject.SetActive(true);
         tablet.OpenTab(1, true);
+    }
+
+    private bool IsJournalOpen()
+    {
+        if (tablet == null || !tablet.gameObject.activeSelf)
+            return false;
+
+        if (tablet.tabWindows == null || tablet.tabWindows.Length <= 1)
+            return false;
+
+        return tablet.tabWindows[1] != null && tablet.tabWindows[1].activeSelf;
     }
 
     public void OpenPrivateTabletWindow(int windowID)
