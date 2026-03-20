@@ -2,6 +2,8 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Serialization;
+using Random = UnityEngine.Random;
 
 [CreateAssetMenu(fileName = "HouseMap", menuName = "HouseMap")]
 public class HouseMap : ScriptableObject
@@ -20,10 +22,28 @@ public class HouseMap : ScriptableObject
     
     [Header("House's Ghost Settings")]
     public GhostParameters[] possibleGhostParameters;
-    public Ghost[] possibleGhosts;
+    [FormerlySerializedAs("possibleGhosts")] public Ghost[] ghosts;
 
     private void OnValidate()
     {
         houseID = this.name;
+    }
+
+    public Ghost GetRandomGhost(House h)
+    {
+        List<Ghost> possibleGhosts = new List<Ghost>();
+
+        foreach (Ghost g in ghosts)
+        {
+            if (g.ghostShape == Ghost.GhostShape.small &&
+                h.selectedGhostParameter.ghostTypeData.ghostType == GhostTypeData.GhostType.Draconic)
+            {
+                continue;
+            }
+            
+            possibleGhosts.Add(g);
+        }
+        
+        return possibleGhosts[Random.Range(0, possibleGhosts.Count)];
     }
 }

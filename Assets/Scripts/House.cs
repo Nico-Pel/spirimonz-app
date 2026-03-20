@@ -14,6 +14,8 @@ public class House : GameBehaviour
 {
     public static House Instance { get; private set; }
     public HouseMap map;
+
+    [ReadOnly] public GhostParameters selectedGhostParameter;
        
 # if UNITY_EDITOR
     public bool useDebugs;
@@ -108,9 +110,18 @@ public class House : GameBehaviour
         }
     }
 
-    public void InstantiateGhost()
+    private void InstantiateGhost()
     {
-        currentGhost = Instantiate(map.possibleGhosts[Random.Range(0, map.possibleGhosts.Length)]);
+        selectedGhostParameter = map.possibleGhostParameters[Random.Range(0, map.possibleGhostParameters.Length)];
+        
+        #if UNITY_EDITOR
+        if (forcedGhostParameters != null && useDebugs)
+        {
+            selectedGhostParameter = forcedGhostParameters;
+        }
+        #endif
+        
+        currentGhost = Instantiate(map.GetRandomGhost(this));
         currentGhost.Initialize(this);
     }
 

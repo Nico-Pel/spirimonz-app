@@ -10,7 +10,16 @@ using Random = UnityEngine.Random;
 
 public class Ghost : GameBehaviour
 {
+    public enum GhostShape
+    {
+        normal,
+        big,
+        small
+    }
+    
    [ReadOnly] public GhostParameters ghostParameters;
+   
+   public GhostShape ghostShape;
 
 #if UNITY_EDITOR
     [Space]
@@ -168,17 +177,10 @@ public class Ghost : GameBehaviour
     {
         house = h;
 
-        if (house.map.possibleGhosts.Length > 0)
+        if (house.map.ghosts.Length > 0)
         {
-            ghostParameters = house.map.possibleGhostParameters[Random.Range(0, house.map.possibleGhostParameters.Length)];
+            ghostParameters = house.selectedGhostParameter;
         }
-        
-        # if UNITY_EDITOR
-        if (h.useDebugs && h.forcedGhostParameters != null)
-        {
-            ghostParameters = h.forcedGhostParameters;
-        }
-        # endif
         
         favoriteRoom = house.hauntableRooms[Random.Range(0, house.hauntableRooms.Length)];
         

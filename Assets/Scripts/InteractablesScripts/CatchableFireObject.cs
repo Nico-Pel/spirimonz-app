@@ -49,6 +49,12 @@ public class CatchableFireObject : CatchableObject
     {
         base.OnDrop();
         _dropTime = Time.time;
+        
+        this.Invoke(1.5f, () =>
+        {
+            if(linkedFlammableElement.IsOnFire() == false)
+                linkedFlammableElement.canBeTurnedOn = true;
+        });
     }
 
     private void Update()
@@ -81,6 +87,7 @@ public class CatchableFireObject : CatchableObject
         _dropTime = float.PositiveInfinity; // toujours protégé en main
         linkedFlammableElement.canBeTurnedOn = false;
     }
+
     
     public override void SpecialActionInHandsOnClick()
     {

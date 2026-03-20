@@ -30,7 +30,9 @@ public static class SnapTransformEditor
             foreach (Transform t in selection)
             {
                 t.localPosition = SnapVector(t.localPosition);
-                t.localEulerAngles = SnapEuler(t.localEulerAngles);
+                Vector3 snappedEuler = SnapEuler(t.localEulerAngles);
+                t.localRotation = Quaternion.Euler(snappedEuler);
+                SetEulerHint(t, snappedEuler);
                 EditorUtility.SetDirty(t);
             }
 
@@ -68,7 +70,33 @@ public static class SnapTransformEditor
     private static float SnapAngle(float angle)
     {
         angle = Mathf.DeltaAngle(0f, angle);
-        return SnapFloat(angle);
+        angle = SnapFloat(angle);
+
+        float eps = SNAP_VALUE * 0.5f;
+        if (Mathf.Abs(angle) <= eps)
+            return 0f;
+        if (Mathf.Abs(angle - 90f) <= eps)
+            return 90f;
+        if (Mathf.Abs(angle + 90f) <= eps)
+            return -90f;
+        if (Mathf.Abs(angle - 180f) <= eps || Mathf.Abs(angle + 180f) <= eps)
+            return 180f;
+
+        return angle;
+    }
+
+    private static void SetEulerHint(Transform t, Vector3 euler)
+    {
+        if (t == null)
+            return;
+
+        SerializedObject so = new SerializedObject(t);
+        SerializedProperty prop = so.FindProperty("m_LocalEulerAnglesHint");
+        if (prop != null)
+        {
+            prop.vector3Value = euler;
+            so.ApplyModifiedProperties();
+        }
     }
 }
 #endif

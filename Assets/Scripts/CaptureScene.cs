@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using Unity.Mathematics;
 using UnityEngine;
 
 public class CaptureScene : GameBehaviour
@@ -21,29 +22,33 @@ public class CaptureScene : GameBehaviour
     public AudioClip heartBeatingClip;
     public float heartBeatVolume = 1f;
     
-    public GameObject ghostModel;
-    public Animator ghostAnimator;
+    private Animator _ghostAnimator;
     
     public Animator sceneAnimator;
     public float delayBeforeStartingWinAnimation = 0.5f;
 
     private GameObject _capturedSpirimonz;
     private House _house;
-
-    private void Start()
-    {
-        if (_house == null)
-        {
-            _house = House.Instance;
-        }
-    }
-
+    
+    private GameObject _ghost;
     private void OnEnable()
     {
         UIGame.Instance.EnableOverlay(false, 0.5f);
         SoundManager.Instance.StopAmbient(1.5f);
         
         Camera.main.gameObject.SetActive(false);
+
+        if (_house == null)
+        {
+            _house = House.Instance;
+        }
+        
+        if (_ghost == null)
+        {
+            _ghost = Instantiate(_house.currentGhost.ghostModel, transform.position, quaternion.identity, transform);
+            _ghost.SetActive(true);
+            _ghostAnimator = _ghost.GetComponentInChildren<Animator>();
+        }
     }
 
     //Animation Event
@@ -73,7 +78,7 @@ public class CaptureScene : GameBehaviour
         
         smokeDarkWinEffect.SetActive(true);
         
-        ghostModel.SetActive(false);
+        _ghost.SetActive(false);
         _capturedSpirimonz = Instantiate(selectedSpirimonz.spirimonzBodyPrefab, transform.position + selectedSpirimonz.bodyPresentationOffset, Quaternion.identity);
         this.Invoke(delayBeforeStartingWinAnimation, PlayWinAnimation);
         
@@ -109,7 +114,7 @@ public class CaptureScene : GameBehaviour
 
     private void Lose()
     {
-        ghostAnimator.SetTrigger("Attack");
+        _ghostAnimator.SetTrigger("Attack");
         PlayLoseSound();
         this.Invoke(0.275f, () => UIGame.Instance.EnableOverlay(true, 0.1f));
 
@@ -143,6 +148,6 @@ public class CaptureScene : GameBehaviour
         UIGame.Instance.OpenEndGame(endType, _house);
         
         if(isDead)
-            gameObject.SetActive(false);
+            _ghost.SetActive(false);
     }
 }

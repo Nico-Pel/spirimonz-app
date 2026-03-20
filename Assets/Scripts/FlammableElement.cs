@@ -9,7 +9,8 @@ public class FlammableElement : GameBehaviour
     public enum FlammableType
     {
         None,
-        Candle
+        Candle,
+        Chimney
     }
 
     public FlammableType type;
