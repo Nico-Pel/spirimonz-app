@@ -20,6 +20,9 @@ public class MobileLightOptimizerManager : MonoBehaviour
     [Header("Performance")]
     public int lightsPerFrame = 25;
     public bool includeInactiveLights = true;
+    
+    [Header("Scene Filtering")]
+    public string[] sceneNamePrefixes = { "world", "house" };
 
     private readonly List<MobileLightOptimizedLight> _lights = new List<MobileLightOptimizedLight>();
     private int _lightIndex;
@@ -105,7 +108,7 @@ public class MobileLightOptimizerManager : MonoBehaviour
     {
         _lights.Clear();
 
-        if (!IsWorldScene())
+        if (!IsOptimizedScene())
             return;
 
         HashSet<Light> gameplayLights = CollectGameplayLights();
@@ -152,10 +155,27 @@ public class MobileLightOptimizerManager : MonoBehaviour
         }
     }
 
-    private bool IsWorldScene()
+    private bool IsOptimizedScene()
     {
         Scene scene = SceneManager.GetActiveScene();
-        return scene.IsValid() && scene.name.ToLower().StartsWith("world");
+        if (!scene.IsValid())
+            return false;
+
+        string name = scene.name.ToLower();
+        if (sceneNamePrefixes == null || sceneNamePrefixes.Length == 0)
+            return name.StartsWith("world");
+
+        for (int i = 0; i < sceneNamePrefixes.Length; i++)
+        {
+            string prefix = sceneNamePrefixes[i];
+            if (string.IsNullOrWhiteSpace(prefix))
+                continue;
+
+            if (name.StartsWith(prefix.Trim().ToLower()))
+                return true;
+        }
+
+        return false;
     }
 
     private void UpdateLights()

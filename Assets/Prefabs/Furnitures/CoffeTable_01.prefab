@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 804359033411567177}
   - component: {fileID: 4406664848437609455}
   - component: {fileID: 3172493323179541583}
-  - component: {fileID: 4262224961938236370}
+  - component: {fileID: 4740112620973751991}
   m_Layer: 0
   m_Name: CoffeTable_01
   m_TagString: Untagged
@@ -101,8 +101,8 @@ NavMeshObstacle:
   m_CarveOnlyStationary: 1
   m_Center: {x: 0, y: 0.393, z: 0.004}
   m_TimeToStationary: 0.5
---- !u!64 &4262224961938236370
-MeshCollider:
+--- !u!65 &4740112620973751991
+BoxCollider:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
@@ -119,7 +119,6 @@ MeshCollider:
   m_IsTrigger: 0
   m_ProvidesContacts: 0
   m_Enabled: 1
-  serializedVersion: 5
-  m_Convex: 1
-  m_CookingOptions: 30
-  m_Mesh: {fileID: 2967423783725122669, guid: 25bb645ea70064daba3fe7b042f79378, type: 3}
+  serializedVersion: 3
+  m_Size: {x: 1.8698394, y: 0.62484705, z: 0.89734364}
+  m_Center: {x: 0, y: 0.31242365, z: 0.003757}
