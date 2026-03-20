@@ -3835,6 +3835,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
+  - {fileID: 1596058650}
   - {fileID: 8984062126957456812}
   - {fileID: 1426913703}
   - {fileID: 787546742}
@@ -3844,7 +3845,6 @@ Transform:
   - {fileID: 1335887170}
   - {fileID: 989748394}
   - {fileID: 1321947388}
-  - {fileID: 1596058650}
   - {fileID: 1766587352}
   - {fileID: 1643664389}
   m_Father: {fileID: 543450653374424382}
@@ -10221,11 +10221,11 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
+  - {fileID: 2062329514}
   - {fileID: 6932562427101464252}
   - {fileID: 2532837590776577571}
   - {fileID: 1094447576}
   - {fileID: 8334797031558118614}
-  - {fileID: 2062329514}
   - {fileID: 5921524390546515758}
   - {fileID: 707062209}
   - {fileID: 9012794574456346435}
@@ -24295,8 +24295,8 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
-  - {fileID: 850081370}
   - {fileID: 951058094}
+  - {fileID: 850081370}
   m_Father: {fileID: 543450653374424382}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!65 &1241666154
@@ -32807,11 +32807,11 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
+  - {fileID: 620792904}
   - {fileID: 1206494034}
   - {fileID: 564138555}
   - {fileID: 77291094}
   - {fileID: 5714374316581223726}
-  - {fileID: 620792904}
   - {fileID: 761326414}
   m_Father: {fileID: 543450653374424382}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -40015,8 +40015,8 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
-  - {fileID: 1175699844}
   - {fileID: 726977374}
+  - {fileID: 1175699844}
   - {fileID: 174631489}
   m_Father: {fileID: 543450653374424382}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -40795,6 +40795,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   map: {fileID: 11400000, guid: bdeb4d0bd98f84d72a67fb487f2f61f5, type: 2}
+  selectedGhostParameter: {fileID: 0}
   useDebugs: 0
   playerCantDie: 1
   forcedGhostParameters: {fileID: 0}

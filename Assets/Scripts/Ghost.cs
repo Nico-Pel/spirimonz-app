@@ -207,6 +207,7 @@ public class Ghost : GameBehaviour
         transform.position = house.SelectRandomWayPointFromARoom(favoriteRoom).transform.position;
         currentRoom = favoriteRoom;
         agent.enabled = true;
+        
 
         if (ghostParameters.ghostTypeData.ghostType == GhostTypeData.GhostType.Trickster)
         {
@@ -232,7 +233,6 @@ public class Ghost : GameBehaviour
             float delayBeforeNextGhostOrbs = Random.Range(ghostParameters.nextOrbsDelayMin, ghostParameters.nextOrbsDelayMax);
             this.Invoke(ORBS_INVOKE, delayBeforeNextGhostOrbs, CreateSpiritOrbs);
         }
-        
     }
 
     private void CreateSpiritOrbs()

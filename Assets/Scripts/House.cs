@@ -99,7 +99,7 @@ public class House : GameBehaviour
         {
             wayPoints.Add(wp);
         }
-        
+
         InstantiateGhost();
 
         //Change the average start temperature for the rooms
@@ -134,7 +134,7 @@ public class House : GameBehaviour
             if (w.linkedRoom == room)
                 selectableWayPoints.Add(w);
         }
-
+        
         if (selectableWayPoints.Count == 0)
         {
             Debug.LogWarning("Aucun WayPoint disponible dans cette salle !");

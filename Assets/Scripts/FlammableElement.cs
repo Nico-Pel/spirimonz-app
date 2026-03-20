@@ -41,6 +41,7 @@ public class FlammableElement : GameBehaviour
 
     public void EnableFire(bool enable, bool useParticlesOff = true, bool useGhostSoundClip = false, bool forced = false)
     {
+        Debug.Log("POUET " + gameObject.name, gameObject);
         if (enable == true && (canBeTurnedOn == false && forced == false)) return;
         
         _isOnFire = enable;
