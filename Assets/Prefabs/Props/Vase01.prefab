@@ -138,18 +138,17 @@ MonoBehaviour:
   canBeThrownByGhost: 1
   canBeThrownByPlayer: 1
   setRotZeroOnDrop: 1
+  offsetPosInHands: {x: 0, y: 0, z: 0}
+  offsetRotInHands: {x: 0, y: 0, z: 0}
+  priority: 0
   rb: {fileID: 7055402289030159528}
   activitySource: {fileID: 3683657692521461788}
   isGrabbed: 0
-  collisionSounds:
-  - {fileID: 8300000, guid: abc9a1cc6e1694561836d5d61bfa43e9, type: 3}
-  - {fileID: 8300000, guid: c69c66a3654e248b58f7e6aff123c63a, type: 3}
-  collisionSoundVolume: 0.5
-  collisionSoundAveragePitch: 0.75
-  collisionSoundVariationPitch: 0.1
-  collisionSoundRange: 15
-  minForceToPlayCollision: 1
   collisionSoundParameters: {fileID: 3450188577699867477}
+  minForceToPlayCollision: 1
+  onGrab:
+    m_PersistentCalls:
+      m_Calls: []
   model: {fileID: 2248026911800768186}
   fracturedModel: {fileID: 4962977476407976479}
   breakingSounds:
@@ -236,8 +235,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   possibleClips:
-  - {fileID: 8300000, guid: bacf17f594ca348be9ab7112698dc6f3, type: 3}
-  - {fileID: 8300000, guid: aa3f9bdc9d39544fe9d450514854346a, type: 3}
+  - {fileID: 8300000, guid: 0e88b0731e98b4b00aaf5a5279cee8fd, type: 3}
   volume: 0.5
   pitchMin: 0.65
   pitchMax: 0.85

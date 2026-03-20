@@ -273,6 +273,9 @@ public class UIGame : UIManager
         if (tablet == null || !tablet.gameObject.activeSelf)
             return false;
 
+        if (tablet.CurrentTabIndex == 1)
+            return true;
+
         if (tablet.tabWindows == null || tablet.tabWindows.Length <= 1)
             return false;
 

@@ -19,6 +19,11 @@ public class FPSControllerNoPhysics : Controller
     public float mouseSensitivityX = 2.0f;
     public float mouseSensitivityY = 2.0f;
     public float maxLookAngle = 80f;
+    
+    [Header("Look Safety")]
+    [Min(0)] public int ignoreLookFramesOnFocus = 1;
+    [Min(0f)] public float maxLookDeltaPerFrame = 8f;
+    [Min(0f)] public float maxLookDeltaTime = 0.05f;
 
     [Header("Mobile Look")]
     public float mobileLookSensitivityX = 2.0f;
@@ -105,6 +110,8 @@ public class FPSControllerNoPhysics : Controller
     private bool _lastMobileEnabled;
     private bool _isMoving;
     private float _mobileIdleMultiplier = 1f;
+    private int _ignoreLookFrames;
+    private CursorLockMode _lastCursorLockState;
 
     private Player _player;
 
@@ -120,6 +127,7 @@ public class FPSControllerNoPhysics : Controller
 
         _lastMobileEnabled = MobileInput.Enabled;
         ApplyCursorState(_lastMobileEnabled);
+        _lastCursorLockState = Cursor.lockState;
 
         if (armsTransform != null)
         {
@@ -143,6 +151,8 @@ public class FPSControllerNoPhysics : Controller
             ApplyCursorState(_lastMobileEnabled);
         }
 
+        TrackCursorLockState();
+
         if (_player.IsLocked()) return;
         
         HandleLook();
@@ -157,6 +167,17 @@ public class FPSControllerNoPhysics : Controller
     void HandleLook()
     {
         if (_player.IsCameraLocked() && !_player.IsDead()) return;
+        if (_ignoreLookFrames > 0)
+        {
+            _ignoreLookFrames--;
+            if (!MobileInput.Enabled)
+            {
+                Input.GetAxis("Mouse X");
+                Input.GetAxis("Mouse Y");
+            }
+            _lastMobileLookScaled = Vector2.zero;
+            return;
+        }
 
         float mouseX = 0f;
         float mouseY = 0f;
@@ -166,8 +187,12 @@ public class FPSControllerNoPhysics : Controller
         if (!MobileInput.Enabled)
         {
             const float pcSensitivityScale = 0.5f;
-            mouseX = Input.GetAxis("Mouse X") * mouseSensitivityX * fpsSensitivityMultiplier * pcSensitivityScale * 100f * Time.deltaTime;
-            mouseY = Input.GetAxis("Mouse Y") * mouseSensitivityY * fpsSensitivityMultiplier * pcSensitivityScale * 100f * Time.deltaTime;
+            float lookDeltaTime = Time.deltaTime;
+            if (maxLookDeltaTime > 0f)
+                lookDeltaTime = Mathf.Min(lookDeltaTime, maxLookDeltaTime);
+
+            mouseX = Input.GetAxis("Mouse X") * mouseSensitivityX * fpsSensitivityMultiplier * pcSensitivityScale * 100f * lookDeltaTime;
+            mouseY = Input.GetAxis("Mouse Y") * mouseSensitivityY * fpsSensitivityMultiplier * pcSensitivityScale * 100f * lookDeltaTime;
         }
         float idleMultiplier = 1f;
         if (MobileInput.Enabled)
@@ -201,6 +226,12 @@ public class FPSControllerNoPhysics : Controller
 
         mouseX += _lastMobileLookScaled.x;
         mouseY += _lastMobileLookScaled.y;
+
+        if (maxLookDeltaPerFrame > 0f)
+        {
+            mouseX = Mathf.Clamp(mouseX, -maxLookDeltaPerFrame, maxLookDeltaPerFrame);
+            mouseY = Mathf.Clamp(mouseY, -maxLookDeltaPerFrame, maxLookDeltaPerFrame);
+        }
 
         xRotation -= mouseY;
         xRotation = Mathf.Clamp(xRotation, -maxLookAngle, maxLookAngle);
@@ -490,5 +521,31 @@ public class FPSControllerNoPhysics : Controller
             Cursor.lockState = CursorLockMode.Locked;
             Cursor.visible = false;
         }
+
+        if (!mobileEnabled && ignoreLookFramesOnFocus > 0)
+            _ignoreLookFrames = Mathf.Max(_ignoreLookFrames, ignoreLookFramesOnFocus);
+    }
+
+    private void TrackCursorLockState()
+    {
+        CursorLockMode current = Cursor.lockState;
+        if (current == _lastCursorLockState)
+            return;
+
+        _lastCursorLockState = current;
+        if (!MobileInput.Enabled && current == CursorLockMode.Locked && ignoreLookFramesOnFocus > 0)
+            _ignoreLookFrames = Mathf.Max(_ignoreLookFrames, ignoreLookFramesOnFocus);
+    }
+
+    private void OnApplicationFocus(bool hasFocus)
+    {
+        if (hasFocus && ignoreLookFramesOnFocus > 0)
+            _ignoreLookFrames = Mathf.Max(_ignoreLookFrames, ignoreLookFramesOnFocus);
+    }
+
+    private void OnApplicationPause(bool pauseStatus)
+    {
+        if (!pauseStatus && ignoreLookFramesOnFocus > 0)
+            _ignoreLookFrames = Mathf.Max(_ignoreLookFrames, ignoreLookFramesOnFocus);
     }
 }

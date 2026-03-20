@@ -58,6 +58,7 @@ public class Ghost : GameBehaviour
     public bool isBlinkingGhost;
 
     [Header("Sounds")]
+    public float ghostPitch = 1f;
     public AudioClip apparitionSound;
     public AudioClip huntingSound;
     public AudioClip killSound;
@@ -427,11 +428,13 @@ public class Ghost : GameBehaviour
         if (_isLocked || _willHunt == false) return; //If willHunt is false, hunt has been canceled
         
         fxApparition.Play();
-        SoundManager.Instance.PlaySound(apparitionSound, transform.position, 1f, 1f, -1f, 25f);
+        SoundManager.Instance.PlaySound(apparitionSound, transform.position, 1f, ghostPitch, -1f, 25f);
         
         onGhostStartToHunt?.Invoke();
         currentState = GhostState.standingState;
         agent.velocity = Vector3.zero;
+        agent.isStopped = true;
+        agent.ResetPath();
         
         //float startingHuntDelay = DivideByPercentage(startHuntingStandingTime, angerPercentage);
         this.Invoke(startHuntingStandingTime, StartHunting);
@@ -445,8 +448,7 @@ public class Ghost : GameBehaviour
     {
         ResetWaypoints();
         InitWayPoints();
-        _huntingSound = SoundManager.Instance.PlaySound(huntingSound, transform.position, 1f, 1, -1f, 20f, true, this.transform);
-        
+        _huntingSound = SoundManager.Instance.PlaySound(huntingSound, transform.position, 1f, ghostPitch, -1f, 20f, true, this.transform);
         currentState = GhostState.huntingState;
         
         //Start blinking
@@ -463,18 +465,18 @@ public class Ghost : GameBehaviour
 
     private void Update()
     {
-        if (agent.isStopped && !_stopMoving)
-        {
-            agent.isStopped = false;
-        }
-        
         if (currentState == GhostState.standingState)
         {
+            agent.isStopped = true;
+            agent.velocity = Vector3.zero;
             agent.speed = 0;
             LookAtPlayer();
         }
         else if (currentState == GhostState.huntingState)
         {
+            if (agent.isStopped && !_stopMoving)
+                agent.isStopped = false;
+
             currentHuntTime -= Time.deltaTime;
             if (currentHuntTime <= 0)
             {
@@ -525,6 +527,9 @@ public class Ghost : GameBehaviour
         }
         else
         {
+            if (agent.isStopped && !_stopMoving)
+                agent.isStopped = false;
+
             SetHidingDestination();
         }
         

@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using UnityEngine;
 using UnityEngine.Events;
 using DG.Tweening;
@@ -29,11 +30,15 @@ public class CatchableObject : GameBehaviour, IInteractable
     public SoundParameters collisionSoundParameters;
     public float minForceToPlayCollision = 1f;
 
+    [Header("Drop Collision Safety")]
+    public float ignorePlayerCollisionDuration = 1f;
+
     protected bool _canCallCollisionSound = false;
     protected float _collisionSoundsMinDelay = 0.5f;
     protected float _collisionStartDelay = 1f;
 
     private Transform _currentHolder;
+    private Coroutine _ignorePlayerCollisionRoutine;
     
     public UnityEvent onGrab;
 
@@ -104,6 +109,8 @@ public class CatchableObject : GameBehaviour, IInteractable
         isGrabbed = false;
         _currentHolder = null;
 
+        StartIgnorePlayerCollision();
+
         if (throwForce != Vector3.zero)
         {
             OnThrow();
@@ -112,6 +119,88 @@ public class CatchableObject : GameBehaviour, IInteractable
         {
             OnDrop();
         }
+    }
+
+    private void StartIgnorePlayerCollision()
+    {
+        if (ignorePlayerCollisionDuration <= 0f)
+            return;
+
+        if (_ignorePlayerCollisionRoutine != null)
+            StopCoroutine(_ignorePlayerCollisionRoutine);
+
+        _ignorePlayerCollisionRoutine = StartCoroutine(IgnorePlayerCollisionRoutine(ignorePlayerCollisionDuration));
+    }
+
+    private IEnumerator IgnorePlayerCollisionRoutine(float duration)
+    {
+        Player player = Player.Instance;
+        if (player == null)
+            yield break;
+
+        Collider[] playerColliders = player.GetComponentsInChildren<Collider>(true);
+        Collider[] objectColliders = GetComponentsInChildren<Collider>(true);
+
+        if (playerColliders == null || playerColliders.Length == 0 || objectColliders == null || objectColliders.Length == 0)
+            yield break;
+
+        SetIgnoreCollisions(playerColliders, objectColliders, true);
+
+        float endTime = Time.time + duration;
+        while (Time.time < endTime)
+            yield return null;
+
+        while (IsOverlapping(playerColliders, objectColliders))
+            yield return null;
+
+        SetIgnoreCollisions(playerColliders, objectColliders, false);
+        _ignorePlayerCollisionRoutine = null;
+    }
+
+    private void SetIgnoreCollisions(Collider[] playerColliders, Collider[] objectColliders, bool ignore)
+    {
+        for (int i = 0; i < playerColliders.Length; i++)
+        {
+            Collider playerCol = playerColliders[i];
+            if (playerCol == null)
+                continue;
+
+            for (int j = 0; j < objectColliders.Length; j++)
+            {
+                Collider objectCol = objectColliders[j];
+                if (objectCol == null)
+                    continue;
+
+                Physics.IgnoreCollision(playerCol, objectCol, ignore);
+            }
+        }
+    }
+
+    private bool IsOverlapping(Collider[] playerColliders, Collider[] objectColliders)
+    {
+        for (int i = 0; i < playerColliders.Length; i++)
+        {
+            Collider playerCol = playerColliders[i];
+            if (playerCol == null || !playerCol.enabled || playerCol.isTrigger)
+                continue;
+
+            for (int j = 0; j < objectColliders.Length; j++)
+            {
+                Collider objectCol = objectColliders[j];
+                if (objectCol == null || !objectCol.enabled || objectCol.isTrigger)
+                    continue;
+
+                if (Physics.ComputePenetration(
+                        playerCol, playerCol.transform.position, playerCol.transform.rotation,
+                        objectCol, objectCol.transform.position, objectCol.transform.rotation,
+                        out _, out _))
+                {
+                    return true;
+                }
+            }
+        }
+
+        return false;
     }
 
     public virtual void OnDrop()

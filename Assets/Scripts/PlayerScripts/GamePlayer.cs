@@ -149,7 +149,8 @@ public class GamePlayer : Player
         
         //Sounds
         SoundManager soundManager = SoundManager.Instance;
-        soundManager.PlaySound(House.Instance.currentGhost.killSound, transform.position, 1f, sourceParent: transform, duration: -1f, loop: false);
+        Ghost currentGhost = House.Instance.currentGhost;
+        soundManager.PlaySound(currentGhost.killSound, transform.position, 1f, sourceParent: transform, duration: -1f, loop: false, pitch: currentGhost.ghostPitch);
         
         this.Invoke(deathSoundDelay, () => PlayDeathSound(soundManager));
         this.Invoke(groundFallDelay, () => PlayerFallGroundSound(soundManager));

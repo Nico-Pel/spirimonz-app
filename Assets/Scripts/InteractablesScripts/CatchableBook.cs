@@ -46,6 +46,8 @@ public class CatchableBook : CatchableObject
     [Header("Material Variations")]
     public bool randomizeCoverMaterial = true;
     public Material[] coverMaterialOptions;
+    public bool randomizePageMaterial = true;
+    public Material[] pageMaterialOptions;
     public bool randomizePagesOffset = true;
     [Min(0)] public int pageMaterialIndex = 1;
     public float[] pageOffsetOptions = { 0f, 0.25f, 0.75f };
@@ -309,7 +311,8 @@ public class CatchableBook : CatchableObject
             }
         }
 
-        if (!randomizePagesOffset)
+        bool shouldHandlePages = randomizePagesOffset || (randomizePageMaterial && pageMaterialOptions != null && pageMaterialOptions.Length > 0);
+        if (!shouldHandlePages)
         {
             bookRenderer.materials = materials;
             return;
@@ -318,10 +321,6 @@ public class CatchableBook : CatchableObject
         int materialIndex = pageMaterialIndex;
         if (materialIndex < 0 || materialIndex >= materials.Length)
             materialIndex = Mathf.Clamp(materialIndex, 0, materials.Length - 1);
-
-        Material target = materials[materialIndex];
-        if (target == null)
-            return;
 
         if (_hasEvidencePage && _selectedEvidenceMaterial != null)
         {
@@ -332,8 +331,22 @@ public class CatchableBook : CatchableObject
             return;
         }
 
-        float offsetY = GetRandomPageOffset();
-        ApplyPageOffsetToMaterial(target, offsetY);
+        Material target = materials[materialIndex];
+        if (randomizePageMaterial && pageMaterialOptions != null && pageMaterialOptions.Length > 0)
+        {
+            Material chosenPage = pageMaterialOptions[Random.Range(0, pageMaterialOptions.Length)];
+            if (chosenPage != null)
+                target = new Material(chosenPage);
+        }
+
+        if (target == null)
+            return;
+
+        if (randomizePagesOffset)
+        {
+            float offsetY = GetRandomPageOffset();
+            ApplyPageOffsetToMaterial(target, offsetY);
+        }
         materials[materialIndex] = target;
         bookRenderer.materials = materials;
     }

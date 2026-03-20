@@ -24,6 +24,7 @@ public class UITablet : MonoBehaviour
 
     private Color _baseColor;
     private Color _baseIconColor;
+    public int CurrentTabIndex { get; private set; } = -1;
     
     [Header("Panel animation")]
     public RectTransform tabletPanel;
@@ -53,8 +54,12 @@ public class UITablet : MonoBehaviour
 
     public void OpenTab(int tabID, bool canTurnOffTablet)
     {
-        //The tab is already open, close it
         CloseAllTabs();
+
+        if (tabWindows == null || tabID < 0 || tabID >= tabWindows.Length)
+            return;
+
+        CurrentTabIndex = tabID;
         
         //Open right panel
         for (int i = 0; i < tabWindows.Length; i++)
@@ -94,6 +99,7 @@ public class UITablet : MonoBehaviour
         CloseAllPrivateWindows();
         CloseEntryPanel();
         CloseEndGamePanel();
+        CurrentTabIndex = -1;
         gameObject.SetActive(false);
 
         if(_player == null)
@@ -109,6 +115,8 @@ public class UITablet : MonoBehaviour
         {
             g.SetActive(false);
         }
+
+        CurrentTabIndex = -1;
     }
     
     private void CloseAllPrivateWindows()
@@ -132,6 +140,7 @@ public class UITablet : MonoBehaviour
     {
         gameObject.SetActive(true);
         tabsObject.SetActive(false);
+        CurrentTabIndex = -1;
         entryPanel.OpenPanel(entry);
     }
 
