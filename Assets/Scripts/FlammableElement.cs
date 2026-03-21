@@ -62,7 +62,7 @@ public class FlammableElement : GameBehaviour
 
             if (useGhostSoundClip && blowUpByGhostSoundClip != null)
             {
-                SoundManager.Instance.PlaySound(blowUpByGhostSoundClip, transform.position, ghostVolume, ghostPitch, -1f, 10f);
+                SoundManager.Instance.PlaySound(blowUpByGhostSoundClip, transform.position, ghostVolume, ghostPitch, -1f, 15f);
             }
         }
 

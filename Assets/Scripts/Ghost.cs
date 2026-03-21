@@ -734,6 +734,9 @@ public class Ghost : GameBehaviour
     private void TriggerActivity()
     {
         if (_isLocked) return;
+        
+        if(house.useDebugs)
+            Debug.Log("Activity Triggered");
 
         float nextActivityTime = Random.Range(averageActivityTime - activityTimeVariation, averageActivityTime + activityTimeVariation);
         
@@ -859,6 +862,9 @@ public class Ghost : GameBehaviour
 
     private void BlowUpARandomFlammable()
     {
+        if(house.useDebugs)
+            Debug.Log("Blow up flammable triggered");
+        
         FlammableElement flammableToBlowUp = GetRandomFlammableElement(true);
         if (flammableToBlowUp != null)
         {
