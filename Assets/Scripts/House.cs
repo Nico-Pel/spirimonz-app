@@ -21,6 +21,7 @@ public class House : GameBehaviour
     public bool useDebugs;
     public bool playerCantDie;
     public GhostParameters forcedGhostParameters;
+    public Ghost forcedGhostModel;
     public Ghost.GhostActivities forcedGhostActivity = Ghost.GhostActivities.Nothing;
     public int forcedFavoriteRoomID = -1;
     public bool tripleActivityDebug;

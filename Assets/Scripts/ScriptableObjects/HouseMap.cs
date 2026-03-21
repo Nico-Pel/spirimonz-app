@@ -31,6 +31,9 @@ public class HouseMap : ScriptableObject
 
     public Ghost GetRandomGhost(House h)
     {
+        if (h.useDebugs && h.forcedGhostModel != null)
+            return h.forcedGhostModel;
+        
         List<Ghost> possibleGhosts = new List<Ghost>();
 
         foreach (Ghost g in ghosts)
