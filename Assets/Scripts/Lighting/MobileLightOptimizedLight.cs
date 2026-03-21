@@ -23,6 +23,8 @@ public class MobileLightOptimizedLight : MonoBehaviour
     private bool _gameplayLight;
     private bool _disabledByOptimizer;
 
+    public bool IsGameplayLight => _gameplayLight;
+
     private void Awake()
     {
         if (targetLight == null)
@@ -110,7 +112,20 @@ public class MobileLightOptimizedLight : MonoBehaviour
         float farSqr = far * far;
         float disableSqr = disable * disable;
 
-        if (distSqr <= nearSqr)
+        bool isNear = distSqr <= nearSqr;
+
+        if (manager != null && !_gameplayLight && manager.useLightBudget)
+        {
+            bool budgetApplies = manager.budgetAffectsNearLights || !isNear;
+            if (budgetApplies && !manager.IsLightBudgetAllowed(this))
+            {
+                targetLight.enabled = false;
+                _disabledByOptimizer = true;
+                return;
+            }
+        }
+
+        if (isNear)
         {
             _baseEnabled = targetLight.enabled;
             Restore();

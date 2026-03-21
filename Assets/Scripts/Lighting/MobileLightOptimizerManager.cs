@@ -24,9 +24,18 @@ public class MobileLightOptimizerManager : MonoBehaviour
     [Header("Scene Filtering")]
     public string[] sceneNamePrefixes = { "world", "house" };
 
+    [Header("Budget")]
+    public bool useLightBudget = true;
+    public int maxNonGameplayLights = 10;
+    public float budgetRefreshInterval = 0.25f;
+    public float outOfViewPenalty = 5f;
+    public bool budgetAffectsNearLights = false;
+
     private readonly List<MobileLightOptimizedLight> _lights = new List<MobileLightOptimizedLight>();
+    private readonly HashSet<MobileLightOptimizedLight> _budgetAllowed = new HashSet<MobileLightOptimizedLight>();
     private int _lightIndex;
     private bool _enabled;
+    private float _nextBudgetTime;
 
     public static void EnsureExists()
     {
@@ -107,6 +116,8 @@ public class MobileLightOptimizerManager : MonoBehaviour
     public void RefreshSceneLights()
     {
         _lights.Clear();
+        _budgetAllowed.Clear();
+        _nextBudgetTime = 0f;
 
         if (!IsOptimizedScene())
             return;
@@ -187,6 +198,8 @@ public class MobileLightOptimizerManager : MonoBehaviour
         Vector3 targetPos = target.position;
         Vector3 targetForward = target.forward;
 
+        UpdateBudget(targetPos, targetForward);
+
         int count = Mathf.Clamp(lightsPerFrame, 1, _lights.Count);
         for (int i = 0; i < count; i++)
         {
@@ -210,6 +223,16 @@ public class MobileLightOptimizerManager : MonoBehaviour
         }
     }
 
+    public bool IsLightBudgetAllowed(MobileLightOptimizedLight light)
+    {
+        if (!useLightBudget || light == null)
+            return true;
+        if (light.IsGameplayLight)
+            return true;
+
+        return _budgetAllowed.Contains(light);
+    }
+
     private void RestoreAll()
     {
         for (int i = 0; i < _lights.Count; i++)
@@ -231,6 +254,66 @@ public class MobileLightOptimizerManager : MonoBehaviour
             return Player.Instance.camera.transform;
 
         return null;
+    }
+
+    private void UpdateBudget(Vector3 targetPos, Vector3 targetForward)
+    {
+        if (!useLightBudget || maxNonGameplayLights <= 0)
+        {
+            _budgetAllowed.Clear();
+            return;
+        }
+
+        if (budgetRefreshInterval > 0f && Time.unscaledTime < _nextBudgetTime)
+            return;
+
+        _nextBudgetTime = Time.unscaledTime + Mathf.Max(0.05f, budgetRefreshInterval);
+        _budgetAllowed.Clear();
+
+        List<LightScore> scores = new List<LightScore>(_lights.Count);
+        for (int i = 0; i < _lights.Count; i++)
+        {
+            MobileLightOptimizedLight light = _lights[i];
+            if (light == null || light.targetLight == null)
+                continue;
+            if (!light.targetLight.gameObject.activeInHierarchy)
+                continue;
+            if (light.ignoreOptimization || light.IsGameplayLight)
+                continue;
+
+            Vector3 toLight = light.targetLight.transform.position - targetPos;
+            float dist = toLight.magnitude;
+            if (disableDistance > 0f && dist > disableDistance)
+                continue;
+
+            float score = dist;
+            if (dist > 0.001f)
+            {
+                float dot = Vector3.Dot(targetForward, toLight / dist);
+                if (dot < viewDotThreshold)
+                    score += outOfViewPenalty;
+            }
+
+            scores.Add(new LightScore(light, score));
+        }
+
+        scores.Sort((a, b) => a.Score.CompareTo(b.Score));
+
+        int count = Mathf.Min(maxNonGameplayLights, scores.Count);
+        for (int i = 0; i < count; i++)
+            _budgetAllowed.Add(scores[i].Light);
+    }
+
+    private readonly struct LightScore
+    {
+        public readonly MobileLightOptimizedLight Light;
+        public readonly float Score;
+
+        public LightScore(MobileLightOptimizedLight light, float score)
+        {
+            Light = light;
+            Score = score;
+        }
     }
 
     private HashSet<Light> CollectGameplayLights()
