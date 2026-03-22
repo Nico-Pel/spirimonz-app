@@ -53,6 +53,15 @@ public class CatchableBook : CatchableObject
     public float[] pageOffsetOptions = { 0f, 0.25f, 0.75f };
     public Vector2 atlasScale = new Vector2(1f, 0.25f);
 
+    [Header("Skinned Mesh Optimization")]
+    public bool optimizeSkinnedMeshRenderer = true;
+    public bool skinnedUpdateWhenOffscreen = false;
+    public SkinQuality skinnedQuality = SkinQuality.Bone1;
+    public bool skinnedMotionVectors = false;
+
+    [Header("Blendshape Sync")]
+    [Min(0f)] public float idleSyncInterval = 0.25f;
+
     private readonly List<BlendshapeBinding> _blendshapeBindings = new();
     private bool _isOpen;
     private Tween _openTween;
@@ -61,6 +70,7 @@ public class CatchableBook : CatchableObject
     private bool _hasEvidencePage;
     private Material _selectedEvidenceMaterial;
     private float _selectedEvidenceOffset;
+    private float _nextIdleSyncTime;
     private MaterialPropertyBlock _pagePropertyBlock;
     private static readonly int MainTexST = Shader.PropertyToID("_MainTex_ST");
 
@@ -79,6 +89,7 @@ public class CatchableBook : CatchableObject
             SelectModelVariant();
 
         RefreshBlendshapeBindings();
+        ApplySkinnedRendererOptimizations();
         SyncStateFromBlendshape(applyCollider: true);
         ApplyRandomizedMaterials();
     }
@@ -87,6 +98,11 @@ public class CatchableBook : CatchableObject
     {
         if (_openTween != null && _openTween.IsActive() && _openTween.IsPlaying())
             return;
+
+        if (idleSyncInterval > 0f && Time.time < _nextIdleSyncTime)
+            return;
+
+        _nextIdleSyncTime = Time.time + idleSyncInterval;
 
         float current = GetCurrentBlendshapeWeight();
         if (float.IsNaN(_lastSyncedWeight) || Mathf.Abs(current - _lastSyncedWeight) > 0.01f)
@@ -296,9 +312,11 @@ public class CatchableBook : CatchableObject
 
         _materialsRandomized = true;
 
-        Material[] materials = bookRenderer.materials;
+        Material[] materials = bookRenderer.sharedMaterials;
         if (materials == null || materials.Length == 0)
             return;
+
+        bool materialsChanged = false;
 
         if (randomizeCoverMaterial && coverMaterialOptions != null && coverMaterialOptions.Length > 0)
         {
@@ -306,15 +324,19 @@ public class CatchableBook : CatchableObject
             if (coverIndex >= 0 && coverIndex < materials.Length)
             {
                 Material chosenCover = coverMaterialOptions[Random.Range(0, coverMaterialOptions.Length)];
-                if (chosenCover != null)
+                if (chosenCover != null && materials[coverIndex] != chosenCover)
+                {
                     materials[coverIndex] = chosenCover;
+                    materialsChanged = true;
+                }
             }
         }
 
         bool shouldHandlePages = randomizePagesOffset || (randomizePageMaterial && pageMaterialOptions != null && pageMaterialOptions.Length > 0);
         if (!shouldHandlePages)
         {
-            bookRenderer.materials = materials;
+            if (materialsChanged)
+                bookRenderer.sharedMaterials = materials;
             return;
         }
 
@@ -322,46 +344,63 @@ public class CatchableBook : CatchableObject
         if (materialIndex < 0 || materialIndex >= materials.Length)
             materialIndex = Mathf.Clamp(materialIndex, 0, materials.Length - 1);
 
+        Material pageMaterial = materials[materialIndex];
+
         if (_hasEvidencePage && _selectedEvidenceMaterial != null)
         {
-            Material evidenceInstance = new Material(_selectedEvidenceMaterial);
-            ApplyPageOffsetToMaterial(evidenceInstance, _selectedEvidenceOffset);
-            materials[materialIndex] = evidenceInstance;
-            bookRenderer.materials = materials;
+            if (pageMaterial != _selectedEvidenceMaterial)
+            {
+                materials[materialIndex] = _selectedEvidenceMaterial;
+                materialsChanged = true;
+            }
+
+            if (materialsChanged)
+                bookRenderer.sharedMaterials = materials;
+
+            ApplyPageOffsetToRenderer(_selectedEvidenceMaterial, materialIndex, _selectedEvidenceOffset);
             return;
         }
 
-        Material target = materials[materialIndex];
         if (randomizePageMaterial && pageMaterialOptions != null && pageMaterialOptions.Length > 0)
         {
             Material chosenPage = pageMaterialOptions[Random.Range(0, pageMaterialOptions.Length)];
-            if (chosenPage != null)
-                target = new Material(chosenPage);
+            if (chosenPage != null && pageMaterial != chosenPage)
+            {
+                pageMaterial = chosenPage;
+                materials[materialIndex] = chosenPage;
+                materialsChanged = true;
+            }
         }
 
-        if (target == null)
+        if (materialsChanged)
+            bookRenderer.sharedMaterials = materials;
+
+        if (pageMaterial == null)
             return;
 
         if (randomizePagesOffset)
         {
             float offsetY = GetRandomPageOffset();
-            ApplyPageOffsetToMaterial(target, offsetY);
+            ApplyPageOffsetToRenderer(pageMaterial, materialIndex, offsetY);
         }
-        materials[materialIndex] = target;
-        bookRenderer.materials = materials;
     }
 
-    private void ApplyPageOffsetToMaterial(Material material, float offsetY)
+    private void ApplyPageOffsetToRenderer(Material material, int materialIndex, float offsetY)
     {
-        if (material == null)
+        if (material == null || bookRenderer == null)
             return;
 
-        Vector2 scale = material.mainTextureScale;
-        if (!Mathf.Approximately(scale.y, 1f))
-            material.mainTextureScale = new Vector2(scale.x, 1f);
+        if (_pagePropertyBlock == null)
+            _pagePropertyBlock = new MaterialPropertyBlock();
 
         Vector2 offset = material.mainTextureOffset;
-        material.mainTextureOffset = new Vector2(offset.x, offsetY);
+        Vector2 scale = material.mainTextureScale;
+        if (!Mathf.Approximately(scale.y, 1f))
+            scale = new Vector2(scale.x, 1f);
+
+        bookRenderer.GetPropertyBlock(_pagePropertyBlock, materialIndex);
+        _pagePropertyBlock.SetVector(MainTexST, new Vector4(scale.x, scale.y, offset.x, offsetY));
+        bookRenderer.SetPropertyBlock(_pagePropertyBlock, materialIndex);
     }
 
     private float GetRandomPageOffset()
@@ -581,6 +620,29 @@ public class CatchableBook : CatchableObject
         }
 
         return -1;
+    }
+
+    private void ApplySkinnedRendererOptimizations()
+    {
+        if (!optimizeSkinnedMeshRenderer)
+            return;
+
+        SkinnedMeshRenderer[] renderers = GetComponentsInChildren<SkinnedMeshRenderer>(true);
+        if (renderers == null || renderers.Length == 0)
+            return;
+
+        for (int i = 0; i < renderers.Length; i++)
+        {
+            SkinnedMeshRenderer renderer = renderers[i];
+            if (renderer == null)
+                continue;
+
+            renderer.updateWhenOffscreen = skinnedUpdateWhenOffscreen;
+            renderer.quality = skinnedQuality;
+#if UNITY_2019_1_OR_NEWER
+            renderer.skinnedMotionVectors = skinnedMotionVectors;
+#endif
+        }
     }
 
     private readonly struct BlendshapeBinding

@@ -39,6 +39,8 @@ public class CatchableFireObject : CatchableObject
 
     public override void OnThrow()
     {
+        base.OnThrow();
+
         if (linkedFlammableElement.turnOffOnThrow && linkedFlammableElement.IsOnFire())
         {
             linkedFlammableElement.EnableFire(false);

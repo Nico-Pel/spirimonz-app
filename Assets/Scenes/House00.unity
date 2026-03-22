@@ -2567,6 +2567,7 @@ Transform:
   - {fileID: 950159470}
   - {fileID: 1865336087}
   - {fileID: 138440410}
+  - {fileID: 1853078645}
   m_Father: {fileID: 543450653374424382}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &130625150
@@ -11222,15 +11223,15 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6814589679915294038, guid: 8fa937decc2e948b39a77ddd337a7361, type: 3}
       propertyPath: m_LocalRotation.w
-      value: -0.24439436
+      value: 0.9294802
       objectReference: {fileID: 0}
     - target: {fileID: 6814589679915294038, guid: 8fa937decc2e948b39a77ddd337a7361, type: 3}
       propertyPath: m_LocalRotation.y
-      value: 0.9696759
+      value: 0.36887196
       objectReference: {fileID: 0}
     - target: {fileID: 6814589679915294038, guid: 8fa937decc2e948b39a77ddd337a7361, type: 3}
       propertyPath: m_LocalEulerAnglesHint.y
-      value: -151.708
+      value: -316.708
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -35057,6 +35058,68 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 5127754910016610809, guid: b72b03a4bff7342a6b2ad00d09c80ff8, type: 3}
   m_PrefabInstance: {fileID: 1852946829}
   m_PrefabAsset: {fileID: 0}
+--- !u!1001 &1853078644
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 127409870}
+    m_Modifications:
+    - target: {fileID: 729337281468321690, guid: 5c8578e4b589846d18d3356b6771b1f1, type: 3}
+      propertyPath: m_Name
+      value: RitualFeather
+      objectReference: {fileID: 0}
+    - target: {fileID: 2635145696639945497, guid: 5c8578e4b589846d18d3356b6771b1f1, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: -8.851868
+      objectReference: {fileID: 0}
+    - target: {fileID: 2635145696639945497, guid: 5c8578e4b589846d18d3356b6771b1f1, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 1.103
+      objectReference: {fileID: 0}
+    - target: {fileID: 2635145696639945497, guid: 5c8578e4b589846d18d3356b6771b1f1, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 1.151
+      objectReference: {fileID: 0}
+    - target: {fileID: 2635145696639945497, guid: 5c8578e4b589846d18d3356b6771b1f1, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 0.76184034
+      objectReference: {fileID: 0}
+    - target: {fileID: 2635145696639945497, guid: 5c8578e4b589846d18d3356b6771b1f1, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: -0.5832077
+      objectReference: {fileID: 0}
+    - target: {fileID: 2635145696639945497, guid: 5c8578e4b589846d18d3356b6771b1f1, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0.17135629
+      objectReference: {fileID: 0}
+    - target: {fileID: 2635145696639945497, guid: 5c8578e4b589846d18d3356b6771b1f1, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0.2238415
+      objectReference: {fileID: 0}
+    - target: {fileID: 2635145696639945497, guid: 5c8578e4b589846d18d3356b6771b1f1, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: -74.87
+      objectReference: {fileID: 0}
+    - target: {fileID: 2635145696639945497, guid: 5c8578e4b589846d18d3356b6771b1f1, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2635145696639945497, guid: 5c8578e4b589846d18d3356b6771b1f1, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 32.747
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 5c8578e4b589846d18d3356b6771b1f1, type: 3}
+--- !u!4 &1853078645 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 2635145696639945497, guid: 5c8578e4b589846d18d3356b6771b1f1, type: 3}
+  m_PrefabInstance: {fileID: 1853078644}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1001 &1856494475
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -41370,6 +41433,7 @@ MonoBehaviour:
   useDebugs: 0
   playerCantDie: 1
   forcedGhostParameters: {fileID: 0}
+  forcedGhostModel: {fileID: 0}
   forcedGhostActivity: 0
   forcedFavoriteRoomID: 0
   tripleActivityDebug: 1

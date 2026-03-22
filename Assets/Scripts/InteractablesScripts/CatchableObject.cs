@@ -30,6 +30,10 @@ public class CatchableObject : GameBehaviour, IInteractable
     public SoundParameters collisionSoundParameters;
     public float minForceToPlayCollision = 1f;
 
+    [Header("Throw Torque")]
+    public bool addTorqueOnThrow = true;
+    public Vector2 throwTorqueRange = new Vector2(0.2f, 0.6f);
+
     [Header("Drop Collision Safety")]
     public float ignorePlayerCollisionDuration = 1f;
 
@@ -218,13 +222,28 @@ public class CatchableObject : GameBehaviour, IInteractable
     
     public virtual void OnThrow()
     {
-        
+        ApplyThrowTorque();
     }
     
     public void ApplyForce(Vector3 force, Vector3 torque = default)
     {
         rb.isKinematic = false;
         rb.AddForce(force, ForceMode.Impulse);
+        rb.AddTorque(torque, ForceMode.Impulse);
+    }
+
+    private void ApplyThrowTorque()
+    {
+        if (!addTorqueOnThrow || rb == null || rb.isKinematic)
+            return;
+
+        float min = Mathf.Min(throwTorqueRange.x, throwTorqueRange.y);
+        float max = Mathf.Max(throwTorqueRange.x, throwTorqueRange.y);
+        if (max <= 0f)
+            return;
+
+        float magnitude = Random.Range(min, max);
+        Vector3 torque = Random.onUnitSphere * magnitude;
         rb.AddTorque(torque, ForceMode.Impulse);
     }
 
