@@ -28059,6 +28059,8 @@ MonoBehaviour:
   isGrabbed: 0
   collisionSoundParameters: {fileID: 0}
   minForceToPlayCollision: 1
+  addTorqueOnThrow: 1
+  throwTorqueRange: {x: 0.2, y: 0.6}
   ignorePlayerCollisionDuration: 1
   onGrab:
     m_PersistentCalls:
@@ -40171,6 +40173,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 7925018425622114835, guid: 56dd97ab6854c41b7bacaf7cd99514f6, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -41553,7 +41559,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4407344061203350856, guid: 179f4b942a88b4afcaa9874da1ebd601, type: 3}
       propertyPath: m_AnchoredPosition.x
-      value: 6.000061
+      value: 6
       objectReference: {fileID: 0}
     - target: {fileID: 4490866293661050791, guid: 179f4b942a88b4afcaa9874da1ebd601, type: 3}
       propertyPath: m_AnchorMax.y
