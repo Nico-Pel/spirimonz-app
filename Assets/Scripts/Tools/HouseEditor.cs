@@ -7,17 +7,60 @@ public class HouseEditor : Editor
 {
     public override void OnInspectorGUI()
     {
-        DrawDefaultInspector(); // Affiche tous les champs normaux
+        serializedObject.Update();
+        SerializedProperty prop = serializedObject.GetIterator();
+        bool enterChildren = true;
+
+        while (prop.NextVisible(enterChildren))
+        {
+            enterChildren = false;
+
+            if (prop.name == "m_Script")
+            {
+                using (new EditorGUI.DisabledScope(true))
+                    EditorGUILayout.PropertyField(prop, true);
+                continue;
+            }
+
+            if (prop.name == "useDebugs")
+            {
+                EditorGUILayout.Space();
+                EditorGUILayout.LabelField("Debug Tools", EditorStyles.boldLabel);
+            }
+
+            EditorGUILayout.PropertyField(prop, true);
+
+            if (prop.name == "huntTimeMultiplierDebug")
+            {
+                if (GUILayout.Button("Reset Debug Parameters"))
+                {
+                    ResetDebugParameters();
+                }
+            }
+        }
+
+        EditorGUILayout.Space();
+        EditorGUILayout.LabelField("House Tools", EditorStyles.boldLabel);
 
         House house = (House)target;
-
-        GUILayout.Space(10);
-        GUILayout.Label("Debug Tools", EditorStyles.boldLabel);
-
         if (GUILayout.Button("Bake Rooms Count Into HouseMap"))
         {
             house.BakeRoomsCount();
         }
+
+        serializedObject.ApplyModifiedProperties();
+    }
+
+    private void ResetDebugParameters()
+    {
+        serializedObject.FindProperty("playerCantDie").boolValue = false;
+        serializedObject.FindProperty("forcedGhostParameters").objectReferenceValue = null;
+        serializedObject.FindProperty("forcedGhostModel").objectReferenceValue = null;
+        serializedObject.FindProperty("forcedGhostActivity").enumValueIndex = (int)Ghost.GhostActivities.Nothing;
+        serializedObject.FindProperty("forcedFavoriteRoomID").intValue = -1;
+        serializedObject.FindProperty("tripleActivityDebug").boolValue = false;
+        serializedObject.FindProperty("useHuntTimeMultiplierDebug").boolValue = false;
+        serializedObject.FindProperty("huntTimeMultiplierDebug").floatValue = 1f;
     }
 }
 #endif

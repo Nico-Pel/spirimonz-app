@@ -129,6 +129,10 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 6069770630743784018}
     - target: {fileID: 2655488261236733874, guid: 1becdbc63ac444781b73bec2a0a52bb5, type: 3}
+      propertyPath: killSound
+      value: 
+      objectReference: {fileID: 8300000, guid: 312825433d15c49dbb79470ef3899d5b, type: 3}
+    - target: {fileID: 2655488261236733874, guid: 1becdbc63ac444781b73bec2a0a52bb5, type: 3}
       propertyPath: ghostModel
       value: 
       objectReference: {fileID: 7242722632845910774}
@@ -140,6 +144,14 @@ PrefabInstance:
       propertyPath: fxApparition
       value: 
       objectReference: {fileID: 682388186407046056}
+    - target: {fileID: 2655488261236733874, guid: 1becdbc63ac444781b73bec2a0a52bb5, type: 3}
+      propertyPath: huntingSound
+      value: 
+      objectReference: {fileID: 8300000, guid: d479632c82fe246149423ca8970e4dc8, type: 3}
+    - target: {fileID: 2655488261236733874, guid: 1becdbc63ac444781b73bec2a0a52bb5, type: 3}
+      propertyPath: apparitionSound
+      value: 
+      objectReference: {fileID: 8300000, guid: ea976c8ca182b4158a263f80581801ea, type: 3}
     - target: {fileID: 2655488261236733874, guid: 1becdbc63ac444781b73bec2a0a52bb5, type: 3}
       propertyPath: renderers.Array.data[0]
       value: 
@@ -1151,6 +1163,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 5284933554452214737, guid: cd40392fddce2409c90db82a229cc162, type: 3}
       insertIndex: -1
       addedObject: {fileID: 6069770630743784018}
+    - targetCorrespondingSourceObject: {fileID: 5284933554452214737, guid: cd40392fddce2409c90db82a229cc162, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1712419952990110661}
   m_SourcePrefab: {fileID: 100100000, guid: cd40392fddce2409c90db82a229cc162, type: 3}
 --- !u!1 &2384061290043796598 stripped
 GameObject:
@@ -1178,6 +1193,23 @@ Animator:
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorStateOnDisable: 0
   m_WriteDefaultValuesOnDisable: 0
+--- !u!114 &1712419952990110661
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2384061290043796598}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 329fedf62570b4e5296a431e3aa3e98f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  clip: {fileID: 8300000, guid: e156a02689d2f465e9338a84b493aa00, type: 3}
+  volume: 1
+  pitchMin: 0.6
+  pitchMax: 0.8
+  range: 15
 --- !u!137 &2562752677146965030 stripped
 SkinnedMeshRenderer:
   m_CorrespondingSourceObject: {fileID: 5463572195105958785, guid: cd40392fddce2409c90db82a229cc162, type: 3}
