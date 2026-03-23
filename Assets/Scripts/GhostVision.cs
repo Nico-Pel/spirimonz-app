@@ -14,6 +14,9 @@ public class GhostVision : GameBehaviour
 
     private Coroutine losePlayerCoroutine;
     private GamePlayer _player;
+    private int _lastQueryFrame = -1;
+    private Player _lastQueriedPlayer;
+    private bool _lastCanSeeResult;
 
     private void Start()
     {
@@ -22,6 +25,12 @@ public class GhostVision : GameBehaviour
 
     public bool CanSeePlayer(Player player)
     {
+        if (_lastQueryFrame == Time.frameCount && _lastQueriedPlayer == player)
+            return _lastCanSeeResult;
+
+        _lastQueryFrame = Time.frameCount;
+        _lastQueriedPlayer = player;
+
         if (HasLineOfSight(player))
         {
             playerWasSeen = true;
@@ -40,7 +49,8 @@ public class GhostVision : GameBehaviour
                 losePlayerCoroutine = StartCoroutine(LosePlayerAfterDelay());
         }
 
-        return playerWasSeen;
+        _lastCanSeeResult = playerWasSeen;
+        return _lastCanSeeResult;
     }
 
     private IEnumerator LosePlayerAfterDelay()

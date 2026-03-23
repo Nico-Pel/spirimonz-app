@@ -166,6 +166,13 @@ public class Ghost : GameBehaviour
     
     private const string ACTIVITY_INVOKE = "Ghost.TriggerActivity";
     private const string ORBS_INVOKE = "Ghost.SpiritOrbs";
+    private const int OVERLAP_BUFFER_SIZE = 128;
+    private static GhostActivities[] _activityValues;
+
+    private readonly Collider[] _overlapBuffer = new Collider[OVERLAP_BUFFER_SIZE];
+    private readonly List<CatchableObject> _catchableBuffer = new List<CatchableObject>();
+    private readonly List<FlammableElement> _flammableBuffer = new List<FlammableElement>();
+    private readonly List<Door> _doorBuffer = new List<Door>();
 
     private void Start()
     {
@@ -479,13 +486,15 @@ public class Ghost : GameBehaviour
             if (agent.isStopped && !_stopMoving)
                 agent.isStopped = false;
 
+            bool canSeePlayer = vision.CanSeePlayer(house.currentPlayer);
+
             currentHuntTime -= Time.deltaTime;
             if (currentHuntTime <= 0)
             {
                 StopHunting();
             }
 
-            if (!_forcedStartTargeting && !vision.CanSeePlayer(house.currentPlayer))
+            if (!_forcedStartTargeting && !canSeePlayer)
             {
                 if (_targetingPlayer && _losingPlayer == false)
                 {
@@ -499,7 +508,7 @@ public class Ghost : GameBehaviour
                     });
                 }
             }
-            else if(_forcedStartTargeting || vision.CanSeePlayer(house.currentPlayer))
+            else if(_forcedStartTargeting || canSeePlayer)
             {
                 PlayerFound();
             }
@@ -513,8 +522,6 @@ public class Ghost : GameBehaviour
             }
             else
             {
-                bool canSeePlayer = vision.CanSeePlayer(house.currentPlayer);
-                
                 float speed = currentState == GhostState.huntingState && canSeePlayer ? ghostParameters.targetingSpeedBase : ghostParameters.normalSpeedBase;
                 if (ghostParameters.ghostTypeData.ghostType == GhostTypeData.GhostType.Aquatic && currentRoom == favoriteRoom)
                 {
@@ -748,10 +755,7 @@ public class Ghost : GameBehaviour
             return;
         }
         
-        GhostActivities randomActivity =
-            (GhostActivities)Enum.GetValues(typeof(GhostActivities))
-                .GetValue(Random.Range(0,
-                    Enum.GetValues(typeof(GhostActivities)).Length));
+        GhostActivities randomActivity = GetRandomActivity();
 
 # if UNITY_EDITOR
         if (house.useDebugs && forcedGhostActivity != GhostActivities.Nothing)
@@ -848,6 +852,14 @@ public class Ghost : GameBehaviour
         
         CancelInvoke(ACTIVITY_INVOKE);
         this.Invoke(ACTIVITY_INVOKE, nextActivityTime, TriggerActivity);
+    }
+
+    private GhostActivities GetRandomActivity()
+    {
+        if (_activityValues == null || _activityValues.Length == 0)
+            _activityValues = (GhostActivities[])Enum.GetValues(typeof(GhostActivities));
+
+        return _activityValues[Random.Range(0, _activityValues.Length)];
     }
 
     private void InteractWithAStandardClickable()
@@ -1100,18 +1112,45 @@ public class Ghost : GameBehaviour
         currentWayPoint = house.SelectRandomWayPointFromARoom(room);
     }
 
+    private int OverlapSphereAll(Vector3 position, float radius, int layerMask, out Collider[] results)
+    {
+        int count = Physics.OverlapSphereNonAlloc(position, radius, _overlapBuffer, layerMask);
+        if (count == _overlapBuffer.Length)
+        {
+            results = Physics.OverlapSphere(position, radius, layerMask);
+            return results.Length;
+        }
+
+        results = _overlapBuffer;
+        return count;
+    }
+
+    private int OverlapSphereAll(Vector3 position, float radius, out Collider[] results)
+    {
+        int count = Physics.OverlapSphereNonAlloc(position, radius, _overlapBuffer);
+        if (count == _overlapBuffer.Length)
+        {
+            results = Physics.OverlapSphere(position, radius);
+            return results.Length;
+        }
+
+        results = _overlapBuffer;
+        return count;
+    }
+
     private CatchableObject GetRandomCatchableObject()
     {
-        Collider[] hits = Physics.OverlapSphere(
-            transform.position,
-            throwDetectionRange,
-            throwableMask
-        );
+        Collider[] hits;
+        int hitCount = OverlapSphereAll(transform.position, throwDetectionRange, throwableMask, out hits);
 
-        List<CatchableObject> validCatchables = new List<CatchableObject>();
+        _catchableBuffer.Clear();
 
-        foreach (var hit in hits)
+        for (int i = 0; i < hitCount; i++)
         {
+            Collider hit = hits[i];
+            if (hit == null)
+                continue;
+
             if (!hit.TryGetComponent(out CatchableObject catchable))
                 continue;
 
@@ -1121,13 +1160,13 @@ public class Ghost : GameBehaviour
             if (!HasLineOfSightToCatchable(catchable))
                 continue;
 
-            validCatchables.Add(catchable);
+            _catchableBuffer.Add(catchable);
         }
 
-        if (validCatchables.Count == 0)
+        if (_catchableBuffer.Count == 0)
             return null;
 
-        return GetHighestPriorityRandom(validCatchables);
+        return GetHighestPriorityRandom(_catchableBuffer);
     }
     
     private bool IsCatchableValid(CatchableObject catchable)
@@ -1187,15 +1226,17 @@ public class Ghost : GameBehaviour
     
     private FlammableElement GetRandomFlammableElement(bool enabledStateWanted)
     {
-        Collider[] hits = Physics.OverlapSphere(
-            transform.position,
-            throwDetectionRange
-        );
+        Collider[] hits;
+        int hitCount = OverlapSphereAll(transform.position, throwDetectionRange, out hits);
 
-        List<FlammableElement> flammables = new List<FlammableElement>();
+        _flammableBuffer.Clear();
 
-        foreach (var hit in hits)
+        for (int i = 0; i < hitCount; i++)
         {
+            Collider hit = hits[i];
+            if (hit == null)
+                continue;
+
             if (hit.TryGetComponent(out FlammableElement flammable))
             {
                 if (flammable.optionalLinkedRoom != null && flammable.optionalLinkedRoom != currentRoom)
@@ -1211,40 +1252,41 @@ public class Ghost : GameBehaviour
                 }
                 
                 if(flammable.IsOnFire() == enabledStateWanted)
-                    flammables.Add(flammable);
+                    _flammableBuffer.Add(flammable);
             }
         }
 
-        if (flammables.Count == 0) return null;
+        if (_flammableBuffer.Count == 0) return null;
 
-        return flammables[Random.Range(0, flammables.Count)];
+        return _flammableBuffer[Random.Range(0, _flammableBuffer.Count)];
     }
     
     private Door GetRandomDoor()
     {
-        Collider[] hits = Physics.OverlapSphere(
-            transform.position,
-            doorDetectionRange,
-            doorMask
-        );
+        Collider[] hits;
+        int hitCount = OverlapSphereAll(transform.position, doorDetectionRange, doorMask, out hits);
 
-        List<Door> doors = new List<Door>();
+        _doorBuffer.Clear();
 
-        foreach (var hit in hits)
+        for (int i = 0; i < hitCount; i++)
         {
+            Collider hit = hits[i];
+            if (hit == null)
+                continue;
+
             if (hit.TryGetComponent(out Door door))
             {
                 //Ignore if the door is too far (from another floor?)
                 if (IsNearFromMyAgent(agent, door.transform, doorDetectionRange * 1.2f, 2) == false) continue;
                 
                 if(!door.IsGrabbed())
-                    doors.Add(door);
+                    _doorBuffer.Add(door);
             }
         }
 
-        if (doors.Count == 0) return null;
+        if (_doorBuffer.Count == 0) return null;
 
-        return doors[Random.Range(0, doors.Count)];
+        return _doorBuffer[Random.Range(0, _doorBuffer.Count)];
     }
 
     public void ThrowObject(CatchableObject objectToThrow = null)
