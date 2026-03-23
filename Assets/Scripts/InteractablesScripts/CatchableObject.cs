@@ -55,6 +55,7 @@ public class CatchableObject : GameBehaviour, IInteractable
     private float _idleStableTime;
 
     public UnityEvent onGrab;
+    public UnityEvent onSecondaryUse;
 
     protected virtual void Awake()
     {
@@ -375,5 +376,10 @@ public class CatchableObject : GameBehaviour, IInteractable
     private void ResetAutoSleepTimer()
     {
         _idleStableTime = 0f;
+    }
+
+    public virtual void OnSecondaryUse()
+    {
+        onSecondaryUse?.Invoke();
     }
 }

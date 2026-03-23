@@ -74,6 +74,7 @@ public class GameManager : GameBehaviour
         SaveManager.allSpirimonzSettings = allSpirimonzSettings;
         gameData = SaveManager.Load();
         EnsureSaveDefaults();
+        ApplySavedFrameRateSetting();
         ApplyInputBindingsIfReady();
 
         Scene currentScene = SceneManager.GetActiveScene();
@@ -136,6 +137,13 @@ public class GameManager : GameBehaviour
             gameData.ints.Add(new SaveVariableInt { id = SaveKeys.GOLD, value = 0 });
             SaveGame();
         }
+    }
+
+    private void ApplySavedFrameRateSetting()
+    {
+        int savedFps = GetInt(SaveKeys.TARGET_FPS, int.MinValue);
+        if (savedFps != int.MinValue)
+            ApplyFrameRateSetting(savedFps, save: false);
     }
 
     private void OnValidate()
@@ -582,6 +590,34 @@ public class GameManager : GameBehaviour
     {
         var entry = gameData.strings.Find(s => s.id == id);
         return entry != null ? entry.value : defaultValue;
+    }
+
+    public void ApplyFrameRateSetting(int fpsSetting, bool save = true)
+    {
+        if (save)
+            SetInt(SaveKeys.TARGET_FPS, fpsSetting);
+
+        if (fpsSetting == 0)
+        {
+            QualitySettings.vSyncCount = 1;
+            Application.targetFrameRate = -1;
+            if (MobilePerformanceManager.Instance != null)
+                MobilePerformanceManager.Instance.autoAdjust = true;
+        }
+        else if (fpsSetting < 0)
+        {
+            QualitySettings.vSyncCount = 0;
+            Application.targetFrameRate = -1;
+            if (MobilePerformanceManager.Instance != null)
+                MobilePerformanceManager.Instance.autoAdjust = false;
+        }
+        else
+        {
+            QualitySettings.vSyncCount = 0;
+            Application.targetFrameRate = fpsSetting;
+            if (MobilePerformanceManager.Instance != null)
+                MobilePerformanceManager.Instance.autoAdjust = false;
+        }
     }
     
     public bool CanBuy(int price)

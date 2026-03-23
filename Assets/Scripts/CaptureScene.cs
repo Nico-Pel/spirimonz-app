@@ -47,6 +47,7 @@ public class CaptureScene : GameBehaviour
         {
             _ghost = Instantiate(_house.currentGhost.ghostModel, transform.position, quaternion.identity, transform);
             _ghost.SetActive(true);
+            _ghost.GetComponentInChildren<Renderer>().enabled = true;
             _ghostAnimator = _ghost.GetComponentInChildren<Animator>();
         }
     }

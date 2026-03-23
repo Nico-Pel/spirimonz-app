@@ -24,6 +24,7 @@ public class Switch : ClickableObject
     public bool isOneStateSwitch;
     
     private int _state = 0;
+    private bool _forceOffUntilRelease;
     
     public override void OnClick()
     {
@@ -36,6 +37,16 @@ public class Switch : ClickableObject
     public override void OnHold()
     {
         base.OnHold();
+        if (!canClick && activableObject != null && activableObject.isActivated)
+        {
+            _forceOffUntilRelease = true;
+            SwitchState(0);
+            return;
+        }
+
+        if (_forceOffUntilRelease)
+            return;
+
         SwitchState(1);
     }
 
@@ -43,6 +54,7 @@ public class Switch : ClickableObject
     {
         base.OnRelease();
         SwitchState(0);
+        _forceOffUntilRelease = false;
     }
 
     private void SwitchState(int state)

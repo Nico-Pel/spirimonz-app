@@ -34,6 +34,7 @@ public class InteractionController : GameBehaviour
 
     private IInteractable _currentTarget;
     private IInteractable _lastTarget;
+    private CatchableObject _currentCatchable;
 
     private Camera _cam;
     private GamePlayer _player;
@@ -91,6 +92,7 @@ public class InteractionController : GameBehaviour
         }
 
         IInteractable newTarget = null;
+        CatchableObject newCatchable = null;
 
         if (Physics.SphereCast(ray, sphereRadius, out RaycastHit hit, interactionDistance, interactableLayer, QueryTriggerInteraction.Ignore))
         {
@@ -108,19 +110,19 @@ public class InteractionController : GameBehaviour
             if (objectInHands == null)
             {
                 RaycastHit[] hits = Physics.SphereCastAll(ray, sphereRadius, interactionDistance, interactableLayer, QueryTriggerInteraction.Ignore);
-                IInteractable bestCatchable = null;
+                CatchableObject bestCatchable = null;
                 float bestScreenDist = Mathf.Infinity;
                 float bestDistance = Mathf.Infinity;
                 const float screenEpsilon = 0.000001f;
 
                 for (int i = 0; i < hits.Length; i++)
                 {
-                    IInteractable candidate = hits[i].collider.GetComponent<IInteractable>();
+                    CatchableObject candidate = hits[i].collider.GetComponent<CatchableObject>();
+                    if (candidate == null)
+                        candidate = hits[i].collider.GetComponentInParent<CatchableObject>();
                     if (candidate == null)
                         continue;
                     if (candidate.InteractionLocked)
-                        continue;
-                    if (candidate is not CatchableObject)
                         continue;
 
                     Vector3 center = hits[i].collider.bounds.center;
@@ -144,7 +146,14 @@ public class InteractionController : GameBehaviour
                 }
 
                 if (bestCatchable != null)
-                    newTarget = bestCatchable;
+                {
+                    newCatchable = bestCatchable;
+                    ClickableObject clickable = bestCatchable.GetComponent<ClickableObject>();
+                    if (clickable != null && !clickable.InteractionLocked)
+                        newTarget = clickable;
+                    else
+                        newTarget = bestCatchable;
+                }
             }
         }
         else
@@ -152,10 +161,14 @@ public class InteractionController : GameBehaviour
             targetingGround = false;
         }
 
-        if (newTarget != _currentTarget)
+        if (newCatchable == null)
+            newCatchable = GetCatchableFromInteractable(newTarget);
+
+        if (newTarget != _currentTarget || newCatchable != _currentCatchable)
         {
             _lastTarget = _currentTarget;
             _currentTarget = newTarget;
+            _currentCatchable = newCatchable;
             RefreshCursorUI();
         }
     }
@@ -196,7 +209,19 @@ public class InteractionController : GameBehaviour
             return true;
 
         IInteractable hitInteractable = nearestHit.collider.GetComponentInParent<IInteractable>();
-        return hitInteractable == candidate;
+        if (hitInteractable == candidate)
+            return true;
+
+        Component hitComp = hitInteractable as Component;
+        Component candComp = candidate as Component;
+        if (hitComp == null || candComp == null)
+            return false;
+
+        Transform hitTransform = hitComp.transform;
+        Transform candTransform = candComp.transform;
+        return hitTransform == candTransform ||
+               hitTransform.IsChildOf(candTransform) ||
+               candTransform.IsChildOf(hitTransform);
     }
 
     // =========================
@@ -219,7 +244,7 @@ public class InteractionController : GameBehaviour
         if (objectInHands != null)
         {
             if ((!MobileInput.Enabled && Input.GetMouseButtonDown(1)) || MobileInput.SecondaryDown)
-                objectInHands.SpecialActionInHandsOnClick();
+                objectInHands.OnSecondaryUse();
 
             if ((!MobileInput.Enabled && _player.inputManager.GetDropDown()) || MobileInput.DropDown)
                 DropObject();
@@ -232,16 +257,16 @@ public class InteractionController : GameBehaviour
                     DropObject();
             }
         }
-        else if (_currentTarget is CatchableObject targetedCatchable)
+        else if (_currentCatchable != null)
         {
             if (_player.inventoryManager.OccupedHands()) return;
 
             if ((!MobileInput.Enabled && _player.inputManager.GetGrabDown()) || MobileInput.GrabDown)
             {
-                if (targetedCatchable.canBeGrabByPlayer && !targetedCatchable.isGrabbed)
+                if (_currentCatchable.canBeGrabByPlayer && !_currentCatchable.isGrabbed)
                 {
                     _player.inventoryManager.ReplaceSpirimonzByAnItem();
-                    GrabItem(targetedCatchable);
+                    GrabItem(_currentCatchable);
                 }
             }
         }
@@ -287,7 +312,7 @@ public class InteractionController : GameBehaviour
             _lastShowCursor = showCursor;
         }
 
-        bool showGrab = _currentTarget is CatchableObject c && c.canBeGrabByPlayer;
+        bool showGrab = objectInHands == null && _currentCatchable != null && _currentCatchable.canBeGrabByPlayer;
         if (showGrab != _lastShowGrab)
         {
             _uiGame.EnableGrabText(showGrab);
@@ -416,6 +441,23 @@ public class InteractionController : GameBehaviour
         OnDropItem?.Invoke(objectInHands);
         objectInHands = null;
     }
+
+    private CatchableObject GetCatchableFromInteractable(IInteractable interactable)
+    {
+        if (interactable is CatchableObject catchable)
+            return catchable;
+
+        Component comp = interactable as Component;
+        if (comp == null)
+            return null;
+
+        CatchableObject direct = comp.GetComponent<CatchableObject>();
+        if (direct != null)
+            return direct;
+
+        return comp.GetComponentInParent<CatchableObject>();
+    }
+
     public void GrabItem(CatchableObject catchableObject)
     {
         if (objectInHands != null)
@@ -432,6 +474,7 @@ public class InteractionController : GameBehaviour
         OnGrabItem?.Invoke(catchableObject);
 
         _currentTarget = null;
+        _currentCatchable = null;
         RefreshCursorUI();
     }
     

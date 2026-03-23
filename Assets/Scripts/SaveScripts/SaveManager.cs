@@ -9,6 +9,7 @@ public static class SaveKeys
     public const string GOLD = "gold";
     public const string MUSIC_VOLUME = "music_volume"; //Example
     public const string INTRO_DONE = "intro_done"; //Example
+    public const string TARGET_FPS = "target_fps";
 }
 
 [Serializable]

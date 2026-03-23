@@ -91,20 +91,23 @@ public class ActivableObject : GameBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
-        Room room = other.gameObject.GetComponent<Room>();
-        if (room)
+        if (canChangeRoom == true)
         {
-            ClickableObject clickableObject = room.GetComponent<ClickableObject>();
-            if (clickableObject)
-                defaultRoom.clickableObjects.Remove(clickableObject);
+            Room room = other.gameObject.GetComponent<Room>();
+            if (room)
+            {
+                ClickableObject clickableObject = GetComponent<ClickableObject>();
+                if (clickableObject)
+                    defaultRoom.clickableObjects.Remove(clickableObject);
 
-            defaultRoom.activableObjects.Remove(this);
+                defaultRoom.activableObjects.Remove(this);
 
-            defaultRoom = room;
-            if (clickableObject)
-                defaultRoom.clickableObjects.Add(clickableObject);
+                defaultRoom = room;
+                if (clickableObject)
+                    defaultRoom.clickableObjects.Add(clickableObject);
             
-            defaultRoom.activableObjects.Add(this);
+                defaultRoom.activableObjects.Add(this);
+            }
         }
     }
 

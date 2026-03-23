@@ -7,8 +7,10 @@ public class UISettingsMenu : GameBehaviour
 {
     private const float MinVolumeMultiplier = 0f;
     private const float MaxVolumeMultiplier = 1.5f;
-    private const float MinSensitivityMultiplier = 0.5f;
-    private const float MaxSensitivityMultiplier = 1.5f;
+    private const float MinSensitivityMultiplier = 0.2f;
+    private const float MaxSensitivityMultiplier = 3f;
+    private const float SensitivityBaseMultiplier = 1f;
+    private const float SensitivityBaseSlider = 0.75f;
     private const int AllTextSize = 54;
     private const float BindingButtonMinWidth = 220f;
     private const float BindingButtonHeight = 90f;
@@ -23,6 +25,7 @@ public class UISettingsMenu : GameBehaviour
     public Text sfxValue;
     public Text tpsValue;
     public Text fpsValue;
+    public Dropdown fpsLimitDropdown;
     public Dropdown languageDropdown;
     public GameObject keybindingsRoot;
     public GameObject keybindingsHeader;
@@ -48,6 +51,8 @@ public class UISettingsMenu : GameBehaviour
     private readonly Color _accentColor = new Color(0.3f, 0.8f, 1f, 1f);
 
     private readonly List<BindingEntry> _bindings = new List<BindingEntry>();
+    private static readonly int[] FpsLimitOptions = { 0, 30, 60, 90, 120, -1 };
+    private static readonly string[] FpsLimitLabels = { "Auto (VSync)", "30 FPS", "60 FPS", "90 FPS", "120 FPS", "Unlimited" };
 
     public bool IsOpen => _isOpen;
     public bool IsCapturingKey => _waitingForKey;
@@ -159,6 +164,7 @@ public class UISettingsMenu : GameBehaviour
         }
 
         UpdateValueTexts();
+        RefreshFpsDropdown();
         RefreshBindingTexts();
         RefreshLanguageDropdown();
 
@@ -402,6 +408,7 @@ public class UISettingsMenu : GameBehaviour
         CreateHeader(contentGO.transform, "Camera", _font, AllTextSize);
         tpsSensitivitySlider = CreateSliderRow(contentGO.transform, "TPS Camera Sensitivity", _font, out tpsValue);
         fpsSensitivitySlider = CreateSliderRow(contentGO.transform, "FPS Camera Sensitivity", _font, out fpsValue);
+        fpsLimitDropdown = CreateDropdownRow(contentGO.transform, "FPS Limit", _font);
 
         CreateHeader(contentGO.transform, "Language", _font, AllTextSize);
         languageDropdown = CreateLanguageDropdownRow(contentGO.transform, "Language", _font);
@@ -429,6 +436,7 @@ public class UISettingsMenu : GameBehaviour
         _bindingsBuilt = _bindings.Count > 0;
 
         HookSliders();
+        HookFpsDropdown();
         HookLanguageDropdown();
     }
 
@@ -561,7 +569,7 @@ public class UISettingsMenu : GameBehaviour
         return slider;
     }
 
-    private Dropdown CreateLanguageDropdownRow(Transform parent, string label, Font font)
+    private Dropdown CreateDropdownRow(Transform parent, string label, Font font)
     {
         GameObject row = new GameObject($"Row_{label}", typeof(RectTransform));
         row.transform.SetParent(parent, false);
@@ -595,6 +603,11 @@ public class UISettingsMenu : GameBehaviour
 
         Dropdown dropdown = CreateDropdown(row.transform, font);
         return dropdown;
+    }
+
+    private Dropdown CreateLanguageDropdownRow(Transform parent, string label, Font font)
+    {
+        return CreateDropdownRow(parent, label, font);
     }
 
     private Dropdown CreateDropdown(Transform parent, Font font)
@@ -948,6 +961,20 @@ public class UISettingsMenu : GameBehaviour
             });
     }
 
+    private void HookFpsDropdown()
+    {
+        if (fpsLimitDropdown == null)
+            return;
+
+        fpsLimitDropdown.onValueChanged.RemoveAllListeners();
+        fpsLimitDropdown.onValueChanged.AddListener(index =>
+        {
+            int fpsSetting = GetFpsSettingByIndex(index);
+            if (GameManager.Instance != null)
+                GameManager.Instance.ApplyFrameRateSetting(fpsSetting, save: true);
+        });
+    }
+
     private void HookLanguageDropdown()
     {
         if (languageDropdown == null)
@@ -983,6 +1010,73 @@ public class UISettingsMenu : GameBehaviour
         languageDropdown.RefreshShownValue();
     }
 
+    private void RefreshFpsDropdown()
+    {
+        if (fpsLimitDropdown == null)
+            return;
+
+        fpsLimitDropdown.ClearOptions();
+        fpsLimitDropdown.AddOptions(new List<string>(FpsLimitLabels));
+
+        int setting = ResolveCurrentFpsSetting();
+        int index = GetFpsIndex(setting);
+        fpsLimitDropdown.SetValueWithoutNotify(index);
+        fpsLimitDropdown.RefreshShownValue();
+    }
+
+    private int ResolveCurrentFpsSetting()
+    {
+        int saved = GameManager.Instance != null
+            ? GameManager.Instance.GetInt(SaveKeys.TARGET_FPS, int.MinValue)
+            : int.MinValue;
+        if (saved != int.MinValue)
+            return saved;
+
+        if (QualitySettings.vSyncCount > 0)
+            return 0;
+
+        int target = Application.targetFrameRate;
+        if (target <= 0)
+            return -1;
+
+        return target;
+    }
+
+    private int GetFpsIndex(int fpsSetting)
+    {
+        for (int i = 0; i < FpsLimitOptions.Length; i++)
+        {
+            if (FpsLimitOptions[i] == fpsSetting)
+                return i;
+        }
+
+        if (fpsSetting <= 0)
+            return Array.IndexOf(FpsLimitOptions, -1);
+
+        int closestIndex = 0;
+        int closestDistance = int.MaxValue;
+        for (int i = 0; i < FpsLimitOptions.Length; i++)
+        {
+            int option = FpsLimitOptions[i];
+            if (option <= 0)
+                continue;
+            int distance = Mathf.Abs(option - fpsSetting);
+            if (distance < closestDistance)
+            {
+                closestDistance = distance;
+                closestIndex = i;
+            }
+        }
+        return closestIndex;
+    }
+
+    private int GetFpsSettingByIndex(int index)
+    {
+        if (index < 0 || index >= FpsLimitOptions.Length)
+            return 0;
+        return FpsLimitOptions[index];
+    }
+
     private float SliderToVolumeMultiplier(float value)
     {
         return Mathf.Lerp(MinVolumeMultiplier, MaxVolumeMultiplier, value);
@@ -995,12 +1089,28 @@ public class UISettingsMenu : GameBehaviour
 
     private float SliderToSensitivityMultiplier(float value)
     {
-        return Mathf.Lerp(MinSensitivityMultiplier, MaxSensitivityMultiplier, value);
+        float t = Mathf.Clamp01(value);
+        if (t <= SensitivityBaseSlider)
+        {
+            float local = t / Mathf.Max(0.0001f, SensitivityBaseSlider);
+            return Mathf.Lerp(MinSensitivityMultiplier, SensitivityBaseMultiplier, local);
+        }
+
+        float upper = (t - SensitivityBaseSlider) / Mathf.Max(0.0001f, 1f - SensitivityBaseSlider);
+        return Mathf.Lerp(SensitivityBaseMultiplier, MaxSensitivityMultiplier, upper);
     }
 
     private float MultiplierToSensitivitySlider(float multiplier)
     {
-        return Mathf.InverseLerp(MinSensitivityMultiplier, MaxSensitivityMultiplier, multiplier);
+        float m = Mathf.Clamp(multiplier, MinSensitivityMultiplier, MaxSensitivityMultiplier);
+        if (m <= SensitivityBaseMultiplier)
+        {
+            float local = Mathf.InverseLerp(MinSensitivityMultiplier, SensitivityBaseMultiplier, m);
+            return local * SensitivityBaseSlider;
+        }
+
+        float upper = Mathf.InverseLerp(SensitivityBaseMultiplier, MaxSensitivityMultiplier, m);
+        return SensitivityBaseSlider + upper * (1f - SensitivityBaseSlider);
     }
 
     private void SetSliderValue(Slider slider, float value)

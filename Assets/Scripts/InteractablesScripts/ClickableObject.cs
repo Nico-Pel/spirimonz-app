@@ -17,6 +17,7 @@ public class ClickableObject : GameBehaviour, IInteractable
 
     private float _securityClickTime = 0.15f;
     private bool _clickSecurityLocked = false;
+    private int _lastHoldFrame = -1;
 
     public UnityEvent onClick;
     
@@ -55,12 +56,22 @@ public class ClickableObject : GameBehaviour, IInteractable
             
         if (canClick)
             OnClick();
+
+        if (!canClick && canHold)
+        {
+            OnHold();
+            _lastHoldFrame = Time.frameCount;
+        }
     }
 
     public void OnInteractHold()
     {
         if (canHold)
+        {
+            if (_lastHoldFrame == Time.frameCount)
+                return;
             OnHold();
+        }
     }
 
     public void OnInteractEnd()

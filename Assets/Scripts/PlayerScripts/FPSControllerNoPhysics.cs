@@ -105,6 +105,10 @@ public class FPSControllerNoPhysics : Controller
 
     private float stepTimer;
     private Vector3 cameraStartLocalPos;
+    private bool _inputMoving;
+    private bool _debugHeadBobDisabled;
+    private float _cameraCrouchY;
+    private float _headBobOffsetY;
 
     private Vector3 armsStartLocalPos;
     private Quaternion armsStartLocalRot;
@@ -127,6 +131,8 @@ public class FPSControllerNoPhysics : Controller
         cameraStartLocalPos = _player.camera.transform.localPosition;
         cameraStandingPos = cameraStartLocalPos;
         standingHeight = controller.height;
+        _cameraCrouchY = cameraStartLocalPos.y;
+        _headBobOffsetY = 0f;
 
         _lastMobileEnabled = MobileInput.Enabled;
         ApplyCursorState(_lastMobileEnabled);
@@ -157,11 +163,25 @@ public class FPSControllerNoPhysics : Controller
         TrackCursorLockState();
 
         if (_player.IsLocked()) return;
+
+#if UNITY_EDITOR
+        if (Input.GetKeyDown(KeyCode.O))
+        {
+            _debugHeadBobDisabled = !_debugHeadBobDisabled;
+            if (_debugHeadBobDisabled)
+            {
+                stepTimer = 0f;
+                _headBobOffsetY = 0f;
+                ResetArmsPose();
+            }
+        }
+#endif
         
         HandleLook();
         HandleMove();
         HandleCrouch();
         HandleHeadbob();
+        ApplyCameraLocalPosition();
         HandleArmSway();
         HandleLight();
     }
@@ -200,15 +220,26 @@ public class FPSControllerNoPhysics : Controller
         if (!MobileInput.Enabled)
         {
             const float pcSensitivityScale = 0.5f;
-            float lookDeltaTime = useSmoothDeltaTimeForLook ? Time.smoothDeltaTime : Time.deltaTime;
-            if (maxLookDeltaTime > 0f)
-                lookDeltaTime = Mathf.Min(lookDeltaTime, maxLookDeltaTime);
-
             float rawX = useRawMouseInput ? Input.GetAxisRaw("Mouse X") : Input.GetAxis("Mouse X");
             float rawY = useRawMouseInput ? Input.GetAxisRaw("Mouse Y") : Input.GetAxis("Mouse Y");
             _lastMouseInputRaw = new Vector2(rawX, rawY);
-            mouseX = rawX * mouseSensitivityX * fpsSensitivityMultiplier * pcSensitivityScale * 100f * lookDeltaTime;
-            mouseY = rawY * mouseSensitivityY * fpsSensitivityMultiplier * pcSensitivityScale * 100f * lookDeltaTime;
+
+            if (useRawMouseInput)
+            {
+                const float legacyFps = 60f;
+                float legacyScale = (pcSensitivityScale * 100f) / legacyFps;
+                mouseX = rawX * mouseSensitivityX * fpsSensitivityMultiplier * legacyScale;
+                mouseY = rawY * mouseSensitivityY * fpsSensitivityMultiplier * legacyScale;
+            }
+            else
+            {
+                float lookDeltaTime = useSmoothDeltaTimeForLook ? Time.smoothDeltaTime : Time.deltaTime;
+                if (maxLookDeltaTime > 0f)
+                    lookDeltaTime = Mathf.Min(lookDeltaTime, maxLookDeltaTime);
+
+                mouseX = rawX * mouseSensitivityX * fpsSensitivityMultiplier * pcSensitivityScale * 100f * lookDeltaTime;
+                mouseY = rawY * mouseSensitivityY * fpsSensitivityMultiplier * pcSensitivityScale * 100f * lookDeltaTime;
+            }
         }
         float idleMultiplier = 1f;
         if (MobileInput.Enabled)
@@ -279,6 +310,7 @@ public class FPSControllerNoPhysics : Controller
         float rawMagnitude = rawInput.magnitude;
         Vector3 input = rawMagnitude > 0.0001f ? new Vector3(x, 0, z).normalized : Vector3.zero;
         bool isMoving = rawMagnitude > 0.1f;
+        _inputMoving = isMoving;
         bool mobileSprint = MobileInput.Enabled && mobileMove.sqrMagnitude >= (mobileSprintThreshold * mobileSprintThreshold);
         bool wantsToSprint = (!MobileInput.Enabled && _player.inputManager.GetSprint()) || MobileInput.SprintHeld || mobileSprint;
         bool canSprint = wantsToSprint && isMoving && !staminaDepleted;
@@ -360,9 +392,7 @@ public class FPSControllerNoPhysics : Controller
         controller.center = new Vector3(0, controller.height / 2f, 0);
 
         float targetCamY = isCrouching ? crouchCameraHeight : cameraStandingPos.y;
-        Vector3 camPos = _player.camera.transform.localPosition;
-        camPos.y = Mathf.Lerp(camPos.y, targetCamY, Time.deltaTime * crouchTransitionSpeed);
-        _player.camera.transform.localPosition = camPos;
+        _cameraCrouchY = Mathf.Lerp(_cameraCrouchY, targetCamY, Time.deltaTime * crouchTransitionSpeed);
     }
 
     void EnableHeadBob()
@@ -374,16 +404,25 @@ public class FPSControllerNoPhysics : Controller
     // ---------------- HEADBOB ----------------
     void HandleHeadbob()
     {
-        if (isCrouching) return;
-
-        if (!canUseHeadBob || smoothedMove.magnitude < 0.1f || !controller.isGrounded)
+        if (isCrouching)
         {
-            _player.camera.transform.localPosition = Vector3.Lerp(
-                _player.camera.transform.localPosition,
-                cameraStartLocalPos,
-                Time.deltaTime * bobResetSpeed
-            );
             stepTimer = 0f;
+            _headBobOffsetY = Mathf.Lerp(_headBobOffsetY, 0f, Time.deltaTime * bobResetSpeed);
+            return;
+        }
+
+        if (_debugHeadBobDisabled)
+        {
+            stepTimer = 0f;
+            _headBobOffsetY = Mathf.Lerp(_headBobOffsetY, 0f, Time.deltaTime * bobResetSpeed);
+            ResetArmsPose();
+            return;
+        }
+
+        if (!canUseHeadBob || !_inputMoving || !controller.isGrounded)
+        {
+            stepTimer = 0f;
+            _headBobOffsetY = Mathf.Lerp(_headBobOffsetY, 0f, Time.deltaTime * bobResetSpeed);
             return;
         }
 
@@ -391,7 +430,8 @@ public class FPSControllerNoPhysics : Controller
         float stepTime = isSprinting ? stepDuration * sprintStepMultiplier : stepDuration;
 
         float previousStepTimer = stepTimer;
-        stepTimer += Time.deltaTime / stepTime;
+        float bobDeltaTime = Time.smoothDeltaTime;
+        stepTimer += bobDeltaTime / stepTime;
 
         if (previousStepTimer < 0.5f && stepTimer >= 0.5f)
         {
@@ -407,8 +447,12 @@ public class FPSControllerNoPhysics : Controller
 
         if (stepTimer > 1f) stepTimer -= 1f;
 
-        float bob = Mathf.Sin(stepTimer * Mathf.PI * 2f) * bobAmplitude;
-        _player.camera.transform.localPosition = cameraStartLocalPos + Vector3.up * bob;
+        float amplitude = bobAmplitude;
+        if (isSprinting)
+            amplitude *= sprintStepMultiplier;
+
+        float bob = Mathf.Sin(stepTimer * Mathf.PI * 2f) * amplitude;
+        _headBobOffsetY = Mathf.Lerp(_headBobOffsetY, bob, Time.deltaTime * bobResetSpeed);
 
         HandleArmsBob();
     }
@@ -443,6 +487,23 @@ public class FPSControllerNoPhysics : Controller
             finalRot,
             Time.deltaTime * armsResetSpeed
         );
+    }
+
+    private void ResetArmsPose()
+    {
+        if (armsTransform == null) return;
+        armsTransform.localPosition = armsStartLocalPos;
+        armsTransform.localRotation = armsStartLocalRot;
+    }
+
+    private void ApplyCameraLocalPosition()
+    {
+        if (_player == null || _player.camera == null)
+            return;
+
+        Vector3 basePos = cameraStartLocalPos;
+        basePos.y = _cameraCrouchY;
+        _player.camera.transform.localPosition = basePos + Vector3.up * _headBobOffsetY;
     }
 
     void HandleArmSway()

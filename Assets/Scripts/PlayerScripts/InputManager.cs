@@ -45,8 +45,8 @@ public class InputManager : GameBehaviour
     public KeyCode worldInteractionsAlt = KeyCode.None;
 
     [Header("Sensitivity Multipliers")]
-    [Range(0.5f, 1.5f)] public float tpsLookSensitivityMultiplier = 1f;
-    [Range(0.5f, 1.5f)] public float fpsLookSensitivityMultiplier = 1f;
+    [Range(0.2f, 3f)] public float tpsLookSensitivityMultiplier = 1f;
+    [Range(0.2f, 3f)] public float fpsLookSensitivityMultiplier = 1f;
 
     public struct BindingDefinition
     {
