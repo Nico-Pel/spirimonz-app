@@ -25,8 +25,8 @@ public class Room : MonoBehaviour
     public UnityEvent OnRadiationEnd;
 
     [Header("Objects in Room")]
-    public ClickableObject[] clickableObjects;
-    public ActivableObject[] activableObjects;
+    public List<ClickableObject> clickableObjects = new List<ClickableObject>();
+    public List<ActivableObject> activableObjects = new List<ActivableObject>();
 
     [Header("Neighbor Rooms")]
     public Room[] neighborRooms;

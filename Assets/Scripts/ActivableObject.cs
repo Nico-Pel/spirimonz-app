@@ -17,6 +17,9 @@ public class ActivableObject : GameBehaviour
     public bool isActivated;
     public bool isLocked;
     
+    public bool canChangeRoom = false;
+    public Room defaultRoom;
+    
     [Header("Sound")]
     public AudioClip loopSound;
     public float volume = 1f;
@@ -48,6 +51,9 @@ public class ActivableObject : GameBehaviour
         {
             Activate();
         }
+
+        if (defaultRoom == null)
+            canChangeRoom = false;
     }
 
     public void Operate()
@@ -78,13 +84,35 @@ public class ActivableObject : GameBehaviour
 
         if (useAutomaticDisable)
         {
-            this.Invoke(automaticDisableTime, Deactivate);
+            if(isActivated)
+                Invoke(nameof(Deactivate), automaticDisableTime);
         }
     }
-    
+
+    private void OnTriggerEnter(Collider other)
+    {
+        Room room = other.gameObject.GetComponent<Room>();
+        if (room)
+        {
+            ClickableObject clickableObject = room.GetComponent<ClickableObject>();
+            if (clickableObject)
+                defaultRoom.clickableObjects.Remove(clickableObject);
+
+            defaultRoom.activableObjects.Remove(this);
+
+            defaultRoom = room;
+            if (clickableObject)
+                defaultRoom.clickableObjects.Add(clickableObject);
+            
+            defaultRoom.activableObjects.Add(this);
+        }
+    }
+
     private void PlayLoopSound()
     {
         if (loopSound == null) return;
+        
+        CancelInvoke();
         
         _loopSound = SoundManager.Instance.PlaySound(
             loopSound,
