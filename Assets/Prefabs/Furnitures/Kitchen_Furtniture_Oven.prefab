@@ -671,7 +671,7 @@ GameObject:
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
+  m_StaticEditorFlags: 2147483647
   m_IsActive: 1
 --- !u!4 &6190820866663734582
 Transform:
@@ -775,6 +775,8 @@ MonoBehaviour:
   activationType: 2
   isActivated: 0
   isLocked: 0
+  canChangeRoom: 0
+  defaultRoom: {fileID: 0}
   loopSound: {fileID: 8300000, guid: fe5caa6d0a18d45f9bd0269ab0436c7b, type: 3}
   volume: 0.225
   range: 10

@@ -187,7 +187,7 @@ GameObject:
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
+  m_StaticEditorFlags: 2147483647
   m_IsActive: 1
 --- !u!4 &7164005016741532966
 Transform:
@@ -273,6 +273,20 @@ MonoBehaviour:
   activationType: 1
   isActivated: 0
   isLocked: 0
+  canChangeRoom: 0
+  defaultRoom: {fileID: 0}
+  loopSound: {fileID: 0}
+  volume: 1
+  range: 10
+  pitch: 1
+  OnActivated:
+    m_PersistentCalls:
+      m_Calls: []
+  OnDeactivated:
+    m_PersistentCalls:
+      m_Calls: []
+  useAutomaticDisable: 0
+  automaticDisableTime: 0.5
   objectsToEnable:
   - {fileID: 8281781888225747267}
   - {fileID: 6590165102062264431}
@@ -302,6 +316,11 @@ MonoBehaviour:
   canClick: 1
   canHold: 0
   canRelease: 0
+  canBeClickedOnTriggerByGhostDuringHunt: 0
+  ignoreActivitySource: 0
+  onClick:
+    m_PersistentCalls:
+      m_Calls: []
   printSources: []
   activableObject: {fileID: 2805580607180560246}
   animator: {fileID: 0}
@@ -311,6 +330,7 @@ MonoBehaviour:
   volume: 0.15
   pitchMin: 0.6
   pitchMax: 0.8
+  isOneStateSwitch: 0
 --- !u!64 &7401345498061517891
 MeshCollider:
   m_ObjectHideFlags: 0

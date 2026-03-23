@@ -37,13 +37,23 @@ public class CatchableObject : GameBehaviour, IInteractable
     [Header("Drop Collision Safety")]
     public float ignorePlayerCollisionDuration = 1f;
 
+    [Header("Physics Optimization")]
+    public bool autoSleepWhenIdle = true;
+    [Min(0f)] public float autoSleepStartDelay = 1f;
+    [Min(0f)] public float autoSleepCheckInterval = 0.5f;
+    [Min(0f)] public float autoSleepMinStableTime = 0.5f;
+    [Min(0f)] public float autoSleepVelocity = 0.02f;
+    [Min(0f)] public float autoSleepAngularVelocity = 0.02f;
+
     protected bool _canCallCollisionSound = false;
     protected float _collisionSoundsMinDelay = 0.5f;
     protected float _collisionStartDelay = 1f;
 
     private Transform _currentHolder;
     private Coroutine _ignorePlayerCollisionRoutine;
-    
+    private Coroutine _autoSleepRoutine;
+    private float _idleStableTime;
+
     public UnityEvent onGrab;
 
     protected virtual void Awake()
@@ -61,6 +71,9 @@ public class CatchableObject : GameBehaviour, IInteractable
         
         // Check toutes les 0.5 secondes
         InvokeRepeating(nameof(CheckFall), 1f, 2f);
+
+        if (autoSleepWhenIdle)
+            StartAutoSleep();
     }
 
     // =========================
@@ -94,6 +107,7 @@ public class CatchableObject : GameBehaviour, IInteractable
 
         transform.SetParent(handPosition);
         rb.isKinematic = true;
+        ResetAutoSleepTimer();
         transform.localPosition = offsetPosInHands;
         transform.localRotation = Quaternion.Euler(offsetRotInHands);
         
@@ -108,7 +122,9 @@ public class CatchableObject : GameBehaviour, IInteractable
         transform.position = dropPosition;
 
         rb.isKinematic = false;
+        rb.WakeUp();
         rb.AddForce(throwForce, ForceMode.Impulse);
+        ResetAutoSleepTimer();
 
         isGrabbed = false;
         _currentHolder = null;
@@ -228,8 +244,10 @@ public class CatchableObject : GameBehaviour, IInteractable
     public void ApplyForce(Vector3 force, Vector3 torque = default)
     {
         rb.isKinematic = false;
+        rb.WakeUp();
         rb.AddForce(force, ForceMode.Impulse);
         rb.AddTorque(torque, ForceMode.Impulse);
+        ResetAutoSleepTimer();
     }
 
     private void ApplyThrowTorque()
@@ -281,5 +299,81 @@ public class CatchableObject : GameBehaviour, IInteractable
     {
         if (transform.position.y < -50f)
             Destroy(gameObject);
+    }
+
+    private void StartAutoSleep()
+    {
+        if (rb == null)
+            return;
+
+        if (_autoSleepRoutine != null)
+            StopCoroutine(_autoSleepRoutine);
+
+        _autoSleepRoutine = StartCoroutine(AutoSleepRoutine());
+    }
+
+    private IEnumerator AutoSleepRoutine()
+    {
+        if (autoSleepStartDelay > 0f)
+            yield return new WaitForSeconds(autoSleepStartDelay);
+
+        WaitForSeconds wait = autoSleepCheckInterval > 0f
+            ? new WaitForSeconds(autoSleepCheckInterval)
+            : null;
+
+        while (true)
+        {
+            if (ShouldAutoSleep())
+            {
+                if (IsIdleForAutoSleep())
+                {
+                    float delta = autoSleepCheckInterval > 0f ? autoSleepCheckInterval : Time.deltaTime;
+                    _idleStableTime += delta;
+
+                    if (_idleStableTime >= autoSleepMinStableTime)
+                    {
+                        rb.Sleep();
+                        _idleStableTime = 0f;
+                    }
+                }
+                else
+                {
+                    _idleStableTime = 0f;
+                }
+            }
+            else
+            {
+                _idleStableTime = 0f;
+            }
+
+            if (wait != null)
+                yield return wait;
+            else
+                yield return null;
+        }
+    }
+
+    private bool ShouldAutoSleep()
+    {
+        if (!autoSleepWhenIdle)
+            return false;
+
+        if (rb == null || rb.isKinematic || isGrabbed)
+            return false;
+
+        return !rb.IsSleeping();
+    }
+
+    private bool IsIdleForAutoSleep()
+    {
+        float maxVel = autoSleepVelocity;
+        float maxAngVel = autoSleepAngularVelocity;
+        return rb.velocity.sqrMagnitude <= (maxVel * maxVel) &&
+               rb.angularVelocity.sqrMagnitude <= (maxAngVel * maxAngVel);
+    }
+
+    private void ResetAutoSleepTimer()
+    {
+        _idleStableTime = 0f;
     }
 }

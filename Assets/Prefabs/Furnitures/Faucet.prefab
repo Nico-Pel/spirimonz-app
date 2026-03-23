@@ -136,7 +136,7 @@ GameObject:
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
+  m_StaticEditorFlags: 2147483647
   m_IsActive: 1
 --- !u!4 &4353122214957038836
 Transform:
@@ -244,6 +244,10 @@ MonoBehaviour:
   canHold: 0
   canRelease: 0
   canBeClickedOnTriggerByGhostDuringHunt: 0
+  ignoreActivitySource: 0
+  onClick:
+    m_PersistentCalls:
+      m_Calls: []
   printSources: []
   activableObject: {fileID: 0}
   animator: {fileID: 8838256744887252693}
@@ -253,6 +257,7 @@ MonoBehaviour:
   volume: 1
   pitchMin: 0.9
   pitchMax: 1.1
+  isOneStateSwitch: 0
 --- !u!114 &5458836747580579311
 MonoBehaviour:
   m_ObjectHideFlags: 0

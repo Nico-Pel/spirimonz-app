@@ -19,6 +19,8 @@ public class FPSControllerNoPhysics : Controller
     public float mouseSensitivityX = 2.0f;
     public float mouseSensitivityY = 2.0f;
     public float maxLookAngle = 80f;
+    public bool useRawMouseInput = true;
+    public bool useSmoothDeltaTimeForLook = true;
     
     [Header("Look Safety")]
     [Min(0)] public int ignoreLookFramesOnFocus = 1;
@@ -107,6 +109,7 @@ public class FPSControllerNoPhysics : Controller
     private Vector3 armsStartLocalPos;
     private Quaternion armsStartLocalRot;
     private Vector2 _lastMobileLookScaled;
+    private Vector2 _lastMouseInputRaw;
     private bool _lastMobileEnabled;
     private bool _isMoving;
     private float _mobileIdleMultiplier = 1f;
@@ -172,27 +175,40 @@ public class FPSControllerNoPhysics : Controller
             _ignoreLookFrames--;
             if (!MobileInput.Enabled)
             {
-                Input.GetAxis("Mouse X");
-                Input.GetAxis("Mouse Y");
+                if (useRawMouseInput)
+                {
+                    Input.GetAxisRaw("Mouse X");
+                    Input.GetAxisRaw("Mouse Y");
+                }
+                else
+                {
+                    Input.GetAxis("Mouse X");
+                    Input.GetAxis("Mouse Y");
+                }
             }
             _lastMobileLookScaled = Vector2.zero;
+            _lastMouseInputRaw = Vector2.zero;
             return;
         }
 
         float mouseX = 0f;
         float mouseY = 0f;
+        _lastMouseInputRaw = Vector2.zero;
         float fpsSensitivityMultiplier = (_player != null && _player.inputManager != null)
             ? _player.inputManager.fpsLookSensitivityMultiplier
             : 1f;
         if (!MobileInput.Enabled)
         {
             const float pcSensitivityScale = 0.5f;
-            float lookDeltaTime = Time.deltaTime;
+            float lookDeltaTime = useSmoothDeltaTimeForLook ? Time.smoothDeltaTime : Time.deltaTime;
             if (maxLookDeltaTime > 0f)
                 lookDeltaTime = Mathf.Min(lookDeltaTime, maxLookDeltaTime);
 
-            mouseX = Input.GetAxis("Mouse X") * mouseSensitivityX * fpsSensitivityMultiplier * pcSensitivityScale * 100f * lookDeltaTime;
-            mouseY = Input.GetAxis("Mouse Y") * mouseSensitivityY * fpsSensitivityMultiplier * pcSensitivityScale * 100f * lookDeltaTime;
+            float rawX = useRawMouseInput ? Input.GetAxisRaw("Mouse X") : Input.GetAxis("Mouse X");
+            float rawY = useRawMouseInput ? Input.GetAxisRaw("Mouse Y") : Input.GetAxis("Mouse Y");
+            _lastMouseInputRaw = new Vector2(rawX, rawY);
+            mouseX = rawX * mouseSensitivityX * fpsSensitivityMultiplier * pcSensitivityScale * 100f * lookDeltaTime;
+            mouseY = rawY * mouseSensitivityY * fpsSensitivityMultiplier * pcSensitivityScale * 100f * lookDeltaTime;
         }
         float idleMultiplier = 1f;
         if (MobileInput.Enabled)
@@ -219,9 +235,10 @@ public class FPSControllerNoPhysics : Controller
         }
 
         float mobileLookSensitivity = mobileLookSensitivityX * fpsSensitivityMultiplier;
+        float mobileDeltaTime = useSmoothDeltaTimeForLook ? Time.smoothDeltaTime : Time.deltaTime;
         _lastMobileLookScaled = new Vector2(
-            mobileLook.x * mobileLookSensitivity * mobileLookSensitivityMultiplier * idleMultiplier * lookBoost * 100f * Time.deltaTime,
-            mobileLook.y * mobileLookSensitivity * mobileLookSensitivityMultiplier * idleMultiplier * lookBoost * 100f * Time.deltaTime
+            mobileLook.x * mobileLookSensitivity * mobileLookSensitivityMultiplier * idleMultiplier * lookBoost * 100f * mobileDeltaTime,
+            mobileLook.y * mobileLookSensitivity * mobileLookSensitivityMultiplier * idleMultiplier * lookBoost * 100f * mobileDeltaTime
         );
 
         mouseX += _lastMobileLookScaled.x;
@@ -436,8 +453,8 @@ public class FPSControllerNoPhysics : Controller
         float mouseY = _lastMobileLookScaled.y;
         if (!MobileInput.Enabled)
         {
-            mouseX += Input.GetAxis("Mouse X");
-            mouseY += Input.GetAxis("Mouse Y");
+            mouseX += _lastMouseInputRaw.x;
+            mouseY += _lastMouseInputRaw.y;
         }
 
         // Rotation cible basée sur la rotation de départ + sway

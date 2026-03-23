@@ -103,6 +103,11 @@ MonoBehaviour:
   canClick: 1
   canHold: 0
   canRelease: 0
+  canBeClickedOnTriggerByGhostDuringHunt: 0
+  ignoreActivitySource: 0
+  onClick:
+    m_PersistentCalls:
+      m_Calls: []
   movePosition: 0
   moveRotation: 1
   offsetPosition: {x: 0, y: 0, z: 0}
@@ -158,7 +163,7 @@ GameObject:
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
+  m_StaticEditorFlags: 2147483647
   m_IsActive: 1
 --- !u!4 &3949815468164757125
 Transform:
@@ -465,6 +470,11 @@ MonoBehaviour:
   canClick: 1
   canHold: 0
   canRelease: 0
+  canBeClickedOnTriggerByGhostDuringHunt: 0
+  ignoreActivitySource: 0
+  onClick:
+    m_PersistentCalls:
+      m_Calls: []
   movePosition: 0
   moveRotation: 1
   offsetPosition: {x: 0, y: 0, z: 0}

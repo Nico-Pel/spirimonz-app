@@ -17,7 +17,7 @@ GameObject:
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
+  m_StaticEditorFlags: 2147483647
   m_IsActive: 1
 --- !u!4 &8334797031648826602
 Transform:
@@ -102,9 +102,20 @@ MonoBehaviour:
   activationType: 1
   isActivated: 0
   isLocked: 0
+  canChangeRoom: 0
+  defaultRoom: {fileID: 0}
   loopSound: {fileID: 8300000, guid: f2e378ce469c145f0bc6f90faa35166b, type: 3}
   volume: 3
   range: 15
+  pitch: 1
+  OnActivated:
+    m_PersistentCalls:
+      m_Calls: []
+  OnDeactivated:
+    m_PersistentCalls:
+      m_Calls: []
+  useAutomaticDisable: 0
+  automaticDisableTime: 0.5
   objectsToEnable:
   - {fileID: 4258991708130442185}
   rendererGroups:
@@ -288,6 +299,10 @@ PrefabInstance:
     - target: {fileID: 6932033585238343055, guid: 3a54b48578dbe4c3d93d2a047ce328ab, type: 3}
       propertyPath: m_Name
       value: LightBuld
+      objectReference: {fileID: 0}
+    - target: {fileID: 6932033585238343055, guid: 3a54b48578dbe4c3d93d2a047ce328ab, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
       objectReference: {fileID: 0}
     - target: {fileID: 7027298196521013721, guid: 3a54b48578dbe4c3d93d2a047ce328ab, type: 3}
       propertyPath: m_IsActive
