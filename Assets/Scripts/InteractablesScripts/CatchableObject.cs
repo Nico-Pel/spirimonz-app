@@ -381,5 +381,6 @@ public class CatchableObject : GameBehaviour, IInteractable
     public virtual void OnSecondaryUse()
     {
         onSecondaryUse?.Invoke();
+        SpecialActionInHandsOnClick();
     }
 }
