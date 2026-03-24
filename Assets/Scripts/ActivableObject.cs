@@ -119,7 +119,7 @@ public class ActivableObject : GameBehaviour
         
         _loopSound = SoundManager.Instance.PlaySound(
             loopSound,
-            transform.position,
+            transform.position + Vector3.one * 0.1f,
             volume: volume,
             loop: true,
             range: range,

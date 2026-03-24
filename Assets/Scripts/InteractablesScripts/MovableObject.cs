@@ -18,6 +18,8 @@ public class MovableObject : ClickableObject
     public float moveSpeed = 1.5f;
     public Ease moveEase = Ease.OutBack;
     public Ease moveBackEase = Ease.Linear;
+    [Tooltip("Optional: move via Rigidbody.MovePosition instead of Transform. Useful for physics collisions.")]
+    public Rigidbody moveRigidbody;
 
     [Header("Rotate on click!")]
     public Vector3 offsetRotation;
@@ -38,10 +40,12 @@ public class MovableObject : ClickableObject
     
     private Vector3 _startPosition;
     private Vector3 _startRotation;
+    private Tween _moveTween;
 
     private void Start()
     {
-        _startPosition = transform.localPosition;
+        Transform startTransform = moveRigidbody != null ? moveRigidbody.transform : transform;
+        _startPosition = startTransform.localPosition;
         _startRotation = transform.localEulerAngles;
     }
 
@@ -50,12 +54,43 @@ public class MovableObject : ClickableObject
         base.OnClick();
         
         transform.DOKill();
+        _moveTween?.Kill();
         
         if (movePosition)
         {
             Vector3 newPos = _isActivated ? _startPosition : _startPosition + offsetPosition;
             Ease ease = _isActivated ? moveBackEase : moveEase;
-            transform.DOLocalMove(newPos, moveSpeed).SetSpeedBased().SetEase(ease);
+
+            if (moveRigidbody != null)
+            {
+                Transform targetTransform = moveRigidbody.transform;
+                Vector3 targetWorld = targetTransform.parent != null
+                    ? targetTransform.parent.TransformPoint(newPos)
+                    : newPos;
+
+                float speed = Mathf.Max(0.0001f, moveSpeed);
+                float duration = Vector3.Distance(moveRigidbody.position, targetWorld) / speed;
+
+                if (duration <= 0f)
+                {
+                    moveRigidbody.MovePosition(targetWorld);
+                }
+                else
+                {
+                    _moveTween = DOTween.To(
+                            () => moveRigidbody.position,
+                            value => moveRigidbody.MovePosition(value),
+                            targetWorld,
+                            duration
+                        )
+                        .SetEase(ease)
+                        .SetUpdate(UpdateType.Fixed);
+                }
+            }
+            else
+            {
+                transform.DOLocalMove(newPos, moveSpeed).SetSpeedBased().SetEase(ease);
+            }
         }
 
         if (moveRotation)
