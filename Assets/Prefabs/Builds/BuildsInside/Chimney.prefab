@@ -44,8 +44,8 @@ Light:
   m_Type: 2
   m_Shape: 0
   m_Color: {r: 1, g: 0.5851397, b: 0, a: 1}
-  m_Intensity: 1
-  m_Range: 30
+  m_Intensity: 1.2
+  m_Range: 20
   m_SpotAngle: 30
   m_InnerSpotAngle: 21.80208
   m_CookieSize: 10
@@ -249,6 +249,9 @@ MonoBehaviour:
   ghostVolume: 0.8
   ghostPitch: 0.35
   canBeTurnedOn: 1
+  heatRoom: 1
+  heatPerSecond: 0.5
+  maxRoomHeatDelta: 8
   onChangeFireState:
     m_PersistentCalls:
       m_Calls: []

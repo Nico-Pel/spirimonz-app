@@ -28,7 +28,13 @@ public class FlammableElement : GameBehaviour
 
     public bool canBeTurnedOn = true;
 
+    [Header("Room Heating")]
+    public bool heatRoom = false;
+    [Min(0f)] public float heatPerSecond = 0.5f;
+    [Min(0f)] public float maxRoomHeatDelta = 8f;
+
     private bool _isOnFire;
+    private Room _cachedRoom;
 
     public UnityEvent<bool> onChangeFireState;
 
@@ -37,6 +43,24 @@ public class FlammableElement : GameBehaviour
     private void Start()
     {
         EnableFire(startOnFire, false);
+    }
+
+    private void Update()
+    {
+        if (!heatRoom || !_isOnFire)
+            return;
+
+        if (heatPerSecond <= 0f || maxRoomHeatDelta <= 0f)
+            return;
+
+        Room room = GetLinkedRoom();
+        if (room == null)
+            return;
+
+        float maxAllowed = room.GetStartTemperature() + maxRoomHeatDelta;
+        maxAllowed = Mathf.Min(maxAllowed, room.maxTemperature);
+
+        room.AddHeatingClamped(heatPerSecond * Time.deltaTime, maxAllowed);
     }
 
     public void EnableFire(bool enable, bool useParticlesOff = true, bool useGhostSoundClip = false, bool forced = false)
@@ -83,5 +107,16 @@ public class FlammableElement : GameBehaviour
     public bool IsOnFire()
     {
         return _isOnFire;
+    }
+
+    private Room GetLinkedRoom()
+    {
+        if (optionalLinkedRoom != null)
+            return optionalLinkedRoom;
+
+        if (_cachedRoom == null)
+            _cachedRoom = GetComponentInParent<Room>();
+
+        return _cachedRoom;
     }
 }

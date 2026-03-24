@@ -169,11 +169,25 @@ public class Room : MonoBehaviour
         _temperatureTarget = Mathf.Clamp(_temperatureTarget, minTemperature, maxTemperature);
     }
 
+    public void AddHeatingClamped(float delta, float maxAllowedTemperature)
+    {
+        if (delta <= 0f)
+            return;
+
+        _temperatureTarget += delta;
+        float minTemperature = house.currentGhost.ghostParameters.FreezingTemperature
+            ? minFreezingTemperature
+            : minNormalTemperature;
+        float maxTemp = Mathf.Min(maxAllowedTemperature, maxTemperature);
+        _temperatureTarget = Mathf.Clamp(_temperatureTarget, minTemperature, maxTemp);
+    }
+
     // Pour compatibilité et lisibilité
     public void AddCooling(float value) => AddTemperatureDelta(-value);
     public void AddHeating(float value) => AddTemperatureDelta(value);
 
     public float GetTemperatureCelsius() => currentTemperature;
+    public float GetStartTemperature() => _startTemperature;
     
     public float GetTemperatureFahrenheit()
     { 

@@ -76,6 +76,7 @@ public class GameManager : GameBehaviour
         EnsureSaveDefaults();
         ApplySavedFrameRateSetting();
         ApplyInputBindingsIfReady();
+        ApplySavedSettingsIfPossible();
 
         Scene currentScene = SceneManager.GetActiveScene();
 
@@ -146,6 +147,41 @@ public class GameManager : GameBehaviour
             ApplyFrameRateSetting(savedFps, save: false);
     }
 
+    private void ApplySavedSettingsIfPossible()
+    {
+        if (gameData == null)
+            return;
+
+        SoundManager sound = SoundManager.Instance;
+        float ambient = GetFloat(SaveKeys.AMBIENT_VOLUME_MULTIPLIER, float.NaN);
+        if (!float.IsNaN(ambient) && sound != null)
+            sound.SetAmbientVolumeMultiplier(ambient);
+
+        float sfx = GetFloat(SaveKeys.SFX_VOLUME_MULTIPLIER, float.NaN);
+        if (!float.IsNaN(sfx) && sound != null)
+            sound.SetSfxVolumeMultiplier(sfx);
+
+        InputManager input = InputManager.Instance;
+        if (input != null)
+        {
+            float tps = GetFloat(SaveKeys.TPS_SENSITIVITY_MULTIPLIER, float.NaN);
+            if (!float.IsNaN(tps))
+                input.tpsLookSensitivityMultiplier = tps;
+
+            float fps = GetFloat(SaveKeys.FPS_SENSITIVITY_MULTIPLIER, float.NaN);
+            if (!float.IsNaN(fps))
+                input.fpsLookSensitivityMultiplier = fps;
+        }
+
+        int langIndex = GetInt(SaveKeys.LANGUAGE, -1);
+        if (langIndex >= 0)
+        {
+            Language[] languages = (Language[])Enum.GetValues(typeof(Language));
+            if (langIndex < languages.Length)
+                LanguageManager.CurrentLanguage = languages[langIndex];
+        }
+    }
+
     private void OnValidate()
     {
         if (Application.isPlaying)
@@ -195,6 +231,7 @@ public class GameManager : GameBehaviour
     private void Start()
     {
         ApplyInputBindingsIfReady();
+        ApplySavedSettingsIfPossible();
         _inventoryManager = InventoryManager.Instance;
         _inventoryManager.LoadTeamFromSave();
 
@@ -252,6 +289,7 @@ public class GameManager : GameBehaviour
         MobileLightOptimizerManager.Instance.SetEnabled(mobileLightOptimizationEnabled);
         MobilePerformanceManager.EnsureExists();
         MobilePerformanceManager.Instance.SetEnabled(mobileControlsEnabled);
+        ApplySavedSettingsIfPossible();
 
         if (player == null)
         {

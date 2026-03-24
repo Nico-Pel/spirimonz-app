@@ -10,6 +10,11 @@ public static class SaveKeys
     public const string MUSIC_VOLUME = "music_volume"; //Example
     public const string INTRO_DONE = "intro_done"; //Example
     public const string TARGET_FPS = "target_fps";
+    public const string AMBIENT_VOLUME_MULTIPLIER = "ambient_volume_multiplier";
+    public const string SFX_VOLUME_MULTIPLIER = "sfx_volume_multiplier";
+    public const string TPS_SENSITIVITY_MULTIPLIER = "tps_sensitivity_multiplier";
+    public const string FPS_SENSITIVITY_MULTIPLIER = "fps_sensitivity_multiplier";
+    public const string LANGUAGE = "language";
 }
 
 [Serializable]

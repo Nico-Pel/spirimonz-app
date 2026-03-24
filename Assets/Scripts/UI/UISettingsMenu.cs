@@ -11,6 +11,10 @@ public class UISettingsMenu : GameBehaviour
     private const float MaxSensitivityMultiplier = 3f;
     private const float SensitivityBaseMultiplier = 1f;
     private const float SensitivityBaseSlider = 0.75f;
+    private const float DefaultVolumeMultiplier = 1f;
+    private const float DefaultSensitivityMultiplier = 1f;
+    private const int DefaultFpsSetting = 0;
+    private const Language DefaultLanguage = Language.English;
     private const int AllTextSize = 54;
     private const float BindingButtonMinWidth = 220f;
     private const float BindingButtonHeight = 90f;
@@ -33,6 +37,7 @@ public class UISettingsMenu : GameBehaviour
     public ScrollRect scrollRect;
     public ScrollRect keybindingsScrollRect;
 
+    private Button _resetButton;
     private bool _built;
     private bool _bindingsBuilt;
     private Font _font;
@@ -434,6 +439,9 @@ public class UISettingsMenu : GameBehaviour
         keybindingsScrollRect = null;
         BuildBindingsUI(keybindingsRoot.transform, _font);
         _bindingsBuilt = _bindings.Count > 0;
+
+        _resetButton = CreateActionButton(contentGO.transform, "Reset Settings", _font);
+        _resetButton.onClick.AddListener(ResetSettingsToDefault);
 
         HookSliders();
         HookFpsDropdown();
@@ -883,6 +891,36 @@ public class UISettingsMenu : GameBehaviour
         return buttonGO.GetComponent<Button>();
     }
 
+    private Button CreateActionButton(Transform parent, string labelText, Font font)
+    {
+        GameObject buttonGO = new GameObject($"Button_{labelText}", typeof(RectTransform), typeof(Image), typeof(Button));
+        buttonGO.transform.SetParent(parent, false);
+
+        Image image = buttonGO.GetComponent<Image>();
+        image.color = new Color(1f, 1f, 1f, 0.18f);
+
+        LayoutElement layout = buttonGO.AddComponent<LayoutElement>();
+        layout.minHeight = BindingButtonHeight + 8f;
+        layout.preferredHeight = BindingButtonHeight + 8f;
+        layout.flexibleWidth = 1f;
+
+        GameObject textGO = new GameObject("Label", typeof(RectTransform));
+        textGO.transform.SetParent(buttonGO.transform, false);
+        Text text = textGO.AddComponent<Text>();
+        text.text = labelText;
+        text.font = font;
+        text.fontSize = AllTextSize;
+        text.color = Color.white;
+        text.alignment = TextAnchor.MiddleCenter;
+        RectTransform textRect = textGO.GetComponent<RectTransform>();
+        textRect.anchorMin = Vector2.zero;
+        textRect.anchorMax = Vector2.one;
+        textRect.offsetMin = Vector2.zero;
+        textRect.offsetMax = Vector2.zero;
+
+        return buttonGO.GetComponent<Button>();
+    }
+
     private void StartCapture(BindingEntry entry, bool secondary)
     {
         if (_waitingEntry != null)
@@ -928,8 +966,10 @@ public class UISettingsMenu : GameBehaviour
             ambientSlider.onValueChanged.AddListener(value =>
             {
                 if (_sound == null) _sound = SoundManager.Instance;
+                float multiplier = SliderToVolumeMultiplier(value);
                 if (_sound != null)
-                    _sound.SetAmbientVolumeMultiplier(SliderToVolumeMultiplier(value));
+                    _sound.SetAmbientVolumeMultiplier(multiplier);
+                SaveSettingFloat(SaveKeys.AMBIENT_VOLUME_MULTIPLIER, multiplier);
                 UpdateValueTexts();
             });
 
@@ -937,8 +977,10 @@ public class UISettingsMenu : GameBehaviour
             sfxSlider.onValueChanged.AddListener(value =>
             {
                 if (_sound == null) _sound = SoundManager.Instance;
+                float multiplier = SliderToVolumeMultiplier(value);
                 if (_sound != null)
-                    _sound.SetSfxVolumeMultiplier(SliderToVolumeMultiplier(value));
+                    _sound.SetSfxVolumeMultiplier(multiplier);
+                SaveSettingFloat(SaveKeys.SFX_VOLUME_MULTIPLIER, multiplier);
                 UpdateValueTexts();
             });
 
@@ -946,8 +988,10 @@ public class UISettingsMenu : GameBehaviour
             tpsSensitivitySlider.onValueChanged.AddListener(value =>
             {
                 if (_input == null) _input = InputManager.Instance;
+                float multiplier = SliderToSensitivityMultiplier(value);
                 if (_input != null)
-                    _input.tpsLookSensitivityMultiplier = SliderToSensitivityMultiplier(value);
+                    _input.tpsLookSensitivityMultiplier = multiplier;
+                SaveSettingFloat(SaveKeys.TPS_SENSITIVITY_MULTIPLIER, multiplier);
                 UpdateValueTexts();
             });
 
@@ -955,8 +999,10 @@ public class UISettingsMenu : GameBehaviour
             fpsSensitivitySlider.onValueChanged.AddListener(value =>
             {
                 if (_input == null) _input = InputManager.Instance;
+                float multiplier = SliderToSensitivityMultiplier(value);
                 if (_input != null)
-                    _input.fpsLookSensitivityMultiplier = SliderToSensitivityMultiplier(value);
+                    _input.fpsLookSensitivityMultiplier = multiplier;
+                SaveSettingFloat(SaveKeys.FPS_SENSITIVITY_MULTIPLIER, multiplier);
                 UpdateValueTexts();
             });
     }
@@ -986,8 +1032,67 @@ public class UISettingsMenu : GameBehaviour
             Language[] languages = (Language[])Enum.GetValues(typeof(Language));
             if (index >= 0 && index < languages.Length)
                 LanguageManager.CurrentLanguage = languages[index];
+            SaveSettingInt(SaveKeys.LANGUAGE, index);
         });
 
+        RefreshLanguageDropdown();
+    }
+
+    private void SaveSettingFloat(string key, float value)
+    {
+        GameManager gm = GameManager.Instance;
+        if (gm == null)
+            return;
+        gm.SetFloat(key, value);
+    }
+
+    private void SaveSettingInt(string key, int value)
+    {
+        GameManager gm = GameManager.Instance;
+        if (gm == null)
+            return;
+        gm.SetInt(key, value);
+    }
+
+    private void ResetSettingsToDefault()
+    {
+        if (_sound == null) _sound = SoundManager.Instance;
+        if (_input == null) _input = InputManager.Instance;
+
+        float ambient = DefaultVolumeMultiplier;
+        float sfx = DefaultVolumeMultiplier;
+        float tps = DefaultSensitivityMultiplier;
+        float fps = DefaultSensitivityMultiplier;
+
+        if (_sound != null)
+        {
+            _sound.SetAmbientVolumeMultiplier(ambient);
+            _sound.SetSfxVolumeMultiplier(sfx);
+        }
+
+        if (_input != null)
+        {
+            _input.tpsLookSensitivityMultiplier = tps;
+            _input.fpsLookSensitivityMultiplier = fps;
+        }
+
+        LanguageManager.CurrentLanguage = DefaultLanguage;
+
+        if (GameManager.Instance != null)
+            GameManager.Instance.ApplyFrameRateSetting(DefaultFpsSetting, save: true);
+
+        SaveSettingFloat(SaveKeys.AMBIENT_VOLUME_MULTIPLIER, ambient);
+        SaveSettingFloat(SaveKeys.SFX_VOLUME_MULTIPLIER, sfx);
+        SaveSettingFloat(SaveKeys.TPS_SENSITIVITY_MULTIPLIER, tps);
+        SaveSettingFloat(SaveKeys.FPS_SENSITIVITY_MULTIPLIER, fps);
+        SaveSettingInt(SaveKeys.LANGUAGE, (int)DefaultLanguage);
+
+        SetSliderValue(ambientSlider, MultiplierToVolumeSlider(ambient));
+        SetSliderValue(sfxSlider, MultiplierToVolumeSlider(sfx));
+        SetSliderValue(tpsSensitivitySlider, MultiplierToSensitivitySlider(tps));
+        SetSliderValue(fpsSensitivitySlider, MultiplierToSensitivitySlider(fps));
+        UpdateValueTexts();
+        RefreshFpsDropdown();
         RefreshLanguageDropdown();
     }
 
