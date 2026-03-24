@@ -45,6 +45,8 @@ public class Door : GameBehaviour, IInteractable
     private bool _askedForGhostSlam;
     private bool _ghostJustInteracted;
     private bool _isGrabbed;
+    private bool _audioOcclusionInitialized;
+    private bool _audioOcclusionState;
 
     //private float _lockTimeAfterGhostInteraction = 1.5f;
     private Vector3 _basePosition;
@@ -71,6 +73,8 @@ public class Door : GameBehaviour, IInteractable
         _almostCloseAngle = Mathf.Abs(closeAngle) + closeAnglePermissiveness;
         
         SetCursor(cursorHand, cursorHandSize);
+
+        RefreshAudioOcclusionState(force: true);
     }
 
     #region Grab / Release
@@ -187,6 +191,8 @@ public class Door : GameBehaviour, IInteractable
 
     private void Update()
     {
+        RefreshAudioOcclusionState();
+
         if (_isGrabbed)
             return;
 
@@ -296,20 +302,72 @@ public class Door : GameBehaviour, IInteractable
 
     private void EnableAudioOcclusions(bool enable)
     {
-        foreach (Door door in doorsSharingSameSoundOcclusion)
+        if (!enable)
         {
-            if (door != null && door.isOpen)
-                return;
+            ApplyAudioOcclusion(false);
+            _audioOcclusionState = false;
+            _audioOcclusionInitialized = true;
+            return;
         }
-        
+
+        RefreshAudioOcclusionState(force: true);
+    }
+
+    private void RefreshAudioOcclusionState(bool force = false)
+    {
+        bool shouldBlock = !IsAnyDoorConsideredOpen();
+
+        if (!force && _audioOcclusionInitialized && shouldBlock == _audioOcclusionState)
+            return;
+
+        _audioOcclusionInitialized = true;
+        _audioOcclusionState = shouldBlock;
+        ApplyAudioOcclusion(shouldBlock);
+    }
+
+    private bool IsAnyDoorConsideredOpen()
+    {
+        if (IsDoorConsideredOpen(this))
+            return true;
+
+        if (doorsSharingSameSoundOcclusion != null)
+        {
+            foreach (Door door in doorsSharingSameSoundOcclusion)
+            {
+                if (IsDoorConsideredOpen(door))
+                    return true;
+            }
+        }
+
+        if (twinDoor != null && twinDoor != this && IsDoorConsideredOpen(twinDoor))
+            return true;
+
+        return false;
+    }
+
+    private static bool IsDoorConsideredOpen(Door door)
+    {
+        if (door == null)
+            return false;
+
+        if (door.hingeJoint == null)
+            return door.isOpen;
+
+        float angleFromClose = Mathf.Abs(door.hingeJoint.angle - door.closeAngle);
+        return angleFromClose > door.closeAnglePermissiveness;
+    }
+
+    private void ApplyAudioOcclusion(bool enable)
+    {
         if (mAudioOccluder != null)
-        {
             mAudioOccluder.blockSound = enable;
-        }
-        
+
+        if (connectedWallOccluders == null)
+            return;
+
         foreach (AudioOccluder occluder in connectedWallOccluders)
         {
-            if(occluder != null)
+            if (occluder != null)
                 occluder.blockSound = enable;
         }
     }
