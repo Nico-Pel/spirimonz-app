@@ -66,7 +66,7 @@ public class Room : MonoBehaviour
             Switch s = c as Switch;
             if (s != null)
             {
-                if(s.activableObject.activationType != ActivableObject.ActivationSpecialType.none && 
+                if(s.activableObject != null && s.activableObject.activationType != ActivableObject.ActivationSpecialType.none && 
                    s.activableObject.activationType != forbiddenType)
                     selectableObjects.Add(s);
             }
