@@ -166,6 +166,22 @@ PrefabInstance:
       propertyPath: m_Name
       value: Spmz_Yudako
       objectReference: {fileID: 0}
+    - target: {fileID: 2398334535009112448, guid: 73b72ad84d9584d7e91279923787a2cc, type: 3}
+      propertyPath: m_Height
+      value: 1.0169581
+      objectReference: {fileID: 0}
+    - target: {fileID: 2398334535009112448, guid: 73b72ad84d9584d7e91279923787a2cc, type: 3}
+      propertyPath: m_Radius
+      value: 0.24957752
+      objectReference: {fileID: 0}
+    - target: {fileID: 2398334535009112448, guid: 73b72ad84d9584d7e91279923787a2cc, type: 3}
+      propertyPath: m_Center.y
+      value: 0.5114791
+      objectReference: {fileID: 0}
+    - target: {fileID: 2398334535009112448, guid: 73b72ad84d9584d7e91279923787a2cc, type: 3}
+      propertyPath: m_Center.z
+      value: 0.0059493184
+      objectReference: {fileID: 0}
     - target: {fileID: 6657164899661425278, guid: 73b72ad84d9584d7e91279923787a2cc, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0
@@ -205,6 +221,14 @@ PrefabInstance:
     - target: {fileID: 6657164899661425278, guid: 73b72ad84d9584d7e91279923787a2cc, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8641687317530957492, guid: 73b72ad84d9584d7e91279923787a2cc, type: 3}
+      propertyPath: m_Height
+      value: 0.95
+      objectReference: {fileID: 0}
+    - target: {fileID: 8641687317530957492, guid: 73b72ad84d9584d7e91279923787a2cc, type: 3}
+      propertyPath: m_Radius
+      value: 0.25
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -306,6 +330,11 @@ MonoBehaviour:
   approachSpeed: 3
   waypointDistMin: 0.1
   waypointDistMax: 1
+  waypointChangeDelayMin: 0.25
+  waypointChangeDelayMax: 5
+  forceChangeAfterTime: 15
+  stuckTimeBeforeChange: 3
+  stuckMoveDistance: 0.05
 --- !u!114 &5938072826328540261
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -331,4 +360,4 @@ MonoBehaviour:
   spawnForwardOffset: 0.4
   spawnUpOffset: 0.5
   dropImpulseForce: 2.4
-  dropTorqueForce: 1.2
+  dropTorqueForce: 2

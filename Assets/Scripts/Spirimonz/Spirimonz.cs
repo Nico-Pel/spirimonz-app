@@ -290,7 +290,7 @@ public class Spirimonz : GameBehaviour, IInteractable
             {
                 if (door.IsGrabbed()) return;
 
-                door.HandleSpirimonzContact(collider);
+                door.HandleSpirimonzContact(this, collider);
             }
         }
     }

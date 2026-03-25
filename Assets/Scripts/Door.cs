@@ -200,7 +200,6 @@ public class Door : GameBehaviour, IInteractable
     private void Update()
     {
         RefreshAudioOcclusionState();
-        RefreshSpirimonzCollisionIgnores();
 
         if (_isGrabbed)
             return;
@@ -214,6 +213,7 @@ public class Door : GameBehaviour, IInteractable
     private void FixedUpdate()
     {
         transform.position = _basePosition;
+        RefreshSpirimonzCollisionIgnores();
 
         Vector3 currentEuler = transform.rotation.eulerAngles;
         Vector3 baseEuler = _baseRotation.eulerAngles;
@@ -268,25 +268,34 @@ public class Door : GameBehaviour, IInteractable
         return Mathf.Abs(hingeJoint.angle - closeAngle);
     }
 
-    public void HandleSpirimonzContact(Collider spirimonzCollider)
+    public void HandleSpirimonzContact(Spirimonz spirimonz, Collider spirimonzCollider = null)
     {
-        if (spirimonzCollider == null)
-            return;
-
-        RegisterSpirimonzCollider(spirimonzCollider);
+        if (spirimonz != null)
+        {
+            RegisterSpirimonzColliders(spirimonz);
+        }
+        if (spirimonzCollider != null)
+        {
+            RegisterSpirimonzCollider(spirimonzCollider);
+        }
 
         float angleFromClose = GetAngleFromClose();
         if (angleFromClose > spirimonzOpenAngleThreshold)
         {
-            SetIgnoreForSpirimonz(spirimonzCollider, true);
+            if (spirimonzCollider != null)
+                SetIgnoreForSpirimonz(spirimonzCollider, true);
             return;
         }
 
-        float currentRatio = GetOpenRatio();
-        float targetPercentage = Random.Range(Mathf.Max(currentRatio, spirimonzOpenMinPercent), 1f);
-        GhostDoorInteraction(targetPercentage, spirimonzOpenSpeed);
+        if (spirimonz != null && spirimonz.openDoorsOnItsWay && !IsGrabbed())
+        {
+            float currentRatio = GetOpenRatio();
+            float targetPercentage = Random.Range(Mathf.Max(currentRatio, spirimonzOpenMinPercent), 1f);
+            GhostDoorInteraction(targetPercentage, spirimonzOpenSpeed);
+        }
 
-        SetIgnoreForSpirimonz(spirimonzCollider, true);
+        if (spirimonzCollider != null)
+            SetIgnoreForSpirimonz(spirimonzCollider, true);
     }
 
     private void PlaySound(AudioClip clip, bool ignoreOcclusion)
@@ -417,6 +426,28 @@ public class Door : GameBehaviour, IInteractable
         }
     }
 
+    private void OnCollisionEnter(Collision collision)
+    {
+        TryHandleSpirimonzCollision(collision.collider);
+    }
+
+    private void OnCollisionStay(Collision collision)
+    {
+        TryHandleSpirimonzCollision(collision.collider);
+    }
+
+    private void TryHandleSpirimonzCollision(Collider hitCollider)
+    {
+        if (hitCollider == null)
+            return;
+
+        Spirimonz spirimonz = hitCollider.GetComponentInParent<Spirimonz>();
+        if (spirimonz == null)
+            return;
+
+        HandleSpirimonzContact(spirimonz, hitCollider);
+    }
+
     private void RegisterSpirimonzCollider(Collider spirimonzCollider)
     {
         if (spirimonzCollider == null)
@@ -426,6 +457,21 @@ public class Door : GameBehaviour, IInteractable
             return;
 
         _spirimonzColliders.Add(spirimonzCollider);
+    }
+
+    private void RegisterSpirimonzColliders(Spirimonz spirimonz)
+    {
+        if (spirimonz == null)
+            return;
+
+        Collider[] colliders = spirimonz.GetComponentsInChildren<Collider>(true);
+        if (colliders == null || colliders.Length == 0)
+            return;
+
+        foreach (Collider col in colliders)
+        {
+            RegisterSpirimonzCollider(col);
+        }
     }
 
     private void RefreshSpirimonzCollisionIgnores()
