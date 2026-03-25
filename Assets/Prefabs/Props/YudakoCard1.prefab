@@ -15,9 +15,9 @@ GameObject:
   - component: {fileID: 3683657692521461788}
   - component: {fileID: 5623086964793101071}
   - component: {fileID: 4034057696328518024}
-  - component: {fileID: 6257052450084825129}
+  - component: {fileID: 6013200893101261038}
   m_Layer: 9
-  m_Name: Envelope
+  m_Name: YudakoCard1
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -54,8 +54,8 @@ MonoBehaviour:
   canBeThrownByGhost: 1
   canBeThrownByPlayer: 1
   setRotZeroOnDrop: 1
-  offsetPosInHands: {x: 0, y: 0, z: 0}
-  offsetRotInHands: {x: 0, y: 0, z: 0}
+  offsetPosInHands: {x: -0.15, y: 0.175, z: -0.15}
+  offsetRotInHands: {x: -20, y: -125, z: -5}
   priority: 0
   rb: {fileID: 7055402289030159528}
   activitySource: {fileID: 3683657692521461788}
@@ -91,7 +91,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   possibleClips:
   - {fileID: 8300000, guid: 7245b46db3ba54d87893867a24379a6d, type: 3}
-  volume: 0.55
+  volume: 1
   pitchMin: 0.9
   pitchMax: 1.1
   duration: -1
@@ -146,7 +146,7 @@ MeshFilter:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2848334809561120887}
-  m_Mesh: {fileID: -2503213765048999512, guid: 25bb645ea70064daba3fe7b042f79378, type: 3}
+  m_Mesh: {fileID: -5367244544194039214, guid: 92c5e0fc74141477cb6d89c36f3080d9, type: 3}
 --- !u!23 &4034057696328518024
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -167,7 +167,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 51515387b455f455fbe6bd9b3a1e0dc0, type: 2}
+  - {fileID: 2100000, guid: d4cd22894911b4328b3fd707f5f8d8f8, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -189,7 +189,7 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!65 &6257052450084825129
+--- !u!65 &6013200893101261038
 BoxCollider:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -208,5 +208,5 @@ BoxCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 0.39999998, y: 0.015672473, z: 0.26}
-  m_Center: {x: 0, y: 0.007836237, z: -0.019999996}
+  m_Size: {x: 0.117038906, y: 0.18023992, z: 0.003527799}
+  m_Center: {x: 0, y: 0, z: -0.0017638955}

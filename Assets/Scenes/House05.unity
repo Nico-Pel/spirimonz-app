@@ -7849,6 +7849,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: Ground_Wood0 (9)
       objectReference: {fileID: 0}
+    - target: {fileID: 9086734911759609490, guid: 8fe63687481e343cd841ceb173663ab3, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -9323,6 +9327,10 @@ PrefabInstance:
     - target: {fileID: 2848334809561120887, guid: 5af3b0b7532534f4ea5943bd2c81b5f9, type: 3}
       propertyPath: m_Name
       value: Plate01
+      objectReference: {fileID: 0}
+    - target: {fileID: 2848334809561120887, guid: 5af3b0b7532534f4ea5943bd2c81b5f9, type: 3}
+      propertyPath: m_IsActive
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 7768482326401283276, guid: 5af3b0b7532534f4ea5943bd2c81b5f9, type: 3}
       propertyPath: m_LocalPosition.x
@@ -12148,6 +12156,10 @@ PrefabInstance:
     - target: {fileID: 714822640044476603, guid: e128c2b4e78eb4e71bab9fc50628c9a8, type: 3}
       propertyPath: m_Name
       value: CoffeTable_01
+      objectReference: {fileID: 0}
+    - target: {fileID: 714822640044476603, guid: e128c2b4e78eb4e71bab9fc50628c9a8, type: 3}
+      propertyPath: m_IsActive
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 4395346144342611034, guid: e128c2b4e78eb4e71bab9fc50628c9a8, type: 3}
       propertyPath: m_LocalPosition.x
@@ -41787,6 +41799,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: Bowl01
       objectReference: {fileID: 0}
+    - target: {fileID: 2848334809561120887, guid: da330e895584440e088db4d3005c1bb6, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 7768482326401283276, guid: da330e895584440e088db4d3005c1bb6, type: 3}
       propertyPath: m_LocalPosition.x
       value: -3.566252
@@ -47715,7 +47731,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: be5c57d241bfe4627869a687cf7bcac8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  showNavMesh: 0
+  showNavMesh: 1
 --- !u!114 &919132149387788168
 MonoBehaviour:
   m_ObjectHideFlags: 0

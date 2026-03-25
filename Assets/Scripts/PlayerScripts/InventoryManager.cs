@@ -404,7 +404,7 @@ public class InventoryManager : GameBehaviour
 
     private void DropSpirimonz(Vector3 dropPos)
     {
-        if (selectedSpirimonz == null || _gamePlayer.interactionController.HasTarget()) return; //ERROR, no spirimonz selected or Interaction controller target something (door?)
+        if (selectedSpirimonz == null || selectedSpirimonz.isOnTheMap || _gamePlayer.interactionController.HasTarget()) return; //ERROR, no spirimonz selected or Interaction controller target something (door?)
 
         if (House.Instance.currentGhost.IsHunting(false)) return; //Can't drop Spirimonz during a hunt
         

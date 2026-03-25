@@ -383,4 +383,9 @@ public class CatchableObject : GameBehaviour, IInteractable
         onSecondaryUse?.Invoke();
         SpecialActionInHandsOnClick();
     }
+
+    public void EnableCollisionSoundImmediate()
+    {
+        _canCallCollisionSound = true;
+    }
 }

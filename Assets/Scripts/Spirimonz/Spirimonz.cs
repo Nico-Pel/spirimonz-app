@@ -52,6 +52,24 @@ public class Spirimonz : GameBehaviour, IInteractable
     protected SpirimonzBehaviourState _currentBehaviour;
     public Room currentRoom { get; set; }
 
+    [Header("Spirimonz Settings : Roam")]
+    public bool canChangeRoamRoom;
+    public float minTimeToChangeRoamRoom;
+    public float maxTimeToChangeRoamRoom;
+    [Range(0f, 1f)] public float chancesToChangeRoamRoom;
+
+    private Room _currentRoamRoom;
+    private WayPoint _currentRoamWaypoint;
+    private bool _canChangeRoamRoomAllowed;
+    private bool _roamSettingsInitialized;
+    private float _currentRoamReachDistance;
+    private bool _isWaitingForNextRoamWaypoint;
+    private float _nextRoamWaypointTime;
+    private float _lastRoamWaypointChangeTime;
+    private float _lastRoamMovementTime;
+    private Vector3 _lastRoamPosition;
+    private const string ROAM_ROOM_CHANGE_INVOKE = "RoamRoomChangeCooldown";
+
     [Header("Spirimonz Settings : Escape")]
     public float targetedEscapeDistance = 1f;
     public float escapingSpeed = 5f;
@@ -94,6 +112,7 @@ public class Spirimonz : GameBehaviour, IInteractable
         
         _baseCanInteract = canInteract;
         _currentBehaviour = SpirimonzBehaviourState.Wait;
+        InitializeRoamSettings();
         hidingGameObject.SetActive(false);
         
         _house.currentGhost.onGhostCallForAHunt.AddListener(StartDelayBeforeFeelingAHunt);
@@ -395,6 +414,9 @@ public class Spirimonz : GameBehaviour, IInteractable
             case SpirimonzBehaviourState.FollowPlayer:
                 FollowingPlayer();
                 break;
+            case SpirimonzBehaviourState.Roam:
+                Roaming();
+                break;
             case SpirimonzBehaviourState.Escape:
                 Escaping();
                 break;
@@ -461,6 +483,311 @@ public class Spirimonz : GameBehaviour, IInteractable
         agent.SetDestination(playerPos);
         
         LookAtPlayer();
+    }
+
+    private void InitializeRoamSettings()
+    {
+        if (_roamSettingsInitialized) return;
+
+        _roamSettingsInitialized = true;
+        _canChangeRoamRoomAllowed = canChangeRoamRoom;
+        if (!_canChangeRoamRoomAllowed)
+        {
+            canChangeRoamRoom = false;
+            CancelInvoke(ROAM_ROOM_CHANGE_INVOKE);
+        }
+    }
+
+    private void StartRoamRoomChangeCooldown()
+    {
+        if (!_canChangeRoamRoomAllowed)
+        {
+            canChangeRoamRoom = false;
+            return;
+        }
+
+        canChangeRoamRoom = false;
+
+        float min = Mathf.Max(0f, minTimeToChangeRoamRoom);
+        float max = Mathf.Max(min, maxTimeToChangeRoamRoom);
+        float delay = Random.Range(min, max);
+
+        this.Invoke(ROAM_ROOM_CHANGE_INVOKE, delay, () => canChangeRoamRoom = true);
+    }
+
+    public void SetRoamRoom(Room room)
+    {
+        if (_house == null)
+            _house = House.Instance;
+
+        InitializeRoamSettings();
+
+        Room roomToUse = room != null ? room : SelectRandomHouseRoom();
+        _currentRoamRoom = roomToUse;
+
+        if (_currentRoamRoom != null && _house != null)
+        {
+            _currentRoamWaypoint = _house.SelectRandomWayPointFromARoom(_currentRoamRoom);
+            RefreshRoamReachDistance();
+            MarkRoamWaypointChanged();
+        }
+        else
+        {
+            _currentRoamWaypoint = null;
+            _currentRoamReachDistance = 0f;
+        }
+
+        if (canChangeRoamRoom)
+        {
+            StartRoamRoomChangeCooldown();
+        }
+        else if (!_canChangeRoamRoomAllowed)
+        {
+            canChangeRoamRoom = false;
+        }
+    }
+
+    private void Roaming()
+    {
+        if (isOnTheMap == false) return;
+
+        if (_house == null)
+            _house = House.Instance;
+
+        InitializeRoamSettings();
+
+        if (_currentRoamRoom == null)
+        {
+            SetRoamRoom(currentRoom);
+        }
+
+        if (_currentRoamWaypoint == null)
+        {
+            _currentRoamWaypoint = _house != null && _currentRoamRoom != null
+                ? _house.SelectRandomWayPointFromARoom(_currentRoamRoom)
+                : null;
+            if (_currentRoamWaypoint != null)
+            {
+                RefreshRoamReachDistance();
+                MarkRoamWaypointChanged();
+            }
+        }
+
+        if (_currentRoamWaypoint == null)
+        {
+            agent.speed = 0;
+            return;
+        }
+
+        agent.speed = speed;
+        agent.SetDestination(_currentRoamWaypoint.transform.position);
+
+        UpdateRoamMovementTracking();
+
+        if (ShouldForceRoamWaypointChange())
+        {
+            ForceChangeRoamWaypoint();
+            return;
+        }
+
+        if (_isWaitingForNextRoamWaypoint)
+        {
+            if (Time.time >= _nextRoamWaypointTime)
+            {
+                _isWaitingForNextRoamWaypoint = false;
+                SelectNextRoamWaypoint();
+            }
+
+            return;
+        }
+
+        if (HasReachedRoamWaypoint())
+        {
+            OnRoamWaypointReached();
+            StartRoamWaypointChangeDelay();
+        }
+    }
+
+    private bool HasReachedRoamWaypoint()
+    {
+        if (_currentRoamWaypoint == null)
+            return true;
+
+        if (agent.pathPending)
+            return false;
+
+        if (_currentRoamReachDistance <= 0f)
+        {
+            RefreshRoamReachDistance();
+        }
+
+        float reachDistance = Mathf.Max(_currentRoamReachDistance, 0.01f);
+        float dist = Vector3.Distance(transform.position, _currentRoamWaypoint.transform.position);
+        return dist <= reachDistance;
+    }
+
+    private void SelectNextRoamWaypoint()
+    {
+        if (_currentRoamRoom == null)
+        {
+            SetRoamRoom(null);
+            return;
+        }
+
+        bool canRollForChange = _canChangeRoamRoomAllowed && canChangeRoamRoom;
+        float roll = Random.value;
+
+        if (canRollForChange && roll <= Mathf.Clamp01(chancesToChangeRoamRoom))
+        {
+            Room nextRoom = SelectNeighborRoom(_currentRoamRoom);
+            if (nextRoom != null)
+            {
+                SetRoamRoom(nextRoom);
+                return;
+            }
+        }
+
+        if (_house != null)
+        {
+            _currentRoamWaypoint = _house.SelectRandomWayPointFromARoom(_currentRoamRoom);
+            RefreshRoamReachDistance();
+            MarkRoamWaypointChanged();
+        }
+    }
+
+    private void StartRoamWaypointChangeDelay()
+    {
+        float minDelay = Mathf.Max(0f, GetRoamWaypointChangeDelayMin());
+        float maxDelay = Mathf.Max(minDelay, GetRoamWaypointChangeDelayMax());
+
+        if (maxDelay <= 0f)
+        {
+            SelectNextRoamWaypoint();
+            return;
+        }
+
+        _isWaitingForNextRoamWaypoint = true;
+        _nextRoamWaypointTime = Time.time + Random.Range(minDelay, maxDelay);
+    }
+
+    private void ForceChangeRoamWaypoint()
+    {
+        _isWaitingForNextRoamWaypoint = false;
+        SelectNextRoamWaypoint();
+    }
+
+    private void MarkRoamWaypointChanged()
+    {
+        _lastRoamWaypointChangeTime = Time.time;
+        _lastRoamMovementTime = Time.time;
+        _lastRoamPosition = transform.position;
+    }
+
+    private void UpdateRoamMovementTracking()
+    {
+        float moveThreshold = Mathf.Max(0.001f, GetRoamStuckMoveDistance());
+        float sqrThreshold = moveThreshold * moveThreshold;
+        Vector3 currentPos = transform.position;
+        if ((currentPos - _lastRoamPosition).sqrMagnitude >= sqrThreshold)
+        {
+            _lastRoamPosition = currentPos;
+            _lastRoamMovementTime = Time.time;
+        }
+    }
+
+    private bool ShouldForceRoamWaypointChange()
+    {
+        float forceAfter = GetRoamForceChangeAfterTime();
+        if (forceAfter > 0f && Time.time - _lastRoamWaypointChangeTime >= forceAfter)
+            return true;
+
+        if (!_isWaitingForNextRoamWaypoint)
+        {
+            float stuckTime = GetRoamStuckTime();
+            if (stuckTime > 0f && Time.time - _lastRoamMovementTime >= stuckTime)
+                return true;
+
+            if (agent != null && !agent.pathPending && agent.pathStatus == NavMeshPathStatus.PathInvalid)
+                return true;
+        }
+
+        return false;
+    }
+
+    private void RefreshRoamReachDistance()
+    {
+        _currentRoamReachDistance = GetRoamReachDistance();
+    }
+
+    protected virtual float GetRoamWaypointChangeDelayMin()
+    {
+        return 0f;
+    }
+
+    protected virtual float GetRoamWaypointChangeDelayMax()
+    {
+        return 0f;
+    }
+
+    protected virtual float GetRoamForceChangeAfterTime()
+    {
+        return 0f;
+    }
+
+    protected virtual float GetRoamStuckTime()
+    {
+        return 0f;
+    }
+
+    protected virtual float GetRoamStuckMoveDistance()
+    {
+        return 0.05f;
+    }
+
+    protected virtual float GetRoamReachDistance()
+    {
+        float stoppingDistance = agent != null ? agent.stoppingDistance : 0f;
+        return Mathf.Max(stoppingDistance, 0.2f);
+    }
+
+    protected virtual void OnRoamWaypointReached()
+    {
+    }
+
+    private Room SelectNeighborRoom(Room sourceRoom)
+    {
+        if (sourceRoom == null || sourceRoom.neighborRooms == null || sourceRoom.neighborRooms.Length == 0)
+            return null;
+
+        List<Room> selectableRooms = new List<Room>();
+        foreach (Room room in sourceRoom.neighborRooms)
+        {
+            if (room != null)
+                selectableRooms.Add(room);
+        }
+
+        if (selectableRooms.Count == 0)
+            return null;
+
+        return selectableRooms[Random.Range(0, selectableRooms.Count)];
+    }
+
+    private Room SelectRandomHouseRoom()
+    {
+        if (_house == null || _house.rooms == null || _house.rooms.Length == 0)
+            return null;
+
+        List<Room> selectableRooms = new List<Room>();
+        foreach (Room room in _house.rooms)
+        {
+            if (room != null)
+                selectableRooms.Add(room);
+        }
+
+        if (selectableRooms.Count == 0)
+            return null;
+
+        return selectableRooms[Random.Range(0, selectableRooms.Count)];
     }
 
     private void Escaping()

@@ -13,6 +13,9 @@ public class SpmzPyjamag : SpmzPropEater
     public float percentageChancesToGiveFruit = 10f;
     public float percentageChancesUpOnFail = 15f;
     public float delayBeforeGivingFruit = 0.25f;
+
+    [Header("Rotation Safety")]
+    public bool lockRotationToYAxis = true;
     
     private float _basePercentageChancesToGiveFruit;
 
@@ -20,6 +23,20 @@ public class SpmzPyjamag : SpmzPropEater
     {
         base.Start();
         _basePercentageChancesToGiveFruit = percentageChancesToGiveFruit;
+    }
+
+    private void LateUpdate()
+    {
+        if (!lockRotationToYAxis)
+            return;
+
+        Vector3 euler = transform.rotation.eulerAngles;
+        if (Mathf.Abs(euler.x) > 0.01f || Mathf.Abs(euler.z) > 0.01f)
+        {
+            euler.x = 0f;
+            euler.z = 0f;
+            transform.rotation = Quaternion.Euler(euler);
+        }
     }
 
     protected override void SwallowObject(CatchableObject catchableObject)
