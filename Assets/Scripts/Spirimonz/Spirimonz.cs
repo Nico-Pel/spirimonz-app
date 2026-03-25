@@ -289,12 +289,8 @@ public class Spirimonz : GameBehaviour, IInteractable
             if (other.gameObject.TryGetComponent(out Door door) && openDoorsOnItsWay)
             {
                 if (door.IsGrabbed()) return;
-                
-                if (other.gameObject.TryGetComponent(out Collider doorCollider))
-                {
-                    IgnoreCollider(other.collider, 3f);
-                }
-                TryToOpenDoor(door);
+
+                door.HandleSpirimonzContact(collider);
             }
         }
     }

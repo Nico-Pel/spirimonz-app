@@ -22,6 +22,9 @@ public class Door : GameBehaviour, IInteractable
     public float slamAngleDetected = 20;
     public float slamDetectionDuration = 0.2f;
     public float closeAnglePermissiveness = 5f;
+    public float spirimonzOpenAngleThreshold = 20f;
+    public float spirimonzOpenSpeed = 50f;
+    public float spirimonzOpenMinPercent = 0.8f;
 
     [Header("Door Sounds")] 
     public float volume = 0.7f;
@@ -47,13 +50,18 @@ public class Door : GameBehaviour, IInteractable
     private bool _isGrabbed;
     private bool _audioOcclusionInitialized;
     private bool _audioOcclusionState;
+    private readonly List<Collider> _spirimonzColliders = new List<Collider>();
+    private Collider[] _doorColliders;
 
     //private float _lockTimeAfterGhostInteraction = 1.5f;
     private Vector3 _basePosition;
+    private Quaternion _baseRotation;
 
     private void Start()
     {
         _basePosition = transform.position;
+        _baseRotation = transform.rotation;
+        _doorColliders = GetComponentsInChildren<Collider>(true);
         
         if (hingeJoint == null)
         {
@@ -192,6 +200,7 @@ public class Door : GameBehaviour, IInteractable
     private void Update()
     {
         RefreshAudioOcclusionState();
+        RefreshSpirimonzCollisionIgnores();
 
         if (_isGrabbed)
             return;
@@ -205,6 +214,13 @@ public class Door : GameBehaviour, IInteractable
     private void FixedUpdate()
     {
         transform.position = _basePosition;
+
+        Vector3 currentEuler = transform.rotation.eulerAngles;
+        Vector3 baseEuler = _baseRotation.eulerAngles;
+        if (Mathf.Abs(currentEuler.x - baseEuler.x) > 0.01f || Mathf.Abs(currentEuler.z - baseEuler.z) > 0.01f)
+        {
+            transform.rotation = Quaternion.Euler(baseEuler.x, currentEuler.y, baseEuler.z);
+        }
     }
 
     private void CheckAngle()
@@ -242,6 +258,35 @@ public class Door : GameBehaviour, IInteractable
     public float GetTargetedAngle(float openPercentage)
     {
         return Mathf.Lerp(closeAngle, openFullAngle, Mathf.Clamp01(openPercentage));
+    }
+
+    public float GetAngleFromClose()
+    {
+        if (hingeJoint == null)
+            return 0f;
+
+        return Mathf.Abs(hingeJoint.angle - closeAngle);
+    }
+
+    public void HandleSpirimonzContact(Collider spirimonzCollider)
+    {
+        if (spirimonzCollider == null)
+            return;
+
+        RegisterSpirimonzCollider(spirimonzCollider);
+
+        float angleFromClose = GetAngleFromClose();
+        if (angleFromClose > spirimonzOpenAngleThreshold)
+        {
+            SetIgnoreForSpirimonz(spirimonzCollider, true);
+            return;
+        }
+
+        float currentRatio = GetOpenRatio();
+        float targetPercentage = Random.Range(Mathf.Max(currentRatio, spirimonzOpenMinPercent), 1f);
+        GhostDoorInteraction(targetPercentage, spirimonzOpenSpeed);
+
+        SetIgnoreForSpirimonz(spirimonzCollider, true);
     }
 
     private void PlaySound(AudioClip clip, bool ignoreOcclusion)
@@ -369,6 +414,51 @@ public class Door : GameBehaviour, IInteractable
         {
             if (occluder != null)
                 occluder.blockSound = enable;
+        }
+    }
+
+    private void RegisterSpirimonzCollider(Collider spirimonzCollider)
+    {
+        if (spirimonzCollider == null)
+            return;
+
+        if (_spirimonzColliders.Contains(spirimonzCollider))
+            return;
+
+        _spirimonzColliders.Add(spirimonzCollider);
+    }
+
+    private void RefreshSpirimonzCollisionIgnores()
+    {
+        if (_spirimonzColliders.Count == 0 || _doorColliders == null || _doorColliders.Length == 0)
+            return;
+
+        bool shouldIgnore = GetAngleFromClose() > spirimonzOpenAngleThreshold;
+
+        for (int i = _spirimonzColliders.Count - 1; i >= 0; i--)
+        {
+            Collider spirimonzCollider = _spirimonzColliders[i];
+            if (spirimonzCollider == null)
+            {
+                _spirimonzColliders.RemoveAt(i);
+                continue;
+            }
+
+            SetIgnoreForSpirimonz(spirimonzCollider, shouldIgnore);
+        }
+    }
+
+    private void SetIgnoreForSpirimonz(Collider spirimonzCollider, bool ignore)
+    {
+        if (spirimonzCollider == null || _doorColliders == null)
+            return;
+
+        foreach (Collider doorCollider in _doorColliders)
+        {
+            if (doorCollider == null)
+                continue;
+
+            Physics.IgnoreCollision(spirimonzCollider, doorCollider, ignore);
         }
     }
 }
