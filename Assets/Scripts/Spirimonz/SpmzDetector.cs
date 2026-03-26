@@ -12,6 +12,7 @@ public class SpmzDetector : Spirimonz
     public float maxPathRange = 7.5f;
     public float detectionWalkSpeed = 4;
     public float activityDistanceToReach = 2f;
+    public float detectionInterval = 0.2f;
     
     public Transform detectorSourceTransform;
     public List<ActivitySource> activitySources = new List<ActivitySource>();
@@ -35,6 +36,7 @@ public class SpmzDetector : Spirimonz
     
     private ActivitySource _currentActivitySourceDetected;
     private bool _newActivityReached;
+    private float _nextDetectionTime;
     
     private bool _emissionEnabled = false;
 
@@ -46,6 +48,7 @@ public class SpmzDetector : Spirimonz
 
         activitySources.AddRange(FindObjectsOfType<ActivitySource>());
         House.Instance.onNewActivitySourceAddedToGame.AddListener(AddNewActivitySourceToList);
+        _nextDetectionTime = Time.time;
     }
         
     private void AddNewActivitySourceToList(ActivitySource newSource)
@@ -65,23 +68,28 @@ public class SpmzDetector : Spirimonz
             _currentActivitySourceDetected = null;
             UpdateDetectionFeedback();
         }
-        
-        foreach (ActivitySource activitySource in activitySources)
+
+        if (detectionInterval <= 0f || Time.time >= _nextDetectionTime)
         {
-            if (activitySource == null) continue;
-            
-            //If there is no spirit activity or the activity is already detected, ignore it
-            if (activitySource.activityValue == 0 || activitySource == _currentActivitySourceDetected) continue;
-            
-            float dist = Vector3.Distance(detectorSourceTransform.position, activitySource.transform.position);
-            if (dist <= detectionRange)
+            _nextDetectionTime = Time.time + Mathf.Max(0f, detectionInterval);
+
+            foreach (ActivitySource activitySource in activitySources)
             {
-                //If its in range but the path is too long, abort mission bro
-                if (isOnTheMap && IsNearFromMyAgent(agent, activitySource.transform, maxPathRange) == false) continue;
+                if (activitySource == null) continue;
                 
-                if (_currentActivitySourceDetected == null || activitySource.activityValue > _currentActivitySourceDetected.activityValue)
+                //If there is no spirit activity or the activity is already detected, ignore it
+                if (activitySource.activityValue == 0 || activitySource == _currentActivitySourceDetected) continue;
+                
+                float dist = Vector3.Distance(detectorSourceTransform.position, activitySource.transform.position);
+                if (dist <= detectionRange)
                 {
-                    NewActivityDetected(activitySource);
+                    //If its in range but the path is too long, abort mission bro
+                    if (isOnTheMap && IsNearFromMyAgent(agent, activitySource.transform, maxPathRange) == false) continue;
+                    
+                    if (_currentActivitySourceDetected == null || activitySource.activityValue > _currentActivitySourceDetected.activityValue)
+                    {
+                        NewActivityDetected(activitySource);
+                    }
                 }
             }
         }

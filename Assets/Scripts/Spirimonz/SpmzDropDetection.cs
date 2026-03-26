@@ -11,6 +11,7 @@ public class SpmzDropDetection : MonoBehaviour
     public float detectionRange = 5f;
     public Transform detectorSourceTransform;
     public List<ActivitySource> activitySources = new List<ActivitySource>();
+    public float detectionInterval = 0.2f;
 
     [Header("Drop Settings")]
     public GameObject[] itemsToDrop = new GameObject[5];
@@ -23,6 +24,7 @@ public class SpmzDropDetection : MonoBehaviour
     private ActivitySource _currentActivitySourceDetected;
     private int _currentDetectedValue;
     private int _dropsCount;
+    private float _nextDetectionTime;
 
     private void Awake()
     {
@@ -34,6 +36,7 @@ public class SpmzDropDetection : MonoBehaviour
     {
         activitySources.AddRange(FindObjectsOfType<ActivitySource>());
         House.Instance.onNewActivitySourceAddedToGame.AddListener(AddNewActivitySourceToList);
+        _nextDetectionTime = Time.time;
     }
 
     private void AddNewActivitySourceToList(ActivitySource newSource)
@@ -52,6 +55,16 @@ public class SpmzDropDetection : MonoBehaviour
             ResetDetection();
             return;
         }
+
+        if (_currentActivitySourceDetected != null && _currentActivitySourceDetected.activityValue <= 0)
+        {
+            ResetDetection();
+        }
+
+        if (detectionInterval > 0f && Time.time < _nextDetectionTime)
+            return;
+
+        _nextDetectionTime = Time.time + Mathf.Max(0f, detectionInterval);
 
         ActivitySource bestSource = FindBestSourceInRange();
 

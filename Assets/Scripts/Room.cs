@@ -72,7 +72,10 @@ public class Room : MonoBehaviour
             }
         }
         if (selectableObjects.Count == 0) return null;
-        return selectableObjects[Random.Range(0, selectableObjects.Count)];
+        
+        Switch randomSwitch = selectableObjects[Random.Range(0, selectableObjects.Count)];
+        Debug.Log("Pouet switch = " + randomSwitch.name);
+        return randomSwitch;
     }
 
     public Switch SelectSpecialSwitchObject(ActivableObject.ActivationSpecialType targetedType)

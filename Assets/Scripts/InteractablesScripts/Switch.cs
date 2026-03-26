@@ -25,6 +25,8 @@ public class Switch : ClickableObject
     
     private int _state = 0;
     private bool _forceOffUntilRelease;
+    private bool _isHolding;
+    private bool _holdStartedWithActive;
     
     public override void OnClick()
     {
@@ -37,24 +39,38 @@ public class Switch : ClickableObject
     public override void OnHold()
     {
         base.OnHold();
-        if (!canClick && activableObject != null && activableObject.isActivated)
-        {
-            _forceOffUntilRelease = true;
-            SwitchState(0);
+        if (canClick)
             return;
+
+        if (_isHolding == false)
+        {
+            _isHolding = true;
+            _holdStartedWithActive = activableObject != null && activableObject.isActivated;
+            _forceOffUntilRelease = _holdStartedWithActive;
+
+            if (_forceOffUntilRelease)
+            {
+                if (_state != 0)
+                    SwitchState(0);
+                return;
+            }
         }
 
         if (_forceOffUntilRelease)
             return;
 
-        SwitchState(1);
+        if (_state != 1)
+            SwitchState(1);
     }
 
     public override void OnRelease()
     {
         base.OnRelease();
-        SwitchState(0);
+        if (_state != 0)
+            SwitchState(0);
         _forceOffUntilRelease = false;
+        _isHolding = false;
+        _holdStartedWithActive = false;
     }
 
     private void SwitchState(int state)

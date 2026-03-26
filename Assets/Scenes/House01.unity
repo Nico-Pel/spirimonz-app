@@ -24844,14 +24844,14 @@ MonoBehaviour:
   map: {fileID: 11400000, guid: ce4f9a8c8498f482fa9729084559e18d, type: 2}
   selectedGhostParameter: {fileID: 0}
   useDebugs: 1
-  playerCantDie: 1
-  forcedGhostParameters: {fileID: 11400000, guid: 50df473a8911b465283d94051a800408, type: 2}
+  playerCantDie: 0
+  forcedGhostParameters: {fileID: 0}
   forcedGhostModel: {fileID: 0}
-  forcedGhostActivity: 7
-  forcedFavoriteRoomID: 0
+  forcedGhostActivity: 2
+  forcedFavoriteRoomID: 3
   tripleActivityDebug: 1
-  useHuntTimeMultiplierDebug: 1
-  huntTimeMultiplierDebug: 10
+  useHuntTimeMultiplierDebug: 0
+  huntTimeMultiplierDebug: 1
   houseEntry: {fileID: 3423637249492515329}
   rooms:
   - {fileID: 1756800671}
@@ -27456,6 +27456,10 @@ PrefabInstance:
       propertyPath: player
       value: 
       objectReference: {fileID: 1150835896}
+    - target: {fileID: 5856197954553738249, guid: 790460373b15f4e2bb203fd631c26813, type: 3}
+      propertyPath: mobileControlsEnabled
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []

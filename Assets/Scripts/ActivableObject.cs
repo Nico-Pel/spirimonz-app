@@ -9,7 +9,8 @@ public class ActivableObject : GameBehaviour
         electronicLight,
         electronicObject,
         fire,
-        water
+        water,
+        mechanic
     }
     
     public ActivationSpecialType activationType;
