@@ -37,6 +37,15 @@ public static class SpmzDropUtility
             return null;
 
         ApplyDropForces(spawned, force, torque);
+        
+        ActivitySource newActivitySource = spawned.GetComponentInChildren<ActivitySource>();
+        if(newActivitySource != null)
+            House.Instance.DeclareNewActivitySource(newActivitySource);
+        
+        PrintSource newPrintSource = spawned.GetComponentInChildren<PrintSource>();
+        if(newPrintSource != null)
+            House.Instance.DeclareNewPrintSource(newPrintSource);
+        
         return spawned;
     }
 

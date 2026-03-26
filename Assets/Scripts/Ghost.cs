@@ -357,6 +357,7 @@ public class Ghost : GameBehaviour
         }
         else if (ghostParameters.HasEvidence(GhostInvestigator.EvidenceType.SpiritPrints) && currentState == GhostState.hideState && other.TryGetComponent(out PrintTrigger printTrigger))
         {
+            Debug.Log("POUET PRINT TRIGGER " + other.name, other.gameObject);
             float roll = Random.Range(0f, 100f);
             if (roll <= ghostParameters.chancesToPutPrintOnPrintTriggers)
             {

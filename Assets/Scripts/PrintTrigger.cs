@@ -1,10 +1,12 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using UnityEngine;
 using Random = UnityEngine.Random;
 
 public class PrintTrigger : GameBehaviour
 {
+    public bool isAnInstantiatedObject;
     public PrintSource[] printSources;
     private bool _canReceivePrint = false;
 
@@ -19,6 +21,12 @@ public class PrintTrigger : GameBehaviour
         {
             source.OnActivate.AddListener(() => _canReceivePrint = false);
             source.OnDeactivate.AddListener(() => _canReceivePrint = true);
+
+            if (isAnInstantiatedObject)
+            {
+                Debug.Log("Pouet try to declare new print source");
+                House.Instance.DeclareNewPrintSource(source);
+            }
         }
     }
 

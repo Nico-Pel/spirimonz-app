@@ -34,6 +34,8 @@ public class Spirimonz : GameBehaviour, IInteractable
     public bool canBeTakenBackIntoHands = true;
     public bool powerActiveInHands = true;
     public bool lookAtPlayerWhileWaiting = true;
+    public bool lookAtPlayerOnInteract = false;
+    public float lookAtPlayerOnInteractDuration = 0.25f;
     public bool openDoorsOnItsWay = false;
     public bool lookForwardOnDropOnMap;
     public float lookAtDistanceFromPlayer = 10f;
@@ -57,6 +59,11 @@ public class Spirimonz : GameBehaviour, IInteractable
     public float minTimeToChangeRoamRoom;
     public float maxTimeToChangeRoamRoom;
     [Range(0f, 1f)] public float chancesToChangeRoamRoom;
+    public float minTimeToChangeRoamWaypoint;
+    public float maxTimeToChangeRoamWaypoint;
+    public float minDistToReachRoamWaypoint;
+    public float maxDistToReachRoamWaypoint;
+    public float roamPauseOnInteractDuration = 3f;
 
     private Room _currentRoamRoom;
     private WayPoint _currentRoamWaypoint;
@@ -93,6 +100,9 @@ public class Spirimonz : GameBehaviour, IInteractable
     private bool _isLocked;
     private bool _initialized;
     protected House _house;
+    private bool _pauseRoamAfterInteract;
+    private float _pauseRoamEndTime;
+    private Coroutine _lookAtInteractCoroutine;
 
     public UnityEvent onDisable;
     public UnityEvent onDroppedOnMap;
@@ -366,7 +376,7 @@ public class Spirimonz : GameBehaviour, IInteractable
         );
 
         float speed = 50f;
-        door.GhostDoorInteraction(targetPercentage, speed);
+        door.GhostDoorInteraction(targetPercentage, speed, openedBySpirimonz: true);
     }
 
     private void Update()
@@ -382,7 +392,10 @@ public class Spirimonz : GameBehaviour, IInteractable
         
         if (animator != null)
         {
-            animator.SetFloat("MoveSpeed", agent.speed);
+            float moveSpeed = agent != null ? agent.velocity.magnitude : 0f;
+            if (moveSpeed < 0.02f)
+                moveSpeed = 0f;
+            animator.SetFloat("MoveSpeed", moveSpeed);
         }
         
         UpdateMovementBehaviour();
@@ -552,6 +565,17 @@ public class Spirimonz : GameBehaviour, IInteractable
 
         InitializeRoamSettings();
 
+        if (_pauseRoamAfterInteract)
+        {
+            if (Time.time < _pauseRoamEndTime)
+            {
+                agent.speed = 0;
+                return;
+            }
+
+            _pauseRoamAfterInteract = false;
+        }
+
         if (_currentRoamRoom == null)
         {
             SetRoamRoom(currentRoom);
@@ -717,12 +741,12 @@ public class Spirimonz : GameBehaviour, IInteractable
 
     protected virtual float GetRoamWaypointChangeDelayMin()
     {
-        return 0f;
+        return minTimeToChangeRoamWaypoint;
     }
 
     protected virtual float GetRoamWaypointChangeDelayMax()
     {
-        return 0f;
+        return maxTimeToChangeRoamWaypoint;
     }
 
     protected virtual float GetRoamForceChangeAfterTime()
@@ -743,7 +767,12 @@ public class Spirimonz : GameBehaviour, IInteractable
     protected virtual float GetRoamReachDistance()
     {
         float stoppingDistance = agent != null ? agent.stoppingDistance : 0f;
-        return Mathf.Max(stoppingDistance, 0.2f);
+        if (minDistToReachRoamWaypoint <= 0f && maxDistToReachRoamWaypoint <= 0f)
+            return Mathf.Max(stoppingDistance, 0.2f);
+
+        float min = Mathf.Max(minDistToReachRoamWaypoint, stoppingDistance, 0.01f);
+        float max = Mathf.Max(maxDistToReachRoamWaypoint, min);
+        return Random.Range(min, max);
     }
 
     protected virtual void OnRoamWaypointReached()
@@ -843,6 +872,7 @@ public class Spirimonz : GameBehaviour, IInteractable
 
     public virtual void InteractionStarted()
     {
+        HandleLookAtPlayerOnInteract();
         SwitchBehaviour();
     }
     
@@ -864,6 +894,53 @@ public class Spirimonz : GameBehaviour, IInteractable
     {
         _currentBehaviour = newBehaviour;
         animator.SetBool("Wait", newBehaviour == SpirimonzBehaviourState.Wait);
+    }
+
+    private void HandleLookAtPlayerOnInteract()
+    {
+        if (!lookAtPlayerOnInteract || _house == null || _house.currentPlayer == null)
+            return;
+
+        if (_lookAtInteractCoroutine != null)
+            StopCoroutine(_lookAtInteractCoroutine);
+
+        _lookAtInteractCoroutine = StartCoroutine(LookAtPlayerOnInteractRoutine());
+
+        if (_currentBehaviour == SpirimonzBehaviourState.Roam)
+        {
+            _pauseRoamAfterInteract = true;
+            _pauseRoamEndTime = Time.time + Mathf.Max(0f, roamPauseOnInteractDuration);
+        }
+    }
+
+    private IEnumerator LookAtPlayerOnInteractRoutine()
+    {
+        float duration = Mathf.Max(0.01f, lookAtPlayerOnInteractDuration);
+        Vector3 dir = _house.currentPlayer.transform.position - transform.position;
+        dir.y = 0f;
+        if (dir.sqrMagnitude < 0.0001f)
+        {
+            _lookAtInteractCoroutine = null;
+            yield break;
+        }
+
+        Quaternion startRotation = transform.rotation;
+        Quaternion targetRotation = Quaternion.LookRotation(dir, Vector3.up);
+        Vector3 targetEuler = startRotation.eulerAngles;
+        targetEuler.y = targetRotation.eulerAngles.y;
+        Quaternion endRotation = Quaternion.Euler(targetEuler);
+
+        float t = 0f;
+        while (t < duration)
+        {
+            t += Time.deltaTime;
+            float lerp = Mathf.Clamp01(t / duration);
+            transform.rotation = Quaternion.Slerp(startRotation, endRotation, lerp);
+            yield return null;
+        }
+
+        transform.rotation = endRotation;
+        _lookAtInteractCoroutine = null;
     }
 
     public void OnInteractHold()

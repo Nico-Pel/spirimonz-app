@@ -10,22 +10,23 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 2da69e9a0e0f54f3c905a18b7cedd84c, type: 3}
-  m_Name: SPMZ_015
+  m_Name: SPMZ_016
   m_EditorClassIdentifier: 
   unlockedByDefault: 1
-  spirimonzID: SPMZ_015
-  spirimonzName: Shehapear
+  spirimonzID: SPMZ_016
+  spirimonzName: Runedrake
   spirimonzPrefab: {fileID: 4329021983353939177, guid: 404a42d19b3694e109633d3304c3cb88, type: 3}
   spirimonzBodyPrefab: {fileID: 4126754491253956109, guid: 545bc7036a6864e7da98ae9a0eb49e37, type: 3}
   bodyPresentationOffset: {x: 0, y: 0, z: 0}
-  img: {fileID: 21300000, guid: 1a19320ad5d71460abd6cab9c3e4a722, type: 3}
+  img: {fileID: 21300000, guid: 63a8af13e314e4ca099d6de6676cf87e, type: 3}
   abilities:
-  - evidenceTypes: 01000000
-    description: Shehapear wanders around the house and sometimes makes <color=#F9AB2D>fruit</color>
-      appear.
-  - evidenceTypes: 
-    description: Shehapear makes a sound when she senses the presence of an evil
-      spirit around her; the spirit can leave an invisible mark on her apron.
+  - evidenceTypes: 02000000
+    description: By activating his power, Runedrake can <color=#F9AB2D>light candles</color>
+      that the malevolent spirit might <color=#F9AB2D>extinguish</color>.
+  - evidenceTypes: 03000000
+    description: The candles lit by Runedrake glow in a range of colors from red
+      to blue to yellow, revealing the <color=#F9AB2D>temperature</color> of the
+      room they're in. If they turn pink, the <color=#F9AB2D>temperature is freezing</color>.
   primarySPMZType: {fileID: 11400000, guid: bcefacc8ea10242be8685cd0a4a6b5c9, type: 2}
   secondarySPMZType: {fileID: 11400000, guid: a716f7ba0d215449682446a0364007f0, type: 2}
   canUsePowerInHands: 0

@@ -29275,8 +29275,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1453499722}
-  - component: {fileID: 1453499723}
-  - component: {fileID: 1453499724}
   m_Layer: 0
   m_Name: Props
   m_TagString: Untagged
@@ -29349,58 +29347,6 @@ Transform:
   - {fileID: 1148880198}
   m_Father: {fileID: 543450653374424382}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &1453499723
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1453499721}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 546a0cfae4987415ea48ba317d6a31eb, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  canBeGrabByPlayer: 1
-  canBeThrownByGhost: 1
-  canBeThrownByPlayer: 1
-  setRotZeroOnDrop: 1
-  offsetPosInHands: {x: 0, y: 0, z: 0}
-  offsetRotInHands: {x: 0, y: 0, z: 0}
-  priority: 0
-  rb: {fileID: 0}
-  activitySource: {fileID: 0}
-  isGrabbed: 0
-  collisionSoundParameters: {fileID: 0}
-  minForceToPlayCollision: 1
-  addTorqueOnThrow: 1
-  throwTorqueRange: {x: 0.2, y: 0.6}
-  ignorePlayerCollisionDuration: 1
-  autoSleepWhenIdle: 1
-  autoSleepStartDelay: 1
-  autoSleepCheckInterval: 0.5
-  autoSleepMinStableTime: 0.5
-  autoSleepVelocity: 0.02
-  autoSleepAngularVelocity: 0.02
-  onGrab:
-    m_PersistentCalls:
-      m_Calls: []
-  onSecondaryUse:
-    m_PersistentCalls:
-      m_Calls: []
---- !u!114 &1453499724
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1453499721}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: ab10b1aeff7e1420d8fb1f2aeadacca7, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  activityValue: 0
 --- !u!1001 &1453771338
 PrefabInstance:
   m_ObjectHideFlags: 0

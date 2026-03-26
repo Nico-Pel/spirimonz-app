@@ -361,12 +361,19 @@ MonoBehaviour:
   slamAngleDetected: 20
   slamDetectionDuration: 0.2
   closeAnglePermissiveness: 5
+  spirimonzOpenAngleThreshold: 20
+  spirimonzOpenSpeed: 50
+  spirimonzOpenMinPercent: 0.8
   volume: 0.7
   openSound: {fileID: 8300000, guid: 79e7dd873687148538813dcc3b8caf36, type: 3}
   closeSound: {fileID: 8300000, guid: ef90fd3cbafe54a97a434b63740b1775, type: 3}
   slamSound: {fileID: 8300000, guid: d1ff9040ffe4040039b2f7d318db31d9, type: 3}
+  spirimonzOpenVolumeOffset: 0.45
+  spirimonzOpenPitchOffset: 1.35
   mAudioOccluder: {fileID: 8823215556761429013}
   connectedWallOccluders: []
+  doorsSharingSameSoundOcclusion: []
+  twinDoor: {fileID: 0}
   isOpen: 0
   opensTowardNegative: 0
   closeAngle: 0

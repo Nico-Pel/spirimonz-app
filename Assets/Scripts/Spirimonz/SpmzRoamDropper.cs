@@ -10,6 +10,7 @@ public class SpmzRoamDropper : Spirimonz
     public string dropAnimationTrigger = "Drop";
     public bool avoidRepeat = true;
     public int maxRepeatRerolls = 5;
+    public int maxDrops = 20;
     public float spawnForwardOffset = 0.4f;
     public float spawnUpOffset = 0.2f;
     public float dropImpulseForce = 1.2f;
@@ -18,6 +19,7 @@ public class SpmzRoamDropper : Spirimonz
     private float _nextDropTime;
     private int _lastDropIndex = -1;
     private bool _pendingDrop;
+    private int _dropsCount;
 
     public override void DroppedOnMap()
     {
@@ -42,6 +44,9 @@ public class SpmzRoamDropper : Spirimonz
 
     private void StartDropSequence()
     {
+        if (maxDrops > 0 && _dropsCount >= maxDrops)
+            return;
+
         _pendingDrop = true;
 
         if (animator != null && !string.IsNullOrEmpty(dropAnimationTrigger))
@@ -88,6 +93,9 @@ public class SpmzRoamDropper : Spirimonz
 
     private void DropRandomItem()
     {
+        if (maxDrops > 0 && _dropsCount >= maxDrops)
+            return;
+
         if (itemsToDrop == null || itemsToDrop.Length == 0)
             return;
 
@@ -115,7 +123,9 @@ public class SpmzRoamDropper : Spirimonz
         Vector3 torque = Random.onUnitSphere * dropTorqueForce;
 
         Transform parent = House.Instance != null ? House.Instance.transform : null;
-        SpmzDropUtility.SpawnDrop(prefab, spawnPos, Quaternion.identity, parent, force, torque);
+        GameObject spawned = SpmzDropUtility.SpawnDrop(prefab, spawnPos, Quaternion.identity, parent, force, torque);
+        if (spawned != null)
+            _dropsCount++;
 
         _lastDropIndex = index;
     }

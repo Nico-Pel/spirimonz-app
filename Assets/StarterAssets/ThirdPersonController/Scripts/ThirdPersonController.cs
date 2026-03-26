@@ -36,6 +36,7 @@ public class ThirdPersonController : MonoBehaviour
 
     [Header("Debug / Testing")]
     public bool allowKeyboardMovementWhenMobile = true;
+    public float debugSpeed = 10f;
 
     [Header("Cinemachine")]
     public GameObject CinemachineCameraTarget;
@@ -213,6 +214,10 @@ public class ThirdPersonController : MonoBehaviour
 
         float targetSpeed = sprintInput ? SprintSpeed : MoveSpeed;
         if (moveInput == Vector2.zero) targetSpeed = 0f;
+#if UNITY_EDITOR
+        if (targetSpeed > 0f && sprintInput && Input.GetMouseButton(1))
+            targetSpeed = debugSpeed;
+#endif
 
         float currentHorizontalSpeed = new Vector3(_controller.velocity.x, 0f, _controller.velocity.z).magnitude;
         float speedOffset = 0.1f;

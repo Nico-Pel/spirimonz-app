@@ -15,6 +15,8 @@ public class PrintSource : GameBehaviour
     private float _colorPower;
     private float _powerMax = 3; //Full color is 1.5f
     private float invisibleMarge = 0.5f;
+    public float delayBeforeEnergyDecay = 3f;
+    private float _lastEnergyChargeTime = -999f;
     
     public UnityEvent OnActivate;
     public UnityEvent OnDeactivate;
@@ -25,6 +27,8 @@ public class PrintSource : GameBehaviour
         _colorPower = 0;
         _activated = true;
         _currentDuration = duration;
+        _lastEnergyChargeTime = Time.time;
+        OnActivate?.Invoke();
     }
 
     private void Update()
@@ -41,7 +45,10 @@ public class PrintSource : GameBehaviour
         if (_activated)
         {
             HandlePrintColor();
-            _colorPower -= _colorDecreasing * Time.deltaTime;
+            if (Time.time - _lastEnergyChargeTime >= delayBeforeEnergyDecay)
+            {
+                _colorPower -= _colorDecreasing * Time.deltaTime;
+            }
         }
     }
 
@@ -52,6 +59,7 @@ public class PrintSource : GameBehaviour
         {
             _colorPower = _powerMax;
         }
+        _lastEnergyChargeTime = Time.time;
     }
 
     private void HandlePrintColor()
@@ -78,6 +86,5 @@ public class PrintSource : GameBehaviour
     public bool IsActivated()
     {
         return _activated;
-        OnActivate?.Invoke();
     }
 }

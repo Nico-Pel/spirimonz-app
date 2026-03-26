@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AI;
+using UnityEngine.Events;
 using UnityEngine.Serialization;
 using Random = UnityEngine.Random;
 
@@ -58,6 +59,11 @@ public class House : GameBehaviour
     public Player currentPlayer;
     
     public List<WayPoint> wayPoints = new List<WayPoint>();
+
+    public UnityEvent<PrintSource> onNewPrintSourceAddedToGame;
+    public List<PrintSource> printSourcesAddedToGame = new List<PrintSource>();
+    public UnityEvent<ActivitySource> onNewActivitySourceAddedToGame;
+    public List<ActivitySource> activitySourcesAddedToGame = new List<ActivitySource>();
 
     private void Awake()
     {
@@ -208,5 +214,18 @@ public class House : GameBehaviour
         {
             UIGame.Instance.OpenEndGame(UIEndGame.EndTypes.Lose, this);
         });
+    }
+
+    public void DeclareNewPrintSource(PrintSource source)
+    {
+        onNewPrintSourceAddedToGame?.Invoke(source);
+        printSourcesAddedToGame.Add(source);
+        Debug.Log("Pouet new print source declared");
+    }
+    
+    public void DeclareNewActivitySource(ActivitySource source)
+    {
+        onNewActivitySourceAddedToGame?.Invoke(source);
+        activitySourcesAddedToGame.Add(source);
     }
 }

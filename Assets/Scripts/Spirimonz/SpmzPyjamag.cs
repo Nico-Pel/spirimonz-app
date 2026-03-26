@@ -14,10 +14,14 @@ public class SpmzPyjamag : SpmzPropEater
     public float percentageChancesUpOnFail = 15f;
     public float delayBeforeGivingFruit = 0.25f;
 
+    [Header("Drop Limit")]
+    public int maxDrops = 20;
+
     [Header("Rotation Safety")]
     public bool lockRotationToYAxis = true;
     
     private float _basePercentageChancesToGiveFruit;
+    private int _dropsCount;
 
     protected override void Start()
     {
@@ -48,6 +52,9 @@ public class SpmzPyjamag : SpmzPropEater
     
     private void TryToGiveFruit()
     {
+        if (maxDrops > 0 && _dropsCount >= maxDrops)
+            return;
+
         float roll = Random.Range(0f, 100f);
         if (roll <= percentageChancesToGiveFruit)
         {
@@ -70,10 +77,16 @@ public class SpmzPyjamag : SpmzPropEater
         animator.SetTrigger("DropFruit");
         this.Invoke(delayBeforeGivingFruit, () =>
         {
+            if (maxDrops > 0 && _dropsCount >= maxDrops)
+                return;
+
             Vector3 force = transform.forward * giveFruitForceForward + Vector3.up * giveFruitForceUp;
             Fruit newFruit = SpmzDropUtility.SpawnDrop(fruitPrefab, spawnFruitPos.position, Quaternion.identity, null, force, Vector3.zero);
             if (newFruit != null)
+            {
+                _dropsCount++;
                 newFruit.transform.DOScale(Vector3.one, 0.5f).From(Vector3.one * 0.01f);
+            }
         });
     }
 

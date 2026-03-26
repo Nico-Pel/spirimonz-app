@@ -18,9 +18,11 @@ public class SpmzDropDetection : MonoBehaviour
     public float spawnUpOffset = 0.2f;
     public float dropImpulseForce = 1.2f;
     public float dropTorqueForce = 0.6f;
+    public int maxDrops = 20;
 
     private ActivitySource _currentActivitySourceDetected;
     private int _currentDetectedValue;
+    private int _dropsCount;
 
     private void Awake()
     {
@@ -31,6 +33,13 @@ public class SpmzDropDetection : MonoBehaviour
     private void Start()
     {
         activitySources.AddRange(FindObjectsOfType<ActivitySource>());
+        House.Instance.onNewActivitySourceAddedToGame.AddListener(AddNewActivitySourceToList);
+    }
+
+    private void AddNewActivitySourceToList(ActivitySource newSource)
+    {
+        if(activitySources.Contains(newSource) == false)
+            activitySources.Add(newSource);
     }
 
     private void Update()
@@ -119,6 +128,9 @@ public class SpmzDropDetection : MonoBehaviour
 
     private void DropItemForActivity(int activityValue)
     {
+        if (maxDrops > 0 && _dropsCount >= maxDrops)
+            return;
+
         if (itemsToDrop == null || itemsToDrop.Length == 0)
             return;
 
@@ -144,7 +156,9 @@ public class SpmzDropDetection : MonoBehaviour
         Vector3 force = forceDir * dropImpulseForce;
         Vector3 torque = Random.onUnitSphere * dropTorqueForce;
         Transform parent = House.Instance != null ? House.Instance.transform : null;
-        SpmzDropUtility.SpawnDrop(prefab, spawnPos, Quaternion.identity, parent, force, torque);
+        GameObject spawned = SpmzDropUtility.SpawnDrop(prefab, spawnPos, Quaternion.identity, parent, force, torque);
+        if (spawned != null)
+            _dropsCount++;
     }
 
     private void OnDrawGizmosSelected()

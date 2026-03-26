@@ -37,6 +37,7 @@ public class SpmzDetector : Spirimonz
     private bool _newActivityReached;
     
     private bool _emissionEnabled = false;
+
     public override void InitSpirimonz()
     {
         base.InitSpirimonz();
@@ -44,7 +45,16 @@ public class SpmzDetector : Spirimonz
         if (IsLocked()) return;
 
         activitySources.AddRange(FindObjectsOfType<ActivitySource>());
+        House.Instance.onNewActivitySourceAddedToGame.AddListener(AddNewActivitySourceToList);
     }
+        
+    private void AddNewActivitySourceToList(ActivitySource newSource)
+    {
+        if(activitySources.Contains(newSource) == false)
+            activitySources.Add(newSource);
+    }
+
+    
     public override bool UpdateSpirimonzBehaviour()
     {
         if (!base.UpdateSpirimonzBehaviour())

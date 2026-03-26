@@ -31,6 +31,8 @@ public class Door : GameBehaviour, IInteractable
     public AudioClip openSound;
     public AudioClip closeSound;
     public AudioClip slamSound;
+    public float spirimonzOpenVolumeOffset = -0.25f;
+    public float spirimonzOpenPitchOffset = 0.2f;
 
     [Header("Audio Occlusion")] 
     public AudioOccluder mAudioOccluder;
@@ -52,6 +54,9 @@ public class Door : GameBehaviour, IInteractable
     private bool _audioOcclusionState;
     private readonly List<Collider> _spirimonzColliders = new List<Collider>();
     private Collider[] _doorColliders;
+    private bool _wasConsideredOpen;
+    private float _lastOpenSoundTime = -999f;
+    private float _lastSpirimonzOpenRequestTime = -999f;
 
     //private float _lockTimeAfterGhostInteraction = 1.5f;
     private Vector3 _basePosition;
@@ -83,6 +88,7 @@ public class Door : GameBehaviour, IInteractable
         SetCursor(cursorHand, cursorHandSize);
 
         RefreshAudioOcclusionState(force: true);
+        _wasConsideredOpen = IsDoorConsideredOpen(this);
     }
 
     #region Grab / Release
@@ -114,7 +120,7 @@ public class Door : GameBehaviour, IInteractable
 
     #region Door Actions
 
-    public void GhostDoorInteraction(float openPercentage, float moveSpeed, bool slam = false)
+    public void GhostDoorInteraction(float openPercentage, float moveSpeed, bool slam = false, bool openedBySpirimonz = false)
     {
         rb.freezeRotation = false;
 
@@ -134,11 +140,17 @@ public class Door : GameBehaviour, IInteractable
         if (openPercentage > 0 && Mathf.Sign(delta) != Mathf.Sign(openFullAngle - closeAngle))
             return;
 
-        if (openPercentage > 0 && !isOpen)
+        if (openPercentage > 0)
         {
-            isOpen = true;
+            if (!isOpen)
+                isOpen = true;
+
             EnableAudioOcclusions(false);
-            PlaySound(openSound, false);
+
+            if (openedBySpirimonz)
+            {
+                _lastSpirimonzOpenRequestTime = Time.time;
+            }
         }
 
         ForcedHinge(targetAngle, moveSpeed);
@@ -200,6 +212,7 @@ public class Door : GameBehaviour, IInteractable
     private void Update()
     {
         RefreshAudioOcclusionState();
+        TrackOpenSound();
 
         if (_isGrabbed)
             return;
@@ -236,7 +249,6 @@ public class Door : GameBehaviour, IInteractable
         {
             isOpen = true;
             EnableAudioOcclusions(false);
-            PlaySound(openSound, true);
         }
 
         _lastAngle = currentAngle;
@@ -291,7 +303,7 @@ public class Door : GameBehaviour, IInteractable
         {
             float currentRatio = GetOpenRatio();
             float targetPercentage = Random.Range(Mathf.Max(currentRatio, spirimonzOpenMinPercent), 1f);
-            GhostDoorInteraction(targetPercentage, spirimonzOpenSpeed);
+            GhostDoorInteraction(targetPercentage, spirimonzOpenSpeed, openedBySpirimonz: true);
         }
 
         if (spirimonzCollider != null)
@@ -300,8 +312,49 @@ public class Door : GameBehaviour, IInteractable
 
     private void PlaySound(AudioClip clip, bool ignoreOcclusion)
     {
-        if (clip != null)
-            SoundManager.Instance.PlaySound(clip, transform.position, volume: volume, ignoreAudioOcclusion:ignoreOcclusion);
+        PlaySound(clip, ignoreOcclusion, volume, 1f);
+    }
+
+    private void PlaySound(AudioClip clip, bool ignoreOcclusion, float volumeToUse, float pitchToUse)
+    {
+        if (clip != null && SoundManager.Instance != null)
+            SoundManager.Instance.PlaySound(clip, transform.position, volume: volumeToUse, pitch: pitchToUse, ignoreAudioOcclusion:ignoreOcclusion);
+    }
+
+    private void PlayOpenSound(bool openedBySpirimonz, bool ignoreOcclusion)
+    {
+        if (openSound == null)
+            return;
+
+        if (openedBySpirimonz)
+        {
+            float adjustedVolume = Mathf.Max(0f, volume + spirimonzOpenVolumeOffset);
+            float adjustedPitch = 1f + spirimonzOpenPitchOffset;
+            PlaySound(openSound, ignoreOcclusion, adjustedVolume, adjustedPitch);
+        }
+        else
+        {
+            PlaySound(openSound, ignoreOcclusion);
+        }
+
+        _lastOpenSoundTime = Time.time;
+    }
+
+    private void TrackOpenSound()
+    {
+        bool consideredOpen = IsDoorConsideredOpen(this);
+        if (!_wasConsideredOpen && consideredOpen)
+        {
+            if (Time.time - _lastOpenSoundTime > 0.05f)
+            {
+                bool openedBySpirimonz = Time.time - _lastSpirimonzOpenRequestTime <= 0.75f;
+                bool openedByPlayer = _isGrabbed;
+                bool ignoreOcclusion = openedByPlayer || openedBySpirimonz;
+                PlayOpenSound(openedBySpirimonz, ignoreOcclusion);
+            }
+        }
+
+        _wasConsideredOpen = consideredOpen;
     }
 
     public bool IsGrabbed() => _isGrabbed;

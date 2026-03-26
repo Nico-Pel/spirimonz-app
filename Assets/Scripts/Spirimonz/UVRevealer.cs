@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -9,18 +10,36 @@ public class UVRevealer : GameBehaviour
     public Transform source;
 
     private List<PrintSource> _printSources;
-
-    private void Awake()
+    private House _house;
+    private void Start()
     {
         _printSources = new List<PrintSource>(
             FindObjectsOfType<PrintSource>()
         );
+
+        _house = House.Instance;
+
+        foreach (PrintSource ps in _house.printSourcesAddedToGame)
+        {
+            if(_printSources.Contains(ps) == false)
+                _printSources.Add(ps);
+        }
+        
+        _house.onNewPrintSourceAddedToGame.AddListener(AddNewPrintSourceToList);
+    }
+
+    private void AddNewPrintSourceToList(PrintSource newSource)
+    {
+        if(_printSources.Contains(newSource) == false)
+            _printSources.Add(newSource);
     }
 
     private void Update()
     {
-        foreach (var ps in _printSources)
+        foreach (PrintSource ps in _printSources)
         {
+            if (ps == null) continue;
+            
             float dist = Vector3.Distance(source.position, ps.transform.position);
             if (dist <= range)
             {
