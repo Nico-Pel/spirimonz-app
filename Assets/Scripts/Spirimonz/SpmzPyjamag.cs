@@ -70,10 +70,10 @@ public class SpmzPyjamag : SpmzPropEater
         animator.SetTrigger("DropFruit");
         this.Invoke(delayBeforeGivingFruit, () =>
         {
-            Fruit newFruit = Instantiate(fruitPrefab, spawnFruitPos.position, Quaternion.identity);
-            newFruit.transform.DOScale(Vector3.one, 0.5f).From(Vector3.one * 0.01f);
-            newFruit.rb.isKinematic = false;
-            newFruit.rb.AddForce(transform.forward * giveFruitForceForward + Vector3.up * giveFruitForceUp);
+            Vector3 force = transform.forward * giveFruitForceForward + Vector3.up * giveFruitForceUp;
+            Fruit newFruit = SpmzDropUtility.SpawnDrop(fruitPrefab, spawnFruitPos.position, Quaternion.identity, null, force, Vector3.zero);
+            if (newFruit != null)
+                newFruit.transform.DOScale(Vector3.one, 0.5f).From(Vector3.one * 0.01f);
         });
     }
 

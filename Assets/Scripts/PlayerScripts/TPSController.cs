@@ -29,6 +29,7 @@ public class TPSController : Controller
 
     [Header("Debug / Testing")]
     public bool allowKeyboardMovementWhenMobile = true;
+    public float debugSpeed = 10f;
 
     [Header("Gravity")]
     public float gravity = -20f;
@@ -92,8 +93,17 @@ public class TPSController : Controller
         // 5️⃣ Vitesse
         float speed = runSpeed;
         bool mobileSprint = MobileInput.Enabled && mobileMove.sqrMagnitude >= (mobileSprintThreshold * mobileSprintThreshold);
-        if ((!MobileInput.Enabled && _player.inputManager.GetSprint()) || MobileInput.SprintHeld || mobileSprint) // sprint
+        bool wantsToSprint = (!MobileInput.Enabled && _player.inputManager.GetSprint()) || MobileInput.SprintHeld || mobileSprint;
+        if (wantsToSprint) // sprint
+        {
             speed = sprintSpeed;
+#if UNITY_EDITOR
+            if (Input.GetMouseButton(1))
+            {
+                speed = debugSpeed;
+            }
+#endif
+        }
         else
             speed = walkSpeed;
 

@@ -140,35 +140,11 @@ public class SpmzDropDetection : MonoBehaviour
                            + transform.forward * spawnForwardOffset
                            + Vector3.up * spawnUpOffset;
 
-        Transform parent = House.Instance != null ? House.Instance.transform : null;
-        GameObject spawnedObject = Instantiate(prefab, spawnPos, Quaternion.identity, parent);
-        if (spawnedObject == null)
-            return;
-
         Vector3 forceDir = (transform.forward + Vector3.up * 0.4f).normalized;
         Vector3 force = forceDir * dropImpulseForce;
         Vector3 torque = Random.onUnitSphere * dropTorqueForce;
-
-        if (spawnedObject.TryGetComponent(out CatchableObject catchableObject))
-        {
-            catchableObject.ApplyForce(force, torque);
-            catchableObject.EnableCollisionSoundImmediate();
-            return;
-        }
-
-        Rigidbody spawnedRb = spawnedObject.GetComponent<Rigidbody>();
-        if (spawnedRb == null)
-        {
-            spawnedRb = spawnedObject.GetComponentInChildren<Rigidbody>();
-        }
-
-        if (spawnedRb != null)
-        {
-            spawnedRb.isKinematic = false;
-            spawnedRb.WakeUp();
-            spawnedRb.AddForce(force, ForceMode.Impulse);
-            spawnedRb.AddTorque(torque, ForceMode.Impulse);
-        }
+        Transform parent = House.Instance != null ? House.Instance.transform : null;
+        SpmzDropUtility.SpawnDrop(prefab, spawnPos, Quaternion.identity, parent, force, torque);
     }
 
     private void OnDrawGizmosSelected()
