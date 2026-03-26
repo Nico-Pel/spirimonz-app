@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 195392751332720520}
   - component: {fileID: 5861845979109416401}
   - component: {fileID: 7151373343556950266}
-  - component: {fileID: 902312493678284026}
+  - component: {fileID: 4334731156945666854}
   m_Layer: 0
   m_Name: OfficeChair01
   m_TagString: Untagged
@@ -107,19 +107,22 @@ MeshCollider:
   m_Convex: 0
   m_CookingOptions: 30
   m_Mesh: {fileID: -4769654096121228265, guid: 25bb645ea70064daba3fe7b042f79378, type: 3}
---- !u!208 &902312493678284026
-NavMeshObstacle:
+--- !u!114 &4334731156945666854
+MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1027674151161366228}
   m_Enabled: 1
-  serializedVersion: 3
-  m_Shape: 1
-  m_Extents: {x: 0.35500002, y: 0.48800004, z: 0.43800002}
-  m_MoveThreshold: 0.1
-  m_Carve: 0
-  m_CarveOnlyStationary: 1
-  m_Center: {x: 0.032, y: 0.48700002, z: -0.003}
-  m_TimeToStationary: 0.5
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1e3fdca004f2d45fe8abbed571a8abd5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_OverrideArea: 1
+  m_Area: 1
+  m_OverrideGenerateLinks: 0
+  m_GenerateLinks: 0
+  m_IgnoreFromBuild: 0
+  m_ApplyToChildren: 1
+  m_AffectedAgents: ffffffff

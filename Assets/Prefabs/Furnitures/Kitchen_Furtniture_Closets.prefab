@@ -114,6 +114,7 @@ MonoBehaviour:
   moveSpeed: 1.5
   moveEase: 27
   moveBackEase: 1
+  moveRigidbody: {fileID: 0}
   offsetRotation: {x: 0, y: 80, z: 0}
   rotateSpeed: 100
   rotateBackSpeed: 250
@@ -156,7 +157,6 @@ GameObject:
   - component: {fileID: 3949815468164757125}
   - component: {fileID: 2293769132226370560}
   - component: {fileID: 4753825549072761858}
-  - component: {fileID: -2139092914015718880}
   - component: {fileID: 3406487321277620739}
   m_Layer: 0
   m_Name: Kitchen_Furtniture_Closets
@@ -238,22 +238,6 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!208 &-2139092914015718880
-NavMeshObstacle:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2989923564760360914}
-  m_Enabled: 1
-  serializedVersion: 3
-  m_Shape: 1
-  m_Extents: {x: 0.75000006, y: 0.55, z: 0.5}
-  m_MoveThreshold: 0.1
-  m_Carve: 1
-  m_CarveOnlyStationary: 1
-  m_Center: {x: 0, y: 0.55, z: 0.5}
-  m_TimeToStationary: 0.5
 --- !u!64 &3406487321277620739
 MeshCollider:
   m_ObjectHideFlags: 0
@@ -480,6 +464,7 @@ MonoBehaviour:
   moveSpeed: 1.5
   moveEase: 27
   moveBackEase: 1
+  moveRigidbody: {fileID: 0}
   offsetRotation: {x: 0, y: -80, z: 0}
   rotateSpeed: 100
   rotateBackSpeed: 250

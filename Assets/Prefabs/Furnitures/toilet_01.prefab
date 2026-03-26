@@ -165,6 +165,7 @@ MonoBehaviour:
   moveSpeed: 1.5
   moveEase: 27
   moveBackEase: 1
+  moveRigidbody: {fileID: 0}
   offsetRotation: {x: 90, y: 0, z: 0}
   rotateSpeed: 250
   rotateBackSpeed: 150
@@ -409,6 +410,7 @@ GameObject:
   - component: {fileID: 1555747411679704714}
   - component: {fileID: 4174476779459780072}
   - component: {fileID: 1778395068935296428}
+  - component: {fileID: 8997216992045821343}
   m_Layer: 0
   m_Name: toilet_01
   m_TagString: Untagged
@@ -595,6 +597,25 @@ Animator:
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorStateOnDisable: 0
   m_WriteDefaultValuesOnDisable: 0
+--- !u!114 &8997216992045821343
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2946081815782166614}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1e3fdca004f2d45fe8abbed571a8abd5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_OverrideArea: 1
+  m_Area: 1
+  m_OverrideGenerateLinks: 0
+  m_GenerateLinks: 0
+  m_IgnoreFromBuild: 0
+  m_ApplyToChildren: 1
+  m_AffectedAgents: ffffffff
 --- !u!1 &7084471224097425084
 GameObject:
   m_ObjectHideFlags: 0

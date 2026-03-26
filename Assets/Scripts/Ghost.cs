@@ -138,6 +138,16 @@ public class Ghost : GameBehaviour
     public float activityTimeVariation = 10f;
     public float chancesToRoamInAnotherRoom = 25f;
 
+    [Header("Ghost Stats : Anti Exploit")]
+    public bool antiExploitEnabled = true;
+    public float stuckTimeBeforePhase = 1f;
+    public float stuckMoveDistance = 0.05f;
+    public float stuckVelocityThreshold = 0.05f;
+    public float phaseDuration = 1f;
+    public float phaseMoveSpeedMultiplier = 1f;
+    public float phaseReattachRadius = 2f;
+    public float pathCheckInterval = 0.2f;
+
     private float openingDoorSpeed = 35f;
 
     [Header("Ghost Stats : Blinking")] 
@@ -174,10 +184,23 @@ public class Ghost : GameBehaviour
     private readonly List<FlammableElement> _flammableBuffer = new List<FlammableElement>();
     private readonly List<Door> _doorBuffer = new List<Door>();
 
+    private bool _isPhasing;
+    private int _phaseAttempts;
+    private float _phaseEndTime;
+    private float _lastHuntMovementTime;
+    private Vector3 _lastHuntPosition;
+    private float _lastPathCheckTime;
+    private bool _cachedPathValid = true;
+    private NavMeshPathStatus _cachedPathStatus = NavMeshPathStatus.PathComplete;
+    private NavMeshPath _playerPath;
+    private bool _agentUpdatePositionBase = true;
+    private bool _agentUpdateRotationBase = true;
+
     private void Start()
     {
         _player = (GamePlayer)Player.Instance;
         _baseForcedStartTargetingTime = forcedStartTargetingTime;
+        _playerPath = new NavMeshPath();
     }
 
     public void Initialize(House h)
@@ -459,6 +482,7 @@ public class Ghost : GameBehaviour
         InitWayPoints();
         _huntingSound = SoundManager.Instance.PlaySound(huntingSound, transform.position, 1f, ghostPitch, -1f, 20f, true, this.transform);
         currentState = GhostState.huntingState;
+        ResetAntiExploitState();
         
         //Start blinking
         SetVisibleRenderer(true);
@@ -487,6 +511,7 @@ public class Ghost : GameBehaviour
                 agent.isStopped = false;
 
             bool canSeePlayer = vision.CanSeePlayer(house.currentPlayer);
+            UpdateHuntMovementTracking();
 
             currentHuntTime -= Time.deltaTime;
             if (currentHuntTime <= 0)
@@ -514,6 +539,9 @@ public class Ghost : GameBehaviour
             }
             
             SetHuntingDestination();
+
+            if (HandleHuntAntiExploit(canSeePlayer))
+                return;
             
             if (_stopMoving)
             {
@@ -621,6 +649,180 @@ public class Ghost : GameBehaviour
         }
     }
 
+    private bool HandleHuntAntiExploit(bool canSeePlayer)
+    {
+        if (!antiExploitEnabled || _stopMoving)
+            return false;
+
+        if (_isPhasing)
+        {
+            UpdatePhaseMovement();
+            return true;
+        }
+
+        if (!canSeePlayer || !_targetingPlayer)
+        {
+            ResetAntiExploitState(keepPathCache: true);
+            return false;
+        }
+
+        if (IsPathToPlayerValid())
+        {
+            ResetAntiExploitState(keepPathCache: true);
+            return false;
+        }
+
+        if (!IsAgentStuck())
+            return false;
+
+        if (_phaseAttempts > 0)
+        {
+            StopHunting();
+            return true;
+        }
+
+        StartPhase();
+        return true;
+    }
+
+    private void UpdateHuntMovementTracking()
+    {
+        Vector3 currentPos = transform.position;
+        float moveThreshold = Mathf.Max(0.001f, stuckMoveDistance);
+        float sqrMoveThreshold = moveThreshold * moveThreshold;
+
+        if ((currentPos - _lastHuntPosition).sqrMagnitude >= sqrMoveThreshold ||
+            (agent != null && agent.velocity.sqrMagnitude >= stuckVelocityThreshold * stuckVelocityThreshold))
+        {
+            _lastHuntPosition = currentPos;
+            _lastHuntMovementTime = Time.time;
+        }
+    }
+
+    private bool IsAgentStuck()
+    {
+        if (stuckTimeBeforePhase <= 0f)
+            return true;
+
+        return Time.time - _lastHuntMovementTime >= stuckTimeBeforePhase;
+    }
+
+    private bool IsPathToPlayerValid()
+    {
+        if (agent == null || !agent.isOnNavMesh || house == null || house.currentPlayer == null)
+        {
+            _cachedPathValid = false;
+            _cachedPathStatus = NavMeshPathStatus.PathInvalid;
+            return false;
+        }
+
+        if (Time.time - _lastPathCheckTime < pathCheckInterval)
+            return _cachedPathValid;
+
+        _lastPathCheckTime = Time.time;
+        if (_playerPath == null)
+            _playerPath = new NavMeshPath();
+
+        bool calculated = agent.CalculatePath(house.currentPlayer.transform.position, _playerPath);
+        _cachedPathStatus = _playerPath.status;
+        _cachedPathValid = calculated && _playerPath.status == NavMeshPathStatus.PathComplete;
+        return _cachedPathValid;
+    }
+
+    private void StartPhase()
+    {
+        _phaseAttempts++;
+        _isPhasing = true;
+        _phaseEndTime = Time.time + Mathf.Max(0.05f, phaseDuration);
+
+        if (agent != null)
+        {
+            _agentUpdatePositionBase = agent.updatePosition;
+            _agentUpdateRotationBase = agent.updateRotation;
+            agent.updatePosition = false;
+            agent.updateRotation = false;
+            agent.isStopped = true;
+            agent.ResetPath();
+        }
+    }
+
+    private void UpdatePhaseMovement()
+    {
+        if (house == null || house.currentPlayer == null)
+        {
+            EndPhase();
+            return;
+        }
+
+        float baseSpeed = ghostParameters != null ? ghostParameters.targetingSpeedBase : 1f;
+        float moveSpeed = Mathf.Max(0.1f, baseSpeed * phaseMoveSpeedMultiplier);
+
+        Vector3 targetPos = house.currentPlayer.transform.position;
+        targetPos.y = transform.position.y;
+        transform.position = Vector3.MoveTowards(transform.position, targetPos, moveSpeed * Time.deltaTime);
+
+        if (agent != null)
+        {
+            agent.nextPosition = transform.position;
+        }
+
+        animator.SetBool("Walk", true);
+        animator.SetFloat("MoveSpeed", moveSpeed);
+        animator.SetBool("Targeting", true);
+
+        if (Time.time >= _phaseEndTime)
+        {
+            EndPhase();
+        }
+    }
+
+    private void EndPhase()
+    {
+        _isPhasing = false;
+
+        if (agent != null)
+        {
+            agent.updatePosition = _agentUpdatePositionBase;
+            agent.updateRotation = _agentUpdateRotationBase;
+            agent.isStopped = false;
+
+            if (NavMesh.SamplePosition(transform.position, out NavMeshHit hit, phaseReattachRadius, NavMesh.AllAreas))
+            {
+                agent.Warp(hit.position);
+            }
+            else
+            {
+                StopHunting();
+                return;
+            }
+        }
+
+        _lastHuntPosition = transform.position;
+        _lastHuntMovementTime = Time.time;
+    }
+
+    private void ResetAntiExploitState(bool keepPathCache = false)
+    {
+        _isPhasing = false;
+        _phaseAttempts = 0;
+        _phaseEndTime = 0f;
+        _lastHuntMovementTime = Time.time;
+        _lastHuntPosition = transform.position;
+
+        if (!keepPathCache)
+        {
+            _cachedPathValid = true;
+            _cachedPathStatus = NavMeshPathStatus.PathComplete;
+            _lastPathCheckTime = 0f;
+        }
+
+        if (agent != null)
+        {
+            agent.updatePosition = _agentUpdatePositionBase;
+            agent.updateRotation = _agentUpdateRotationBase;
+        }
+    }
+
     private void SetHidingDestination()
     {
         if (currentWayPoint != null)
@@ -661,6 +863,7 @@ public class Ghost : GameBehaviour
         });
 
         onGhostStopToHunt?.Invoke();
+        ResetAntiExploitState();
     }
 
     private void StopHunting()
@@ -697,6 +900,7 @@ public class Ghost : GameBehaviour
         });
 
         SetVisibleRenderer(false);
+        ResetAntiExploitState();
     }
 
     private void Kill()

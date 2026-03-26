@@ -9812,6 +9812,10 @@ PrefabInstance:
       propertyPath: m_IsActive
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 6151749150945597871, guid: 8087e7c559e944578a92b047b21dfd0b, type: 3}
+      propertyPath: m_Enabled
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 9146510619202102450, guid: 8087e7c559e944578a92b047b21dfd0b, type: 3}
       propertyPath: m_Name
       value: Stairs_small (1)
@@ -39861,13 +39865,40 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 714822640044476603, guid: d915028a3f8724a7ca14dc782360706f, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 2012095378}
   m_SourcePrefab: {fileID: 100100000, guid: d915028a3f8724a7ca14dc782360706f, type: 3}
 --- !u!4 &2012095376 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 4395346144342611034, guid: d915028a3f8724a7ca14dc782360706f, type: 3}
   m_PrefabInstance: {fileID: 2012095375}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &2012095377 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 714822640044476603, guid: d915028a3f8724a7ca14dc782360706f, type: 3}
+  m_PrefabInstance: {fileID: 2012095375}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &2012095378
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2012095377}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1e3fdca004f2d45fe8abbed571a8abd5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_OverrideArea: 1
+  m_Area: 1
+  m_OverrideGenerateLinks: 0
+  m_GenerateLinks: 0
+  m_IgnoreFromBuild: 0
+  m_ApplyToChildren: 1
+  m_AffectedAgents: ffffffff
 --- !u!1001 &2013793603
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -42000,7 +42031,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: be5c57d241bfe4627869a687cf7bcac8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  showNavMesh: 0
+  showNavMesh: 1
 --- !u!114 &919132149387788168
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -42075,7 +42106,7 @@ MonoBehaviour:
   m_Center: {x: 0, y: 2, z: 0}
   m_LayerMask:
     serializedVersion: 2
-    m_Bits: 4294967295
+    m_Bits: 67585
   m_UseGeometry: 0
   m_DefaultArea: 0
   m_GenerateLinks: 0

@@ -11,8 +11,8 @@ GameObject:
   - component: {fileID: 4395346144342611034}
   - component: {fileID: 804359033411567177}
   - component: {fileID: 4406664848437609455}
-  - component: {fileID: 3172493323179541583}
   - component: {fileID: 4740112620973751991}
+  - component: {fileID: 7488227063887845038}
   m_Layer: 0
   m_Name: CoffeTable_01
   m_TagString: Untagged
@@ -85,22 +85,6 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!208 &3172493323179541583
-NavMeshObstacle:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 714822640044476603}
-  m_Enabled: 1
-  serializedVersion: 3
-  m_Shape: 1
-  m_Extents: {x: 0.93500006, y: 0.393, z: 0.44900003}
-  m_MoveThreshold: 0.1
-  m_Carve: 1
-  m_CarveOnlyStationary: 1
-  m_Center: {x: 0, y: 0.393, z: 0.004}
-  m_TimeToStationary: 0.5
 --- !u!65 &4740112620973751991
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -122,3 +106,22 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 1.8698394, y: 0.62484705, z: 0.89734364}
   m_Center: {x: 0, y: 0.31242365, z: 0.003757}
+--- !u!114 &7488227063887845038
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 714822640044476603}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1e3fdca004f2d45fe8abbed571a8abd5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_OverrideArea: 1
+  m_Area: 1
+  m_OverrideGenerateLinks: 0
+  m_GenerateLinks: 0
+  m_IgnoreFromBuild: 0
+  m_ApplyToChildren: 1
+  m_AffectedAgents: ffffffff

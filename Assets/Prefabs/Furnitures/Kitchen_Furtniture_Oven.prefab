@@ -298,6 +298,7 @@ MonoBehaviour:
   moveSpeed: 1.5
   moveEase: 27
   moveBackEase: 1
+  moveRigidbody: {fileID: 0}
   offsetRotation: {x: 75, y: 0, z: 0}
   rotateSpeed: 100
   rotateBackSpeed: 250
@@ -661,7 +662,6 @@ GameObject:
   - component: {fileID: 6190820866663734582}
   - component: {fileID: 3394820931642906095}
   - component: {fileID: 2232259783554568822}
-  - component: {fileID: -4863534674608628379}
   - component: {fileID: 959552096807127443}
   - component: {fileID: 4945201477472288226}
   - component: {fileID: 6237519062264787173}
@@ -744,22 +744,6 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!208 &-4863534674608628379
-NavMeshObstacle:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8939172108576888994}
-  m_Enabled: 1
-  serializedVersion: 3
-  m_Shape: 1
-  m_Extents: {x: 0.75000006, y: 0.55, z: 0.51500005}
-  m_MoveThreshold: 0.1
-  m_Carve: 1
-  m_CarveOnlyStationary: 1
-  m_Center: {x: 0, y: 0.55, z: 0.51500005}
-  m_TimeToStationary: 0.5
 --- !u!114 &959552096807127443
 MonoBehaviour:
   m_ObjectHideFlags: 0

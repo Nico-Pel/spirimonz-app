@@ -17,6 +17,7 @@ GameObject:
   - component: {fileID: 1206523002613002053}
   - component: {fileID: 5202635795630036}
   - component: {fileID: 7588878226376206626}
+  - component: {fileID: 3147722658084948271}
   m_Layer: 0
   m_Name: Cardboard01
   m_TagString: Untagged
@@ -58,6 +59,10 @@ MonoBehaviour:
   canHold: 0
   canRelease: 0
   canBeClickedOnTriggerByGhostDuringHunt: 0
+  ignoreActivitySource: 0
+  onClick:
+    m_PersistentCalls:
+      m_Calls: []
   skinnedMesh: {fileID: 6126403941928187495}
   blendShapeIndex: 0
   colliderToDisableOnActivate: {fileID: 7598202556975267079}
@@ -251,6 +256,25 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 0.027911425, y: 0.42082497, z: 0.5}
   m_Center: {x: -0.2430538, y: 0.21496792, z: 0}
+--- !u!114 &3147722658084948271
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 136535565444754486}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1e3fdca004f2d45fe8abbed571a8abd5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_OverrideArea: 1
+  m_Area: 1
+  m_OverrideGenerateLinks: 0
+  m_GenerateLinks: 0
+  m_IgnoreFromBuild: 0
+  m_ApplyToChildren: 1
+  m_AffectedAgents: ffffffff
 --- !u!1 &2625846899093358402
 GameObject:
   m_ObjectHideFlags: 0
