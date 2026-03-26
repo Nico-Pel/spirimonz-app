@@ -1,10 +1,14 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
+using Random = UnityEngine.Random;
 
 public class ClickableObject : GameBehaviour, IInteractable
 {
     public ActivitySource activitySource;
+    [Header("Prints")]
+    public PrintSource[] printSources;
 
     [Header("Interaction Options")]
     public bool canClick = true;
@@ -97,6 +101,21 @@ public class ClickableObject : GameBehaviour, IInteractable
 
     public virtual void OnRelease()
     {
+    }
+
+    public virtual PrintSource GetRandomPrintSource()
+    {
+        if (printSources == null || printSources.Length == 0) return null;
+        
+        List<PrintSource> possiblePrintSources = new List<PrintSource>();
+        foreach (PrintSource printSource in printSources)
+        {
+            if (printSource != null && printSource.IsActivated() == false)
+                possiblePrintSources.Add(printSource);
+        }
+        
+        if (possiblePrintSources.Count == 0) return null;
+        return possiblePrintSources[Random.Range(0, possiblePrintSources.Count)];
     }
 
     public void LockInteraction(bool enable)
