@@ -10,23 +10,25 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 2da69e9a0e0f54f3c905a18b7cedd84c, type: 3}
-  m_Name: SPMZ_016
+  m_Name: SPMZ_017
   m_EditorClassIdentifier: 
   unlockedByDefault: 1
-  spirimonzID: SPMZ_016
-  spirimonzName: Runedrake
-  spirimonzPrefab: {fileID: 6222462254115855609, guid: 546a92d9508724a8ca38b2e6015cc8c1, type: 3}
-  spirimonzBodyPrefab: {fileID: 64061973217590202, guid: fba94adbc8dc74e8e9fcb4042e5fed1f, type: 3}
+  spirimonzID: SPMZ_017
+  spirimonzName: Doghost
+  spirimonzPrefab: {fileID: 4329021983353939177, guid: 404a42d19b3694e109633d3304c3cb88, type: 3}
+  spirimonzBodyPrefab: {fileID: 4126754491253956109, guid: 545bc7036a6864e7da98ae9a0eb49e37, type: 3}
   bodyPresentationOffset: {x: 0, y: 0, z: 0}
   img: {fileID: 21300000, guid: 63a8af13e314e4ca099d6de6676cf87e, type: 3}
   abilities:
-  - evidenceTypes: 02000000
-    description: By activating his power, Runedrake can <color=#F9AB2D>light candles</color>
-      that the malevolent spirit might <color=#F9AB2D>extinguish</color>.
-  - evidenceTypes: 03000000
-    description: The candles lit by Runedrake glow in a range of colors from red
-      to blue to yellow, revealing the <color=#F9AB2D>temperature</color> of the
-      room they're in. If they turn pink, the <color=#F9AB2D>temperature is freezing</color>.
+  - evidenceTypes: 00000000
+    description: When Doghost barks, it reveals all the <color=#F9AB2D>spiritual
+      prints</color> within a wide radius around it.
+  - evidenceTypes: 
+    description: Doghost barks every time he hears the malevolent spirit interacting
+      with a door or when you interact with him.
+  - evidenceTypes: 
+    description: Doghost senses danger approaching and disappears just in time, before
+      the malevolent spirit begins its hunt.
   primarySPMZType: {fileID: 11400000, guid: 9ead2f77d54f148ad8c3e86c995700d4, type: 2}
   secondarySPMZType: {fileID: 11400000, guid: 219545d2aae84444a90456d737e3cd02, type: 2}
   canUsePowerInHands: 1

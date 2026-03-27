@@ -9,6 +9,7 @@ public class FireTrigger : MonoBehaviour
     public FlammableElement linkedFlammableObject;
 
     public bool canGiveFire = true;
+    public bool canCurseFlammables = false;
     
     private void OnTriggerEnter(Collider other)
     {
@@ -21,6 +22,11 @@ public class FireTrigger : MonoBehaviour
         
         if (other.TryGetComponent(out FlammableElement otherFire))
         {
+            if (canCurseFlammables)
+            {
+                otherFire.TryActivateCursed();
+            }
+
             if (otherFire.IsOnFire() == false)
             {
                 otherFire.EnableFire(true);

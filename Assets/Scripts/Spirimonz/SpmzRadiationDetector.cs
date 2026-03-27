@@ -11,7 +11,7 @@ public class SpmzRadiationDetector : Spirimonz
     private void InitEvents()
     {
         if (_eventsInitialized) return;
-
+        
         radiationDetector.OnDetectionStart.AddListener(OnRadiationChanged);
         radiationDetector.OnDetectionEnd.AddListener(OnRadiationChanged);
 

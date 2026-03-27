@@ -119,7 +119,7 @@ public class Spirimonz : GameBehaviour, IInteractable
     public virtual void InitSpirimonz()
     {
         if (_isLocked) return;
-        
+
         _baseCanInteract = canInteract;
         _currentBehaviour = SpirimonzBehaviourState.Wait;
         InitializeRoamSettings();

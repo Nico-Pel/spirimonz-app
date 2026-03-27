@@ -391,6 +391,7 @@ MonoBehaviour:
   powerActiveInHands: 0
   lookAtPlayerWhileWaiting: 0
   lookAtPlayerOnInteract: 1
+  lookAtPlayerOnInteractDuration: 0.25
   openDoorsOnItsWay: 0
   lookForwardOnDropOnMap: 0
   lookAtDistanceFromPlayer: 10
@@ -432,16 +433,16 @@ MonoBehaviour:
   itemsToDrop:
   - {fileID: 6976662970140725635, guid: 26826fa43c076420caedf1792da7e464, type: 3}
   - {fileID: 6976662970140725635, guid: 40e33451754034099be424ede2213bf0, type: 3}
-  dropIntervalMin: 120
-  dropIntervalMax: 180
+  dropIntervalMin: 60
+  dropIntervalMax: 120
   dropDelay: 0.3
   dropAnimationTrigger: Drop
   avoidRepeat: 0
   maxRepeatRerolls: 5
   maxDrops: 20
   spawnForwardOffset: 0
-  spawnUpOffset: 1
-  dropImpulseForce: 5
+  spawnUpOffset: 1.2
+  dropImpulseForce: 10
   dropTorqueForce: 1
 --- !u!114 &9168426047296845462
 MonoBehaviour:

@@ -16086,7 +16086,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3902342441254721883, guid: 363df7f24feae44faae2dd5a50d10765, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 1.116
+      value: 1.119
       objectReference: {fileID: 0}
     - target: {fileID: 3902342441254721883, guid: 363df7f24feae44faae2dd5a50d10765, type: 3}
       propertyPath: m_LocalPosition.z
@@ -24843,13 +24843,13 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   map: {fileID: 11400000, guid: ce4f9a8c8498f482fa9729084559e18d, type: 2}
   selectedGhostParameter: {fileID: 0}
-  useDebugs: 1
-  playerCantDie: 0
-  forcedGhostParameters: {fileID: 0}
+  useDebugs: 0
+  playerCantDie: 1
+  forcedGhostParameters: {fileID: 11400000, guid: d62313b85fde34a67918d492de0cec7e, type: 2}
   forcedGhostModel: {fileID: 0}
-  forcedGhostActivity: 2
-  forcedFavoriteRoomID: 3
-  tripleActivityDebug: 1
+  forcedGhostActivity: 7
+  forcedFavoriteRoomID: 1
+  tripleActivityDebug: 0
   useHuntTimeMultiplierDebug: 0
   huntTimeMultiplierDebug: 1
   houseEntry: {fileID: 3423637249492515329}
@@ -27473,6 +27473,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 1421224315111902519, guid: c18686a7a0b7e4edca853dd8e33e5e5d, type: 3}
+      propertyPath: debugDropRaycast
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 3819186216081997299, guid: c18686a7a0b7e4edca853dd8e33e5e5d, type: 3}
       propertyPath: m_Name
       value: InteriorPlayer

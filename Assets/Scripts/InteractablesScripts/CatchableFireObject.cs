@@ -69,18 +69,40 @@ public class CatchableFireObject : CatchableObject
             if (isProtected)
                 return;
 
-            float rotZ = Mathf.Abs(transform.localEulerAngles.normalized.z);
-            float rotX = Mathf.Abs(transform.localEulerAngles.normalized.x);
+            float maxTiltAngle = GetMaxTiltAngleBeforeTurningOff();
+            float tiltAngle = Vector3.Angle(transform.up, Vector3.up);
 
-            if (rotZ < rotationZMinBeforeTurningOff ||
-                rotX > rotationXMaxBeforeTurningOff)
-            {
-                if (linkedFlammableElement.IsOnFire())
-                {
-                    linkedFlammableElement.EnableFire(false);
-                }
-            }
+            if (useRotationDebug)
+                Debug.Log($"[CatchableFireObject] Tilt={tiltAngle:F2}°, Threshold={maxTiltAngle:F2}°", this);
+
+            if (tiltAngle >= maxTiltAngle)
+                TurnOffFire();
         }
+    }
+
+    private float GetMaxTiltAngleBeforeTurningOff()
+    {
+        float zThreshold = NormalizeRotationThreshold(rotationZMinBeforeTurningOff);
+        float xThreshold = NormalizeRotationThreshold(rotationXMaxBeforeTurningOff);
+
+        // Use the larger threshold to avoid false positives with legacy small values.
+        float maxThreshold = Mathf.Max(zThreshold, xThreshold);
+        return Mathf.Max(1f, maxThreshold);
+    }
+
+    private static float NormalizeRotationThreshold(float value)
+    {
+        float absValue = Mathf.Abs(value);
+        if (absValue <= 1f)
+            return absValue * 90f; // legacy normalized (0..1) -> degrees
+
+        return absValue;
+    }
+
+    private void TurnOffFire()
+    {
+        if (linkedFlammableElement.IsOnFire())
+            linkedFlammableElement.EnableFire(false);
     }
 
     public override void OnGrab()

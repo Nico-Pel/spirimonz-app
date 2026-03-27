@@ -28,6 +28,12 @@ public class InteractionController : GameBehaviour
     [Header("Doors Settings")]
     [SerializeField] LayerMask doorLayer;
 
+#if UNITY_EDITOR
+    [Header("Debug")]
+    public bool debugDropRaycast = false;
+    [ReadOnly] [SerializeField] private Transform debugDropHitTransform;
+#endif
+
     private Door _targetedDoor;
     private Door _grabbedDoor;
     private float _grabDistance;
@@ -70,6 +76,9 @@ public class InteractionController : GameBehaviour
         HandleDoor();
         DetectInteractable();
         HandleInput();
+#if UNITY_EDITOR
+        DebugDropRaycast();
+#endif
     }
 
     // =========================
@@ -407,7 +416,7 @@ public class InteractionController : GameBehaviour
         Vector3 dropPos = handObjectDropPosition.position;
                 
         // Check si un mur est juste devant
-        if (Physics.Raycast(transform.position + Vector3.up * 1.5f, _player.camera.transform.forward, out RaycastHit hit, 0.65f))
+        if (TryGetDropWallHit(out RaycastHit hit))
         {
             dropPos = hit.point - transform.forward * 0.25f; // recule un peu pour pas clipper
         }
@@ -441,6 +450,37 @@ public class InteractionController : GameBehaviour
         OnDropItem?.Invoke(objectInHands);
         objectInHands = null;
     }
+
+    private float _detectionWallDistance = 0.85f;
+    private bool TryGetDropWallHit(out RaycastHit hit)
+    {
+        Vector3 origin = transform.position + Vector3.up * 1.5f;
+        Vector3 direction = _player != null && _player.camera != null
+            ? _player.camera.transform.forward
+            : transform.forward;
+        float distance = _detectionWallDistance;
+
+        return Physics.Raycast(origin, direction, out hit, distance, ~0, QueryTriggerInteraction.Ignore);
+    }
+
+#if UNITY_EDITOR
+    private void DebugDropRaycast()
+    {
+        if (!debugDropRaycast || _player == null || _player.camera == null)
+        {
+            debugDropHitTransform = null;
+            return;
+        }
+
+        Vector3 origin = transform.position + Vector3.up * 1.5f;
+        Vector3 direction = _player.camera.transform.forward;
+        float distance = _detectionWallDistance;
+
+        bool hit = Physics.Raycast(origin, direction, out RaycastHit hitInfo, distance, ~0, QueryTriggerInteraction.Ignore);
+        debugDropHitTransform = hit ? hitInfo.transform : null;
+        Debug.DrawRay(origin, direction * distance, hit ? Color.red : Color.green);
+    }
+#endif
 
     private CatchableObject GetCatchableFromInteractable(IInteractable interactable)
     {
