@@ -73,6 +73,12 @@ public class InteractionController : GameBehaviour
 
     void Update()
     {
+        if (IsInteractionBlockedByUI())
+        {
+            ClearInteractionTargets(true);
+            return;
+        }
+
         HandleDoor();
         DetectInteractable();
         HandleInput();
@@ -284,6 +290,32 @@ public class InteractionController : GameBehaviour
             if ((!MobileInput.Enabled && _player.inputManager.GetGrabDown()) || MobileInput.GrabDown)
                 _player.inventoryManager.SpirimonzGoBackToHands(spirimonz);
         }
+    }
+
+    private bool IsInteractionBlockedByUI()
+    {
+        if (_uiGame == null)
+            return false;
+
+        return _uiGame.tablet != null && _uiGame.tablet.gameObject.activeSelf;
+    }
+
+    private void ClearInteractionTargets(bool releaseDoor)
+    {
+        if (releaseDoor && _grabbedDoor != null)
+        {
+            Rigidbody rb = _grabbedDoor.GetComponent<Rigidbody>();
+            _grabbedDoor.Release();
+            if (rb != null)
+                rb.useGravity = true;
+
+            _grabbedDoor = null;
+        }
+
+        _targetedDoor = null;
+        _currentTarget = null;
+        _currentCatchable = null;
+        RefreshCursorUI();
     }
 
     // =========================
