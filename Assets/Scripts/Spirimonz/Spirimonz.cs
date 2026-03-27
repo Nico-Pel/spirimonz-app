@@ -36,6 +36,7 @@ public class Spirimonz : GameBehaviour, IInteractable
     public bool lookAtPlayerWhileWaiting = true;
     public bool lookAtPlayerOnInteract = false;
     public float lookAtPlayerOnInteractDuration = 0.25f;
+    public float interactionCooldown = 0f;
     public bool openDoorsOnItsWay = false;
     public bool lookForwardOnDropOnMap;
     public float lookAtDistanceFromPlayer = 10f;
@@ -104,6 +105,7 @@ public class Spirimonz : GameBehaviour, IInteractable
     private float _pauseRoamEndTime;
     private Coroutine _lookAtInteractCoroutine;
 
+    public UnityEvent onInteract;
     public UnityEvent onDisable;
     public UnityEvent onDroppedOnMap;
     public UnityEvent onGoingBackToHands;
@@ -864,6 +866,12 @@ public class Spirimonz : GameBehaviour, IInteractable
             animator.SetTrigger("Nop");
             return;
         }
+
+        if (interactionCooldown > 0)
+        {
+            canInteract = false;
+            this.Invoke(interactionCooldown, () => canInteract = true);
+        }
         
         animator.SetTrigger("Click");
         
@@ -872,6 +880,7 @@ public class Spirimonz : GameBehaviour, IInteractable
 
     public virtual void InteractionStarted()
     {
+        onInteract?.Invoke();
         HandleLookAtPlayerOnInteract();
         SwitchBehaviour();
     }

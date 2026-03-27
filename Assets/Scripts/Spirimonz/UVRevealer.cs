@@ -8,6 +8,7 @@ public class UVRevealer : GameBehaviour
     public float range = 3f;
     public float chargeSpeed = 0.25f;
     public Transform source;
+    public float optionalActivationDuration = 3f;
 
     private List<PrintSource> _printSources;
     private House _house;
@@ -53,5 +54,13 @@ public class UVRevealer : GameBehaviour
         if (source == null) return;
         Gizmos.color = Color.cyan;
         Gizmos.DrawWireSphere(source.position, range);
+    }
+
+    public void ActiveDuration()
+    {
+        if (enabled) return;
+        
+        enabled = true;
+        this.Invoke(optionalActivationDuration, () => enabled = false);
     }
 }

@@ -25,4 +25,13 @@ public class SoundParameters : GameBehaviour
         float pitch = Random.Range(pitchMin, pitchMax);
         SoundManager.Instance.PlaySound(clip, position, volumeToUse, pitch, duration, range, loop, sourceParent, ignoreAudioOcclusion);
     }
+    
+    public void PlaySound()
+    {
+        float volumeToUse = volume;
+        
+        AudioClip clip = possibleClips[Random.Range(0, possibleClips.Length)];
+        float pitch = Random.Range(pitchMin, pitchMax);
+        SoundManager.Instance.PlaySound(clip, position: transform.position, volumeToUse, pitch, duration, range, loop, sourceParent, ignoreAudioOcclusion);
+    }
 }

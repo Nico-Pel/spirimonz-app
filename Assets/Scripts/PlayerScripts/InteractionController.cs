@@ -413,13 +413,12 @@ public class InteractionController : GameBehaviour
 
         objectInHands.ChangeLayer(_objectInHandLayerIndex, 0);
 
-        Vector3 dropPos = handObjectDropPosition.position;
-                
-        // Check si un mur est juste devant
-        if (TryGetDropWallHit(out RaycastHit hit))
-        {
+        Vector3 desiredDropPos = handObjectDropPosition.position;
+        Vector3 dropPos = GetSafeDropPosition(desiredDropPos);
+
+        // Fallback si aucun collider valide (ou bounds inutilisable)
+        if (dropPos == desiredDropPos && TryGetDropWallHit(out RaycastHit hit))
             dropPos = hit.point - transform.forward * 0.25f; // recule un peu pour pas clipper
-        }
     
         objectInHands.Drop(dropPos, Vector3.zero);
         _player.handAnimator.SetInteger("HandPos", 1);
@@ -463,6 +462,78 @@ public class InteractionController : GameBehaviour
         return Physics.Raycast(origin, direction, out hit, distance, ~0, QueryTriggerInteraction.Ignore);
     }
 
+    private Vector3 GetSafeDropPosition(Vector3 desiredDropPos)
+    {
+        if (objectInHands == null)
+            return desiredDropPos;
+
+        Vector3 startPos = objectInHands.transform.position;
+        Vector3 toTarget = desiredDropPos - startPos;
+        float distance = toTarget.magnitude;
+
+        if (distance <= 0.001f)
+            return desiredDropPos;
+
+        if (!TryGetObjectBounds(objectInHands, out Bounds bounds))
+            return desiredDropPos;
+
+        Vector3 direction = toTarget / distance;
+        Vector3 centerOffset = bounds.center - objectInHands.transform.position;
+        Vector3 startCenter = startPos + centerOffset;
+        Quaternion orientation = objectInHands.transform.rotation;
+        int mask = GetDropCollisionMask();
+        const float skin = 0.02f;
+
+        if (Physics.BoxCast(startCenter, bounds.extents, direction, out RaycastHit hit, orientation, distance, mask, QueryTriggerInteraction.Ignore))
+        {
+            float safeDistance = Mathf.Max(0f, hit.distance - skin);
+            Vector3 safeCenter = startCenter + direction * safeDistance;
+            return safeCenter - centerOffset;
+        }
+
+        return desiredDropPos;
+    }
+
+    private bool TryGetObjectBounds(CatchableObject catchable, out Bounds bounds)
+    {
+        bounds = new Bounds(catchable.transform.position, Vector3.zero);
+        bool hasBounds = false;
+
+        Collider[] colliders = catchable.GetComponentsInChildren<Collider>(true);
+        for (int i = 0; i < colliders.Length; i++)
+        {
+            Collider col = colliders[i];
+            if (col == null || !col.enabled || col.isTrigger)
+                continue;
+
+            if (!hasBounds)
+            {
+                bounds = col.bounds;
+                hasBounds = true;
+            }
+            else
+            {
+                bounds.Encapsulate(col.bounds);
+            }
+        }
+
+        return hasBounds;
+    }
+
+    private int GetDropCollisionMask()
+    {
+        int mask = ~0;
+
+        // Ignore player layer
+        mask &= ~(1 << gameObject.layer);
+
+        // Ignore FPS hand/object layer (object in hands is moved here)
+        if (_player != null && _player.inventoryManager != null)
+            mask &= ~_player.inventoryManager.fpsMask.value;
+
+        return mask;
+    }
+
 #if UNITY_EDITOR
     private void DebugDropRaycast()
     {
@@ -472,13 +543,35 @@ public class InteractionController : GameBehaviour
             return;
         }
 
-        Vector3 origin = transform.position + Vector3.up * 1.5f;
-        Vector3 direction = _player.camera.transform.forward;
-        float distance = _detectionWallDistance;
+        if (objectInHands == null)
+        {
+            debugDropHitTransform = null;
+            return;
+        }
 
-        bool hit = Physics.Raycast(origin, direction, out RaycastHit hitInfo, distance, ~0, QueryTriggerInteraction.Ignore);
+        Vector3 desiredDropPos = handObjectDropPosition.position;
+        Vector3 startPos = objectInHands.transform.position;
+        Vector3 toTarget = desiredDropPos - startPos;
+        float distance = toTarget.magnitude;
+        Vector3 direction = distance > 0.001f ? toTarget / distance : _player.camera.transform.forward;
+
+        bool hit = false;
+        RaycastHit hitInfo = new RaycastHit();
+
+        if (distance > 0.001f && TryGetObjectBounds(objectInHands, out Bounds bounds))
+        {
+            Vector3 centerOffset = bounds.center - objectInHands.transform.position;
+            Vector3 startCenter = startPos + centerOffset;
+            int mask = GetDropCollisionMask();
+            hit = Physics.BoxCast(startCenter, bounds.extents, direction, out hitInfo, objectInHands.transform.rotation, distance, mask, QueryTriggerInteraction.Ignore);
+        }
+        else
+        {
+            hit = TryGetDropWallHit(out hitInfo);
+        }
+
         debugDropHitTransform = hit ? hitInfo.transform : null;
-        Debug.DrawRay(origin, direction * distance, hit ? Color.red : Color.green);
+        Debug.DrawRay(startPos, direction * distance, hit ? Color.red : Color.green);
     }
 #endif
 
