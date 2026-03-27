@@ -165,6 +165,8 @@ public class Spirimonz : GameBehaviour, IInteractable
     private void SetSpiritHideMode(bool hide)
     {
         spirimonzGameObject.SetActive(!hide);
+        animator.SetBool("Hands", !isOnTheMap);
+
         hidingGameObject.SetActive(hide);
         agent.enabled = !hide && isOnTheMap;
 

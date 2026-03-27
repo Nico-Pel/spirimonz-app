@@ -117,6 +117,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
+  - {fileID: 9159714551898084768}
   - {fileID: 785843614693427855}
   - {fileID: 2544282458160308973}
   m_Father: {fileID: 0}
@@ -137,20 +138,35 @@ MonoBehaviour:
   canBeThrownByGhost: 1
   canBeThrownByPlayer: 1
   setRotZeroOnDrop: 1
+  offsetPosInHands: {x: 0, y: 0, z: 0}
+  offsetRotInHands: {x: 0, y: 0, z: 0}
+  priority: 0
   rb: {fileID: 7055402289030159528}
   activitySource: {fileID: 3683657692521461788}
   isGrabbed: 0
-  collisionSounds:
-  - {fileID: 8300000, guid: abc9a1cc6e1694561836d5d61bfa43e9, type: 3}
-  - {fileID: 8300000, guid: c69c66a3654e248b58f7e6aff123c63a, type: 3}
-  collisionSoundVolume: 0.5
-  collisionSoundAveragePitch: 1
-  collisionSoundVariationPitch: 0.1
-  collisionSoundRange: 15
-  minForceToPlayCollision: 1
   collisionSoundParameters: {fileID: 1899581078329693259}
+  minForceToPlayCollision: 1
+  addTorqueOnThrow: 1
+  throwTorqueRange: {x: 0.2, y: 0.6}
+  ignorePlayerCollisionDuration: 1
+  autoSleepWhenIdle: 1
+  autoSleepStartDelay: 1
+  autoSleepCheckInterval: 0.5
+  autoSleepMinStableTime: 0.5
+  autoSleepVelocity: 0.02
+  autoSleepAngularVelocity: 0.02
+  onGrab:
+    m_PersistentCalls:
+      m_Calls: []
+  onSecondaryUse:
+    m_PersistentCalls:
+      m_Calls: []
+  annoyTheGhosts: 0
+  ghostAngerMultiplierOnBreak: 1
   model: {fileID: 2248026911800768186}
   fracturedModel: {fileID: 4971235132885173590}
+  breakingSoundParameters: {fileID: 4734071900304507066}
+  forbidInteractionOnBreak: 1
   breakingSounds:
   - {fileID: 8300000, guid: bacf17f594ca348be9ab7112698dc6f3, type: 3}
   - {fileID: 8300000, guid: aa3f9bdc9d39544fe9d450514854346a, type: 3}
@@ -229,6 +245,61 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2848334809561120887}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 40b88c04d7940466da713f4000ddccc8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  possibleClips:
+  - {fileID: 8300000, guid: bacf17f594ca348be9ab7112698dc6f3, type: 3}
+  - {fileID: 8300000, guid: aa3f9bdc9d39544fe9d450514854346a, type: 3}
+  volume: 0.4
+  pitchMin: 0.9
+  pitchMax: 1.1
+  duration: -1
+  range: 15
+  loop: 0
+  sourceParent: {fileID: 0}
+  ignoreAudioOcclusion: 0
+--- !u!1 &7222960128572964764
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 9159714551898084768}
+  - component: {fileID: 4734071900304507066}
+  m_Layer: 9
+  m_Name: BreakingSoundParameters
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &9159714551898084768
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7222960128572964764}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 7768482326401283276}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &4734071900304507066
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7222960128572964764}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 40b88c04d7940466da713f4000ddccc8, type: 3}

@@ -54,6 +54,9 @@ public class Ghost : GameBehaviour
     }
     
     [Space]
+        
+    [Header("Ghost Stats : Angriness")] 
+    public float angerPercentage = 0f;
 
     public GhostState currentState;
 
@@ -83,10 +86,6 @@ public class Ghost : GameBehaviour
 
     private float _waitDoorTime = 0.5f;
     private bool _stopMoving = false;
-    
-    [FormerlySerializedAs("angrinessPercentage")] [Header("Ghost Stats : Angriness")] 
-    public float angerPercentage = 0f;
-    [FormerlySerializedAs("angrinessToAddByTriggeringPlayer")] public float angerToAddByTriggeringPlayer = 10f;
     
     [Header("Ghost Stats : Hunting")]
     public float forecastTimeBeforeAHunt = 5f;
@@ -176,6 +175,7 @@ public class Ghost : GameBehaviour
     
     private const string ACTIVITY_INVOKE = "Ghost.TriggerActivity";
     private const string ORBS_INVOKE = "Ghost.SpiritOrbs";
+    private const string PASSIVE_ANGER_INVOKE = "Ghost.PassiveAnger";
     private const int OVERLAP_BUFFER_SIZE = 128;
     private static GhostActivities[] _activityValues;
 
@@ -243,6 +243,10 @@ public class Ghost : GameBehaviour
         {
             averageActivityTime *= 0.75f;
         }
+
+        angerPercentage = Mathf.Max(0f, ghostParameters.startingAnger);
+        SchedulePassiveAnger();
+
         float nextActivityTime = Random.Range(averageActivityTime - activityTimeVariation, averageActivityTime + activityTimeVariation);
         
         # if UNITY_EDITOR
@@ -283,6 +287,33 @@ public class Ghost : GameBehaviour
         });
     }
 
+    private void SchedulePassiveAnger()
+    {
+        if (ghostParameters == null)
+            return;
+
+        if (ghostParameters.passiveAngerIncreaseAmount <= 0f)
+            return;
+
+        float minDelay = Mathf.Max(0f, ghostParameters.passiveAngerIncreaseMinDelay);
+        float maxDelay = Mathf.Max(minDelay, ghostParameters.passiveAngerIncreaseMaxDelay);
+
+        if (maxDelay <= 0f)
+            return;
+
+        float delay = Random.Range(minDelay, maxDelay);
+        this.Invoke(PASSIVE_ANGER_INVOKE, delay, ApplyPassiveAnger);
+    }
+
+    private void ApplyPassiveAnger()
+    {
+        if (_isLocked)
+            return;
+
+        ImproveAnger(ghostParameters.passiveAngerIncreaseAmount);
+        SchedulePassiveAnger();
+    }
+
     private void OnTriggerEnter(Collider other)
     {
         if (_isLocked) return;
@@ -307,7 +338,7 @@ public class Ghost : GameBehaviour
             }
             if (currentState == GhostState.hideState)
             {
-                ImproveAnger(angerToAddByTriggeringPlayer);
+                ImproveAnger(ghostParameters.angerToAddByTriggeringPlayer);
             }
         }
         else if (ghostParameters.HasEvidence(GhostInvestigator.EvidenceType.Radioactivity) && other.TryGetComponent(out RadiationDetector radiationDetector))
@@ -1554,6 +1585,12 @@ public class Ghost : GameBehaviour
             steps * forcedTargetingTimeIncreasePerStep;
     }
 
+    public void MultiplyAnger(float value)
+    {
+        float newAnger = angerPercentage * value;
+        ImproveAnger(newAnger - angerPercentage);
+    }
+
     public void TryToImproveAnger(float angerValue, Transform source, float distMax = 10f, bool usePathDistance = false)
     {
         float dist = 0;
@@ -1604,6 +1641,7 @@ public class Ghost : GameBehaviour
     public void LockGhost()
     {
         CancelInvoke(ORBS_INVOKE);
+        CancelInvoke(PASSIVE_ANGER_INVOKE);
         _isLocked = true;
     }
     

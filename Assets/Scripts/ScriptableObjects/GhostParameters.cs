@@ -29,6 +29,13 @@ public class GhostParameters : ScriptableObject
     public float minimumAngerToHunt = 50;
     public float averageHuntTime = 10f;
     public float minimumPeaceTime = 60f;
+
+    [Header("Ghost Stats : Anger")]
+    public float startingAnger = 5f;
+    public float angerToAddByTriggeringPlayer = 5f;
+    public float passiveAngerIncreaseAmount = 2f;
+    public float passiveAngerIncreaseMinDelay = 60f;
+    public float passiveAngerIncreaseMaxDelay = 120f;
     
     [Space]
 
@@ -166,6 +173,24 @@ public class GhostParameters : ScriptableObject
     {
         float roll = Random.Range(0f, 100f);
         return roll <= chancesToInteractWithAClickableInstedOfNothing;
+    }
+
+    private void OnValidate()
+    {
+        if (startingAnger < 0f)
+            startingAnger = 0f;
+
+        if (angerToAddByTriggeringPlayer <= 0f)
+            angerToAddByTriggeringPlayer = 5f;
+
+        if (passiveAngerIncreaseAmount < 0f)
+            passiveAngerIncreaseAmount = 0f;
+
+        if (passiveAngerIncreaseMinDelay < 0f)
+            passiveAngerIncreaseMinDelay = 0f;
+
+        if (passiveAngerIncreaseMaxDelay < passiveAngerIncreaseMinDelay)
+            passiveAngerIncreaseMaxDelay = passiveAngerIncreaseMinDelay;
     }
 }
 

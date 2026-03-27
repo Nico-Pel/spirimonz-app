@@ -7,18 +7,25 @@ using Random = UnityEngine.Random;
 
 public class CatchableBreakingObject : CatchableObject
 {
+    [Space] [Header("Break Special Settings")]
+    public bool annoyTheGhosts;
+    public float ghostAngerMultiplierOnBreak = 1f;
+    public bool forbidInteractionOnBreak = true;
+    
     [Space] [Header("Model components")] 
     public GameObject model;
     public GameObject fracturedModel;
-    
+
     [Header("Breaking Sounds")] 
-    public AudioClip[] breakingSounds;
-    public float breakingSoundVolume = 0.5f;
-    public float breakingSoundAveragePitch = 1f;
-    public float breakingSoundVariationPitch = 0.1f;
-    public float breakingSoundRange = 15f;
+    public SoundParameters breakingSoundParameters;
     public float minForceToBreak = 5f;
     public float lockingFracturesDelay = 3f;
+
+    [Header("Breaking Forces")]
+    public float fractureExplosionForce = 2.5f;
+    public float fractureExplosionRadius = 1f;
+    public float fractureExplosionUpwards = 0.2f;
+    public float fractureRandomTorque = 1.2f;
 
     private bool _canBreak = false;
 
@@ -53,13 +60,29 @@ public class CatchableBreakingObject : CatchableObject
 
         _canBreak = false;
 
-        canBeGrabByPlayer = false;
-        canBeThrownByGhost = false;
-        canBeThrownByPlayer = false;
+        if (forbidInteractionOnBreak)
+        {
+            canBeGrabByPlayer = false;
+            canBeThrownByGhost = false;
+            canBeThrownByPlayer = false;
+        }
+
+        if (annoyTheGhosts)
+        {
+            House.Instance.currentGhost.MultiplyAnger(ghostAngerMultiplierOnBreak);
+        }
+
         PlayBreakingSound(impactForce);
 
-        model.SetActive(false);
-        fracturedModel.SetActive(true);
+        if (model != null && fracturedModel != null)
+            fracturedModel.transform.SetPositionAndRotation(model.transform.position, model.transform.rotation);
+
+        if (model != null)
+            model.SetActive(false);
+        if (fracturedModel != null)
+            fracturedModel.SetActive(true);
+
+        ApplyFractureForces(impactForce);
 
         foreach (Transform fracture in GetComponentsInChildren<Transform>())
         {
@@ -87,39 +110,39 @@ public class CatchableBreakingObject : CatchableObject
             });
         }
     }
+
+    private void ApplyFractureForces(float impactForce)
+    {
+        if (fracturedModel == null)
+            return;
+
+        float impactScale = minForceToBreak > 0f ? Mathf.Clamp01(impactForce / minForceToBreak) : 1f;
+        float explosionForce = fractureExplosionForce * Mathf.Lerp(0.75f, 1.5f, impactScale);
+        float torqueForce = fractureRandomTorque * Mathf.Lerp(0.75f, 1.5f, impactScale);
+
+        Rigidbody[] rigidbodies = fracturedModel.GetComponentsInChildren<Rigidbody>(true);
+        for (int i = 0; i < rigidbodies.Length; i++)
+        {
+            Rigidbody rb = rigidbodies[i];
+            if (rb == null)
+                continue;
+
+            rb.isKinematic = false;
+            if (explosionForce > 0f && fractureExplosionRadius > 0f)
+                rb.AddExplosionForce(explosionForce, transform.position, fractureExplosionRadius, fractureExplosionUpwards, ForceMode.Impulse);
+
+            if (torqueForce > 0f)
+                rb.AddTorque(Random.onUnitSphere * torqueForce, ForceMode.Impulse);
+        }
+    }
     
     private void PlayBreakingSound(float impactForce)
     {
-        if (breakingSounds.Length == 0) return;
-
-        AudioClip clipToUse = null;
-        clipToUse = breakingSounds[Random.Range(0, breakingSounds.Length)];
-        if (clipToUse == null)
+        if (breakingSoundParameters != null)
         {
-            //If selected clip is null, select first viable sound
-            foreach (AudioClip clip in breakingSounds)
-            {
-                if (clip != null)
-                {
-                    clipToUse = clip;
-                    break;
-                }
-            }
+            float volumeMultiplier = Mathf.Clamp01(impactForce / 10f); // normalise impactForce
+            float volumeToUse = breakingSoundParameters.volume * volumeMultiplier;
+            breakingSoundParameters.PlaySound(transform.position, volumeToUse);
         }
-
-        //No viable audio clip
-        if (clipToUse == null)
-            return;
-        
-        float volumeMultiplier = Mathf.Clamp01(impactForce / 10f); // normalise impactForce
-        float pitch = breakingSoundAveragePitch + Random.Range(-breakingSoundVariationPitch, breakingSoundVariationPitch);
-
-        SoundManager.Instance.PlaySound(
-            clipToUse,
-            position: transform.position,
-            volume: breakingSoundVolume * volumeMultiplier,
-            pitch: pitch,
-            range: breakingSoundRange
-        );
     }
 }

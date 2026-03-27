@@ -389,9 +389,11 @@ MonoBehaviour:
   canBeDroppedOnMap: 1
   canBeTakenBackIntoHands: 0
   powerActiveInHands: 0
+  useSecondaryButton: 0
   lookAtPlayerWhileWaiting: 0
   lookAtPlayerOnInteract: 1
   lookAtPlayerOnInteractDuration: 0.25
+  interactionCooldown: 0
   openDoorsOnItsWay: 0
   lookForwardOnDropOnMap: 0
   lookAtDistanceFromPlayer: 10
@@ -418,6 +420,12 @@ MonoBehaviour:
   agent: {fileID: 65096336082962760}
   collider: {fileID: 6215720225142001276}
   animator: {fileID: 8327419035918618999}
+  onInteract:
+    m_PersistentCalls:
+      m_Calls: []
+  onSecondaryButtonUsed:
+    m_PersistentCalls:
+      m_Calls: []
   onDisable:
     m_PersistentCalls:
       m_Calls: []
@@ -435,14 +443,14 @@ MonoBehaviour:
   - {fileID: 6976662970140725635, guid: 40e33451754034099be424ede2213bf0, type: 3}
   dropIntervalMin: 60
   dropIntervalMax: 120
-  dropDelay: 0.3
+  dropDelay: 0.5
   dropAnimationTrigger: Drop
   avoidRepeat: 0
   maxRepeatRerolls: 5
   maxDrops: 20
   spawnForwardOffset: 0
   spawnUpOffset: 1.2
-  dropImpulseForce: 10
+  dropImpulseForce: 5
   dropTorqueForce: 1
 --- !u!114 &9168426047296845462
 MonoBehaviour:
