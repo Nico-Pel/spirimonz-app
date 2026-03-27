@@ -3,6 +3,12 @@ using UnityEngine;
 
 public class SpmzUsePower : Spirimonz
 {
+    public enum PowerUseMode
+    {
+        Hold,
+        SingleShot
+    }
+
     [Header("Energy")]
     public float maxEnergy = 100f;
     [ReadOnly] public float currentEnergy = 100f;
@@ -15,12 +21,20 @@ public class SpmzUsePower : Spirimonz
 
     public float minPercentToUse = 0.25f;
 
+    [Header("Power Use Mode")]
+    public PowerUseMode useMode = PowerUseMode.Hold;
+    [Tooltip("Energy consumed per use (SingleShot mode)")]
+    public float energyCostPerUse = 0f;
+    [Tooltip("How long the power stays active for feedback in SingleShot mode")]
+    public float singleShotActiveDuration = 0.15f;
+
     private float _timeDisabled;
 
     [Header("Power")]
     public PowerActivator powerActivator;
 
     private bool _isUsingPower;
+    private const string SINGLE_SHOT_STOP_INVOKE = "SpmzUsePower.SingleShotStop";
 
     protected override void Start()
     {
@@ -46,13 +60,16 @@ public class SpmzUsePower : Spirimonz
         if ((!MobileInput.Enabled && Input.GetMouseButtonDown(1)) || MobileInput.SecondaryDown)
             TryActivate();
 
-        if ((!MobileInput.Enabled && Input.GetMouseButtonUp(1)) || MobileInput.SecondaryUp)
-            StopPower();
+        if (useMode == PowerUseMode.Hold)
+        {
+            if ((!MobileInput.Enabled && Input.GetMouseButtonUp(1)) || MobileInput.SecondaryUp)
+                StopPower();
+        }
     }
 
     private void UpdateEnergy()
     {
-        if (_isUsingPower)
+        if (_isUsingPower && useMode == PowerUseMode.Hold)
         {
             // Consume energy per second
             currentEnergy -= usingEnergyForSec * Time.deltaTime;
@@ -63,7 +80,7 @@ public class SpmzUsePower : Spirimonz
                 StopPower();
             }
         }
-        else
+        else if (!_isUsingPower)
         {
             // Regenerate energy per second
             currentEnergy += rechargeForSec * Time.deltaTime;
@@ -71,26 +88,50 @@ public class SpmzUsePower : Spirimonz
         }
     }
 
-    private void TryActivate()
+    protected virtual bool TryActivate()
     {
-        if (CurrentEnergyFraction() < minPercentToUse)
+        if (!CanUsePower())
         {
             animator.SetTrigger("Nop");
-            return;
+            return false;
         }
 
         _isUsingPower = true;
-        powerActivator.Activate();
+        if (useMode == PowerUseMode.SingleShot && energyCostPerUse > 0f)
+            SpendEnergy(energyCostPerUse);
+
+        if (powerActivator != null)
+            powerActivator.Activate();
         animator.SetBool("CanUsePower", true);
+
+        if (useMode == PowerUseMode.SingleShot && animator != null)
+            animator.SetTrigger("UsePower");
+
+        OnPowerActivated();
+
+        if (useMode == PowerUseMode.SingleShot)
+        {
+            CancelInvoke(SINGLE_SHOT_STOP_INVOKE);
+            float duration = Mathf.Max(0f, singleShotActiveDuration);
+            if (duration > 0f)
+                this.Invoke(SINGLE_SHOT_STOP_INVOKE, duration, StopPower);
+            else
+                StopPower();
+        }
+
+        return true;
     }
 
-    private void StopPower()
+    protected virtual void StopPower()
     {
         if (!_isUsingPower) return;
 
         _isUsingPower = false;
-        powerActivator.Deactivate();
+        if (powerActivator != null)
+            powerActivator.Deactivate();
         animator.SetBool("CanUsePower", false);
+
+        OnPowerDeactivated();
     }
 
     protected override void OnEnable()
@@ -119,4 +160,34 @@ public class SpmzUsePower : Spirimonz
 
     public bool IsUsingPower() => _isUsingPower;
     public float CurrentEnergyFraction() => Mathf.Clamp01(currentEnergy / maxEnergy);
+
+    protected virtual bool CanUsePower()
+    {
+        float required = GetRequiredEnergy();
+        return currentEnergy >= required;
+    }
+
+    protected virtual float GetRequiredEnergy()
+    {
+        float requiredByPercent = maxEnergy * minPercentToUse;
+        float requiredByCost = useMode == PowerUseMode.SingleShot ? Mathf.Max(0f, energyCostPerUse) : 0f;
+        return Mathf.Max(requiredByPercent, requiredByCost);
+    }
+
+    protected bool SpendEnergy(float amount)
+    {
+        if (amount <= 0f) return true;
+        if (currentEnergy < amount) return false;
+        currentEnergy -= amount;
+        return true;
+    }
+
+    public void RestoreEnergy(float amount)
+    {
+        if (amount <= 0f) return;
+        currentEnergy = Mathf.Min(maxEnergy, currentEnergy + amount);
+    }
+
+    protected virtual void OnPowerActivated() { }
+    protected virtual void OnPowerDeactivated() { }
 }

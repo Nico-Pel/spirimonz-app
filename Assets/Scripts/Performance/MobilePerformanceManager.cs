@@ -1,4 +1,6 @@
 using UnityEngine;
+using UnityEngine.SceneManagement;
+using UnityEngine.Rendering.PostProcessing;
 
 public class MobilePerformanceManager : MonoBehaviour
 {
@@ -15,6 +17,10 @@ public class MobilePerformanceManager : MonoBehaviour
     public bool autoAdjust = true;
     public PerfLevel startLevel = PerfLevel.Medium;
     public bool affectLightingSettings = false;
+
+    [Header("Mobile Post Processing")]
+    public bool disablePlayerPostProcessingOnLowFps = true;
+    public string playerCameraTag = "MainCamera";
 
     [Header("FPS Detection")]
     public float checkInterval = 0.5f;
@@ -95,6 +101,11 @@ public class MobilePerformanceManager : MonoBehaviour
     private float _lowTimer;
     private float _highTimer;
     private float _lastChangeTime;
+    private PostProcessLayer _playerPostProcessLayer;
+    private PostProcessVolume _playerPostProcessVolume;
+    private bool _playerPostProcessLayerBaseline;
+    private bool _playerPostProcessVolumeBaseline;
+    private int _cachedPlayerCameraId = -1;
 
     public static void EnsureExists()
     {
@@ -116,6 +127,16 @@ public class MobilePerformanceManager : MonoBehaviour
 
         Instance = this;
         DontDestroyOnLoad(gameObject);
+    }
+
+    private void OnEnable()
+    {
+        SceneManager.sceneLoaded += HandleSceneLoaded;
+    }
+
+    private void OnDisable()
+    {
+        SceneManager.sceneLoaded -= HandleSceneLoaded;
     }
 
     private void Update()
@@ -174,6 +195,7 @@ public class MobilePerformanceManager : MonoBehaviour
         else
         {
             RestoreBaseline();
+            RestorePlayerPostProcessingBaseline();
         }
     }
 
@@ -188,6 +210,7 @@ public class MobilePerformanceManager : MonoBehaviour
         _highTimer = 0f;
 
         ApplyLevel(level);
+        ApplyPlayerPostProcessingForLevel();
     }
 
     private void ApplyLevel(PerfLevel level)
@@ -277,6 +300,71 @@ public class MobilePerformanceManager : MonoBehaviour
         QualitySettings.anisotropicFiltering = _baseline.aniso;
         QualitySettings.realtimeReflectionProbes = _baseline.realtimeReflectionProbes;
         QualitySettings.softParticles = _baseline.softParticles;
+    }
+
+    private void HandleSceneLoaded(Scene scene, LoadSceneMode mode)
+    {
+        _cachedPlayerCameraId = -1;
+        ApplyPlayerPostProcessingForLevel();
+    }
+
+    private void ApplyPlayerPostProcessingForLevel()
+    {
+        if (!disablePlayerPostProcessingOnLowFps)
+            return;
+
+        if (!TryCachePlayerPostProcessing())
+            return;
+
+        bool shouldDisable = _enabled && autoAdjust && _currentLevel == PerfLevel.Low;
+
+        if (_playerPostProcessLayer != null)
+            _playerPostProcessLayer.enabled = shouldDisable ? false : _playerPostProcessLayerBaseline;
+
+        if (_playerPostProcessVolume != null)
+            _playerPostProcessVolume.enabled = shouldDisable ? false : _playerPostProcessVolumeBaseline;
+    }
+
+    private void RestorePlayerPostProcessingBaseline()
+    {
+        if (!disablePlayerPostProcessingOnLowFps)
+            return;
+
+        if (!TryCachePlayerPostProcessing())
+            return;
+
+        if (_playerPostProcessLayer != null)
+            _playerPostProcessLayer.enabled = _playerPostProcessLayerBaseline;
+
+        if (_playerPostProcessVolume != null)
+            _playerPostProcessVolume.enabled = _playerPostProcessVolumeBaseline;
+    }
+
+    private bool TryCachePlayerPostProcessing()
+    {
+        Camera cam = Camera.main;
+
+        if (cam == null && !string.IsNullOrEmpty(playerCameraTag))
+        {
+            GameObject taggedCamera = GameObject.FindGameObjectWithTag(playerCameraTag);
+            if (taggedCamera != null)
+                cam = taggedCamera.GetComponent<Camera>();
+        }
+
+        if (cam == null)
+            return false;
+
+        int camId = cam.GetInstanceID();
+        if (camId == _cachedPlayerCameraId && (_playerPostProcessLayer != null || _playerPostProcessVolume != null))
+            return true;
+
+        _cachedPlayerCameraId = camId;
+        _playerPostProcessLayer = cam.GetComponent<PostProcessLayer>();
+        _playerPostProcessVolume = cam.GetComponent<PostProcessVolume>();
+        _playerPostProcessLayerBaseline = _playerPostProcessLayer != null && _playerPostProcessLayer.enabled;
+        _playerPostProcessVolumeBaseline = _playerPostProcessVolume != null && _playerPostProcessVolume.enabled;
+
+        return _playerPostProcessLayer != null || _playerPostProcessVolume != null;
     }
 
     private float GetDownThreshold(PerfLevel level)

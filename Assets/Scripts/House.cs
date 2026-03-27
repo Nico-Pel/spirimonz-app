@@ -220,7 +220,6 @@ public class House : GameBehaviour
     {
         onNewPrintSourceAddedToGame?.Invoke(source);
         printSourcesAddedToGame.Add(source);
-        Debug.Log("Pouet new print source declared");
     }
     
     public void DeclareNewActivitySource(ActivitySource source)

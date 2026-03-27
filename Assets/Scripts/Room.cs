@@ -74,7 +74,6 @@ public class Room : MonoBehaviour
         if (selectableObjects.Count == 0) return null;
         
         Switch randomSwitch = selectableObjects[Random.Range(0, selectableObjects.Count)];
-        Debug.Log("Pouet switch = " + randomSwitch.name);
         return randomSwitch;
     }
 

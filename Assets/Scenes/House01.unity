@@ -24843,12 +24843,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   map: {fileID: 11400000, guid: ce4f9a8c8498f482fa9729084559e18d, type: 2}
   selectedGhostParameter: {fileID: 0}
-  useDebugs: 1
-  playerCantDie: 1
-  forcedGhostParameters: {fileID: 0}
+  useDebugs: 0
+  playerCantDie: 0
+  forcedGhostParameters: {fileID: 11400000, guid: 8e8dc43926a4b444bbafac30219b5471, type: 2}
   forcedGhostModel: {fileID: 0}
-  forcedGhostActivity: 7
-  forcedFavoriteRoomID: -1
+  forcedGhostActivity: 5
+  forcedFavoriteRoomID: 1
   tripleActivityDebug: 0
   useHuntTimeMultiplierDebug: 0
   huntTimeMultiplierDebug: 1
@@ -26311,6 +26311,10 @@ PrefabInstance:
     - target: {fileID: 4797685715647066722, guid: 179f4b942a88b4afcaa9874da1ebd601, type: 3}
       propertyPath: m_AnchoredPosition.y
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4812355730648345990, guid: 179f4b942a88b4afcaa9874da1ebd601, type: 3}
+      propertyPath: m_AnchoredPosition.y
+      value: -155.1543
       objectReference: {fileID: 0}
     - target: {fileID: 4842275438675778323, guid: 179f4b942a88b4afcaa9874da1ebd601, type: 3}
       propertyPath: m_AnchorMax.y

@@ -274,13 +274,19 @@ public class InteractionController : GameBehaviour
         }
         else if (_currentCatchable != null)
         {
-            if (_player.inventoryManager.OccupedHands()) return;
-
             if ((!MobileInput.Enabled && _player.inputManager.GetGrabDown()) || MobileInput.GrabDown)
             {
                 if (_currentCatchable.canBeGrabByPlayer && !_currentCatchable.isGrabbed)
                 {
-                    _player.inventoryManager.ReplaceSpirimonzByAnItem();
+                    if (_player.inventoryManager.OccupedHands())
+                    {
+                        Spirimonz selectedSpirimonz = _player.inventoryManager.selectedSpirimonz;
+                        if (selectedSpirimonz != null && !selectedSpirimonz.isOnTheMap)
+                            _player.inventoryManager.ReplaceSpirimonzByAnItem();
+                        else
+                            return;
+                    }
+
                     GrabItem(_currentCatchable);
                 }
             }

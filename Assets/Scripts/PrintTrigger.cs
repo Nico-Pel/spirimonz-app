@@ -24,7 +24,6 @@ public class PrintTrigger : GameBehaviour
 
             if (isAnInstantiatedObject)
             {
-                Debug.Log("Pouet try to declare new print source");
                 House.Instance.DeclareNewPrintSource(source);
             }
         }
