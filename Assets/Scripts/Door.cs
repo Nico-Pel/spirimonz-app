@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Events;
 using UnityEngine.Serialization;
 using Random = UnityEngine.Random;
 
@@ -57,6 +58,8 @@ public class Door : GameBehaviour, IInteractable
     private bool _wasConsideredOpen;
     private float _lastOpenSoundTime = -999f;
     private float _lastSpirimonzOpenRequestTime = -999f;
+
+    public UnityEvent<Door> onGhostInteracted;
 
     //private float _lockTimeAfterGhostInteraction = 1.5f;
     private Vector3 _basePosition;
@@ -154,6 +157,9 @@ public class Door : GameBehaviour, IInteractable
         }
 
         ForcedHinge(targetAngle, moveSpeed);
+        
+        if(!openedBySpirimonz)
+            onGhostInteracted?.Invoke(this);
     }
 
     public void CloseDoor(float closeSpeed, bool forcedSlam = false, bool ignoreAudioOcclusions = false)

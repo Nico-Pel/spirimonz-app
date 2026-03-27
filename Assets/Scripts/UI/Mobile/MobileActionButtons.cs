@@ -43,12 +43,12 @@ public class MobileActionButtons : MonoBehaviour
         bool hasSpirimonzInHands = _gamePlayer.inventoryManager != null
             && _gamePlayer.inventoryManager.selectedSpirimonz != null
             && !_gamePlayer.inventoryManager.selectedSpirimonz.isOnTheMap;
-        bool hasUsePowerSpirimonz = hasSpirimonzInHands && _gamePlayer.inventoryManager.selectedSpirimonz is SpmzUsePower;
+        bool hasSecondaryButtonSpirimonz = hasSpirimonzInHands && _gamePlayer.inventoryManager.selectedSpirimonz.useSecondaryButton;
 
         SetActive(grabButton, !hasObject);
         SetActive(dropButton, hasObject);
         SetActive(throwButton, hasObject && !hasCandleInHands);
-        SetActive(secondaryButton, (!hasObject && !hasSpirimonzInHands) || hasCandleInHands || hasBookInHands || hasUsePowerSpirimonz);
+        SetActive(secondaryButton, (!hasObject && !hasSpirimonzInHands) || hasCandleInHands || hasBookInHands || hasSecondaryButtonSpirimonz);
         SetActive(torchButton, true);
     }
 

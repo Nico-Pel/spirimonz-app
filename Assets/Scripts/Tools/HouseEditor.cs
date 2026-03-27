@@ -53,6 +53,7 @@ public class HouseEditor : Editor
 
     private void ResetDebugParameters()
     {
+        serializedObject.FindProperty("useDebugs").boolValue = false;
         serializedObject.FindProperty("playerCantDie").boolValue = false;
         serializedObject.FindProperty("forcedGhostParameters").objectReferenceValue = null;
         serializedObject.FindProperty("forcedGhostModel").objectReferenceValue = null;

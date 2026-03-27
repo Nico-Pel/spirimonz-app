@@ -22,6 +22,12 @@ public class SpmzUsePower : Spirimonz
 
     private bool _isUsingPower;
 
+    protected override void Start()
+    {
+        useSecondaryButton = true;
+        base.Start();
+    }
+
     public override bool UpdateSpirimonzBehaviour()
     {
         if (!base.UpdateSpirimonzBehaviour())

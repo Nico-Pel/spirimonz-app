@@ -33,6 +33,7 @@ public class Spirimonz : GameBehaviour, IInteractable
     public bool canBeDroppedOnMap = true;
     public bool canBeTakenBackIntoHands = true;
     public bool powerActiveInHands = true;
+    public bool useSecondaryButton = false;
     public bool lookAtPlayerWhileWaiting = true;
     public bool lookAtPlayerOnInteract = false;
     public float lookAtPlayerOnInteractDuration = 0.25f;
@@ -106,6 +107,7 @@ public class Spirimonz : GameBehaviour, IInteractable
     private Coroutine _lookAtInteractCoroutine;
 
     public UnityEvent onInteract;
+    public UnityEvent onSecondaryButtonUsed;
     public UnityEvent onDisable;
     public UnityEvent onDroppedOnMap;
     public UnityEvent onGoingBackToHands;
@@ -1003,7 +1005,7 @@ public class Spirimonz : GameBehaviour, IInteractable
 
     public virtual void OnClickInHands()
     {
-        
+        onSecondaryButtonUsed?.Invoke();
     }
     
     public bool IsInHidingMode() => _hidingFromAGhost;
