@@ -443,6 +443,19 @@ public class Ghost : GameBehaviour
         }
     }
 
+    public void TryToTriggerAHunt(float chances, float delayMin = 0.1f, float delayMax = 0.1f)
+    {
+        float roll = Random.Range(0f, 100f);
+        if (roll <= chances)
+        {
+            float delay = Random.Range(delayMin, delayMax);
+            this.Invoke(delay, () =>
+            {
+                TriggerHunting(true);
+            });
+        }
+    }
+
     private bool _willHunt;
     private void TriggerHunting(bool forceHunting = false)
     {

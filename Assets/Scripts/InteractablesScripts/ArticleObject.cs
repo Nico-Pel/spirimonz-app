@@ -28,5 +28,12 @@ public class ArticleObject : CatchableObject
                 soundParameters.PlaySound(player.transform.position);
             });
         }
+
+        //If the ghost is Totemic: There is a 10% chance that a hunt will begin once there is a talisman in the house it haunts.
+        Ghost ghost = House.Instance.currentGhost;
+        if (ghost.ghostParameters.ghostTypeData.ghostType == GhostTypeData.GhostType.Totemic)
+        {
+            ghost.TryToTriggerAHunt(10f, 0.1f, 3f);
+        }
     }
 }
