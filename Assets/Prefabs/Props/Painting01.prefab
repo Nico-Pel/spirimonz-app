@@ -220,17 +220,29 @@ MonoBehaviour:
   canBeThrownByGhost: 1
   canBeThrownByPlayer: 0
   setRotZeroOnDrop: 1
+  offsetPosInHands: {x: 0, y: 0, z: 0}
+  offsetRotInHands: {x: 0, y: 0, z: 0}
+  priority: 0
   rb: {fileID: 3036173794050276212}
   activitySource: {fileID: 277698470866995510}
   isGrabbed: 0
-  collisionSounds:
-  - {fileID: 8300000, guid: ffabf64a8005840f6a64ffd39c565cba, type: 3}
-  collisionSoundVolume: 0.5
-  collisionSoundAveragePitch: 1
-  collisionSoundVariationPitch: 0.1
-  collisionSoundRange: 15
-  minForceToPlayCollision: 1
   collisionSoundParameters: {fileID: 1249745561794585959}
+  minForceToPlayCollision: 1
+  addTorqueOnThrow: 1
+  throwTorqueRange: {x: 0.2, y: 0.6}
+  ignorePlayerCollisionDuration: 1
+  autoSleepWhenIdle: 1
+  autoSleepStartDelay: 1
+  autoSleepCheckInterval: 0.5
+  autoSleepMinStableTime: 0.5
+  autoSleepVelocity: 0.02
+  autoSleepAngularVelocity: 0.02
+  onGrab:
+    m_PersistentCalls:
+      m_Calls: []
+  onSecondaryUse:
+    m_PersistentCalls:
+      m_Calls: []
 --- !u!65 &1868252378140319457
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -250,8 +262,8 @@ BoxCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 1, y: 1.5, z: 0.05}
-  m_Center: {x: 0, y: 0, z: -0.025}
+  m_Size: {x: 1, y: 1.5, z: 0.061023273}
+  m_Center: {x: 0, y: 0, z: 0.027202655}
 --- !u!54 &3036173794050276212
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -304,6 +316,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 40b88c04d7940466da713f4000ddccc8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  playerOnEnabled: 0
   possibleClips:
   - {fileID: 8300000, guid: ffabf64a8005840f6a64ffd39c565cba, type: 3}
   volume: 0.5

@@ -121,6 +121,8 @@ public class Ghost : GameBehaviour
     
     public LayerMask blockingThrowMask; // Wall, Ground, Ceiling
     public float visibilityHeightOffset = 1.2f; // hauteur du raycast
+    public LayerMask interactionOcclusionMask; // Wall, Ceiling (optional)
+    public int maxInteractionSelectionTries = 5;
 
     [Header("Ghost Stats : Doors Playing")]
     public float doorDetectionRange = 8;
@@ -986,6 +988,7 @@ public class Ghost : GameBehaviour
         }
     }
 
+
     private void TriggerActivity()
     {
         if (_isLocked) return;
@@ -1017,8 +1020,10 @@ public class Ghost : GameBehaviour
 
         if (currentState != GhostState.hideState)
         {
-            //Le fantôme ne déclenche pas d'activité aléatoire pendant sa chasse
-            randomActivity = GhostActivities.Nothing;
+            // Interactions uniquement en hide state
+            CancelInvoke(ACTIVITY_INVOKE);
+            this.Invoke(ACTIVITY_INVOKE, nextActivityTime, TriggerActivity);
+            return;
         }
         
         switch (randomActivity)
@@ -1112,12 +1117,45 @@ public class Ghost : GameBehaviour
 
     private void InteractWithAStandardClickable()
     {
-        ClickableObject clickable = currentRoom.SelectRandomClickableObject(true);
-        if (clickable != null)
+        if (TryGetClickableWithLineOfSight(true, out ClickableObject clickable))
         {
             ActivateActivitySource(clickable.activitySource);
             clickable.OnClick();
         }
+    }
+
+    private bool TryGetClickableWithLineOfSight(bool ignoreSwitch, out ClickableObject clickable)
+    {
+        clickable = null;
+        if (currentRoom == null || currentRoom.clickableObjects == null || currentRoom.clickableObjects.Count == 0)
+            return false;
+
+        List<ClickableObject> candidates = new List<ClickableObject>();
+        foreach (ClickableObject co in currentRoom.clickableObjects)
+        {
+            if (co == null) continue;
+            if (ignoreSwitch && co.TryGetComponent(out Switch _)) continue;
+            candidates.Add(co);
+        }
+
+        if (candidates.Count == 0)
+            return false;
+
+        int tries = Mathf.Max(1, maxInteractionSelectionTries);
+        for (int i = 0; i < tries && candidates.Count > 0; i++)
+        {
+            int index = Random.Range(0, candidates.Count);
+            ClickableObject candidate = candidates[index];
+            candidates.RemoveAt(index);
+
+            if (HasLineOfSightToClickable(candidate))
+            {
+                clickable = candidate;
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private void BlowUpARandomFlammable()
@@ -1442,13 +1480,67 @@ public class Ghost : GameBehaviour
 
         direction.Normalize();
 
-        if (Physics.Raycast(origin, direction, out RaycastHit hit, distance, blockingThrowMask))
+        int mask = GetInteractionOcclusionMask();
+        if (mask != 0 && Physics.Raycast(origin, direction, out RaycastHit hit, distance, mask))
         {
             // Something blocks the view before reaching the object
             return false;
         }
 
         return true;
+    }
+
+    private bool HasLineOfSightToClickable(ClickableObject clickable)
+    {
+        if (clickable == null)
+            return false;
+
+        Vector3 origin = GetInteractionOrigin();
+        Vector3 target = GetInteractionTargetPoint(clickable.transform);
+
+        Vector3 direction = target - origin;
+        float distance = direction.magnitude;
+        if (distance <= 0.001f)
+            return true;
+
+        direction.Normalize();
+
+        int mask = GetInteractionOcclusionMask();
+        if (mask != 0 && Physics.Raycast(origin, direction, distance, mask, QueryTriggerInteraction.Ignore))
+            return false;
+
+        return true;
+    }
+
+    private Vector3 GetInteractionOrigin()
+    {
+        if (vision != null && vision.ghostHead != null)
+            return vision.ghostHead.position;
+
+        return transform.position + Vector3.up * visibilityHeightOffset;
+    }
+
+    private Vector3 GetInteractionTargetPoint(Transform target)
+    {
+        if (target == null)
+            return transform.position;
+
+        Collider col = target.GetComponent<Collider>();
+        if (col == null)
+            col = target.GetComponentInChildren<Collider>();
+
+        if (col != null)
+            return col.bounds.center;
+
+        return target.position;
+    }
+
+    private int GetInteractionOcclusionMask()
+    {
+        if (interactionOcclusionMask.value != 0)
+            return interactionOcclusionMask.value;
+
+        return blockingThrowMask.value;
     }
     
     private CatchableObject GetHighestPriorityRandom(List<CatchableObject> catchables)
