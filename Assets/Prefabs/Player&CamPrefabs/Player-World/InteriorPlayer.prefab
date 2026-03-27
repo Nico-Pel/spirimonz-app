@@ -112,6 +112,7 @@ GameObject:
   m_Component:
   - component: {fileID: 2571072270827216302}
   - component: {fileID: 4427688175982516435}
+  - component: {fileID: 5534885778772375962}
   m_Layer: 7
   m_Name: CharacterLightEmission
   m_TagString: Untagged
@@ -196,6 +197,26 @@ Light:
   m_UseViewFrustumForShadowCasterCull: 1
   m_ShadowRadius: 0
   m_ShadowAngle: 0
+--- !u!114 &5534885778772375962
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 189621680894311895}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d0bedb8895a13485f9481e45d51580cd, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  targetLight: {fileID: 0}
+  ignoreOptimization: 0
+  allowDisableWhenFar: 1
+  useCustomDistances: 0
+  nearDistance: 10
+  shadowDisableDistance: 14
+  farDistance: 22
+  disableDistance: 30
 --- !u!1 &489217661125324636
 GameObject:
   m_ObjectHideFlags: 0
@@ -1414,6 +1435,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   camera: {fileID: 8836860237729790393}
+  head: {fileID: 4227735763372530946}
   characterController: {fileID: 2816432068695902417}
   inputManager: {fileID: 0}
   inventoryManager: {fileID: 0}
@@ -1430,8 +1452,6 @@ MonoBehaviour:
   handAnimator: {fileID: 123471729633074825}
   currentRoom: {fileID: 0}
   house: {fileID: 0}
-  head: {fileID: 4227735763372530946}
-  body: {fileID: 4227735763372530946}
   deathSound: {fileID: 8300000, guid: 332372de3678b4f78a29910c40f9525e, type: 3}
   deathVolume: 1
   deathSoundDelay: 1.2
@@ -1461,10 +1481,20 @@ MonoBehaviour:
   mouseSensitivityX: 10
   mouseSensitivityY: 10
   maxLookAngle: 80
+  useRawMouseInput: 1
+  useSmoothDeltaTimeForLook: 1
+  ignoreLookFramesOnFocus: 1
+  maxLookDeltaPerFrame: 8
+  maxLookDeltaTime: 0.05
   mobileLookSensitivityX: 2
   mobileLookSensitivityY: 0.8
   mobileLookSensitivityMultiplier: 0.25
+  mobileLookBoostThreshold: 0.7
+  mobileLookBoostMultiplier: 1.6
+  mobileIdleLookMultiplier: 4
+  mobileIdleLookLerpSpeed: 6
   mobileSprintThreshold: 0.75
+  allowKeyboardMovementWhenMobile: 1
   crouchHeight: 1.5
   crouchCameraHeight: 1
   crouchTransitionSpeed: 6
@@ -1516,7 +1546,6 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 2048
   rayOffset: 0.2
-  sphereRadius: 0.1
   targetingGround: 0
   handObjectPosition: {fileID: 50864190221934149}
   handObjectDropPosition: {fileID: 6777508363347249603}
@@ -1525,6 +1554,8 @@ MonoBehaviour:
   doorLayer:
     serializedVersion: 2
     m_Bits: 1024
+  debugDropRaycast: 0
+  debugDropHitTransform: {fileID: 0}
   OnGrabItem:
     m_PersistentCalls:
       m_Calls: []
@@ -1553,7 +1584,7 @@ CharacterController:
   m_Height: 1.8
   m_Radius: 0.5
   m_SlopeLimit: 45
-  m_StepOffset: 0.3
+  m_StepOffset: 0.075
   m_SkinWidth: 0.08
   m_MinMoveDistance: 0.001
   m_Center: {x: 0, y: 0.9, z: 0}
@@ -2396,6 +2427,7 @@ GameObject:
   m_Component:
   - component: {fileID: 100227547064011814}
   - component: {fileID: 3356019164725039461}
+  - component: {fileID: 3596855377821907039}
   m_Layer: 13
   m_Name: Point Light
   m_TagString: Untagged
@@ -2480,6 +2512,26 @@ Light:
   m_UseViewFrustumForShadowCasterCull: 1
   m_ShadowRadius: 0
   m_ShadowAngle: 0
+--- !u!114 &3596855377821907039
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5978245453484473338}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d0bedb8895a13485f9481e45d51580cd, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  targetLight: {fileID: 0}
+  ignoreOptimization: 0
+  allowDisableWhenFar: 1
+  useCustomDistances: 0
+  nearDistance: 10
+  shadowDisableDistance: 14
+  farDistance: 22
+  disableDistance: 30
 --- !u!1 &5991437536992613468
 GameObject:
   m_ObjectHideFlags: 0
