@@ -1589,7 +1589,11 @@ public class Ghost : GameBehaviour
         activitySource.SetActivityValue(randomValue, randomTime);
         
         //Activate refreshment
-        currentRoom.AddTemperatureDelta(ghostParameters.GetRandomRefreshment());
+        float refreshment = ghostParameters.GetRandomRefreshment();
+        if (ghostParameters.FreezingTemperature && currentRoom != favoriteRoom)
+            currentRoom.AddTemperatureDeltaClamped(refreshment, currentRoom.minNormalTemperature);
+        else
+            currentRoom.AddTemperatureDelta(refreshment);
     }
 
     public bool IsHunting(bool includeWillHunt = true)

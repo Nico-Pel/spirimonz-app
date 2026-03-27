@@ -101,7 +101,10 @@ public class UIGhostTypeSlot : GameBehaviour
         switch (currentForcedState)
         {
             case GhostTypeSlotForcedState.none:
-                ChangeForcedCurrentState(GhostTypeSlotForcedState.selected);
+                if (_journal != null)
+                    _journal.SelectGhostTypeSlot(this);
+                else
+                    ChangeForcedCurrentState(GhostTypeSlotForcedState.selected);
                 break;
             case GhostTypeSlotForcedState.selected:
                 ChangeForcedCurrentState(GhostTypeSlotForcedState.crossedOut);
@@ -112,12 +115,18 @@ public class UIGhostTypeSlot : GameBehaviour
         }
     }
 
-    private void ChangeForcedCurrentState(GhostTypeSlotForcedState forcedState)
+    public void SetForcedState(GhostTypeSlotForcedState forcedState, bool notify = true)
     {
         currentForcedState = forcedState;
         selector.SetActive(forcedState == GhostTypeSlotForcedState.selected);
         cross.SetActive(forcedState == GhostTypeSlotForcedState.crossedOut);
-        
-        OnChangeForcedState?.Invoke();
+
+        if (notify)
+            OnChangeForcedState?.Invoke();
+    }
+
+    private void ChangeForcedCurrentState(GhostTypeSlotForcedState forcedState)
+    {
+        SetForcedState(forcedState);
     }
 }

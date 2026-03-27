@@ -51,7 +51,7 @@ public class GhostParameters : ScriptableObject
     
     [Space]
     
-    [Header("Evidences")] 
+    [Header("Evidences")]
     public bool SpiritPrints;
     public bool EatFruits;
     public bool BlowUpFlammables;

@@ -14,6 +14,7 @@ public class UIEvidence : GameBehaviour
     public Button dotButton;
     public TextMeshProUGUI titleText;
     public TextMeshProUGUI infoText;
+    public Image evidenceIcon;
     public Image dotImage;
     public Sprite dotSprite;
     public Sprite crossSprite;
@@ -25,6 +26,7 @@ public class UIEvidence : GameBehaviour
         
         titleText.text = evidenceParameter.title;
         infoText.text = evidenceParameter.info;
+        evidenceIcon.sprite = evidenceParameter.icon;
     }
 
     private void DotPressed()

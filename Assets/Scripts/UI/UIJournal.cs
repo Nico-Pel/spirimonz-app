@@ -17,6 +17,7 @@ public class UIJournal : GameBehaviour
     public TextMeshProUGUI tGhostName;
     public Image iGhostImage;
     public GameObject[] ghostClues;
+    public GameObject[] ghostEvidenceIcons;
     public TextMeshProUGUI[] tGhostClues;
     
     private int _selectedSlotsCount;
@@ -64,9 +65,13 @@ public class UIJournal : GameBehaviour
         if (captureButton == null) return;
         
         int selectedSlotsCount = GetSelectedGhosts().Count;
-        float percentageChances = GhostInvestigator.Instance.GetCaptureChancePercentage(selectedSlotsCount);
-        captureButton.interactable = selectedSlotsCount > 0 && percentageChances > 0 && House.Instance.currentGhost.IsHunting() == false;
-        percentageText.text = percentageChances + "%";
+        captureButton.interactable = selectedSlotsCount > 0 && House.Instance.currentGhost.IsHunting() == false;
+
+        if (percentageText != null)
+        {
+            percentageText.text = string.Empty;
+            percentageText.gameObject.SetActive(false);
+        }
     }
 
     private void StartCapture()
@@ -89,11 +94,39 @@ public class UIJournal : GameBehaviour
                 tGhostClues[i].text = ghostParameters.ghostClues[i].description;
             }
         }
+        
+        for (int i = 0; i < ghostEvidenceIcons.Length; i++)
+        {
+            ghostEvidenceIcons[i].SetActive(
+                ghostParameters.HasEvidence((GhostInvestigator.EvidenceType)i)
+            );
+        }
+        
         ghostFrame.SetActive(true);
     }
 
     public void CloseGhostFrame()
     {
         ghostFrame.SetActive(false);
+    }
+
+    public void SelectGhostTypeSlot(UIGhostTypeSlot selectedSlot)
+    {
+        if (selectedSlot == null || ghostTypeSlots == null)
+            return;
+
+        for (int i = 0; i < ghostTypeSlots.Length; i++)
+        {
+            UIGhostTypeSlot slot = ghostTypeSlots[i];
+            if (slot == null)
+                continue;
+
+            if (slot == selectedSlot)
+                slot.SetForcedState(UIGhostTypeSlot.GhostTypeSlotForcedState.selected, false);
+            else if (slot.currentForcedState == UIGhostTypeSlot.GhostTypeSlotForcedState.selected)
+                slot.SetForcedState(UIGhostTypeSlot.GhostTypeSlotForcedState.none, false);
+        }
+
+        SetCaptureButtonState();
     }
 }

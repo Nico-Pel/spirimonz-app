@@ -11,6 +11,7 @@ public class EvidenceParameter : ScriptableObject
     [Header("Texts Settings")]
     public string title;
     public string info;
+    public Sprite icon;
 
     [Header("Evidence in Books")] 
     public Material linkedMaterial;

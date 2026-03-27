@@ -129,30 +129,12 @@ public class GhostInvestigator : GameBehaviour
         }
     }
     
-    public int GetCaptureChancePercentage(int selectedSlotsCount)
-    {
-        switch (selectedSlotsCount)
-        {
-            case 1:
-                return 100;
-            case 2:
-                return 45;
-            case 3:
-                return 10;
-            default:
-                return 0;
-        }
-    }
-
     private bool IsCaptureSuccessful(List<GhostParameters> selectedGhosts)
     {
         GhostParameters answer = House.Instance.currentGhost.ghostParameters;
-        if (!selectedGhosts.Contains(answer)) return false;
-
-        float percentageChances = GetCaptureChancePercentage(selectedGhosts.Count);
-        float chanceRoll = Random.Range(0f, 100f);
-        
-        return chanceRoll <= percentageChances;
+        return selectedGhosts != null &&
+               selectedGhosts.Count == 1 &&
+               selectedGhosts[0] == answer;
     }
 
     public void TryToCapture(List<GhostParameters> selectedGhosts)
