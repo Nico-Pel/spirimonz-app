@@ -12,6 +12,8 @@ public class HouseEntry : GameBehaviour
     public FakeInteractable doorInteractable;
     public Animator animator;
     public float fadeDuration = 3f;
+
+    public bool startLocked;
     
     [Header("Locked Cursor")]
     public Sprite lockCursor;
@@ -55,6 +57,9 @@ public class HouseEntry : GameBehaviour
         
         if(isExit == false)
             InitHouseQuests(map);
+        
+        if(startLocked)
+            LockDoor(true);
     }
     
     public void InitHouseQuests(HouseMap house)
@@ -68,7 +73,23 @@ public class HouseEntry : GameBehaviour
     private void LockDoor()
     {
         animator.SetTrigger("Close");
-        PlayerSound(closeSound);
+        
+        if(!startLocked)
+            PlayerSound(closeSound);
+        
+        if (doorInteractable != null)
+        {
+            doorInteractable.SetCursor(lockCursor, lockedCursorSize);
+            doorInteractable.InteractionLocked = false;
+        }
+    }
+    
+    private void LockDoor(bool ignoreSound)
+    {
+        animator.SetTrigger("Close");
+        
+        if(!ignoreSound)
+            PlayerSound(closeSound);
         
         if (doorInteractable != null)
         {

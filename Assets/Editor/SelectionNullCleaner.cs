@@ -7,16 +7,27 @@ using UnityEngine;
 [InitializeOnLoad]
 public static class SelectionNullCleaner
 {
+    private const string EnabledKey = "SH.SelectionNullCleanerEnabled";
+    private const string EnabledMigratedKey = "SH.SelectionNullCleanerEnabled.Migrated";
     private const int StartupCleanupFrames = 30;
     private static int _startupCleanupFramesRemaining;
 
     static SelectionNullCleaner()
     {
+        // Migration: disable by default (it can be aggressive and cause inspector noise).
+        if (!EditorPrefs.HasKey(EnabledMigratedKey))
+        {
+            EditorPrefs.SetBool(EnabledKey, false);
+            EditorPrefs.SetBool(EnabledMigratedKey, true);
+        }
+
+        if (!EditorPrefs.GetBool(EnabledKey, false))
+            return;
+
         Selection.selectionChanged += CleanSelection;
         EditorApplication.hierarchyChanged += CleanSelection;
         EditorApplication.projectChanged += CleanSelection;
         EditorApplication.delayCall += CleanSelection;
-        EditorApplication.update += CleanSelection;
 
         _startupCleanupFramesRemaining = StartupCleanupFrames;
         EditorApplication.update += StartupCleanup;
@@ -24,6 +35,9 @@ public static class SelectionNullCleaner
 
     private static void CleanSelection()
     {
+        if (EditorApplication.isCompiling || EditorApplication.isUpdating)
+            return;
+
         Object[] selection = Selection.objects;
         bool cleaned = false;
 
@@ -151,6 +165,33 @@ public static class SelectionNullCleaner
         }
 
         return false;
+    }
+
+    [MenuItem("Tools/Editor/Selection Null Cleaner")]
+    private static void ToggleCleaner()
+    {
+        bool enabled = EditorPrefs.GetBool(EnabledKey, false);
+        EditorPrefs.SetBool(EnabledKey, !enabled);
+        EditorApplication.delayCall += () =>
+        {
+            // Force a domain reload-like effect for init
+            if (!enabled)
+            {
+                Selection.selectionChanged += CleanSelection;
+                EditorApplication.hierarchyChanged += CleanSelection;
+                EditorApplication.projectChanged += CleanSelection;
+                EditorApplication.delayCall += CleanSelection;
+                _startupCleanupFramesRemaining = StartupCleanupFrames;
+                EditorApplication.update += StartupCleanup;
+            }
+        };
+    }
+
+    [MenuItem("Tools/Editor/Selection Null Cleaner", true)]
+    private static bool ToggleCleanerValidate()
+    {
+        Menu.SetChecked("Tools/Editor/Selection Null Cleaner", EditorPrefs.GetBool(EnabledKey, false));
+        return true;
     }
 }
 #endif
