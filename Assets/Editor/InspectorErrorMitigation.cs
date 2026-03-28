@@ -6,14 +6,23 @@ using UnityEngine;
 public static class InspectorErrorMitigation
 {
     private const string AutoResetKey = "SH.AutoResetLayoutOnInspectorErrors";
+    private const string AutoResetMigratedKey = "SH.AutoResetLayoutOnInspectorErrors.Migrated";
     private const string PendingResetKey = "SH.PendingLayoutReset";
 
     private static bool _resetScheduled;
 
     static InspectorErrorMitigation()
     {
+        // Migration: auto reset used to be enabled by default, which can be disruptive.
+        // Disable it once for existing users; it can be re-enabled via the menu.
+        if (!EditorPrefs.HasKey(AutoResetMigratedKey))
+        {
+            EditorPrefs.SetBool(AutoResetKey, false);
+            EditorPrefs.SetBool(AutoResetMigratedKey, true);
+        }
+
         if (!EditorPrefs.HasKey(AutoResetKey))
-            EditorPrefs.SetBool(AutoResetKey, true);
+            EditorPrefs.SetBool(AutoResetKey, false);
 
         Application.logMessageReceived += OnLogMessage;
         EditorApplication.delayCall += TryResetOnStartup;

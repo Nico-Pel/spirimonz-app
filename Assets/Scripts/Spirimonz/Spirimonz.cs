@@ -78,6 +78,7 @@ public class Spirimonz : GameBehaviour, IInteractable
     private float _lastRoamMovementTime;
     private Vector3 _lastRoamPosition;
     private const string ROAM_ROOM_CHANGE_INVOKE = "RoamRoomChangeCooldown";
+    private const string FEEL_HUNT_INVOKE = "FeelHuntInvoke";
 
     [Header("Spirimonz Settings : Escape")]
     public float targetedEscapeDistance = 1f;
@@ -147,7 +148,15 @@ public class Spirimonz : GameBehaviour, IInteractable
             if (_shouldFeelAHunt)
             {
                 _shouldFeelAHunt = false;
-                FeelAHunt();
+                if (IsGhostHuntStillPending())
+                {
+                    FeelAHunt();
+                }
+                else
+                {
+                    _hidingFromAGhost = false;
+                    SetSpiritHideMode(false);
+                }
             }
         }
 
@@ -198,7 +207,7 @@ public class Spirimonz : GameBehaviour, IInteractable
 
         if (gameObject.activeSelf)
         {
-            this.Invoke(timeBeforeDisappearing, FeelAHunt);
+            this.Invoke(FEEL_HUNT_INVOKE, timeBeforeDisappearing, FeelAHunt);
         }
         else
         {
@@ -208,11 +217,25 @@ public class Spirimonz : GameBehaviour, IInteractable
 
     private void FeelAHunt()
     {
+        if (!IsGhostHuntStillPending())
+            return;
+
         _hidingFromAGhost = true;
         agent.speed = 0;
         agent.velocity = Vector3.zero;
         
         SetSpiritHideMode(true);
+    }
+
+    private bool IsGhostHuntStillPending()
+    {
+        if (_house == null)
+            _house = House.Instance;
+
+        if (_house == null || _house.currentGhost == null)
+            return false;
+
+        return _house.currentGhost.IsHunting(true);
     }
 
     protected virtual void OnHuntStart()
@@ -224,6 +247,7 @@ public class Spirimonz : GameBehaviour, IInteractable
     {
         if (!Player.Instance.IsDead())
         {
+            CancelInvoke(FEEL_HUNT_INVOKE);
             _shouldFeelAHunt = false;
             _hidingFromAGhost = false;
             SetSpiritHideMode(false);

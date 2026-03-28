@@ -24,6 +24,8 @@ public class StickyMudProjectile : GameBehaviour
     public LayerMask roomLayerMask = ~0;
     public float roomProbeOffset = 0.05f;
     public float roomProbeRadius = 0.01f;
+    public bool trackRoomAfterStick = true;
+    public float roomUpdateInterval = 0.2f;
 
     [Header("Parenting")]
     public float minParentScale = 0.01f;
@@ -39,6 +41,8 @@ public class StickyMudProjectile : GameBehaviour
     private Vector3 _lastVelocity;
     private Collider _lastHitCollider;
     private Room _roomFromTrigger;
+    private Room _currentRoom;
+    private float _nextRoomUpdateTime;
     private Transform _followTransform;
     private Vector3 _followOffset;
     private Quaternion _followRotationOffset = Quaternion.identity;
@@ -98,6 +102,13 @@ public class StickyMudProjectile : GameBehaviour
         if (room != null)
         {
             _roomFromTrigger = room;
+            if (_resolved && radiationDetector != null && room != _currentRoom)
+            {
+                _currentRoom = room;
+                radiationDetector.SetCurrentRoom(room);
+                if (radiationDetector.IsDetectingRadiation())
+                    radiationDetector.PlaySoundManuallyIfNeeded();
+            }
             return;
         }
 
@@ -315,10 +326,14 @@ public class StickyMudProjectile : GameBehaviour
         if (radiationDetector != null)
         {
             radiationDetector.useSound = true;
+            _currentRoom = room;
             radiationDetector.SetCurrentRoom(room);
             if (radiationDetector.IsDetectingRadiation())
                 radiationDetector.PlaySoundManuallyIfNeeded();
         }
+
+        if (trackRoomAfterStick)
+            _nextRoomUpdateTime = Time.time + Mathf.Max(0.01f, roomUpdateInterval);
     }
 
     private Transform GetParentForHit()
@@ -384,6 +399,72 @@ public class StickyMudProjectile : GameBehaviour
         transform.position = _followTransform.position + _followTransform.rotation * _followOffset;
         transform.rotation = _followTransform.rotation * _followRotationOffset;
         transform.localScale = _desiredWorldScale;
+
+        TryUpdateRoomWhileStuck();
+    }
+
+    private void Update()
+    {
+        if (_useFollowTransform)
+            return;
+
+        TryUpdateRoomWhileStuck();
+    }
+
+    private void TryUpdateRoomWhileStuck()
+    {
+        if (!_resolved || !trackRoomAfterStick)
+            return;
+
+        if (Time.time < _nextRoomUpdateTime)
+            return;
+
+        _nextRoomUpdateTime = Time.time + Mathf.Max(0.01f, roomUpdateInterval);
+
+        Room room = FindRoomAtPosition(transform.position);
+        if (room == null || room == _currentRoom || radiationDetector == null)
+            return;
+
+        _currentRoom = room;
+        radiationDetector.SetCurrentRoom(room);
+        if (radiationDetector.IsDetectingRadiation())
+            radiationDetector.PlaySoundManuallyIfNeeded();
+    }
+
+    private Room FindRoomAtPosition(Vector3 position)
+    {
+        int mask = GetRoomOverlapMask();
+        float radius = Mathf.Max(0.01f, roomDetectionRadius);
+        Collider[] hits = Physics.OverlapSphere(position, radius, mask, QueryTriggerInteraction.Collide);
+        if (hits != null && hits.Length > 0)
+        {
+            Room bestRoom = null;
+            float bestDistance = float.MaxValue;
+            for (int i = 0; i < hits.Length; i++)
+            {
+                Collider hit = hits[i];
+                if (hit == null) continue;
+
+                Room candidate = hit.GetComponentInParent<Room>();
+                if (candidate == null) continue;
+
+                Vector3 closest = hit.ClosestPoint(position);
+                float dist = (closest - position).sqrMagnitude;
+                if (dist < bestDistance)
+                {
+                    bestDistance = dist;
+                    bestRoom = candidate;
+                }
+            }
+
+            if (bestRoom != null)
+                return bestRoom;
+        }
+
+        if (TryFindRoomAtPoint(position, mask, out Room roomAtPoint))
+            return roomAtPoint;
+
+        return _roomFromTrigger;
     }
 
     private Quaternion ComputeStickRotation(Vector3 hitNormal)

@@ -993,8 +993,8 @@ public class Ghost : GameBehaviour
     {
         if (_isLocked) return;
         
-        if(house.useDebugs)
-            Debug.Log("Activity Triggered");
+        /*if(house.useDebugs)
+            Debug.Log("Activity Triggered");*/
 
         float nextActivityTime = Random.Range(averageActivityTime - activityTimeVariation, averageActivityTime + activityTimeVariation);
         
