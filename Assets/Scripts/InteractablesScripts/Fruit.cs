@@ -1,10 +1,13 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Events;
 using DG.Tweening;
 
 public class Fruit : CatchableObject
 {
+    public UnityEvent onGhostEat;
+
     public bool disappearAfterEat;
     public MeshFilter meshFilter;
     public Mesh[] eatSteps;
@@ -30,6 +33,7 @@ public class Fruit : CatchableObject
         if (!canBeEaten) return;
 
         canBeEaten = false;
+        onGhostEat?.Invoke();
         _ghost = ghost;
         
         rb.isKinematic = true;

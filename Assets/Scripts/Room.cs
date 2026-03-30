@@ -151,6 +151,15 @@ public class Room : MonoBehaviour
         OnRadiationStart?.Invoke(radiationDuration);
     }
 
+    public void StopRadiation()
+    {
+        if (!radiationInTheRoom)
+            return;
+
+        radiationDuration = 0f;
+        EndRadiation();
+    }
+
     private void EndRadiation()
     {
         radiationInTheRoom = false;

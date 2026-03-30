@@ -19,6 +19,9 @@ public class SpmzUsePower : Spirimonz
     [Tooltip("Energy regenerated per second when not using the power")]
     public float rechargeForSec = 20f;
 
+    [Header("Tutorial")]
+    public float tutorialRechargeMultiplier = 2f;
+
     public float minPercentToUse = 0.25f;
 
     [Header("Power Use Mode")]
@@ -57,6 +60,9 @@ public class SpmzUsePower : Spirimonz
 
     private void HandleInput()
     {
+        if (!TutorialInputGate.IsAllowed(TutorialInputGate.AllowSecondary))
+            return;
+
         if ((!MobileInput.Enabled && Input.GetMouseButtonDown(1)) || MobileInput.SecondaryDown)
             TryActivate();
 
@@ -83,7 +89,8 @@ public class SpmzUsePower : Spirimonz
         else if (!_isUsingPower)
         {
             // Regenerate energy per second
-            currentEnergy += rechargeForSec * Time.deltaTime;
+            float rechargeMultiplier = GetRechargeMultiplier();
+            currentEnergy += rechargeForSec * rechargeMultiplier * Time.deltaTime;
             currentEnergy = Mathf.Min(currentEnergy, maxEnergy);
         }
     }
@@ -143,7 +150,8 @@ public class SpmzUsePower : Spirimonz
             float timeOff = Time.realtimeSinceStartup - _timeDisabled;
 
             // Regenerate based on time spent disabled
-            float energyRecovered = rechargeForSec * timeOff;
+            float rechargeMultiplier = GetRechargeMultiplier();
+            float energyRecovered = rechargeForSec * rechargeMultiplier * timeOff;
             currentEnergy = Mathf.Min(currentEnergy + energyRecovered, maxEnergy);
 
             _timeDisabled = 0f;
@@ -186,6 +194,14 @@ public class SpmzUsePower : Spirimonz
     {
         if (amount <= 0f) return;
         currentEnergy = Mathf.Min(maxEnergy, currentEnergy + amount);
+    }
+
+    private float GetRechargeMultiplier()
+    {
+        if (TutorialManager.IsTutorialActive)
+            return Mathf.Max(1f, tutorialRechargeMultiplier);
+
+        return 1f;
     }
 
     protected virtual void OnPowerActivated() { }

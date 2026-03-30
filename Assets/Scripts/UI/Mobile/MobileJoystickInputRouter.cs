@@ -445,6 +445,16 @@ public class MobileJoystickInputRouter : MonoBehaviour
             }
         }
 
+        if (TutorialInputGate.Enabled)
+        {
+            if (!TutorialInputGate.AllowMovement)
+                allowMove = false;
+            if (!TutorialInputGate.AllowLook)
+                allowLook = false;
+            if (!TutorialInputGate.AllowInteract && !TutorialInputGate.AllowInteractSpmz)
+                allowPrimary = false;
+        }
+
         if (joystickRoot != null)
         {
             CanvasGroup group = joystickRoot.GetComponent<CanvasGroup>();

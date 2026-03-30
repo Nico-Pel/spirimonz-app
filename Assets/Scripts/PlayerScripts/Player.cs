@@ -67,7 +67,8 @@ public class Player : GameBehaviour
         {
             DetectNPC();
 
-            if (currentNPC != null && ((!MobileInput.Enabled && inputManager.GetWorldInteractionDown()) || MobileInput.GrabDown))
+            bool allowInteract = TutorialInputGate.IsAllowed(TutorialInputGate.AllowInteract);
+            if (allowInteract && currentNPC != null && ((!MobileInput.Enabled && inputManager.GetWorldInteractionDown()) || MobileInput.GrabDown))
             {
                 _canStartDialogue = false;
                 if (currentNPC.CanInteract(this))
@@ -82,8 +83,17 @@ public class Player : GameBehaviour
     public void EndDialogue()
     {
         Player player = Player.Instance;
-        currentNPC.Reset(player);
-        currentNPC = null;
+
+        if (currentNPC != null)
+        {
+            currentNPC.Reset(player);
+            currentNPC = null;
+        }
+        else
+        {
+            // Safety: ensure controls are unlocked if dialogue ended without a tracked NPC
+            LockControls(false);
+        }
         
         this.Invoke(0.5f, () => _canStartDialogue = true);
     }

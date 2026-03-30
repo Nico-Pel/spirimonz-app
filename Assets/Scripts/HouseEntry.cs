@@ -110,6 +110,14 @@ public class HouseEntry : GameBehaviour
         }
     }
 
+    public void SetLocked(bool locked, bool ignoreSound = false)
+    {
+        if (locked)
+            LockDoor(ignoreSound);
+        else
+            UnlockDoor();
+    }
+
     private void OnTriggerEnter(Collider other)
     {
         if (hasEntered || _canBeTriggered == false)

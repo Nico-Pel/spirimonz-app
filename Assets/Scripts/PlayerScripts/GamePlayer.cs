@@ -181,6 +181,17 @@ public class GamePlayer : Player
     {
         soundManager.StopAmbient(2f);
     }
+
+    public void ResetDeathState()
+    {
+        _isDead = false;
+
+        if (handAnimator != null)
+        {
+            handAnimator.ResetTrigger("Death");
+            handAnimator.SetBool("IsDead", false);
+        }
+    }
     
     public Vector3 GetForward()
     {

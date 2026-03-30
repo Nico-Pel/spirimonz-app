@@ -129,4 +129,21 @@ public class UIJournal : GameBehaviour
 
         SetCaptureButtonState();
     }
+
+    public void ClearForcedSelections()
+    {
+        if (ghostTypeSlots == null)
+            return;
+
+        for (int i = 0; i < ghostTypeSlots.Length; i++)
+        {
+            UIGhostTypeSlot slot = ghostTypeSlots[i];
+            if (slot == null)
+                continue;
+
+            slot.SetForcedState(UIGhostTypeSlot.GhostTypeSlotForcedState.none, false);
+        }
+
+        SetCaptureButtonState();
+    }
 }

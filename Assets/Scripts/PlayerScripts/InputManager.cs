@@ -1,11 +1,14 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Text.RegularExpressions;
 using UnityEngine;
 
 public class InputManager : GameBehaviour
 {
     public static InputManager Instance { get; private set; }
+
+    private const string INPUT_TOKEN_COLOR = "#F9AB2D";
 
     public KeyCode forwardKey = KeyCode.W;
     public KeyCode forwardKeyAlt = KeyCode.None;
@@ -21,6 +24,8 @@ public class InputManager : GameBehaviour
     public KeyCode turnLightAlt = KeyCode.None;
     public KeyCode grabObject = KeyCode.E;
     public KeyCode grabObjectAlt = KeyCode.None;
+    public KeyCode dropSpirimonz = KeyCode.Mouse0;
+    public KeyCode dropSpirimonzAlt = KeyCode.None;
     public KeyCode dropObject = KeyCode.D;
     public KeyCode dropObjectAlt = KeyCode.None;
     public KeyCode throwObject = KeyCode.G;
@@ -98,21 +103,23 @@ public class InputManager : GameBehaviour
         return Input.GetKeyUp(primary) || (secondary != KeyCode.None && Input.GetKeyUp(secondary));
     }
 
-    public bool GetMoveForward() => GetKey(forwardKey, forwardKeyAlt);
-    public bool GetMoveBackward() => GetKey(backwardKey, backwardKeyAlt);
-    public bool GetMoveLeft() => GetKey(leftKey, leftKeyAlt);
-    public bool GetMoveRight() => GetKey(rightKey, rightKeyAlt);
-    public bool GetSprint() => GetKey(sprintKey, sprintKeyAlt);
-    public bool GetTurnLightDown() => GetKeyDown(turnLight, turnLightAlt);
-    public bool GetGrabDown() => GetKeyDown(grabObject, grabObjectAlt);
-    public bool GetDropDown() => GetKeyDown(dropObject, dropObjectAlt);
-    public bool GetThrowDown() => GetKeyDown(throwObject, throwObjectAlt);
-    public bool GetOpenJournalDown() => GetKeyDown(openJournal, openJournalAlt);
-    public bool GetOpenTeamMenuDown() => GetKeyDown(openTeamMenu, openTeamMenuAlt);
+    public bool GetMoveForward() => TutorialInputGate.IsAllowed(TutorialInputGate.AllowMovement) && GetKey(forwardKey, forwardKeyAlt);
+    public bool GetMoveBackward() => TutorialInputGate.IsAllowed(TutorialInputGate.AllowMovement) && GetKey(backwardKey, backwardKeyAlt);
+    public bool GetMoveLeft() => TutorialInputGate.IsAllowed(TutorialInputGate.AllowMovement) && GetKey(leftKey, leftKeyAlt);
+    public bool GetMoveRight() => TutorialInputGate.IsAllowed(TutorialInputGate.AllowMovement) && GetKey(rightKey, rightKeyAlt);
+    public bool GetSprint() => TutorialInputGate.IsAllowed(TutorialInputGate.AllowMovement) && GetKey(sprintKey, sprintKeyAlt);
+    public bool GetTurnLightDown() => TutorialInputGate.IsAllowed(TutorialInputGate.AllowSecondary) && GetKeyDown(turnLight, turnLightAlt);
+    public bool GetGrabDown() => TutorialInputGate.IsAllowed(TutorialInputGate.AllowGrab) && GetKeyDown(grabObject, grabObjectAlt);
+    public bool GetDropDown() => TutorialInputGate.IsAllowed(TutorialInputGate.AllowDrop) && GetKeyDown(dropObject, dropObjectAlt);
+    public bool GetThrowDown() => TutorialInputGate.IsAllowed(TutorialInputGate.AllowThrow) && GetKeyDown(throwObject, throwObjectAlt);
+    public bool GetOpenJournalDown() => TutorialInputGate.IsAllowed(TutorialInputGate.AllowJournal) && GetKeyDown(openJournal, openJournalAlt);
+    public bool GetOpenTeamMenuDown() => TutorialInputGate.IsAllowed(TutorialInputGate.AllowTeamMenu) && GetKeyDown(openTeamMenu, openTeamMenuAlt);
     public bool GetExitMenusDown() => GetKeyDown(exitMenus, exitMenusAlt);
-    public bool GetCrouchDown() => GetKeyDown(crouchKey, crouchKeyAlt);
-    public bool GetJumpDown() => GetKeyDown(jumpKey, jumpKeyAlt);
-    public bool GetWorldInteractionDown() => GetKeyDown(worldInteractions, worldInteractionsAlt);
+    public bool GetCrouchDown() => TutorialInputGate.IsAllowed(TutorialInputGate.AllowMovement) && GetKeyDown(crouchKey, crouchKeyAlt);
+    public bool GetJumpDown() => TutorialInputGate.IsAllowed(TutorialInputGate.AllowMovement) && GetKeyDown(jumpKey, jumpKeyAlt);
+    public bool GetWorldInteractionDown() => TutorialInputGate.IsAllowed(TutorialInputGate.AllowInteract) && GetKeyDown(worldInteractions, worldInteractionsAlt);
+    public bool GetWorldInteractionDownRaw() => GetKeyDown(worldInteractions, worldInteractionsAlt);
+    public bool GetDropSpirimonzDown() => TutorialInputGate.IsAllowed(TutorialInputGate.AllowDropSpmz) && GetKeyDown(dropSpirimonz, dropSpirimonzAlt);
 
     public bool GetNextDown() => GetKeyDown(primaryNext, secondaryNext);
     public bool GetPreviousDown() => GetKeyDown(primaryPrevious, secondaryPrevious);
@@ -124,7 +131,7 @@ public class InputManager : GameBehaviour
 
         KeyCode primary = inventoryKeys[index];
         KeyCode secondary = (inventoryKeysAlt != null && index < inventoryKeysAlt.Length) ? inventoryKeysAlt[index] : KeyCode.None;
-        return GetKeyDown(primary, secondary);
+        return TutorialInputGate.IsInventorySlotAllowed(index) && GetKeyDown(primary, secondary);
     }
 
     public string GetKeyDisplay(KeyCode primary, KeyCode secondary)
@@ -132,6 +139,148 @@ public class InputManager : GameBehaviour
         if (secondary == KeyCode.None)
             return primary.ToString();
         return primary + " / " + secondary;
+    }
+
+    public string ReplaceInputTokens(string text)
+    {
+        if (string.IsNullOrEmpty(text))
+            return text;
+
+        return Regex.Replace(text, "\\[(.+?)\\]", match =>
+        {
+            string token = match.Groups[1].Value;
+            if (TryGetTokenDisplay(token, out string display))
+                return FormatInputToken(display);
+            return match.Value;
+        });
+    }
+
+    private string FormatInputToken(string display)
+    {
+        return $"<color={INPUT_TOKEN_COLOR}>[{display}]</color>";
+    }
+
+    private bool TryGetTokenDisplay(string token, out string display)
+    {
+        display = string.Empty;
+        if (string.IsNullOrWhiteSpace(token))
+            return false;
+
+        string key = token.Trim().ToLowerInvariant().Replace(" ", "").Replace("-", "_");
+
+        switch (key)
+        {
+            case "dropspmz":
+            case "drop_spmz":
+            case "drop_spirimonz":
+            case "dropspirimonz":
+                display = GetKeyDisplay(dropSpirimonz, dropSpirimonzAlt);
+                return true;
+            case "secondary":
+            case "rightclick":
+            case "mouse1":
+                display = GetKeyDisplay(KeyCode.Mouse1, KeyCode.None);
+                return true;
+            case "drop":
+                display = GetKeyDisplay(dropObject, dropObjectAlt);
+                return true;
+            case "throw":
+                display = GetKeyDisplay(throwObject, throwObjectAlt);
+                return true;
+            case "grab":
+                display = GetKeyDisplay(grabObject, grabObjectAlt);
+                return true;
+            case "pickupspmz":
+            case "pickup_spmz":
+            case "pickup_spirimonz":
+            case "pickupspirimonz":
+                display = GetKeyDisplay(grabObject, grabObjectAlt);
+                return true;
+            case "interact":
+            case "use":
+                display = GetKeyDisplay(KeyCode.Mouse0, KeyCode.None);
+                return true;
+            case "interactspmz":
+            case "interact_spmz":
+            case "interact_spirimonz":
+            case "interactspirimonz":
+                display = GetKeyDisplay(KeyCode.Mouse0, KeyCode.None);
+                return true;
+            case "usewatch":
+            case "use_watch":
+                display = GetKeyDisplay(KeyCode.Mouse0, KeyCode.None);
+                return true;
+            case "journal":
+                display = GetKeyDisplay(openJournal, openJournalAlt);
+                return true;
+            case "team":
+            case "teammenu":
+                display = GetKeyDisplay(openTeamMenu, openTeamMenuAlt);
+                return true;
+            case "sprint":
+                display = GetKeyDisplay(sprintKey, sprintKeyAlt);
+                return true;
+            case "crouch":
+                display = GetKeyDisplay(crouchKey, crouchKeyAlt);
+                return true;
+            case "jump":
+                display = GetKeyDisplay(jumpKey, jumpKeyAlt);
+                return true;
+            case "light":
+            case "togglelight":
+                display = GetKeyDisplay(turnLight, turnLightAlt);
+                return true;
+            case "moveforward":
+            case "forward":
+                display = GetKeyDisplay(forwardKey, forwardKeyAlt);
+                return true;
+            case "moveback":
+            case "back":
+            case "backward":
+                display = GetKeyDisplay(backwardKey, backwardKeyAlt);
+                return true;
+            case "moveleft":
+            case "left":
+                display = GetKeyDisplay(leftKey, leftKeyAlt);
+                return true;
+            case "moveright":
+            case "right":
+                display = GetKeyDisplay(rightKey, rightKeyAlt);
+                return true;
+        }
+
+        if (key.StartsWith("inventory"))
+        {
+            if (int.TryParse(key.Replace("inventory", string.Empty), out int index))
+            {
+                return TryGetInventoryDisplay(index - 1, out display);
+            }
+        }
+
+        if (key.StartsWith("slot"))
+        {
+            if (int.TryParse(key.Replace("slot", string.Empty), out int index))
+            {
+                return TryGetInventoryDisplay(index - 1, out display);
+            }
+        }
+
+        return false;
+    }
+
+    private bool TryGetInventoryDisplay(int index, out string display)
+    {
+        display = string.Empty;
+        if (inventoryKeys == null || index < 0 || index >= inventoryKeys.Length)
+            return false;
+
+        KeyCode primary = inventoryKeys[index];
+        KeyCode secondary = (inventoryKeysAlt != null && index < inventoryKeysAlt.Length)
+            ? inventoryKeysAlt[index]
+            : KeyCode.None;
+
+        display = GetKeyDisplay(primary, secondary);
+        return true;
     }
 
     public List<BindingDefinition> GetBindingDefinitions()
@@ -143,6 +292,7 @@ public class InputManager : GameBehaviour
             new BindingDefinition { id = "move_left", label = "Move Left", getPrimary = () => leftKey, setPrimary = v => leftKey = v, getSecondary = () => leftKeyAlt, setSecondary = v => leftKeyAlt = v },
             new BindingDefinition { id = "move_right", label = "Move Right", getPrimary = () => rightKey, setPrimary = v => rightKey = v, getSecondary = () => rightKeyAlt, setSecondary = v => rightKeyAlt = v },
             new BindingDefinition { id = "sprint", label = "Sprint", getPrimary = () => sprintKey, setPrimary = v => sprintKey = v, getSecondary = () => sprintKeyAlt, setSecondary = v => sprintKeyAlt = v },
+            new BindingDefinition { id = "drop_spmz", label = "Drop Spirimonz", getPrimary = () => dropSpirimonz, setPrimary = v => dropSpirimonz = v, getSecondary = () => dropSpirimonzAlt, setSecondary = v => dropSpirimonzAlt = v },
             new BindingDefinition { id = "grab", label = "Grab", getPrimary = () => grabObject, setPrimary = v => grabObject = v, getSecondary = () => grabObjectAlt, setSecondary = v => grabObjectAlt = v },
             new BindingDefinition { id = "drop", label = "Drop", getPrimary = () => dropObject, setPrimary = v => dropObject = v, getSecondary = () => dropObjectAlt, setSecondary = v => dropObjectAlt = v },
             new BindingDefinition { id = "throw", label = "Throw", getPrimary = () => throwObject, setPrimary = v => throwObject = v, getSecondary = () => throwObjectAlt, setSecondary = v => throwObjectAlt = v },

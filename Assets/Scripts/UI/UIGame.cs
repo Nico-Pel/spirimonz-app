@@ -4,10 +4,12 @@ using TMPro;
 using UnityEngine.Serialization;
 using UnityEngine.UI;
 using DG.Tweening;
+using UnityEngine.Events;
 
 public class UIGame : UIManager
 {
     public static UIGame Instance { get; private set; }
+    public static event Action<UIEndGame.EndTypes> OnEndGameOpened;
 
     public float openSceneFadeDuration = 3f;
 
@@ -28,6 +30,7 @@ public class UIGame : UIManager
     public UITablet tablet;
     public UIDialogue uiDialogue;
     public UISettingsMenu settingsMenu;
+    public UnityEvent onJournalOpened;
 
     private Sprite _baseBigPointer;
     private GameManager _gameManager;
@@ -172,7 +175,8 @@ public class UIGame : UIManager
         bool endGameOpen = tablet != null && tablet.endGame != null && tablet.endGame.gameObject.activeSelf;
 
         bool journalDown = (!MobileInput.Enabled && _player.inputManager.GetOpenJournalDown()) || MobileInput.OpenJournalDown;
-        if (!endGameOpen && journalDown && _player.IsDead() == false)
+        bool allowJournal = TutorialInputGate.IsAllowed(TutorialInputGate.AllowJournal);
+        if (!endGameOpen && allowJournal && journalDown && _player.IsDead() == false)
         {
             if (IsJournalOpen())
                 tablet.TurnOffTablet();
@@ -180,7 +184,8 @@ public class UIGame : UIManager
                 OpenJournal();
         }
         
-        if (!endGameOpen && ((!MobileInput.Enabled && _player.inputManager.GetOpenTeamMenuDown()) || MobileInput.OpenTeamMenuDown) && _player.IsDead() == false)
+        bool allowTeamMenu = TutorialInputGate.IsAllowed(TutorialInputGate.AllowTeamMenu);
+        if (!endGameOpen && allowTeamMenu && ((!MobileInput.Enabled && _player.inputManager.GetOpenTeamMenuDown()) || MobileInput.OpenTeamMenuDown) && _player.IsDead() == false)
         {
             OpenTeamPanel();
         }
@@ -266,6 +271,7 @@ public class UIGame : UIManager
 
         tablet.gameObject.SetActive(true);
         tablet.OpenTab(1, true);
+        onJournalOpened?.Invoke();
     }
 
     private bool IsJournalOpen()
@@ -314,5 +320,6 @@ public class UIGame : UIManager
         EnableOverlay(false, 0.5f);
         tablet.gameObject.SetActive(true);
         tablet.OpenEndGame(endType, house);
+        OnEndGameOpened?.Invoke(endType);
     }
 }

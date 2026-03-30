@@ -9,6 +9,7 @@ public class UIDialogue : GameBehaviour
 {
     [SerializeField] private float dialogueSpeed = 0.1f;
     [SerializeField] private float dialogueSoundVolume = 0.075f;
+    [SerializeField] private float inputIgnoreDuration = 0.15f;
 
     [SerializeField] private GameObject dialogueBox;
     [SerializeField] private TextMeshProUGUI titleText;
@@ -21,6 +22,7 @@ public class UIDialogue : GameBehaviour
     private Dialogue _currentDialogue;
 
     private bool _dialogueActive = false;
+    private float _inputIgnoreUntil;
     private InputManager _inputManager;
     private SoundManager _soundManager;
     private Player _player;
@@ -64,7 +66,19 @@ public class UIDialogue : GameBehaviour
     private void Update()
     {
         // Press "E" to go to next line
-        if (_dialogueActive && ((!MobileInput.Enabled && _inputManager.GetWorldInteractionDown()) || MobileInput.GrabDown))
+        bool rawInteractionDown = false;
+        if (_inputManager != null)
+        {
+            rawInteractionDown =
+                (!MobileInput.Enabled &&
+                 (_inputManager.GetKeyDown(_inputManager.worldInteractions, _inputManager.worldInteractionsAlt) ||
+                  _inputManager.GetKeyDown(_inputManager.grabObject, _inputManager.grabObjectAlt)))
+                || MobileInput.GrabDown;
+        }
+
+        if (_dialogueActive &&
+            Time.unscaledTime >= _inputIgnoreUntil &&
+            rawInteractionDown)
         {
             NextDialogue();
         }
@@ -79,6 +93,7 @@ public class UIDialogue : GameBehaviour
         dialogueBox.SetActive(true);
         _currentDialogue = dialogue;
         _dialogueActive = true;
+        _inputIgnoreUntil = Time.unscaledTime + Mathf.Max(0.01f, inputIgnoreDuration);
 
         titleText.text = dialogue.npcName;
 
@@ -132,6 +147,8 @@ public class UIDialogue : GameBehaviour
         boxText.text = "";
 
         string text = line.GetText();
+        if (_inputManager != null)
+            text = _inputManager.ReplaceInputTokens(text);
         _writingText = true;
 
         int previousLength = 0;

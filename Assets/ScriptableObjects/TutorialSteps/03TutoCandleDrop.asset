@@ -1,0 +1,87 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 13f86847f2cd41aca49389b94be6cfb1, type: 3}
+  m_Name: 03TutoCandleDrop
+  m_EditorClassIdentifier: 
+  id: TutoCandleDrop
+  dialogue: {fileID: 11400000, guid: 9aa2d5be41ef14e34ae72bf64c017914, type: 2}
+  objective:
+    type: 11
+    goal: 1
+    titleEnglish: Place a candle upright on the table using [Drop].
+    titleFrench: Place une bougie droite sur la table en utilisant [Drop].
+    activableTypeFilter: 1
+    activables: []
+    catchables: []
+    requireCatchableFireObject: 0
+    flammables: []
+    requireCandleFlammables: 0
+    requireCandlePlacedAndUpright: 0
+    candleUprightMaxAngle: 15
+    printSources: []
+    detectors: []
+    orbsParticles: []
+    orbsHoldDuration: 2
+    orbsMaxDistance: 12
+    orbsMaxAngle: 8
+    evidenceType: 3
+    evidenceState: 1
+    fruits: []
+    radiationDetectors: []
+    requiredTeamSlotIndex: 0
+    requireSpirimonzInHands: 0
+    requireSpirimonzOnMap: 1
+    waitDuration: 2
+    useSpirimonzTemperatureThreshold: 1
+    freezingTemperatureThreshold: 1
+    dropZoneId: Table
+    dropZones: []
+    dropZoneObjects: []
+    dropZoneRequireCatchableFireObject: 0
+    dropZoneFlammableType: 1
+    requireStableRotation: 1
+    maxUprightAngle: 15
+    stableRotationDuration: 0.2
+  inputMask:
+    overrideInputs: 0
+    allowMovement: 1
+    allowLook: 1
+    allowInteract: 1
+    allowInteractSpmz: 0
+    allowUseWatch: 0
+    allowGrab: 1
+    allowPickupSpmz: 0
+    allowSecondary: 1
+    allowJournal: 0
+    allowTeamMenu: 0
+    allowDrop: 1
+    allowThrow: 0
+    allowDropSpmz: 0
+    useSeparateDropThrow: 0
+    allowThrowDrop: 0
+    overrideInventorySlots: 0
+    allowInventorySlots: 010000000000
+  ghostOverride:
+    enabled: 0
+    blockAllActivities: 0
+    forceRoom: 0
+    forcedRoom: {fileID: 0}
+    forcedRoomName: Bedroom
+    forcedRoomIndex: 0
+    allowRoomChange: 0
+    restrictActivities: 0
+    allowedActivities: 
+    forceActivity: 0
+    forcedActivity: 0
+    allowHunt: 0
+  requireNpcReturn: 1
+  autoAdvanceDelay: 3

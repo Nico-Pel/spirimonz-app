@@ -66,6 +66,12 @@ public class TPSController : Controller
         v = Input.GetAxis("Vertical");   // W/S ou flèches
     }
     Vector2 mobileMove = MobileInput.Move;
+    if (!TutorialInputGate.IsAllowed(TutorialInputGate.AllowMovement))
+    {
+        h = 0f;
+        v = 0f;
+        mobileMove = Vector2.zero;
+    }
     h += mobileMove.x;
     v += mobileMove.y;
     Vector3 inputDir = new Vector3(h, 0f, v).normalized;
@@ -151,6 +157,9 @@ public class TPSController : Controller
     private void HandleMobileLook()
     {
         if (_player != null && _player.IsCameraLocked())
+            return;
+
+        if (!TutorialInputGate.IsAllowed(TutorialInputGate.AllowLook))
             return;
 
         if (!enableMobileLook || camTransform == null)

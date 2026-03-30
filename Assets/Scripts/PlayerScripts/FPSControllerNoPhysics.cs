@@ -190,6 +190,12 @@ public class FPSControllerNoPhysics : Controller
     void HandleLook()
     {
         if (_player.IsCameraLocked() && !_player.IsDead()) return;
+        if (!TutorialInputGate.IsAllowed(TutorialInputGate.AllowLook))
+        {
+            _lastMobileLookScaled = Vector2.zero;
+            _lastMouseInputRaw = Vector2.zero;
+            return;
+        }
         if (_ignoreLookFrames > 0)
         {
             _ignoreLookFrames--;
@@ -292,7 +298,9 @@ public class FPSControllerNoPhysics : Controller
     void HandleMove()
     {
         if (_player.IsLocked()) return;
-        
+
+        bool allowMovement = TutorialInputGate.IsAllowed(TutorialInputGate.AllowMovement);
+
         float x = 0f;
         float z = 0f;
         if (!MobileInput.Enabled || allowKeyboardMovementWhenMobile)
@@ -301,6 +309,12 @@ public class FPSControllerNoPhysics : Controller
             z = (_player.inputManager.GetMoveForward() ? 1f : 0f) - (_player.inputManager.GetMoveBackward() ? 1f : 0f);
         }
         Vector2 mobileMove = MobileInput.Move;
+        if (!allowMovement)
+        {
+            x = 0f;
+            z = 0f;
+            mobileMove = Vector2.zero;
+        }
         x += mobileMove.x;
         z += mobileMove.y;
         x = Mathf.Clamp(x, -1f, 1f);

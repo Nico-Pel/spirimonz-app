@@ -27,6 +27,18 @@ public class Ghost : GameBehaviour
     [ReadOnly] public bool tripleActivityDebug;
 #endif
 
+    [Header("Tutorial Override")]
+    public bool tutorialOverrideEnabled;
+    public bool tutorialBlockAllActivities;
+    public bool tutorialForceRoom;
+    public Room tutorialForcedRoom;
+    public bool tutorialRestrictActivities;
+    public List<GhostActivities> tutorialAllowedActivities = new List<GhostActivities>();
+    public bool tutorialForceActivity;
+    public GhostActivities tutorialForcedActivity = GhostActivities.Nothing;
+    public bool tutorialAllowHunt = true;
+    public bool tutorialAllowRoomChange = true;
+
     public enum GhostState
     {
         hideState,
@@ -104,6 +116,7 @@ public class Ghost : GameBehaviour
     private bool _isLocked;
 
     private float _averageHuntTime;
+    private float _baseAverageActivityTime;
 
     [Header("Ghost Stats : Waypoints Hunting")]
 
@@ -202,6 +215,7 @@ public class Ghost : GameBehaviour
     {
         _player = (GamePlayer)Player.Instance;
         _baseForcedStartTargetingTime = forcedStartTargetingTime;
+        _baseAverageActivityTime = averageActivityTime;
         _playerPath = new NavMeshPath();
     }
 
@@ -276,6 +290,7 @@ public class Ghost : GameBehaviour
         if (currentRoom == favoriteRoom)
         {
             GameObject newGhostOrbs = Instantiate(ghostOrbsPrefab, transform.position, ghostOrbsPrefab.transform.rotation, house.transform);
+            EnsureGhostOrbsMarker(newGhostOrbs);
             this.Invoke(5, () =>
             {
                 Destroy(newGhostOrbs);
@@ -287,6 +302,29 @@ public class Ghost : GameBehaviour
         {
             CreateSpiritOrbs();
         });
+    }
+
+    private static void EnsureGhostOrbsMarker(GameObject orbsRoot)
+    {
+        if (orbsRoot == null)
+            return;
+
+        GhostOrbsParticles existing = orbsRoot.GetComponentInChildren<GhostOrbsParticles>(true);
+        if (existing != null)
+            return;
+
+        ParticleSystem ps = orbsRoot.GetComponentInChildren<ParticleSystem>(true);
+        GhostOrbsParticles marker;
+        if (ps != null)
+        {
+            marker = ps.gameObject.AddComponent<GhostOrbsParticles>();
+            marker.aimPoint = ps.transform;
+        }
+        else
+        {
+            marker = orbsRoot.AddComponent<GhostOrbsParticles>();
+            marker.aimPoint = orbsRoot.transform;
+        }
     }
 
     private void SchedulePassiveAnger()
@@ -328,7 +366,19 @@ public class Ghost : GameBehaviour
         
         if (other.TryGetComponent(out Room newRoom))
         {
-            currentRoom = newRoom;
+            if (tutorialOverrideEnabled)
+            {
+                if (tutorialForceRoom && tutorialForcedRoom != null)
+                    currentRoom = tutorialForcedRoom;
+                else if (!tutorialAllowRoomChange && favoriteRoom != null)
+                    currentRoom = favoriteRoom;
+                else
+                    currentRoom = newRoom;
+            }
+            else
+            {
+                currentRoom = newRoom;
+            }
         }
         else if (other.TryGetComponent(out Player touchedPlayer))
         {
@@ -912,6 +962,11 @@ public class Ghost : GameBehaviour
         ResetAntiExploitState();
     }
 
+    public void ForceStartHunt()
+    {
+        TriggerHunting(true);
+    }
+
     private void StopHunting()
     {
         _willHunt = false;
@@ -955,6 +1010,9 @@ public class Ghost : GameBehaviour
 #if UNITY_EDITOR
         if (house.useDebugs && house.playerCantDie) return;
 #endif
+        if (TutorialManager.IsTutorialActive && TutorialManager.Instance != null &&
+            TutorialManager.Instance.TryHandleTutorialHuntFailure(_player))
+            return;
 
         _player.Die();
         house.ExpelPlayerFromHouse();
@@ -997,6 +1055,21 @@ public class Ghost : GameBehaviour
             Debug.Log("Activity Triggered");*/
 
         float nextActivityTime = Random.Range(averageActivityTime - activityTimeVariation, averageActivityTime + activityTimeVariation);
+
+        if (tutorialOverrideEnabled && tutorialBlockAllActivities)
+        {
+            CancelInvoke(ACTIVITY_INVOKE);
+            this.Invoke(ACTIVITY_INVOKE, nextActivityTime, TriggerActivity);
+            return;
+        }
+
+        if (tutorialOverrideEnabled && tutorialRestrictActivities &&
+            (tutorialAllowedActivities == null || tutorialAllowedActivities.Count == 0))
+        {
+            CancelInvoke(ACTIVITY_INVOKE);
+            this.Invoke(ACTIVITY_INVOKE, nextActivityTime, TriggerActivity);
+            return;
+        }
         
         //Do not trigger activity during a hunt, re-roll timer
         if (currentState == GhostState.huntingState)
@@ -1046,7 +1119,7 @@ public class Ghost : GameBehaviour
             case GhostActivities.Hunt:
                 //Can't attack if not enough angry
                 //Can't attack if Earthbound ghost and not in its favorite room
-                if (_canHunt && angerPercentage >= ghostParameters.minimumAngerToHunt && 
+                if (TutorialAllowsHunt() && _canHunt && angerPercentage >= ghostParameters.minimumAngerToHunt && 
                     (ghostParameters.ghostTypeData.ghostType != GhostTypeData.GhostType.Earthbound || 
                      (ghostParameters.ghostTypeData.ghostType == GhostTypeData.GhostType.Earthbound && currentRoom == favoriteRoom)))
                 {
@@ -1109,6 +1182,15 @@ public class Ghost : GameBehaviour
 
     private GhostActivities GetRandomActivity()
     {
+        if (tutorialOverrideEnabled)
+        {
+            if (tutorialForceActivity && tutorialForcedActivity != GhostActivities.Nothing)
+                return tutorialForcedActivity;
+
+            if (tutorialRestrictActivities && tutorialAllowedActivities != null && tutorialAllowedActivities.Count > 0)
+                return tutorialAllowedActivities[Random.Range(0, tutorialAllowedActivities.Count)];
+        }
+
         if (_activityValues == null || _activityValues.Length == 0)
             _activityValues = (GhostActivities[])Enum.GetValues(typeof(GhostActivities));
 
@@ -1361,11 +1443,23 @@ public class Ghost : GameBehaviour
     private void SelectNewHidingWaypoint()
     {
         Room roomToGo = favoriteRoom;
-        
-        float chances = Random.Range(0f, 100f);
-        if (chances <= chancesToRoamInAnotherRoom && favoriteRoom.neighborRooms.Length > 0)
+
+        if (tutorialOverrideEnabled && !tutorialAllowRoomChange)
         {
-            roomToGo = favoriteRoom.neighborRooms[Random.Range(0, favoriteRoom.neighborRooms.Length)];
+            roomToGo = tutorialForceRoom && tutorialForcedRoom != null ? tutorialForcedRoom : favoriteRoom;
+        }
+        else if (tutorialOverrideEnabled && tutorialForceRoom && tutorialForcedRoom != null)
+        {
+            roomToGo = tutorialForcedRoom;
+        }
+        else
+        {
+        
+            float chances = Random.Range(0f, 100f);
+            if (chances <= chancesToRoamInAnotherRoom && favoriteRoom.neighborRooms.Length > 0)
+            {
+                roomToGo = favoriteRoom.neighborRooms[Random.Range(0, favoriteRoom.neighborRooms.Length)];
+            }
         }
 
         currentWayPoint = house.SelectRandomWayPointFromARoom(roomToGo);
@@ -1722,6 +1816,105 @@ public class Ghost : GameBehaviour
             currentRoom.AddTemperatureDeltaClamped(refreshment, currentRoom.minNormalTemperature);
         else
             currentRoom.AddTemperatureDelta(refreshment);
+    }
+
+    private bool TutorialAllowsHunt()
+    {
+        return !tutorialOverrideEnabled || tutorialAllowHunt;
+    }
+
+    public void ApplyTutorialOverride(bool enabled, bool blockAllActivities, bool forceRoom, Room forcedRoom,
+        bool restrictActivities, List<GhostActivities> allowedActivities, bool forceActivity, GhostActivities forcedActivity,
+        bool allowHunt, bool allowRoomChange)
+    {
+        tutorialOverrideEnabled = enabled;
+        tutorialBlockAllActivities = blockAllActivities;
+        tutorialForceRoom = forceRoom;
+        tutorialForcedRoom = forcedRoom;
+        tutorialRestrictActivities = restrictActivities;
+        tutorialForceActivity = forceActivity;
+        tutorialForcedActivity = forcedActivity;
+        tutorialAllowHunt = allowHunt;
+        tutorialAllowRoomChange = allowRoomChange;
+
+        tutorialAllowedActivities.Clear();
+        if (allowedActivities != null && allowedActivities.Count > 0)
+            tutorialAllowedActivities.AddRange(allowedActivities);
+
+        if (tutorialOverrideEnabled && tutorialForceRoom && tutorialForcedRoom != null)
+            ForceTutorialRoom(tutorialForcedRoom);
+    }
+
+    public void ClearTutorialOverride()
+    {
+        tutorialOverrideEnabled = false;
+        tutorialBlockAllActivities = false;
+        tutorialForceRoom = false;
+        tutorialForcedRoom = null;
+        tutorialRestrictActivities = false;
+        tutorialForceActivity = false;
+        tutorialForcedActivity = GhostActivities.Nothing;
+        tutorialAllowHunt = true;
+        tutorialAllowRoomChange = true;
+        tutorialAllowedActivities.Clear();
+    }
+
+    public void ApplyTutorialGhostParameters(GhostParameters parameters, bool reschedule = true)
+    {
+        if (parameters == null)
+            return;
+
+        ghostParameters = parameters;
+        _averageHuntTime = ghostParameters.averageHuntTime;
+        angerPercentage = Mathf.Max(0f, ghostParameters.startingAnger);
+
+        if (_baseAverageActivityTime <= 0f)
+            _baseAverageActivityTime = averageActivityTime;
+
+        averageActivityTime = _baseAverageActivityTime;
+        if (ghostParameters.ghostTypeData != null &&
+            ghostParameters.ghostTypeData.ghostType == GhostTypeData.GhostType.Trickster)
+        {
+            averageActivityTime *= 0.75f;
+        }
+
+        if (!reschedule)
+            return;
+
+        CancelInvoke(ACTIVITY_INVOKE);
+        CancelInvoke(ORBS_INVOKE);
+        CancelInvoke(PASSIVE_ANGER_INVOKE);
+
+        SchedulePassiveAnger();
+
+        float nextActivityTime = Random.Range(averageActivityTime - activityTimeVariation, averageActivityTime + activityTimeVariation);
+        this.Invoke(ACTIVITY_INVOKE, nextActivityTime * 2, TriggerActivity);
+
+        if (ghostParameters.HasEvidence(GhostInvestigator.EvidenceType.SpiritOrbs))
+        {
+            float delayBeforeNextGhostOrbs = Random.Range(ghostParameters.nextOrbsDelayMin, ghostParameters.nextOrbsDelayMax);
+            this.Invoke(ORBS_INVOKE, delayBeforeNextGhostOrbs, CreateSpiritOrbs);
+        }
+    }
+
+    private void ForceTutorialRoom(Room room)
+    {
+        if (room == null || house == null)
+            return;
+
+        favoriteRoom = room;
+        currentRoom = room;
+
+        WayPoint target = house.SelectRandomWayPointFromARoom(room);
+        if (target != null)
+        {
+            if (agent != null && agent.enabled)
+                agent.Warp(target.transform.position);
+            else
+                transform.position = target.transform.position;
+
+            currentWayPoint = target;
+        }
     }
 
     public bool IsHunting(bool includeWillHunt = true)

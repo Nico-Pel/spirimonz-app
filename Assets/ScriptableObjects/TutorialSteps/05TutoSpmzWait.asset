@@ -1,0 +1,88 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 13f86847f2cd41aca49389b94be6cfb1, type: 3}
+  m_Name: 05TutoSpmzWait
+  m_EditorClassIdentifier: 
+  id: TutoWait
+  dialogue: {fileID: 11400000, guid: b35db4eae11f447f890eed3ae520e98e, type: 2}
+  objective:
+    type: 10
+    goal: 1
+    titleEnglish: Ask your Spirimonz to wait by tapping on it with [InteractSpmz].
+    titleFrench: "Demande \xE0 ton Spirimonz d'attendre en appuyant sur lui avec
+      [InteractSpmz]."
+    activableTypeFilter: 1
+    activables: []
+    catchables: []
+    requireCatchableFireObject: 0
+    flammables: []
+    requireCandleFlammables: 0
+    requireCandlePlacedAndUpright: 0
+    candleUprightMaxAngle: 15
+    printSources: []
+    detectors: []
+    orbsParticles: []
+    orbsHoldDuration: 2
+    orbsMaxDistance: 12
+    orbsMaxAngle: 8
+    evidenceType: 3
+    evidenceState: 1
+    fruits: []
+    radiationDetectors: []
+    requiredTeamSlotIndex: 0
+    requireSpirimonzInHands: 0
+    requireSpirimonzOnMap: 1
+    waitDuration: 1.5
+    useSpirimonzTemperatureThreshold: 1
+    freezingTemperatureThreshold: 1
+    dropZoneId: 
+    dropZones: []
+    dropZoneObjects: []
+    dropZoneRequireCatchableFireObject: 0
+    dropZoneFlammableType: 0
+    requireStableRotation: 0
+    maxUprightAngle: 15
+    stableRotationDuration: 0.2
+  inputMask:
+    overrideInputs: 0
+    allowMovement: 1
+    allowLook: 1
+    allowInteract: 1
+    allowInteractSpmz: 1
+    allowUseWatch: 0
+    allowGrab: 1
+    allowPickupSpmz: 0
+    allowSecondary: 1
+    allowJournal: 0
+    allowTeamMenu: 0
+    allowDrop: 1
+    allowThrow: 0
+    allowDropSpmz: 1
+    useSeparateDropThrow: 0
+    allowThrowDrop: 0
+    overrideInventorySlots: 1
+    allowInventorySlots: 010100000000
+  ghostOverride:
+    enabled: 0
+    blockAllActivities: 0
+    forceRoom: 0
+    forcedRoom: {fileID: 0}
+    forcedRoomName: Bedroom
+    forcedRoomIndex: 0
+    allowRoomChange: 0
+    restrictActivities: 0
+    allowedActivities: 
+    forceActivity: 0
+    forcedActivity: 0
+    allowHunt: 0
+  requireNpcReturn: 1
+  autoAdvanceDelay: 3

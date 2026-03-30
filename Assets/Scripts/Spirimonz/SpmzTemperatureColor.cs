@@ -17,6 +17,8 @@ public class SpmzTemperatureColor : Spirimonz
     [SerializeField] private float lowerTemperature = 1f;
     [SerializeField] private float colorLerpSpeed = 5f;
 
+    public float FreezingThreshold => lowerTemperature;
+
     private float _percentageOnGradient;
     private Color _currentColor;
     private Color _colorVelocity;

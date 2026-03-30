@@ -127,8 +127,15 @@ public class House : GameBehaviour
             selectedGhostParameter = forcedGhostParameters;
         }
         #endif
-        
-        currentGhost = Instantiate(map.GetRandomGhost(this));
+        TutorialManager tutorial = FindObjectOfType<TutorialManager>(true);
+        if (tutorial != null && tutorial.forceGhostModel && tutorial.forcedGhostModel != null)
+        {
+            currentGhost = Instantiate(tutorial.forcedGhostModel);
+        }
+        else
+        {
+            currentGhost = Instantiate(map.GetRandomGhost(this));
+        }
         currentGhost.Initialize(this);
     }
 

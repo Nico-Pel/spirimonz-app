@@ -1,0 +1,90 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 13f86847f2cd41aca49389b94be6cfb1, type: 3}
+  m_Name: 10Freezing
+  m_EditorClassIdentifier: 
+  id: TutoFreezing
+  dialogue: {fileID: 11400000, guid: b12e7be7beccd479dab7311dc45d34d7, type: 2}
+  objective:
+    type: 12
+    goal: 1
+    titleEnglish: Find a room where it's freezing cold. Your Spirimonz's flame will
+      turn blue if it's cold, and then pink if it's freezing.
+    titleFrench: "Trouve une pi\xE8ce o\xF9 la temp\xE9rature est glaciale. La flamme
+      de ton Spirimonz deviendra bleue s'il fait froid, puis rose si la temp\xE9rature
+      est glaciale."
+    activableTypeFilter: 1
+    activables: []
+    catchables: []
+    requireCatchableFireObject: 0
+    flammables: []
+    requireCandleFlammables: 1
+    requireCandlePlacedAndUpright: 0
+    candleUprightMaxAngle: 15
+    printSources: []
+    detectors: []
+    orbsParticles: []
+    orbsHoldDuration: 2
+    orbsMaxDistance: 12
+    orbsMaxAngle: 8
+    evidenceType: 3
+    evidenceState: 1
+    fruits: []
+    radiationDetectors: []
+    requiredTeamSlotIndex: 0
+    requireSpirimonzInHands: 0
+    requireSpirimonzOnMap: 1
+    waitDuration: 2
+    useSpirimonzTemperatureThreshold: 1
+    freezingTemperatureThreshold: 1
+    dropZoneId: 
+    dropZones: []
+    dropZoneObjects: []
+    dropZoneRequireCatchableFireObject: 0
+    dropZoneFlammableType: 0
+    requireStableRotation: 0
+    maxUprightAngle: 15
+    stableRotationDuration: 0.2
+  inputMask:
+    overrideInputs: 0
+    allowMovement: 1
+    allowLook: 1
+    allowInteract: 1
+    allowInteractSpmz: 1
+    allowUseWatch: 0
+    allowGrab: 1
+    allowPickupSpmz: 1
+    allowSecondary: 1
+    allowJournal: 1
+    allowTeamMenu: 0
+    allowDrop: 1
+    allowThrow: 0
+    allowDropSpmz: 1
+    useSeparateDropThrow: 0
+    allowThrowDrop: 0
+    overrideInventorySlots: 1
+    allowInventorySlots: 010101000000
+  ghostOverride:
+    enabled: 1
+    blockAllActivities: 0
+    forceRoom: 0
+    forcedRoom: {fileID: 0}
+    forcedRoomName: Bedroom
+    forcedRoomIndex: 0
+    allowRoomChange: 0
+    restrictActivities: 0
+    allowedActivities: 00000000
+    forceActivity: 1
+    forcedActivity: 0
+    allowHunt: 0
+  requireNpcReturn: 0
+  autoAdvanceDelay: 3

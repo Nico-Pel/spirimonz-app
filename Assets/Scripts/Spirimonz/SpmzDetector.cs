@@ -4,6 +4,7 @@ using DG.Tweening;
 using UnityEngine;
 using UnityEngine.AI;
 using UnityEngine.Serialization;
+using UnityEngine.Events;
 
 public class SpmzDetector : Spirimonz
 {
@@ -39,6 +40,9 @@ public class SpmzDetector : Spirimonz
     private float _nextDetectionTime;
     
     private bool _emissionEnabled = false;
+
+    [Header("Events")]
+    public UnityEvent<ActivitySource> onActivityDetected;
 
     public override void InitSpirimonz()
     {
@@ -111,6 +115,7 @@ public class SpmzDetector : Spirimonz
         animator.SetTrigger("Detection");
         
         _currentActivitySourceDetected = activitySource;
+        onActivityDetected?.Invoke(activitySource);
         UpdateDetectionFeedback();
         _newActivityReached = false;
 
@@ -193,6 +198,16 @@ public class SpmzDetector : Spirimonz
             animator.SetTrigger("ActivityReached");
             agent.speed = 0;
         }
+    }
+
+    public bool IsDetectingActivity()
+    {
+        return _currentActivitySourceDetected != null && _currentActivitySourceDetected.activityValue > 0;
+    }
+
+    public ActivitySource GetCurrentActivitySource()
+    {
+        return _currentActivitySourceDetected;
     }
     
     private void OnDrawGizmosSelected()

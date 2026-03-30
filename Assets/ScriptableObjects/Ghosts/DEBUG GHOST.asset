@@ -13,7 +13,8 @@ MonoBehaviour:
   m_Name: DEBUG GHOST
   m_EditorClassIdentifier: 
   ghostTypeData: {fileID: 11400000, guid: fed109bce4b1d4b70afaac2e40cb3a0f, type: 2}
-  minimumAngrinessToHunt: 50
+  ghostClues: []
+  minimumAngerToHunt: 50
   averageHuntTime: 10
   minimumPeaceTime: 60
   startingAnger: 5
@@ -27,9 +28,10 @@ MonoBehaviour:
   throwForceMin: 0.5
   throwForceMax: 4
   slamChances: 50
+  openingDoorSpeedMultiplier: 1
   SpiritPrints: 1
   EatFruits: 1
-  BlowUpFlammables: 0
+  BlowUpFlammables: 1
   FreezingTemperature: 1
   HighSpiritActivities: 1
   SpiritOrbs: 1

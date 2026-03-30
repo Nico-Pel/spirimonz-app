@@ -72,6 +72,31 @@ public class InventoryManager : GameBehaviour
         UseWatchObject();
     }
 
+    public void ApplyTemporaryTeam(List<SpirimonzSettings> forcedTeam)
+    {
+        if (forcedTeam == null)
+            return;
+
+        for (int i = 0; i < spirimonzTeam.Count; i++)
+        {
+            Spirimonz spmz = spirimonzTeam[i];
+            if (spmz != null)
+                Destroy(spmz.gameObject);
+        }
+        spirimonzTeam.Clear();
+
+        spirimonzTeamSettings.Clear();
+        for (int i = 0; i < 5; i++)
+        {
+            SpirimonzSettings setting = i < forcedTeam.Count ? forcedTeam[i] : null;
+            spirimonzTeamSettings.Add(setting);
+        }
+
+        InitializeTeam();
+        UseWatchObject();
+        onTeamChange?.Invoke();
+    }
+
     /// <summary>Remplit spirimonzTeamSettings à partir du gameData du GameManager</summary>
     public void LoadTeamFromSave()
     {
@@ -198,6 +223,11 @@ public class InventoryManager : GameBehaviour
 
     private void UpdateGamePlayer()
     {
+        bool allowInteraction = TutorialInputGate.IsAllowed(TutorialInputGate.AllowInteract);
+        bool allowSecondary = TutorialInputGate.IsAllowed(TutorialInputGate.AllowSecondary);
+        bool allowDropSpmz = TutorialInputGate.IsAllowed(TutorialInputGate.AllowDropSpmz);
+        bool allowUseWatch = TutorialInputGate.IsAllowed(TutorialInputGate.AllowUseWatch);
+
         /*if (selectedSpirimonz != null && selectedSpirimonz.isOnTheMap == false)
         {
             selectedSpirimonz.SetCurrentRoom(_gamePlayer.currentRoom);
@@ -205,12 +235,18 @@ public class InventoryManager : GameBehaviour
         
         for (int i = 0; i < _player.inputManager.inventoryKeys.Length; i++)
         {
+            if (!TutorialInputGate.IsInventorySlotAllowed(i))
+                continue;
+
             if ((!MobileInput.Enabled && _player.inputManager.GetInventoryDown(i)) || MobileInput.InventoryDown(i))
             {
                 currentSelectedIndex = i;
                 if (i == 0)
                 {
-                    UseWatchObject();
+                    if (allowUseWatch)
+                        UseWatchObject();
+                    else
+                        continue;
                 }
                 else
                 {
@@ -221,6 +257,9 @@ public class InventoryManager : GameBehaviour
 
         if (MobileInput.Enabled && (MobileInput.NextDown || MobileInput.PreviousDown))
         {
+            if (!TutorialInputGate.HasAnyInventorySlotAllowed())
+                return;
+
             int slotCount = _player.inputManager.inventoryKeys.Length;
             if (slotCount > 0)
             {
@@ -238,6 +277,18 @@ public class InventoryManager : GameBehaviour
                         newIndex = 0;
                     else if (newIndex < 0)
                         newIndex = slotCount - 1;
+
+                    if (!TutorialInputGate.IsInventorySlotAllowed(newIndex))
+                    {
+                        attempts++;
+                        continue;
+                    }
+
+                    if (newIndex == 0 && !allowUseWatch)
+                    {
+                        attempts++;
+                        continue;
+                    }
 
                     if (newIndex == 0)
                         break;
@@ -262,7 +313,7 @@ public class InventoryManager : GameBehaviour
             }
         }
 
-        if ((!MobileInput.Enabled && Input.GetMouseButtonDown(0)) || MobileInput.PrimaryDown)
+        if (allowDropSpmz && ((!MobileInput.Enabled && _player.inputManager.GetDropSpirimonzDown()) || MobileInput.PrimaryDown))
         {
             TryToDropSpirimonz();
         }
@@ -273,7 +324,7 @@ public class InventoryManager : GameBehaviour
 
         if (MobileInput.Enabled)
         {
-            if (allowNightVision && MobileInput.SecondaryDown)
+            if (allowNightVision && allowSecondary && MobileInput.SecondaryDown)
             {
                 int handPos = _gamePlayer.handAnimator.GetInteger("HandPos");
                 if (handPos == (int)HandPoses.LightAim)
@@ -284,12 +335,12 @@ public class InventoryManager : GameBehaviour
         }
         else
         {
-            if (Input.GetMouseButtonDown(1) && _gamePlayer.handAnimator.GetInteger("HandPos") == (int)HandPoses.LightAim)
+            if (allowSecondary && Input.GetMouseButtonDown(1) && _gamePlayer.handAnimator.GetInteger("HandPos") == (int)HandPoses.LightAim)
             {
                 TurnOnNightVision();
             }
         
-            if (Input.GetMouseButtonUp(1) && _gamePlayer.handAnimator.GetInteger("HandPos") == (int)HandPoses.CameraAim)
+            if (allowSecondary && Input.GetMouseButtonUp(1) && _gamePlayer.handAnimator.GetInteger("HandPos") == (int)HandPoses.CameraAim)
             {
                 TurnOffNightVision();
             }

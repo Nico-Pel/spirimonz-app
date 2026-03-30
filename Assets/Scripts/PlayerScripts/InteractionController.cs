@@ -41,6 +41,7 @@ public class InteractionController : GameBehaviour
     private IInteractable _currentTarget;
     private IInteractable _lastTarget;
     private CatchableObject _currentCatchable;
+    private NPC _currentNpcTarget;
 
     private Camera _cam;
     private GamePlayer _player;
@@ -114,6 +115,8 @@ public class InteractionController : GameBehaviour
             targetingGround = (groundLayer.value & (1 << hit.collider.gameObject.layer)) != 0;
             _lastGroundPosTargeted = hit.point;
             newTarget = hit.collider.GetComponent<IInteractable>();
+            if (newTarget == null)
+                newTarget = hit.collider.GetComponentInParent<IInteractable>();
 
             if (newTarget != null && newTarget.InteractionLocked)
                 newTarget = null;
@@ -184,6 +187,7 @@ public class InteractionController : GameBehaviour
             _lastTarget = _currentTarget;
             _currentTarget = newTarget;
             _currentCatchable = newCatchable;
+            UpdateNpcCTA(_lastTarget, _currentTarget);
             RefreshCursorUI();
         }
     }
@@ -244,27 +248,43 @@ public class InteractionController : GameBehaviour
     // =========================
     void HandleInput()
     {
+        bool allowInteract = TutorialInputGate.IsAllowed(TutorialInputGate.AllowInteract);
+        bool allowInteractSpmz = TutorialInputGate.IsAllowed(TutorialInputGate.AllowInteractSpmz);
+        bool allowGrab = TutorialInputGate.IsAllowed(TutorialInputGate.AllowGrab);
+        bool allowPickupSpmz = TutorialInputGate.IsAllowed(TutorialInputGate.AllowPickupSpmz);
+        bool allowSecondary = TutorialInputGate.IsAllowed(TutorialInputGate.AllowSecondary);
+        bool allowDrop = TutorialInputGate.IsAllowed(TutorialInputGate.AllowDrop);
+        bool allowThrow = TutorialInputGate.IsAllowed(TutorialInputGate.AllowThrow);
+
         if (_currentTarget != null)
         {
-            if ((!MobileInput.Enabled && Input.GetMouseButtonDown(0)) || MobileInput.PrimaryDown)
+            bool isSpmzTarget = _currentTarget is Spirimonz spmzTarget && spmzTarget.isOnTheMap;
+            bool allowCurrentInteract = isSpmzTarget ? allowInteractSpmz : allowInteract;
+
+            if (allowCurrentInteract && ((!MobileInput.Enabled && Input.GetMouseButtonDown(0)) || MobileInput.PrimaryDown))
                 _currentTarget.OnInteractStart();
 
-            if ((!MobileInput.Enabled && Input.GetMouseButton(0)) || MobileInput.PrimaryHeld)
+            if (allowCurrentInteract && ((!MobileInput.Enabled && Input.GetMouseButton(0)) || MobileInput.PrimaryHeld))
                 _currentTarget.OnInteractHold();
 
-            if ((!MobileInput.Enabled && Input.GetMouseButtonUp(0)) || MobileInput.PrimaryUp)
+            if (allowCurrentInteract && ((!MobileInput.Enabled && Input.GetMouseButtonUp(0)) || MobileInput.PrimaryUp))
                 _currentTarget.OnInteractEnd();
+
+            bool interactionKeyDown = !MobileInput.Enabled &&
+                                      (_player.inputManager.GetGrabDown() || _player.inputManager.GetWorldInteractionDownRaw());
+            if (allowCurrentInteract && interactionKeyDown && !(_currentTarget is CatchableObject))
+                _currentTarget.OnInteractStart();
         }
 
         if (objectInHands != null)
         {
-            if ((!MobileInput.Enabled && Input.GetMouseButtonDown(1)) || MobileInput.SecondaryDown)
+            if (allowSecondary && ((!MobileInput.Enabled && Input.GetMouseButtonDown(1)) || MobileInput.SecondaryDown))
                 objectInHands.OnSecondaryUse();
 
-            if ((!MobileInput.Enabled && _player.inputManager.GetDropDown()) || MobileInput.DropDown)
+            if (allowDrop && ((!MobileInput.Enabled && _player.inputManager.GetDropDown()) || MobileInput.DropDown))
                 DropObject();
 
-            if ((!MobileInput.Enabled && _player.inputManager.GetThrowDown()) || MobileInput.ThrowDown)
+            if (allowThrow && ((!MobileInput.Enabled && _player.inputManager.GetThrowDown()) || MobileInput.ThrowDown))
             {
                 if (objectInHands.canBeThrownByPlayer)
                     ThrowObject();
@@ -274,7 +294,7 @@ public class InteractionController : GameBehaviour
         }
         else if (_currentCatchable != null)
         {
-            if ((!MobileInput.Enabled && _player.inputManager.GetGrabDown()) || MobileInput.GrabDown)
+            if (allowGrab && ((!MobileInput.Enabled && _player.inputManager.GetGrabDown()) || MobileInput.GrabDown))
             {
                 if (_currentCatchable.canBeGrabByPlayer && !_currentCatchable.isGrabbed)
                 {
@@ -293,7 +313,7 @@ public class InteractionController : GameBehaviour
         }
         else if (_currentTarget is Spirimonz spirimonz && spirimonz.isOnTheMap)
         {
-            if ((!MobileInput.Enabled && _player.inputManager.GetGrabDown()) || MobileInput.GrabDown)
+            if (allowPickupSpmz && ((!MobileInput.Enabled && _player.inputManager.GetGrabDown()) || MobileInput.GrabDown))
                 _player.inventoryManager.SpirimonzGoBackToHands(spirimonz);
         }
     }
@@ -321,7 +341,29 @@ public class InteractionController : GameBehaviour
         _targetedDoor = null;
         _currentTarget = null;
         _currentCatchable = null;
+        ClearNpcCTA();
         RefreshCursorUI();
+    }
+
+    private void UpdateNpcCTA(IInteractable lastTarget, IInteractable newTarget)
+    {
+        NPC lastNpc = lastTarget as NPC;
+        NPC newNpc = newTarget as NPC;
+
+        if (lastNpc != null && lastNpc != newNpc)
+            lastNpc.CloseCTA();
+
+        if (newNpc != null && newNpc != _currentNpcTarget && _player != null)
+            newNpc.OpenCTA(_player);
+
+        _currentNpcTarget = newNpc;
+    }
+
+    private void ClearNpcCTA()
+    {
+        if (_currentNpcTarget != null)
+            _currentNpcTarget.CloseCTA();
+        _currentNpcTarget = null;
     }
 
     // =========================
@@ -329,6 +371,19 @@ public class InteractionController : GameBehaviour
     // =========================
     void RefreshCursorUI()
     {
+        if (!TutorialInputGate.IsAllowed(TutorialInputGate.AllowInteract) &&
+            !TutorialInputGate.IsAllowed(TutorialInputGate.AllowPickupSpmz))
+        {
+            _uiGame.SetBigPointerSprite(null, 1f);
+            _uiGame.EnableBigPointer(false);
+            _uiGame.EnableGrabText(false);
+            _lastShowCursor = false;
+            _lastShowGrab = false;
+            _lastCursorSprite = null;
+            _lastCursorSize = 1f;
+            return;
+        }
+
         // showCursor = target exist OR door is grabbed
         bool showCursor = (_currentTarget != null && _currentTarget.InteractionLocked == false) || (_targetedDoor != null && _targetedDoor.InteractionLocked == false);
         
@@ -359,7 +414,8 @@ public class InteractionController : GameBehaviour
             _lastShowCursor = showCursor;
         }
 
-        bool showGrab = objectInHands == null && _currentCatchable != null && _currentCatchable.canBeGrabByPlayer;
+        bool allowGrab = TutorialInputGate.IsAllowed(TutorialInputGate.AllowGrab);
+        bool showGrab = allowGrab && objectInHands == null && _currentCatchable != null && _currentCatchable.canBeGrabByPlayer;
         if (showGrab != _lastShowGrab)
         {
             _uiGame.EnableGrabText(showGrab);
@@ -372,6 +428,19 @@ public class InteractionController : GameBehaviour
     // =========================
     private void HandleDoor()
     {
+        if (!TutorialInputGate.IsAllowed(TutorialInputGate.AllowInteract))
+        {
+            if (_grabbedDoor != null)
+            {
+                Rigidbody rb = _grabbedDoor.GetComponent<Rigidbody>();
+                _grabbedDoor.Release();
+                if (rb != null)
+                    rb.useGravity = true;
+                _grabbedDoor = null;
+            }
+            _targetedDoor = null;
+            return;
+        }
         bool primaryDown = (!MobileInput.Enabled && Input.GetMouseButtonDown(0)) || MobileInput.PrimaryDown;
         bool primaryHeld = (!MobileInput.Enabled && Input.GetMouseButton(0)) || MobileInput.PrimaryHeld;
         bool primaryUp = (!MobileInput.Enabled && Input.GetMouseButtonUp(0)) || MobileInput.PrimaryUp;

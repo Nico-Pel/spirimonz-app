@@ -6,7 +6,7 @@ using UnityEngine.AI;
 using UnityEngine.Events;
 using Random = UnityEngine.Random;
 
-public class NPC : GameBehaviour
+public class NPC : GameBehaviour, IInteractable
 {
     public enum MovingType
     {
@@ -27,6 +27,7 @@ public class NPC : GameBehaviour
     [Header("Camera")]
     public Cinemachine.CinemachineVirtualCamera dialogueVCam;
     public bool dynamicCamera = true;
+    public bool disableDialogueCameraInFPS = true;
     //public float cameraMoveDuration = 0.35f;
 
     [Header("Interaction")]
@@ -35,6 +36,7 @@ public class NPC : GameBehaviour
     public bool turnBodyToTalk = true;
     public float bodyTurnDuration = 0.25f;
     public bool useAnimationTalk = true;
+    public bool lockRotationToY = true;
 
     [Header("Moving Settings")] 
     public NPCMovingPoint firstMovingPoint;
@@ -44,6 +46,11 @@ public class NPC : GameBehaviour
     public float minDistToNextPoint = 0.1f;
     public float maxDistToNextPoint = 2f;
 
+    [Header("Cursor")]
+    public Sprite specialCursor;
+    public float cursorSize = 1f;
+    [SerializeField] private bool interactionLocked;
+
     private Vector3 _neckRotationBase;
     private bool _canInteract = true;
     
@@ -51,6 +58,7 @@ public class NPC : GameBehaviour
     private NPCMovingPoint _lastMovingPoint;
     private float _distToNextPoint;
 
+    public UnityEvent onDialogueStart;
     public UnityEvent onDialogueEnd;
 
     public NPCMovingPoint GetLastMovingPoint() => _lastMovingPoint;
@@ -103,7 +111,7 @@ public class NPC : GameBehaviour
         }
     }
 
-    public void Interact(Player player)
+    public void Interact(Player player, bool useDialogueCamera = true)
     {
         if (!_canInteract)
         {
@@ -118,6 +126,11 @@ public class NPC : GameBehaviour
         }
 
         _canInteract = false;
+        onDialogueStart?.Invoke();
+
+        // Ensure player tracks the current NPC for proper dialogue end/reset
+        if (player != null)
+            player.currentNPC = this;
 
         // Verrouille les contrôles du joueur
         player.LockControls(true);
@@ -148,7 +161,7 @@ public class NPC : GameBehaviour
             UIGame.Instance.uiDialogue.StartDialogue(dialogue);
 
             // Positionne la caméra après que la tête soit orientée
-            if (dialogueVCam != null)
+            if (dialogueVCam != null && useDialogueCamera && ShouldUseDialogueCamera(player))
             {
                 if (dynamicCamera)
                     PositionDialogueCamera(player);
@@ -160,7 +173,10 @@ public class NPC : GameBehaviour
         // Si l’angle est trop grand, tourner le corps d’abord
         if (angle > maxNeckAngle && turnBodyToTalk)
         {
-            transform.DORotateQuaternion(Quaternion.LookRotation(dirToPlayer), bodyTurnDuration)
+            Vector3 flatDir = GetFlatDirection(dirToPlayer);
+            Quaternion targetRotation = Quaternion.LookRotation(flatDir, Vector3.up);
+            Vector3 targetEuler = new Vector3(0f, targetRotation.eulerAngles.y, 0f);
+            transform.DORotate(targetEuler, bodyTurnDuration)
                 .SetEase(Ease.OutSine)
                 .OnComplete(StartDialogueAndCamera);
         }
@@ -168,6 +184,24 @@ public class NPC : GameBehaviour
         {
             StartDialogueAndCamera();
         }
+    }
+
+    private Vector3 GetFlatDirection(Vector3 dir)
+    {
+        dir.y = 0f;
+        if (dir.sqrMagnitude < 0.0001f)
+            return transform.forward;
+        return dir.normalized;
+    }
+
+    private void LateUpdate()
+    {
+        if (!lockRotationToY)
+            return;
+
+        Vector3 euler = transform.eulerAngles;
+        if (Mathf.Abs(euler.x) > 0.001f || Mathf.Abs(euler.z) > 0.001f)
+            transform.eulerAngles = new Vector3(0f, euler.y, 0f);
     }
 
     private void PositionDialogueCamera(Player player)
@@ -259,5 +293,57 @@ public class NPC : GameBehaviour
         Vector3 dir = (player.characterController.transform.position - transform.position).normalized;
         float angle = Vector3.Angle(transform.forward, dir);
         return angle <= maxNeckAngle;
+    }
+
+    private bool ShouldUseDialogueCamera(Player player)
+    {
+        if (dialogueVCam == null)
+            return false;
+
+        if (disableDialogueCameraInFPS && player is GamePlayer)
+            return false;
+
+        return true;
+    }
+
+    // =========================
+    // IInteractable (FPS)
+    // =========================
+    public Sprite SpecialCursor
+    {
+        get => specialCursor;
+        set => specialCursor = value;
+    }
+
+    public float CursorSize
+    {
+        get => cursorSize;
+        set => cursorSize = value;
+    }
+
+    public bool InteractionLocked
+    {
+        get => interactionLocked || !_canInteract;
+        set => interactionLocked = value;
+    }
+
+    public void OnInteractStart()
+    {
+        Player player = Player.Instance;
+        if (player == null)
+            return;
+
+        if (InteractionLocked)
+            return;
+
+        Interact(player, useDialogueCamera: true);
+    }
+
+    public void OnInteractHold()
+    {
+    }
+
+    public void OnInteractEnd()
+    {
     }
 }

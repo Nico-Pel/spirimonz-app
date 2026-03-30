@@ -413,7 +413,8 @@ public class Spirimonz : GameBehaviour, IInteractable
     {
         if (_isLocked) return;
 
-        if (((!MobileInput.Enabled && Input.GetMouseButtonDown(1)) || MobileInput.SecondaryDown) && !isOnTheMap)
+        if (TutorialInputGate.IsAllowed(TutorialInputGate.AllowSecondary) &&
+            ((!MobileInput.Enabled && Input.GetMouseButtonDown(1)) || MobileInput.SecondaryDown) && !isOnTheMap)
         {
             OnClickInHands();
         }
