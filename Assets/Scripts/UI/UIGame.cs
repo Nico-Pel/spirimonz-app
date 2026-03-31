@@ -76,6 +76,7 @@ public class UIGame : UIManager
         _player = Player.Instance;
         _gameManager = GameManager.Instance;
         _gameManager.onMoneyUpdated.AddListener(UpdateGold);
+        ApplyTutorialUIVisibility();
         EnsureMoneyVisible();
         ApplyMoneySafeArea();
         UpdateGold();
@@ -96,6 +97,7 @@ public class UIGame : UIManager
     {
         if(_gameManager != null)
         {
+            ApplyTutorialUIVisibility();
             EnsureMoneyVisible();
             ApplyMoneySafeArea();
             UpdateGold();
@@ -111,6 +113,10 @@ public class UIGame : UIManager
 
     private void EnsureMoneyVisible()
     {
+        if (TutorialManager.Instance != null &&
+            (TutorialManager.Instance.IsControlsTutorial || TutorialManager.Instance.IsTraining))
+            return;
+
         bool shouldForce = forceShowMoney || MobileInput.Enabled;
         if (!shouldForce || tGold == null)
             return;
@@ -271,7 +277,30 @@ public class UIGame : UIManager
 
         tablet.gameObject.SetActive(true);
         tablet.OpenTab(1, true);
+        UIJournal journal = tablet.GetComponentInChildren<UIJournal>(true);
+        if (journal != null)
+            journal.RefreshModeVisibility();
         onJournalOpened?.Invoke();
+    }
+
+    private void ApplyTutorialUIVisibility()
+    {
+        bool hideMoney = TutorialManager.Instance != null &&
+                         (TutorialManager.Instance.IsControlsTutorial || TutorialManager.Instance.IsTraining);
+
+        if (tGold != null)
+        {
+            Transform parent = tGold.transform.parent;
+            if (parent != null)
+                parent.gameObject.SetActive(!hideMoney);
+            tGold.gameObject.SetActive(!hideMoney);
+        }
+
+        if (tablet != null && tablet.tabsObject != null)
+        {
+            bool hideTabs = TutorialManager.Instance != null && TutorialManager.Instance.IsControlsTutorial;
+            tablet.tabsObject.SetActive(!hideTabs);
+        }
     }
 
     private bool IsJournalOpen()

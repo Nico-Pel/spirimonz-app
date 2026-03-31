@@ -19,8 +19,23 @@ public class UIJournal : GameBehaviour
     public GameObject[] ghostClues;
     public GameObject[] ghostEvidenceIcons;
     public TextMeshProUGUI[] tGhostClues;
+
+    [Header("Mode Visibility")]
+    public GameObject[] normalOrTrainingObjects;
+
+    [Header("Training CTA")]
+    public bool enableTrainingCta = true;
+    public int trainingEvidenceCountForCta = 3;
+    public float trainingCtaScale = 1.08f;
+    public float trainingCtaDuration = 0.25f;
+    public Ease trainingCtaEase = Ease.OutBack;
     
     private int _selectedSlotsCount;
+    private Tweener _captureCtaTween;
+    private Tweener _ghostCtaTween;
+    private UIGhostTypeSlot _ghostCtaSlot;
+    private Vector3 _ghostCtaBaseScale;
+    private Vector3 _captureCtaBaseScale;
 
     private void Awake()
     {
@@ -29,6 +44,8 @@ public class UIJournal : GameBehaviour
             slot.OnChangeForcedState.AddListener(SetCaptureButtonState);
             slot.SetJournal(this);
         }
+
+        ApplyModeVisibility();
         
         SetCaptureButtonState();
         
@@ -42,11 +59,32 @@ public class UIJournal : GameBehaviour
             House.Instance.currentGhost.onGhostStartToHunt.AddListener(SetCaptureButtonState);
             House.Instance.currentGhost.onGhostStopToHunt.AddListener(SetCaptureButtonState);
         }
+
+        if (GhostInvestigator.Instance != null)
+            GhostInvestigator.Instance.OnInvestigationDatasChange.AddListener(OnInvestigationChanged);
     }
 
     private void OnEnable()
     {
         CloseGhostFrame();
+        ApplyModeVisibility();
+        UpdateTrainingCtas();
+    }
+
+    private void ApplyModeVisibility()
+    {
+        if (normalOrTrainingObjects == null || normalOrTrainingObjects.Length == 0)
+            return;
+
+        bool show = true;
+        if (TutorialManager.Instance != null && TutorialManager.Instance.IsControlsTutorial)
+            show = false;
+
+        for (int i = 0; i < normalOrTrainingObjects.Length; i++)
+        {
+            if (normalOrTrainingObjects[i] != null)
+                normalOrTrainingObjects[i].SetActive(show);
+        }
     }
 
     private List<GhostParameters> GetSelectedGhosts()
@@ -72,6 +110,8 @@ public class UIJournal : GameBehaviour
             percentageText.text = string.Empty;
             percentageText.gameObject.SetActive(false);
         }
+
+        UpdateTrainingCtas();
     }
 
     private void StartCapture()
@@ -145,5 +185,165 @@ public class UIJournal : GameBehaviour
         }
 
         SetCaptureButtonState();
+    }
+
+    public void RefreshModeVisibility()
+    {
+        ApplyModeVisibility();
+        UpdateTrainingCtas();
+    }
+
+    private void OnInvestigationChanged(GhostInvestigator.EvidenceType evidenceType)
+    {
+        UpdateTrainingCtas();
+    }
+
+    private bool IsTrainingMode()
+    {
+        return TutorialManager.Instance != null && TutorialManager.Instance.IsTraining;
+    }
+
+    private bool IsTutorialMode()
+    {
+        return TutorialManager.Instance != null && TutorialManager.Instance.IsControlsTutorial;
+    }
+
+    private void UpdateTrainingCtas()
+    {
+        if (!enableTrainingCta || !IsTrainingMode())
+        {
+            StopTrainingCtas();
+            return;
+        }
+
+        GhostInvestigator investigator = GhostInvestigator.Instance;
+        if (investigator == null)
+        {
+            StopTrainingCtas();
+            return;
+        }
+
+        int presentCount = 0;
+        foreach (GhostInvestigator.EvidenceType type in Enum.GetValues(typeof(GhostInvestigator.EvidenceType)))
+        {
+            if (investigator.GetEvidenceState(type) == GhostInvestigator.EvidenceState.Present)
+                presentCount++;
+        }
+
+        if (presentCount < trainingEvidenceCountForCta)
+        {
+            StopTrainingCtas();
+            return;
+        }
+
+        List<GhostParameters> suspects = investigator.possibleSuspects;
+        if (suspects == null || suspects.Count != 1)
+        {
+            StopTrainingCtas();
+            return;
+        }
+
+        GhostParameters target = suspects[0];
+        UIGhostTypeSlot slot = FindSlotForGhost(target);
+        if (slot == null)
+        {
+            StopTrainingCtas();
+            return;
+        }
+
+        if (slot.currentForcedState == UIGhostTypeSlot.GhostTypeSlotForcedState.selected)
+        {
+            StopGhostCta();
+            StartCaptureCta();
+        }
+        else
+        {
+            StopCaptureCta();
+            StartGhostCta(slot);
+        }
+    }
+
+    private UIGhostTypeSlot FindSlotForGhost(GhostParameters target)
+    {
+        if (ghostTypeSlots == null)
+            return null;
+
+        for (int i = 0; i < ghostTypeSlots.Length; i++)
+        {
+            UIGhostTypeSlot slot = ghostTypeSlots[i];
+            if (slot != null && slot.ghostParameters == target)
+                return slot;
+        }
+
+        return null;
+    }
+
+    private void StartGhostCta(UIGhostTypeSlot slot)
+    {
+        if (slot == null)
+            return;
+
+        if (_ghostCtaSlot != slot)
+        {
+            StopGhostCta();
+            _ghostCtaSlot = slot;
+            _ghostCtaBaseScale = slot.transform.localScale;
+        }
+
+        if (_ghostCtaTween != null && _ghostCtaTween.IsActive())
+            return;
+
+        _ghostCtaTween = slot.transform
+            .DOScale(_ghostCtaBaseScale * trainingCtaScale, trainingCtaDuration)
+            .SetEase(trainingCtaEase)
+            .SetLoops(-1, LoopType.Yoyo);
+    }
+
+    private void StopGhostCta()
+    {
+        if (_ghostCtaTween != null)
+        {
+            _ghostCtaTween.Kill();
+            _ghostCtaTween = null;
+        }
+
+        if (_ghostCtaSlot != null)
+        {
+            _ghostCtaSlot.transform.localScale = _ghostCtaBaseScale;
+            _ghostCtaSlot = null;
+        }
+    }
+
+    private void StartCaptureCta()
+    {
+        if (captureButton == null)
+            return;
+
+        if (_captureCtaTween != null && _captureCtaTween.IsActive())
+            return;
+
+        _captureCtaBaseScale = captureButton.transform.localScale;
+        _captureCtaTween = captureButton.transform
+            .DOScale(_captureCtaBaseScale * trainingCtaScale, trainingCtaDuration)
+            .SetEase(trainingCtaEase)
+            .SetLoops(-1, LoopType.Yoyo);
+    }
+
+    private void StopCaptureCta()
+    {
+        if (_captureCtaTween != null)
+        {
+            _captureCtaTween.Kill();
+            _captureCtaTween = null;
+        }
+
+        if (captureButton != null)
+            captureButton.transform.localScale = _captureCtaBaseScale;
+    }
+
+    private void StopTrainingCtas()
+    {
+        StopGhostCta();
+        StopCaptureCta();
     }
 }

@@ -196,6 +196,19 @@ public class Spirimonz : GameBehaviour, IInteractable
                 hidingGameObject.transform.localPosition = useDifferentHidingOrbPosForHands ? _handHidingOrbPos : _baseHidingOrbPos;
             }
         }
+        else
+        {
+            RefreshAnimatorState();
+        }
+    }
+
+    private void RefreshAnimatorState()
+    {
+        if (animator == null)
+            return;
+
+        animator.SetBool("Hands", !isOnTheMap);
+        animator.SetBool("Wait", isOnTheMap && _currentBehaviour == SpirimonzBehaviourState.Wait);
     }
 
     private bool _shouldFeelAHunt;

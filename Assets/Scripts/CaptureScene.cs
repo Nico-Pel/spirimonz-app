@@ -74,6 +74,9 @@ public class CaptureScene : GameBehaviour
     private void Win()
     {
         SpirimonzSettings selectedSpirimonz = _house.GetSpirimonzSettings();
+        TutorialManager tutorial = TutorialManager.Instance;
+        if (tutorial != null && tutorial.IsTraining && tutorial.forcedCapturedSpirimonz != null)
+            selectedSpirimonz = tutorial.forcedCapturedSpirimonz;
         
         _house.currentPlayer.ReceiveArticle(victoryArticle);
         

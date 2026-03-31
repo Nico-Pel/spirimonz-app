@@ -81,6 +81,7 @@ public class TutorialObjective
     [Header("Freezing Temperature")]
     public bool useSpirimonzTemperatureThreshold = true;
     public float freezingTemperatureThreshold = 1f;
+    [Range(0f, 1f)] public float freezingVisualPercent = 0.8f;
 
     [Header("Drop Zone")]
     public string dropZoneId;

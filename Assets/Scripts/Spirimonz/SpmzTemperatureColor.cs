@@ -18,10 +18,13 @@ public class SpmzTemperatureColor : Spirimonz
     [SerializeField] private float colorLerpSpeed = 5f;
 
     public float FreezingThreshold => lowerTemperature;
+    public float VisualFreezingPercent => _visualFreezingPercent;
 
     private float _percentageOnGradient;
     private Color _currentColor;
     private Color _colorVelocity;
+    private float _visualFreezingPercent;
+    private Color _warmColor;
 
     public override void InitSpirimonz()
     {
@@ -30,6 +33,7 @@ public class SpmzTemperatureColor : Spirimonz
         if (IsLocked()) return;
         
         _currentColor = gradientColor.Evaluate(0);
+        _warmColor = _currentColor;
         SetTemperatureColors(_currentColor);
     }
 
@@ -57,8 +61,26 @@ public class SpmzTemperatureColor : Spirimonz
         );
 
         SetTemperatureColors(_currentColor);
+        UpdateVisualFreezingPercent();
         
         return true;
+    }
+
+    private void UpdateVisualFreezingPercent()
+    {
+        Vector3 warm = new Vector3(_warmColor.r, _warmColor.g, _warmColor.b);
+        Vector3 freeze = new Vector3(freezingColor.r, freezingColor.g, freezingColor.b);
+        Vector3 current = new Vector3(_currentColor.r, _currentColor.g, _currentColor.b);
+
+        float maxDist = Vector3.Distance(warm, freeze);
+        if (maxDist <= 0.0001f)
+        {
+            _visualFreezingPercent = 1f;
+            return;
+        }
+
+        float dist = Vector3.Distance(current, freeze);
+        _visualFreezingPercent = Mathf.Clamp01(1f - (dist / maxDist));
     }
 
     private void SetTemperatureColors(Color colorToSet)

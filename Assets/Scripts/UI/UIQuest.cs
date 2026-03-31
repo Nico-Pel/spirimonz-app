@@ -39,13 +39,13 @@ public class UIQuest : GameBehaviour
             questComplete = true;
         }
         
-        tTitle.text = quest.questName;
+        tTitle.text = quest.GetLocalizedName();
         tTitle.color = questComplete ? textColorValidate : textColorBase;
         
         tProgression.text = questProgress + "/" + quest.goal;
         tProgression.color = questComplete ? textColorValidate : textColorBase;
         
-        tDescription.text = quest.questDescription;
+        tDescription.text = quest.GetLocalizedDescription();
 
         Color bc = backgroundBaseColor;
         iBackground.color = questComplete ? new Color(bc.r, bc.g, bc.b, bc.a / 2) : backgroundBaseColor;

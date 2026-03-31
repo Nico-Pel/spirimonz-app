@@ -137,8 +137,20 @@ public class InputManager : GameBehaviour
     public string GetKeyDisplay(KeyCode primary, KeyCode secondary)
     {
         if (secondary == KeyCode.None)
-            return primary.ToString();
-        return primary + " / " + secondary;
+            return GetKeyName(primary);
+        return GetKeyName(primary) + " / " + GetKeyName(secondary);
+    }
+
+    private string GetKeyName(KeyCode key)
+    {
+        if (key == KeyCode.Mouse0)
+            return LanguageManager.CurrentLanguage == Language.French ? "Clic gauche" : "Left Mouse Button";
+        if (key == KeyCode.Mouse1)
+            return LanguageManager.CurrentLanguage == Language.French ? "Clic droit" : "Right Mouse Button";
+        if (key == KeyCode.Mouse2)
+            return LanguageManager.CurrentLanguage == Language.French ? "Clic milieu" : "Middle Mouse Button";
+
+        return key.ToString();
     }
 
     public string ReplaceInputTokens(string text)

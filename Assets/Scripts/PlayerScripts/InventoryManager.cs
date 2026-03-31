@@ -240,9 +240,9 @@ public class InventoryManager : GameBehaviour
 
             if ((!MobileInput.Enabled && _player.inputManager.GetInventoryDown(i)) || MobileInput.InventoryDown(i))
             {
-                currentSelectedIndex = i;
                 if (i == 0)
                 {
+                    currentSelectedIndex = i;
                     if (allowUseWatch)
                         UseWatchObject();
                     else
@@ -250,7 +250,12 @@ public class InventoryManager : GameBehaviour
                 }
                 else
                 {
-                    EquipSpirimonz(i - 1);
+                    int teamIndex = i - 1;
+                    if (!HasSpirimonzSetting(teamIndex))
+                        continue;
+
+                    currentSelectedIndex = i;
+                    EquipSpirimonz(teamIndex);
                 }
             }
         }
@@ -385,6 +390,9 @@ public class InventoryManager : GameBehaviour
         //You can't select a Spirimonz if an object in hands
         if (_gamePlayer.interactionController.objectInHands != null) return;
 
+        if (teamIndex < 0 || teamIndex >= spirimonzTeam.Count)
+            return;
+
         if (spirimonzTeam[teamIndex] == null) return;
         
         if (selectedSpirimonz != null && selectedSpirimonz.isOnTheMap == false)
@@ -411,12 +419,24 @@ public class InventoryManager : GameBehaviour
 
     private void SetSpirimonzHandPos()
     {
-        Spirimonz spirimonzToUse = spirimonzTeam[currentSelectedIndex - 1];
+        Spirimonz spirimonzToUse = selectedSpirimonz;
+        if (spirimonzToUse == null)
+            return;
         _gamePlayer.handAnimator.SetInteger("HandPos", (int)spirimonzToUse.handPosType);
         
         spirimonzToUse.gameObject.SetActive(true);
         spirimonzToUse.transform.localScale = Vector3.zero;
         spirimonzToUse.transform.DOScale(1, 0.5f).SetEase(Ease.OutBack);
+    }
+
+    private bool HasSpirimonzSetting(int teamIndex)
+    {
+        if (teamIndex < 0)
+            return false;
+        if (spirimonzTeamSettings == null || teamIndex >= spirimonzTeamSettings.Count)
+            return false;
+
+        return spirimonzTeamSettings[teamIndex] != null;
     }
 
     private void UnequipSpirimonz()

@@ -115,7 +115,11 @@ public class UIEndGame : GameBehaviour
         this.Invoke(uninteractableTime, () => bContinue.interactable = true);
         bContinue.onClick.AddListener(() =>
         {
-            house.houseEntry.Entry(house.currentPlayer, endType == EndTypes.Lose);
+            bool useDeadAnimation = endType == EndTypes.Lose;
+            if (TutorialManager.Instance != null && TutorialManager.Instance.IsTraining)
+                useDeadAnimation = false;
+
+            house.houseEntry.Entry(house.currentPlayer, useDeadAnimation);
             house.currentPlayer.inventoryManager.articlesFoundInGame.Clear();
             UIGame.Instance.CloseAllWindows();
         });

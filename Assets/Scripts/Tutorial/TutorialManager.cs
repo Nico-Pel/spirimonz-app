@@ -7,7 +7,8 @@ using UnityEngine.Events;
 public class TutorialManager : GameBehaviour
 {
     public static TutorialManager Instance { get; private set; }
-    public static bool IsTutorialActive => Instance != null && Instance.isActiveAndEnabled;
+    public static bool IsTutorialActive => Instance != null && Instance.isActiveAndEnabled && Instance._isControlsTutorial;
+    public static bool TutorialDoorUnlockedRuntime { get; private set; }
     private enum StepState
     {
         None,
@@ -24,12 +25,21 @@ public class TutorialManager : GameBehaviour
         public UnityEvent onStepComplete;
     }
 
+    public enum TutorialSceneMode
+    {
+        Controls,
+        Investigation
+    }
+
     [Header("References")]
     public NPC questNpc;
     public UITutorialObjective objectiveUI;
 
     [Header("Input Gate")]
     public bool enableInputGate = true;
+
+    [Header("Mode")]
+    public TutorialSceneMode sceneMode = TutorialSceneMode.Controls;
 
     [Header("Team Override")]
     public bool applyForcedTeamOnStart = true;
@@ -83,6 +93,29 @@ public class TutorialManager : GameBehaviour
     [Header("Tutorial Radiation")]
     [Min(0.1f)] public float tutorialRadiationDuration = 9999f;
 
+    [Header("Tutorial Exit")]
+    public bool skipEndGameOnExit = true;
+    public bool useWorldTutoSpawnOnExit = true;
+
+    [Header("Tutorial Temperature")]
+    [Min(0.1f)] public float tutorialCoolingMultiplier = 1.5f;
+
+    [Header("Training Objective")]
+    public bool showTrainingObjective = true;
+    [TextArea] public string trainingObjectiveEnglish = "Find the 3 evidences and capture the Spirimonz!";
+    [TextArea] public string trainingObjectiveFrench = "Trouve les 3 preuves et capture le spirimonz !";
+
+    [Header("Mode Visibility")]
+    public List<GameObject> tutorialOnlyObjects = new List<GameObject>();
+    public List<GameObject> trainingOnlyObjects = new List<GameObject>();
+
+    [Header("Mode Doors")]
+    public List<HouseEntry> tutorialLockedEntries = new List<HouseEntry>();
+    public List<HouseEntry> trainingUnlockedEntries = new List<HouseEntry>();
+
+    [Header("Training Capture")]
+    public SpirimonzSettings forcedCapturedSpirimonz;
+
     public UnityEvent onTutorialComplete;
 
     private StepState _state = StepState.None;
@@ -99,6 +132,7 @@ public class TutorialManager : GameBehaviour
     private readonly List<SpmzDetector> _detectorCandidates = new List<SpmzDetector>();
     private readonly HashSet<SpmzDetector> _detectorsCounted = new HashSet<SpmzDetector>();
     private readonly HashSet<SpmzDetector> _detectorListeners = new HashSet<SpmzDetector>();
+    private readonly Dictionary<SpmzDetector, int> _detectorLastValues = new Dictionary<SpmzDetector, int>();
     private float _nextDetectorRefreshTime;
     private readonly List<RadiationDetector> _radiationCandidates = new List<RadiationDetector>();
     private readonly HashSet<RadiationDetector> _radiationListeners = new HashSet<RadiationDetector>();
@@ -114,21 +148,157 @@ public class TutorialManager : GameBehaviour
     private bool _huntFailed;
     private bool _huntInProgress;
     private Coroutine _huntFailRoutine;
+    private bool _restartStepAfterHuntFailDialogue;
 
     private InventoryManager _inventory;
     private Ghost _ghost;
     private UIGame _uiGame;
     private Coroutine _autoAdvanceRoutine;
     private GhostParameters _appliedGhostParameters;
+    private GameManager.HouseSceneMode _houseMode = GameManager.HouseSceneMode.NormalMap;
+    private bool _isControlsTutorial;
+    private bool _isTraining;
+    private bool _initialized;
+    private bool _consumedHouseMode;
 
     private readonly List<Action> _unsubscribers = new List<Action>();
     private readonly HashSet<UnityEngine.Object> _counted = new HashSet<UnityEngine.Object>();
 
+    public GameManager.HouseSceneMode CurrentHouseMode => _houseMode;
+    public bool IsControlsTutorial => _isControlsTutorial;
+    public bool IsTraining => _isTraining;
+
+    public bool ShouldForceGhostModelForMode(GameManager.HouseSceneMode mode)
+    {
+        return (mode == GameManager.HouseSceneMode.Tutorial || mode == GameManager.HouseSceneMode.Training)
+               && forceGhostModel
+               && forcedGhostModel != null;
+    }
+
+    public void ForceCaptureCurrentGhostSpirimonz()
+    {
+        if (House.Instance == null || GameManager.Instance == null)
+            return;
+
+        SpirimonzSettings settings = forcedCapturedSpirimonz != null
+            ? forcedCapturedSpirimonz
+            : House.Instance.GetSpirimonzSettings();
+        if (settings == null)
+            return;
+
+        GameManager.Instance.UnlockSpirimonz(settings.spirimonzID);
+    }
+
+    public void ReloadSceneAsTraining()
+    {
+        string sceneName = UnityEngine.SceneManagement.SceneManager.GetActiveScene().name;
+        if (GameManager.Instance != null)
+        {
+            GameManager.Instance.LoadHouseSceneWithMode(sceneName, GameManager.HouseSceneMode.Training);
+        }
+        else
+        {
+            UnityEngine.SceneManagement.SceneManager.LoadScene(sceneName);
+        }
+    }
+
+    public void MarkTutorialDoorUnlocked()
+    {
+        if (GameManager.Instance != null)
+            GameManager.Instance.SetBool(SaveKeys.TUTORIAL_DOOR_UNLOCKED, true);
+
+        TutorialDoorUnlockedRuntime = true;
+    }
+
+    private GameManager.HouseSceneMode GetFallbackHouseSceneMode()
+    {
+        return sceneMode == TutorialSceneMode.Controls
+            ? GameManager.HouseSceneMode.Tutorial
+            : GameManager.HouseSceneMode.Training;
+    }
+
+    private void ResolveHouseSceneMode()
+    {
+        if (GameManager.Instance != null)
+        {
+            _houseMode = GameManager.Instance.PeekNextHouseSceneMode();
+        }
+        else
+        {
+            _houseMode = GetFallbackHouseSceneMode();
+        }
+
+        _isControlsTutorial = _houseMode == GameManager.HouseSceneMode.Tutorial;
+        _isTraining = _houseMode == GameManager.HouseSceneMode.Training;
+    }
+
+    private void ApplyModeVisibility()
+    {
+        if (tutorialOnlyObjects != null)
+        {
+            bool enable = _isControlsTutorial;
+            for (int i = 0; i < tutorialOnlyObjects.Count; i++)
+            {
+                if (tutorialOnlyObjects[i] != null)
+                    tutorialOnlyObjects[i].SetActive(enable);
+            }
+        }
+
+        if (trainingOnlyObjects != null)
+        {
+            bool enable = _isTraining;
+            for (int i = 0; i < trainingOnlyObjects.Count; i++)
+            {
+                if (trainingOnlyObjects[i] != null)
+                    trainingOnlyObjects[i].SetActive(enable);
+            }
+        }
+    }
+
+    private void ApplyModeDoorLocks()
+    {
+        if (_isControlsTutorial && tutorialLockedEntries != null)
+        {
+            for (int i = 0; i < tutorialLockedEntries.Count; i++)
+            {
+                if (tutorialLockedEntries[i] != null)
+                    tutorialLockedEntries[i].SetLocked(true, true);
+            }
+        }
+
+        if (_isTraining && trainingUnlockedEntries != null)
+        {
+            for (int i = 0; i < trainingUnlockedEntries.Count; i++)
+            {
+                if (trainingUnlockedEntries[i] != null)
+                    trainingUnlockedEntries[i].SetLocked(false, true);
+            }
+        }
+    }
+
+    private void ConsumeHouseSceneModeIfNeeded()
+    {
+        if (_consumedHouseMode || GameManager.Instance == null)
+            return;
+
+        GameManager.Instance.ConsumeNextHouseSceneMode();
+        _consumedHouseMode = true;
+    }
+
     private void Awake()
     {
-        Instance = this;
+        ResolveHouseSceneMode();
+        ApplyModeVisibility();
+        if (!_isControlsTutorial && !_isTraining)
+        {
+            enabled = false;
+            return;
+        }
 
-        if (enableInputGate)
+        Instance = this;
+        _initialized = true;
+
+        if (enableInputGate && _isControlsTutorial)
         {
             TutorialInputGate.Enabled = true;
             TutorialInputGate.ResetAll(false);
@@ -144,15 +314,45 @@ public class TutorialManager : GameBehaviour
 
     private IEnumerator Start()
     {
+        ConsumeHouseSceneModeIfNeeded();
+
         _inventory = InventoryManager.Instance;
         _uiGame = UIGame.Instance;
         _ghost = House.Instance != null ? House.Instance.currentGhost : null;
 
-        if (applyForcedTeamOnStart)
-            yield return ApplyForcedTeamRoutine();
+        if (_isControlsTutorial)
+        {
+            if (applyForcedTeamOnStart)
+                yield return ApplyForcedTeamRoutine();
 
-        if (applyGhostSetupOnStart)
-            ApplyTutorialGhostSetup();
+            if (applyGhostSetupOnStart)
+                ApplyTutorialGhostSetup();
+        }
+        else if (_isTraining)
+        {
+            if (applyForcedTeamOnStart)
+                yield return ApplyForcedTeamRoutine();
+
+            if (enableInputGate)
+            {
+                TutorialInputGate.ResetAll(true);
+                TutorialInputGate.Enabled = false;
+            }
+
+            if (!skipEndGameOnExit)
+                skipEndGameOnExit = true;
+            if (!useWorldTutoSpawnOnExit)
+                useWorldTutoSpawnOnExit = true;
+
+            if (GameManager.Instance != null)
+                GameManager.Instance.disableMoneyGain = true;
+
+            if (applyGhostSetupOnStart)
+                ApplyTrainingGhostSetup();
+
+            if (showTrainingObjective && objectiveUI != null)
+                objectiveUI.ShowMessage(Localize(trainingObjectiveEnglish, trainingObjectiveFrench), false);
+        }
 
 #if UNITY_EDITOR
         int startIndex = 0;
@@ -167,19 +367,28 @@ public class TutorialManager : GameBehaviour
         int startIndex = 0;
 #endif
 
-        SetStep(startIndex);
+        if (_isControlsTutorial)
+            SetStep(startIndex);
+
+        this.Invoke(0.1f, ApplyModeDoorLocks);
     }
 
     private void OnDisable()
     {
+        if (!_initialized)
+            return;
+
         ClearSubscriptions();
         StopAutoAdvance();
         StopTutorialRadiation();
-        if (enableInputGate)
+        if (enableInputGate && _isControlsTutorial)
         {
             TutorialInputGate.ResetAll(true);
             TutorialInputGate.Enabled = false;
         }
+
+        if (_isTraining && GameManager.Instance != null)
+            GameManager.Instance.disableMoneyGain = false;
 
         if (Instance == this)
             Instance = null;
@@ -212,6 +421,11 @@ public class TutorialManager : GameBehaviour
         else if (_state == StepState.InProgress)
         {
             InitObjectiveUI();
+            if (_restartStepAfterHuntFailDialogue)
+            {
+                ReplayCurrentStepStartHooks();
+                _restartStepAfterHuntFailDialogue = false;
+            }
         }
     }
 
@@ -235,6 +449,7 @@ public class TutorialManager : GameBehaviour
         _detectorCandidates.Clear();
         _detectorsCounted.Clear();
         _detectorListeners.Clear();
+        _detectorLastValues.Clear();
         _nextDetectorRefreshTime = 0f;
         _radiationCandidates.Clear();
         _radiationListeners.Clear();
@@ -245,6 +460,7 @@ public class TutorialManager : GameBehaviour
         _nextOrbsRefreshTime = 0f;
         _huntFailed = false;
         _huntInProgress = false;
+        _restartStepAfterHuntFailDialogue = false;
         if (_huntFailRoutine != null)
         {
             StopCoroutine(_huntFailRoutine);
@@ -282,6 +498,7 @@ public class TutorialManager : GameBehaviour
         _detectorCandidates.Clear();
         _detectorsCounted.Clear();
         _detectorListeners.Clear();
+        _detectorLastValues.Clear();
         _nextDetectorRefreshTime = 0f;
         _radiationCandidates.Clear();
         _radiationListeners.Clear();
@@ -293,6 +510,7 @@ public class TutorialManager : GameBehaviour
         _counted.Clear();
         _huntFailed = false;
         _huntInProgress = false;
+        _restartStepAfterHuntFailDialogue = false;
         if (_huntFailRoutine != null)
         {
             StopCoroutine(_huntFailRoutine);
@@ -304,6 +522,9 @@ public class TutorialManager : GameBehaviour
         GetStepHooks(_currentStepIndex)?.onStepStart?.Invoke();
 
         SetupObjectiveTracking(_currentStep.objective);
+        if (_state != StepState.InProgress)
+            return;
+
         InitObjectiveUI();
 
         if (_currentStep.objective == null || _currentStep.objective.type == TutorialObjectiveType.None)
@@ -397,12 +618,18 @@ public class TutorialManager : GameBehaviour
         TutorialInputGate.AllowTeamMenu = mask.allowTeamMenu;
         TutorialInputGate.AllowDropSpmz = mask.allowDropSpmz;
 
-        bool useLegacyThrowDrop = !mask.useSeparateDropThrow &&
-                                  mask.allowThrowDrop != (mask.allowDrop && mask.allowThrow);
-        if (useLegacyThrowDrop)
+        if (!mask.useSeparateDropThrow)
         {
-            TutorialInputGate.AllowDrop = mask.allowThrowDrop;
-            TutorialInputGate.AllowThrow = mask.allowThrowDrop;
+            if (mask.allowDrop || mask.allowThrow)
+            {
+                TutorialInputGate.AllowDrop = mask.allowDrop;
+                TutorialInputGate.AllowThrow = mask.allowThrow;
+            }
+            else
+            {
+                TutorialInputGate.AllowDrop = mask.allowThrowDrop;
+                TutorialInputGate.AllowThrow = mask.allowThrowDrop;
+            }
         }
         else
         {
@@ -422,7 +649,7 @@ public class TutorialManager : GameBehaviour
 
     private void AllowNpcNavigationInputs()
     {
-        if (!enableInputGate)
+        if (!enableInputGate || !_isControlsTutorial)
             return;
 
         TutorialInputGate.Enabled = true;
@@ -882,18 +1109,26 @@ public class TutorialManager : GameBehaviour
         if (_state != StepState.InProgress || detector == null)
             return;
 
-        if (!detector.IsDetectingActivity())
+        ActivitySource source = detector.GetCurrentActivitySource();
+        int currentValue = source != null ? source.activityValue : 0;
+
+        if (currentValue <= 0)
         {
             _detectorsCounted.Remove(detector);
+            _detectorLastValues[detector] = 0;
             return;
         }
-
-        if (_detectorsCounted.Contains(detector))
-            return;
 
         if (!IsRequiredSpirimonzSelected())
             return;
 
+        int lastValue = 0;
+        _detectorLastValues.TryGetValue(detector, out lastValue);
+
+        if (currentValue == lastValue && _detectorsCounted.Contains(detector))
+            return;
+
+        _detectorLastValues[detector] = currentValue;
         _detectorsCounted.Add(detector);
         AddProgress(1);
     }
@@ -1324,6 +1559,14 @@ public class TutorialManager : GameBehaviour
     {
         ApplyTutorialGhostParametersIfNeeded();
         ApplyGhostOverrideForStep();
+    }
+
+    private void ApplyTrainingGhostSetup()
+    {
+        if (_ghost == null)
+            return;
+
+        _ghost.ClearTutorialOverride();
     }
 
     private void ApplyTutorialGhostParametersIfNeeded()
@@ -1763,6 +2006,15 @@ public class TutorialManager : GameBehaviour
         if (objective.requireSpirimonzOnMap && !target.isOnTheMap)
             return false;
 
+        SpmzTemperatureColor tempColorComponent = target.GetComponent<SpmzTemperatureColor>();
+        if (tempColorComponent != null)
+        {
+            float thresholdVisual = Mathf.Clamp01(objective.freezingVisualPercent);
+            if (thresholdVisual <= 0f || thresholdVisual > 0.8f)
+                thresholdVisual = 0.8f;
+            return tempColorComponent.VisualFreezingPercent >= thresholdVisual;
+        }
+
         Room room = target.currentRoom;
         if (room == null)
             return false;
@@ -1770,9 +2022,8 @@ public class TutorialManager : GameBehaviour
         float threshold = objective.freezingTemperatureThreshold;
         if (objective.useSpirimonzTemperatureThreshold)
         {
-            SpmzTemperatureColor tempColor = target.GetComponent<SpmzTemperatureColor>();
-            if (tempColor != null)
-                threshold = tempColor.FreezingThreshold;
+            if (tempColorComponent != null)
+                threshold = tempColorComponent.FreezingThreshold;
         }
 
         return room.GetTemperatureCelsius() < threshold;
@@ -2006,6 +2257,11 @@ public class TutorialManager : GameBehaviour
         }
     }
 
+    private void ReplayCurrentStepStartHooks()
+    {
+        GetStepHooks(_currentStepIndex)?.onStepStart?.Invoke();
+    }
+
     public void StartAHunt()
     {
         if (_ghost == null && House.Instance != null)
@@ -2081,6 +2337,7 @@ public class TutorialManager : GameBehaviour
 
         _huntFailed = true;
         _huntInProgress = false;
+        _restartStepAfterHuntFailDialogue = true;
         SetProgress(0, false);
 
         _huntFailRoutine = StartCoroutine(HuntFailRoutine(player));
@@ -2118,7 +2375,10 @@ public class TutorialManager : GameBehaviour
         TeleportPlayerForHuntFail(player);
 
         if (uiGame != null)
+        {
             uiGame.EnableOverlay(false, huntFailFadeDuration);
+            uiGame.EnablePointer(true);
+        }
 
         if (huntFailFadeDuration > 0f)
             yield return new WaitForSeconds(huntFailFadeDuration);
@@ -2127,12 +2387,18 @@ public class TutorialManager : GameBehaviour
         {
             if (!questNpc.gameObject.activeSelf)
                 questNpc.gameObject.SetActive(true);
+            questNpc.ForceReadyToInteract(true);
             questNpc.dialogue = huntFailDialogue;
             questNpc.Interact(player, huntFailUseDialogueCamera);
         }
         else
         {
             player.LockControls(false);
+            if (_restartStepAfterHuntFailDialogue)
+            {
+                ReplayCurrentStepStartHooks();
+                _restartStepAfterHuntFailDialogue = false;
+            }
         }
 
         _huntFailRoutine = null;

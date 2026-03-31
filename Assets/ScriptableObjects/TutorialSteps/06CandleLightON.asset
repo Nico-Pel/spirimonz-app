@@ -17,12 +17,12 @@ MonoBehaviour:
   objective:
     type: 5
     goal: 2
-    titleEnglish: Light 2 candles using the flame from your Spirimonz. Equip your
-      Spirimonz with [PickupSpmz] or pick up a candle with [Grab] and use it with
-      [Secondary].
-    titleFrench: Allume 2 bougies en utilisant la flamme de ton Spirimonz. Porte
-      ton spirimonz avec [PickupSpmz] ou attrape une bougie avec [Grab] et utilise
-      la avec [Secondary].
+    titleEnglish: Light 2 candles using the flame from your Spirimonz. Pick up a
+      candle with [Grab] and use it with [Secondary] OR pickup your Spirimonz with
+      [PickupSpmz] and come close to a candle.
+    titleFrench: Allume 2 bougies en utilisant la flamme de ton Spirimonz. Attrape
+      une bougie avec [Grab] et utilise la avec [Secondary] OU porte ton spirimonz
+      avec [PickupSpmz] et approche toi d'une bougie.
     activableTypeFilter: 1
     activables: []
     catchables: []
@@ -47,6 +47,7 @@ MonoBehaviour:
     waitDuration: 2
     useSpirimonzTemperatureThreshold: 1
     freezingTemperatureThreshold: 1
+    freezingVisualPercent: 0.8
     dropZoneId: 
     dropZones: []
     dropZoneObjects: []

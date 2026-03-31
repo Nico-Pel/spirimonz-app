@@ -82,6 +82,11 @@ public class NPC : GameBehaviour, IInteractable
         }
     }
 
+    private void OnEnable()
+    {
+        ForceReadyToInteract();
+    }
+
     private void Start()
     {
         if (movingType != MovingType.none)
@@ -156,6 +161,12 @@ public class NPC : GameBehaviour, IInteractable
             }
             // La tête regarde le joueur
             neck.DOLookAt(player.head.position - Vector3.up * 0.2f, 0.2f);
+
+            if (player is GamePlayer gamePlayer && disableDialogueCameraInFPS && gamePlayer.fpsController != null)
+            {
+                Transform lookTarget = neck != null ? neck : transform;
+                gamePlayer.fpsController.SmoothLookAt(lookTarget, 0.35f);
+            }
 
             // Démarre le dialogue UI
             UIGame.Instance.uiDialogue.StartDialogue(dialogue);
@@ -270,6 +281,16 @@ public class NPC : GameBehaviour, IInteractable
         }
         
         onDialogueEnd?.Invoke();
+    }
+
+    public void ForceReadyToInteract(bool unlock = false)
+    {
+        _canInteract = true;
+        if (unlock)
+            interactionLocked = false;
+
+        if (useAnimationTalk && animator != null)
+            animator.SetBool("Talking", false);
     }
 
     public bool CanInteract(Player player)

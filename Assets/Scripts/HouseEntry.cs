@@ -8,6 +8,8 @@ public class HouseEntry : GameBehaviour
     [FormerlySerializedAs("houseSceneName")] public string sceneName;
     public int houseID = -1;
     public HouseMap map;
+    [Header("Tutorial Entry")]
+    public bool hasTutorialModes;
     public bool isExit;
     public FakeInteractable doorInteractable;
     public Animator animator;
@@ -128,7 +130,17 @@ public class HouseEntry : GameBehaviour
         {
             if (isExit)
             {
-                UIGame.Instance.OpenEndGame(UIEndGame.EndTypes.Escape, House.Instance);
+                TutorialManager tutorial = TutorialManager.Instance;
+                if (tutorial != null && tutorial.skipEndGameOnExit)
+                {
+                    if (tutorial.useWorldTutoSpawnOnExit && GameManager.Instance != null)
+                        GameManager.Instance.useTutorialWorldSpawn = true;
+                    Entry(player);
+                }
+                else
+                {
+                    UIGame.Instance.OpenEndGame(UIEndGame.EndTypes.Escape, House.Instance);
+                }
             }
             else
             {

@@ -10,6 +10,13 @@ public class GameManager : GameBehaviour
 {
     public static GameManager Instance;
 
+    public enum HouseSceneMode
+    {
+        NormalMap,
+        Tutorial,
+        Training
+    }
+
     [Header("Debug")] 
     public bool ignoreAllHouseDebugs;
     public bool considerEverySpirimonzUnlocked;
@@ -20,6 +27,11 @@ public class GameManager : GameBehaviour
 
     [Header("Mobile Light Optimization")]
     public bool mobileLightOptimizationEnabled = true;
+
+    [Header("Tutorial")]
+    public bool useTutorialWorldSpawn;
+    public bool disableMoneyGain;
+    [SerializeField] private HouseSceneMode nextHouseSceneMode = HouseSceneMode.NormalMap;
     
     [Space]
 
@@ -307,8 +319,14 @@ public class GameManager : GameBehaviour
             {
                 world = FindObjectOfType<World>();
             }
-            
-            if (isLoadingFromHouse && currentHouseID >= 0 && currentHouseID < world.spawnPoints.Length)
+
+            if (useTutorialWorldSpawn && world != null && world.startPosTuto != null)
+            {
+                player.SetPosition(world.startPosTuto.position);
+                player.SetRotation(world.startPosTuto.rotation);
+                useTutorialWorldSpawn = false;
+            }
+            else if (isLoadingFromHouse && currentHouseID >= 0 && currentHouseID < world.spawnPoints.Length)
             {
                 // Spawn devant la maison
                 player.SetPosition(world.spawnPoints[currentHouseID].position);
@@ -375,6 +393,29 @@ public class GameManager : GameBehaviour
         SceneManager.sceneLoaded += OnSceneLoaded;
 
         SceneManager.LoadSceneAsync(sceneName, LoadSceneMode.Single);
+    }
+
+    public void LoadHouseSceneWithMode(string sceneName, HouseSceneMode mode, bool exitHouse = false)
+    {
+        SetNextHouseSceneMode(mode);
+        LoadScene(sceneName, exitHouse);
+    }
+
+    public void SetNextHouseSceneMode(HouseSceneMode mode)
+    {
+        nextHouseSceneMode = mode;
+    }
+
+    public HouseSceneMode PeekNextHouseSceneMode()
+    {
+        return nextHouseSceneMode;
+    }
+
+    public HouseSceneMode ConsumeNextHouseSceneMode()
+    {
+        HouseSceneMode mode = nextHouseSceneMode;
+        nextHouseSceneMode = HouseSceneMode.NormalMap;
+        return mode;
     }
     
     /// <summary>Met à jour l'état d'un Spirimonz dans la team</summary>
@@ -675,6 +716,9 @@ public class GameManager : GameBehaviour
 
     public void AddMoney(int value)
     {
+        if (disableMoneyGain)
+            return;
+
         SetInt(SaveKeys.GOLD, GetInt(SaveKeys.GOLD) + value);
         onMoneyUpdated?.Invoke();
     }

@@ -6,7 +6,7 @@ using UnityEngine.Serialization;
 public class WorldPlayer : Player
 {
     public ThirdPersonController tpsController;
-    private float _reviveTime = 7f;
+    [SerializeField] private float reviveLockDuration = 8f;
     public float reviveLookAtDuration = 0.6f;
     public Transform reviveLookAtTargetOverride;
 
@@ -16,7 +16,7 @@ public class WorldPlayer : Player
         LockControls(true, true);
         tpsController.animator.SetTrigger("StandUp");
         TriggerReviveLookAt();
-        this.Invoke(_reviveTime, () => LockControls(false));
+        this.Invoke(reviveLockDuration, () => LockControls(false));
     }
 
     private void TriggerReviveLookAt()

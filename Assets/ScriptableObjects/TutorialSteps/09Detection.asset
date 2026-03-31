@@ -17,10 +17,10 @@ MonoBehaviour:
   objective:
     type: 7
     goal: 2
-    titleEnglish: Detect 2 spiritual activities in the haunted room. Use [Inventory3]
-      to pick up your second spirimonks and walk around the house with him on your
+    titleEnglish: Found the haunted room and detect 2 spiritual activities. Use [Inventory3]
+      to pick up your second spirimonz and walk around the house with him on your
       side.
-    titleFrench: "D\xE9tecte 2 activit\xE9s spirituelles dans la pi\xE8ce hant\xE9e.
+    titleFrench: "Trouve la pi\xE8ce hant\xE9e et d\xE9tecte 2 activit\xE9s spirituelles.
       Utilise [Inventory3] pour le s\xE9lectionner ton second spirimonz et prom\xE8ne
       toi dans la maison avec lui \xE0 tes cot\xE9s."
     activableTypeFilter: 1
@@ -47,6 +47,7 @@ MonoBehaviour:
     waitDuration: 2
     useSpirimonzTemperatureThreshold: 1
     freezingTemperatureThreshold: 1
+    freezingVisualPercent: 0.9
     dropZoneId: 
     dropZones: []
     dropZoneObjects: []
@@ -68,7 +69,7 @@ MonoBehaviour:
     allowJournal: 1
     allowTeamMenu: 0
     allowDrop: 1
-    allowThrow: 0
+    allowThrow: 1
     allowDropSpmz: 1
     useSeparateDropThrow: 0
     allowThrowDrop: 0

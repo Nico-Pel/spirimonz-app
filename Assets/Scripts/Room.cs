@@ -173,6 +173,9 @@ public class Room : MonoBehaviour
     /// </summary>
     public void AddTemperatureDelta(float delta)
     {
+        if (delta < 0f && TutorialManager.IsTutorialActive && TutorialManager.Instance != null)
+            delta *= Mathf.Max(0.1f, TutorialManager.Instance.tutorialCoolingMultiplier);
+
         _temperatureTarget += delta;
         float minTemperature = house.currentGhost.ghostParameters.FreezingTemperature
             ? minFreezingTemperature
@@ -182,6 +185,9 @@ public class Room : MonoBehaviour
 
     public void AddTemperatureDeltaClamped(float delta, float minAllowedTemperature)
     {
+        if (delta < 0f && TutorialManager.IsTutorialActive && TutorialManager.Instance != null)
+            delta *= Mathf.Max(0.1f, TutorialManager.Instance.tutorialCoolingMultiplier);
+
         _temperatureTarget += delta;
         float minTemperature = house.currentGhost.ghostParameters.FreezingTemperature
             ? minFreezingTemperature

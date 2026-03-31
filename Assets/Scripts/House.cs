@@ -128,11 +128,23 @@ public class House : GameBehaviour
         }
         #endif
         TutorialManager tutorial = FindObjectOfType<TutorialManager>(true);
-        if (tutorial != null && tutorial.forceGhostModel && tutorial.forcedGhostModel != null)
+        if (tutorial != null)
         {
-            currentGhost = Instantiate(tutorial.forcedGhostModel);
+            GameManager.HouseSceneMode mode = GameManager.HouseSceneMode.NormalMap;
+            if (GameManager.Instance != null)
+                mode = GameManager.Instance.PeekNextHouseSceneMode();
+            else
+                mode = tutorial.sceneMode == TutorialManager.TutorialSceneMode.Controls
+                    ? GameManager.HouseSceneMode.Tutorial
+                    : GameManager.HouseSceneMode.Training;
+
+            if (tutorial.ShouldForceGhostModelForMode(mode))
+            {
+                currentGhost = Instantiate(tutorial.forcedGhostModel);
+            }
         }
-        else
+
+        if (currentGhost == null)
         {
             currentGhost = Instantiate(map.GetRandomGhost(this));
         }

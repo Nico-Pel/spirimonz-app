@@ -15,6 +15,7 @@ public static class SaveKeys
     public const string TPS_SENSITIVITY_MULTIPLIER = "tps_sensitivity_multiplier";
     public const string FPS_SENSITIVITY_MULTIPLIER = "fps_sensitivity_multiplier";
     public const string LANGUAGE = "language";
+    public const string TUTORIAL_DOOR_UNLOCKED = "tutorial_door_unlocked";
 }
 
 [Serializable]

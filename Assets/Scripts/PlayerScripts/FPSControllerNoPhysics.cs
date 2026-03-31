@@ -1,3 +1,4 @@
+using System.Collections;
 using UnityEngine;
 
 [RequireComponent(typeof(CharacterController))]
@@ -119,6 +120,7 @@ public class FPSControllerNoPhysics : Controller
     private float _mobileIdleMultiplier = 1f;
     private int _ignoreLookFrames;
     private CursorLockMode _lastCursorLockState;
+    private Coroutine _smoothLookRoutine;
 
     private Player _player;
 
@@ -292,6 +294,66 @@ public class FPSControllerNoPhysics : Controller
 
         _player.camera.transform.localRotation = Quaternion.Euler(xRotation, 0f, 0f);
         transform.Rotate(Vector3.up * mouseX);
+    }
+
+    public void SmoothLookAt(Transform target, float duration = 0.3f)
+    {
+        if (target == null || _player == null || _player.camera == null)
+            return;
+
+        if (_smoothLookRoutine != null)
+            StopCoroutine(_smoothLookRoutine);
+
+        _smoothLookRoutine = StartCoroutine(SmoothLookAtRoutine(target.position, duration));
+    }
+
+    private IEnumerator SmoothLookAtRoutine(Vector3 targetPos, float duration)
+    {
+        Vector3 camPos = _player.camera.transform.position;
+        Vector3 dir = targetPos - camPos;
+        if (dir.sqrMagnitude < 0.0001f)
+            yield break;
+
+        dir.Normalize();
+
+        float startYaw = transform.eulerAngles.y;
+        float startPitch = xRotation;
+
+        Vector3 flatDir = new Vector3(dir.x, 0f, dir.z);
+        float targetYaw = flatDir.sqrMagnitude > 0.0001f
+            ? Quaternion.LookRotation(flatDir).eulerAngles.y
+            : startYaw;
+
+        float targetPitch = -Mathf.Asin(dir.y) * Mathf.Rad2Deg;
+        targetPitch = Mathf.Clamp(targetPitch, -maxLookAngle, maxLookAngle);
+
+        float time = 0f;
+        float clampedDuration = Mathf.Max(0.01f, duration);
+
+        while (time < clampedDuration)
+        {
+            float t = time / clampedDuration;
+            float yaw = Mathf.LerpAngle(startYaw, targetYaw, t);
+            float pitch = Mathf.LerpAngle(startPitch, targetPitch, t);
+            ApplyLookAngles(yaw, pitch);
+            time += Time.deltaTime;
+            yield return null;
+        }
+
+        ApplyLookAngles(targetYaw, targetPitch);
+        _smoothLookRoutine = null;
+    }
+
+    private void ApplyLookAngles(float yaw, float pitch)
+    {
+        xRotation = pitch;
+
+        Vector3 camEuler = _player.camera.transform.localEulerAngles;
+        _player.camera.transform.localRotation = Quaternion.Euler(xRotation, 0f, camEuler.z);
+
+        Vector3 bodyEuler = transform.eulerAngles;
+        bodyEuler.y = yaw;
+        transform.eulerAngles = bodyEuler;
     }
 
     // ---------------- MOVE ----------------

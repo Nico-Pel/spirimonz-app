@@ -62,6 +62,21 @@ public class UITutorialObjective : GameBehaviour
         StopAttentionLoop();
     }
 
+    public void ShowMessage(string title, bool showProgress = false)
+    {
+        if (root != null && !root.activeSelf)
+            root.SetActive(true);
+
+        if (tTitle != null)
+            tTitle.text = title;
+
+        if (tProgress != null)
+            tProgress.gameObject.SetActive(showProgress);
+
+        SetSuccessStyle(false);
+        StopAttentionLoop();
+    }
+
     public void SetProgress(int current, int goal)
     {
         if (tProgress == null)

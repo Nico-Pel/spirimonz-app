@@ -113,12 +113,18 @@ MonoBehaviour:
   settings: {fileID: 11400000, guid: 49269b5a6040a4d5f8e5d30ba8d6ff69, type: 2}
   spirimonzGameObject: {fileID: 7961554141904078746}
   hidingGameObject: {fileID: 2171277039632813617}
+  useDifferentHidingOrbPosForHands: 0
+  _handHidingOrbPos: {x: 0, y: 0, z: 0}
   isOnTheMap: 0
   canInteract: 1
   canBeDroppedOnMap: 1
   canBeTakenBackIntoHands: 1
   powerActiveInHands: 0
+  useSecondaryButton: 0
   lookAtPlayerWhileWaiting: 0
+  lookAtPlayerOnInteract: 0
+  lookAtPlayerOnInteractDuration: 0.25
+  interactionCooldown: 0
   openDoorsOnItsWay: 1
   lookForwardOnDropOnMap: 0
   lookAtDistanceFromPlayer: 10
@@ -130,16 +136,44 @@ MonoBehaviour:
   speed: 2
   followingDistance: 2
   lookAtSpeed: 5
+  canChangeRoamRoom: 0
+  minTimeToChangeRoamRoom: 0
+  maxTimeToChangeRoamRoom: 0
+  chancesToChangeRoamRoom: 0
+  minTimeToChangeRoamWaypoint: 0
+  maxTimeToChangeRoamWaypoint: 0
+  minDistToReachRoamWaypoint: 0
+  maxDistToReachRoamWaypoint: 0
+  roamPauseOnInteractDuration: 3
   targetedEscapeDistance: 1
   escapingSpeed: 5
   nbOfWayPointsToConsider: 3
   agent: {fileID: 6305358730185738690}
   collider: {fileID: 82412805294804726}
   animator: {fileID: 6073879533734955781}
+  onInteract:
+    m_PersistentCalls:
+      m_Calls: []
+  onSecondaryButtonUsed:
+    m_PersistentCalls:
+      m_Calls: []
+  onDisable:
+    m_PersistentCalls:
+      m_Calls: []
+  onDroppedOnMap:
+    m_PersistentCalls:
+      m_Calls: []
+  onGoingBackToHands:
+    m_PersistentCalls:
+      m_Calls: []
+  onSetRoom:
+    m_PersistentCalls:
+      m_Calls: []
   detectionRange: 5
   maxPathRange: 7.5
   detectionWalkSpeed: 4
   activityDistanceToReach: 2
+  detectionInterval: 0.2
   detectorSourceTransform: {fileID: 5582152297022216098}
   activitySources: []
   mRenderers:
@@ -153,11 +187,14 @@ MonoBehaviour:
   detectionMatBase: {fileID: 2100000, guid: 04676e06161154930adc2c5de96276ee, type: 2}
   detectionMatFive: {fileID: 2100000, guid: 56eb65d320dce44209322f2a1b672bf7, type: 2}
   detectionSound: {fileID: 8300000, guid: dad914ef75c024e48b6f8926254b971f, type: 3}
-  soundVolume: 0.4
+  soundVolume: 0.25
   basePitch: 0.7
   bonusPitchPerDetectionLevel: 0.2
   detectionFiveSound: {fileID: 8300000, guid: a1e1999617dae4fcf9a23cd7f71734a7, type: 3}
   annoyingSoundValue: 5
+  onActivityDetected:
+    m_PersistentCalls:
+      m_Calls: []
 --- !u!195 &6305358730185738690 stripped
 NavMeshAgent:
   m_CorrespondingSourceObject: {fileID: 8641687317530957492, guid: 73b72ad84d9584d7e91279923787a2cc, type: 3}

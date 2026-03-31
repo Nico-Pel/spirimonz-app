@@ -17,10 +17,10 @@ MonoBehaviour:
   objective:
     type: 15
     goal: 1
-    titleEnglish: Survive a spirit hunt. Turn off your light with [Light] and hide
-      yourself.
+    titleEnglish: Survive a spirit hunt. Turn off your light with [Light], crouch
+      with [Crouch]  hide yourself and
     titleFrench: "Survie \xE0 une chasse d'esprit malveillant. Eteins ta lampe avec
-      [Light] et cache toi."
+      [Light], accroupi toi avec [Crouch] et cache toi."
     activableTypeFilter: 1
     activables: []
     catchables: []
@@ -45,6 +45,7 @@ MonoBehaviour:
     waitDuration: 2
     useSpirimonzTemperatureThreshold: 1
     freezingTemperatureThreshold: 1
+    freezingVisualPercent: 0.9
     dropZoneId: 
     dropZones: []
     dropZoneObjects: []
@@ -66,7 +67,7 @@ MonoBehaviour:
     allowJournal: 1
     allowTeamMenu: 0
     allowDrop: 1
-    allowThrow: 0
+    allowThrow: 1
     allowDropSpmz: 1
     useSeparateDropThrow: 0
     allowThrowDrop: 0

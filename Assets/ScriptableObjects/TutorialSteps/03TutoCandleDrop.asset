@@ -17,8 +17,9 @@ MonoBehaviour:
   objective:
     type: 11
     goal: 1
-    titleEnglish: Place a candle upright on the table using [Drop].
-    titleFrench: Place une bougie droite sur la table en utilisant [Drop].
+    titleEnglish: Place a candle upright on the table next to Vaness, using [Drop].
+    titleFrench: "Place une bougie droite sur la table \xE0 cot\xE9 de Vaness, en
+      utilisant [Drop]."
     activableTypeFilter: 1
     activables: []
     catchables: []
@@ -43,6 +44,7 @@ MonoBehaviour:
     waitDuration: 2
     useSpirimonzTemperatureThreshold: 1
     freezingTemperatureThreshold: 1
+    freezingVisualPercent: 0.8
     dropZoneId: Table
     dropZones: []
     dropZoneObjects: []

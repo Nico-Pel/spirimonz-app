@@ -17,11 +17,11 @@ MonoBehaviour:
   objective:
     type: 12
     goal: 1
-    titleEnglish: Find a room where it's freezing cold. Your Spirimonz's flame will
-      turn blue if it's cold, and then pink if it's freezing.
-    titleFrench: "Trouve une pi\xE8ce o\xF9 la temp\xE9rature est glaciale. La flamme
-      de ton Spirimonz deviendra bleue s'il fait froid, puis rose si la temp\xE9rature
-      est glaciale."
+    titleEnglish: Return to the haunted room to check the temperature. Your Spirimonz's
+      flame will turn blue if it's cold, and then pink if it's freezing.
+    titleFrench: "Retourne dans la pi\xE8ce hant\xE9e pour v\xE9rifier la temp\xE9rature.
+      La flamme de ton Spirimonz deviendra bleue s'il fait froid, puis rose si la
+      temp\xE9rature est glaciale."
     activableTypeFilter: 1
     activables: []
     catchables: []
@@ -46,6 +46,7 @@ MonoBehaviour:
     waitDuration: 2
     useSpirimonzTemperatureThreshold: 1
     freezingTemperatureThreshold: 1
+    freezingVisualPercent: 0.9
     dropZoneId: 
     dropZones: []
     dropZoneObjects: []
@@ -67,7 +68,7 @@ MonoBehaviour:
     allowJournal: 1
     allowTeamMenu: 0
     allowDrop: 1
-    allowThrow: 0
+    allowThrow: 1
     allowDropSpmz: 1
     useSeparateDropThrow: 0
     allowThrowDrop: 0

@@ -14,7 +14,9 @@ public class Quest : ScriptableObject
 
     public QuestType type;
     public string questName;
+    [TextArea] public string questNameFrench;
     public string questDescription;
+    [TextArea] public string questDescriptionFrench;
     public int goal;
     
     public bool IsCompleted(string houseID)
@@ -29,5 +31,21 @@ public class Quest : ScriptableObject
         }
 
         return questComplete;
+    }
+
+    public string GetLocalizedName()
+    {
+        if (LanguageManager.CurrentLanguage == Language.French && !string.IsNullOrWhiteSpace(questNameFrench))
+            return questNameFrench;
+
+        return questName;
+    }
+
+    public string GetLocalizedDescription()
+    {
+        if (LanguageManager.CurrentLanguage == Language.French && !string.IsNullOrWhiteSpace(questDescriptionFrench))
+            return questDescriptionFrench;
+
+        return questDescription;
     }
 }
