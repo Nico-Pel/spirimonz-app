@@ -96,6 +96,9 @@ public class Ghost : GameBehaviour
     [Header("Spirit Orbs")] 
     public GameObject ghostOrbsPrefab;
 
+    [Header("Capture Scene")]
+    [Min(0f)] public float captureLoseFadeDelay = 0.275f;
+
     private float _waitDoorTime = 0.5f;
     private bool _stopMoving = false;
     

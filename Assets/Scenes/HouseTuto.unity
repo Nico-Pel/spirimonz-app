@@ -1369,7 +1369,7 @@ MonoBehaviour:
         m_Calls:
         - m_Target: {fileID: 111175232}
           m_TargetAssemblyTypeName: TutorialManager, Assembly-CSharp
-          m_MethodName: UnlockHouseEntry
+          m_MethodName: MarkTutorialDoorUnlocked
           m_Mode: 1
           m_Arguments:
             m_ObjectArgument: {fileID: 0}
@@ -30778,8 +30778,12 @@ PrefabInstance:
     m_TransformParent: {fileID: 0}
     m_Modifications:
     - target: {fileID: 424236622480871744, guid: bf5410f8eface405d9495b7b08580441, type: 3}
+      propertyPath: map
+      value: 
+      objectReference: {fileID: 11400000, guid: 696e3bc2c5c3044e595cfdc567458c35, type: 2}
+    - target: {fileID: 424236622480871744, guid: bf5410f8eface405d9495b7b08580441, type: 3}
       propertyPath: houseID
-      value: 2
+      value: 6
       objectReference: {fileID: 0}
     - target: {fileID: 424236622480871744, guid: bf5410f8eface405d9495b7b08580441, type: 3}
       propertyPath: startLocked

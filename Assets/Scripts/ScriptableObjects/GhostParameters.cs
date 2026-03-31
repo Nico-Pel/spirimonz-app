@@ -104,6 +104,7 @@ public class GhostParameters : ScriptableObject
     [Header("Other settings")] 
     [Tooltip("Ignore electronic and lights (Switch)")]
     public float chancesToInteractWithAClickableInstedOfNothing = 50f;
+
     
     public int GetRandomActivityValue()
     {

@@ -80,8 +80,8 @@ public class InteractionController : GameBehaviour
             return;
         }
 
-        HandleDoor();
         DetectInteractable();
+        HandleDoor();
         HandleInput();
 #if UNITY_EDITOR
         DebugDropRaycast();
@@ -272,7 +272,7 @@ public class InteractionController : GameBehaviour
 
             bool interactionKeyDown = !MobileInput.Enabled &&
                                       (_player.inputManager.GetGrabDown() || _player.inputManager.GetWorldInteractionDownRaw());
-            if (allowCurrentInteract && interactionKeyDown && !(_currentTarget is CatchableObject))
+            if (allowCurrentInteract && interactionKeyDown && !(_currentTarget is CatchableObject) && !IsClickableTarget(_currentTarget))
                 _currentTarget.OnInteractStart();
         }
 
@@ -444,6 +444,13 @@ public class InteractionController : GameBehaviour
         bool primaryDown = (!MobileInput.Enabled && Input.GetMouseButtonDown(0)) || MobileInput.PrimaryDown;
         bool primaryHeld = (!MobileInput.Enabled && Input.GetMouseButton(0)) || MobileInput.PrimaryHeld;
         bool primaryUp = (!MobileInput.Enabled && Input.GetMouseButtonUp(0)) || MobileInput.PrimaryUp;
+
+        if (_grabbedDoor == null && _currentTarget != null && !(_currentTarget is Door))
+        {
+            if (!primaryHeld)
+                _targetedDoor = null;
+            return;
+        }
 
         if (primaryUp)
         {
@@ -696,6 +703,21 @@ public class InteractionController : GameBehaviour
             return direct;
 
         return comp.GetComponentInParent<CatchableObject>();
+    }
+
+    private bool IsClickableTarget(IInteractable target)
+    {
+        if (target == null)
+            return false;
+
+        if (target is ClickableObject)
+            return true;
+
+        Component comp = target as Component;
+        if (comp == null)
+            return false;
+
+        return comp.GetComponent<ClickableObject>() != null || comp.GetComponentInParent<ClickableObject>() != null;
     }
 
     public void GrabItem(CatchableObject catchableObject)

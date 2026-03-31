@@ -223,6 +223,11 @@ public class InventoryManager : GameBehaviour
 
     private void UpdateGamePlayer()
     {
+        if (UIGame.Instance != null &&
+            UIGame.Instance.tablet != null &&
+            UIGame.Instance.tablet.gameObject.activeSelf)
+            return;
+
         bool allowInteraction = TutorialInputGate.IsAllowed(TutorialInputGate.AllowInteract);
         bool allowSecondary = TutorialInputGate.IsAllowed(TutorialInputGate.AllowSecondary);
         bool allowDropSpmz = TutorialInputGate.IsAllowed(TutorialInputGate.AllowDropSpmz);
@@ -259,6 +264,8 @@ public class InventoryManager : GameBehaviour
                 }
             }
         }
+
+        HandleArrowSelection(allowUseWatch);
 
         if (MobileInput.Enabled && (MobileInput.NextDown || MobileInput.PreviousDown))
         {
@@ -437,6 +444,87 @@ public class InventoryManager : GameBehaviour
             return false;
 
         return spirimonzTeamSettings[teamIndex] != null;
+    }
+
+    private Spirimonz GetSpirimonzByTeamIndex(int teamIndex)
+    {
+        if (teamIndex < 0 || teamIndex >= spirimonzTeam.Count)
+            return null;
+
+        return spirimonzTeam[teamIndex];
+    }
+
+    private void HandleArrowSelection(bool allowUseWatch)
+    {
+        if (MobileInput.Enabled)
+            return;
+
+        bool rightDown = Input.GetKeyDown(KeyCode.RightArrow);
+        bool leftDown = Input.GetKeyDown(KeyCode.LeftArrow);
+        if (!rightDown && !leftDown)
+            return;
+
+        int direction = rightDown ? 1 : -1;
+        int slotCount = _player.inputManager.inventoryKeys.Length;
+        if (slotCount <= 0)
+            return;
+
+        if (!TutorialInputGate.HasAnyInventorySlotAllowed() && !allowUseWatch)
+            return;
+
+        int baseIndex = currentSelectedIndex;
+        if (baseIndex < 0 || baseIndex >= slotCount)
+            baseIndex = 0;
+
+        int newIndex = -1;
+        for (int attempt = 0; attempt < slotCount; attempt++)
+        {
+            int idx = baseIndex + direction * (attempt + 1);
+            if (idx >= slotCount)
+                idx -= slotCount;
+            else if (idx < 0)
+                idx += slotCount;
+
+            if (!TutorialInputGate.IsInventorySlotAllowed(idx))
+                continue;
+
+            if (idx == 0)
+            {
+                if (allowUseWatch)
+                {
+                    newIndex = 0;
+                    break;
+                }
+                continue;
+            }
+
+            int teamIndex = idx - 1;
+            if (!HasSpirimonzSetting(teamIndex))
+                continue;
+
+            Spirimonz candidate = GetSpirimonzByTeamIndex(teamIndex);
+            if (candidate == null || candidate.isOnTheMap)
+                continue;
+
+            newIndex = idx;
+            break;
+        }
+
+        if (newIndex == -1 && allowUseWatch && TutorialInputGate.IsInventorySlotAllowed(0))
+            newIndex = 0;
+
+        if (newIndex == -1)
+            return;
+
+        currentSelectedIndex = newIndex;
+        if (newIndex == 0)
+        {
+            UseWatchObject();
+        }
+        else
+        {
+            EquipSpirimonz(newIndex - 1);
+        }
     }
 
     private void UnequipSpirimonz()

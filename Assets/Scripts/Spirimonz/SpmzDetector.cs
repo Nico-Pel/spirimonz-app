@@ -34,10 +34,12 @@ public class SpmzDetector : Spirimonz
     public float bonusPitchPerDetectionLevel = 0.2f;
     public AudioClip detectionFiveSound;
     public float annoyingSoundValue = 0;
+    [Min(0f)] public float detectionSoundCooldown = 1f;
     
     private ActivitySource _currentActivitySourceDetected;
     private bool _newActivityReached;
     private float _nextDetectionTime;
+    private float _nextSoundAllowedTime;
     
     private bool _emissionEnabled = false;
 
@@ -119,11 +121,12 @@ public class SpmzDetector : Spirimonz
         UpdateDetectionFeedback();
         _newActivityReached = false;
 
-        if (detectionSound != null)
+        if (detectionSound != null && Time.time >= _nextSoundAllowedTime)
         {
             AudioClip clipToUse = activitySource.activityValue == 5 ? detectionFiveSound : detectionSound;
             float pitch = activitySource.activityValue == 5 ? 1f : basePitch + bonusPitchPerDetectionLevel * (activitySource.activityValue - 1);
             SoundManager.Instance.PlaySound(clipToUse, transform.position, soundVolume, pitch, -1f, 15f, false, transform);
+            _nextSoundAllowedTime = Time.time + Mathf.Max(0f, detectionSoundCooldown);
 
             if (annoyingSoundValue > 0)
             {

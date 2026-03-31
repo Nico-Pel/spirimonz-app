@@ -10,7 +10,6 @@ public class UIJournal : GameBehaviour
     [Header("Components")]
     public UIGhostTypeSlot[] ghostTypeSlots;
     public Button captureButton;
-    public TextMeshProUGUI percentageText;
 
     [Header("Ghost frame")]
     public GameObject ghostFrame;
@@ -104,12 +103,6 @@ public class UIJournal : GameBehaviour
         
         int selectedSlotsCount = GetSelectedGhosts().Count;
         captureButton.interactable = selectedSlotsCount > 0 && House.Instance.currentGhost.IsHunting() == false;
-
-        if (percentageText != null)
-        {
-            percentageText.text = string.Empty;
-            percentageText.gameObject.SetActive(false);
-        }
 
         UpdateTrainingCtas();
     }

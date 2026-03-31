@@ -120,7 +120,10 @@ public class CaptureScene : GameBehaviour
     {
         _ghostAnimator.SetTrigger("Attack");
         PlayLoseSound();
-        this.Invoke(0.275f, () => UIGame.Instance.EnableOverlay(true, 0.1f));
+        float fadeDelay = 0.275f;
+        if (_house != null && _house.currentGhost != null)
+            fadeDelay = Mathf.Max(0f, _house.currentGhost.captureLoseFadeDelay);
+        this.Invoke(fadeDelay, () => UIGame.Instance.EnableOverlay(true, 0.1f));
 
         this.Invoke(3, () => Exit(true));
     }

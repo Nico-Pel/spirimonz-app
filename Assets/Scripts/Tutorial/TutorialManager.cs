@@ -105,6 +105,9 @@ public class TutorialManager : GameBehaviour
     [TextArea] public string trainingObjectiveEnglish = "Find the 3 evidences and capture the Spirimonz!";
     [TextArea] public string trainingObjectiveFrench = "Trouve les 3 preuves et capture le spirimonz !";
 
+    [Header("Training Reload")]
+    [Min(0f)] public float trainingReloadFadeDuration = 1f;
+
     [Header("Mode Visibility")]
     public List<GameObject> tutorialOnlyObjects = new List<GameObject>();
     public List<GameObject> trainingOnlyObjects = new List<GameObject>();
@@ -191,7 +194,19 @@ public class TutorialManager : GameBehaviour
 
     public void ReloadSceneAsTraining()
     {
+        StartCoroutine(ReloadSceneAsTrainingRoutine());
+    }
+
+    private IEnumerator ReloadSceneAsTrainingRoutine()
+    {
         string sceneName = UnityEngine.SceneManagement.SceneManager.GetActiveScene().name;
+        UIGame uiGame = UIGame.Instance;
+        if (uiGame != null)
+            uiGame.EnableOverlay(true, trainingReloadFadeDuration);
+
+        if (trainingReloadFadeDuration > 0f)
+            yield return new WaitForSeconds(trainingReloadFadeDuration);
+
         if (GameManager.Instance != null)
         {
             GameManager.Instance.LoadHouseSceneWithMode(sceneName, GameManager.HouseSceneMode.Training);
@@ -349,6 +364,8 @@ public class TutorialManager : GameBehaviour
 
             if (applyGhostSetupOnStart)
                 ApplyTrainingGhostSetup();
+
+            EnsureTrainingJournalVisibility();
 
             if (showTrainingObjective && objectiveUI != null)
                 objectiveUI.ShowMessage(Localize(trainingObjectiveEnglish, trainingObjectiveFrench), false);
@@ -1567,6 +1584,21 @@ public class TutorialManager : GameBehaviour
             return;
 
         _ghost.ClearTutorialOverride();
+    }
+
+    private void EnsureTrainingJournalVisibility()
+    {
+        if (ghostTypesRoot != null)
+            ghostTypesRoot.SetActive(true);
+        if (captureButtonRoot != null)
+            captureButtonRoot.SetActive(true);
+
+        if (UIGame.Instance != null && UIGame.Instance.tablet != null)
+        {
+            UIJournal journal = UIGame.Instance.tablet.GetComponentInChildren<UIJournal>(true);
+            if (journal != null)
+                journal.RefreshModeVisibility();
+        }
     }
 
     private void ApplyTutorialGhostParametersIfNeeded()

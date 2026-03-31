@@ -463,6 +463,39 @@ public class GameManager : GameBehaviour
         return false;
     }
 
+    public int GetUnlockedSpirimonzCount()
+    {
+        if (allSpirimonzSettings == null)
+            return 0;
+
+        #if UNITY_EDITOR
+            if (considerEverySpirimonzUnlocked)
+                return allSpirimonzSettings.Length;
+        #endif
+
+        if (gameData == null || gameData.spirimonzCollection == null)
+            return 0;
+
+        int count = 0;
+        foreach (SpirimonzSettings settings in allSpirimonzSettings)
+        {
+            if (settings == null)
+                continue;
+
+            if (settings.unlockedByDefault)
+            {
+                count++;
+                continue;
+            }
+
+            SpirimonzData spData = Array.Find(gameData.spirimonzCollection, s => s.id == settings.spirimonzID);
+            if (spData != null && spData.unlocked)
+                count++;
+        }
+
+        return count;
+    }
+
     public void SaveGame()
     {
         if (gameData == null || player == null)
@@ -626,7 +659,14 @@ public class GameManager : GameBehaviour
         else
             entry.value = value;
 
-        SaveGame();
+        if (player != null)
+        {
+            SaveGame();
+        }
+        else
+        {
+            SaveManager.Save(gameData);
+        }
     }
 
     public bool GetBool(string id, bool defaultValue = false)

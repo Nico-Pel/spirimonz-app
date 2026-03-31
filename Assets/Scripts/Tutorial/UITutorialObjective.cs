@@ -58,6 +58,9 @@ public class UITutorialObjective : GameBehaviour
             tProgress.text = $"{current}/{goal}";
         }
 
+        if (progressBox != null)
+            progressBox.gameObject.SetActive(true);
+
         SetSuccessStyle(false);
         StopAttentionLoop();
     }
@@ -72,6 +75,9 @@ public class UITutorialObjective : GameBehaviour
 
         if (tProgress != null)
             tProgress.gameObject.SetActive(showProgress);
+
+        if (progressBox != null)
+            progressBox.gameObject.SetActive(showProgress);
 
         SetSuccessStyle(false);
         StopAttentionLoop();
@@ -100,6 +106,9 @@ public class UITutorialObjective : GameBehaviour
 
         if (tProgress != null)
             tProgress.gameObject.SetActive(true);
+
+        if (progressBox != null)
+            progressBox.gameObject.SetActive(true);
 
         SetSuccessStyle(true);
 

@@ -102,8 +102,14 @@ public class HouseEntry : GameBehaviour
     
     private void UnlockDoor()
     {
+        UnlockDoor(false);
+    }
+
+    private void UnlockDoor(bool ignoreSound)
+    {
         animator.SetTrigger("Open");
-        PlayerSound(openSound);
+        if (!ignoreSound)
+            PlayerSound(openSound);
 
         if (doorInteractable != null)
         {
@@ -117,7 +123,7 @@ public class HouseEntry : GameBehaviour
         if (locked)
             LockDoor(ignoreSound);
         else
-            UnlockDoor();
+            UnlockDoor(ignoreSound);
     }
 
     private void OnTriggerEnter(Collider other)

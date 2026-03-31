@@ -24,6 +24,15 @@ public class NPC : GameBehaviour, IInteractable
     public CTA cta;
     public Animator animator;
 
+    [Header("Conditional Dialogue")]
+    public bool useDialogueCondition;
+    public int requiredUnlockedSpirimonz = 0;
+    public Dialogue dialogueWhenIncomplete;
+    public bool skipDialogueEndWhenComplete;
+    public bool skipDialogueEndWhenIncomplete;
+    public UnityEvent onConditionComplete;
+    public UnityEvent onConditionIncomplete;
+
     [Header("Camera")]
     public Cinemachine.CinemachineVirtualCamera dialogueVCam;
     public bool dynamicCamera = true;
@@ -98,6 +107,8 @@ public class NPC : GameBehaviour, IInteractable
             agent.speed = speed;
             agent.SetDestination(firstMovingPoint.transform.position);
         }
+
+        InvokeConditionEventsIfNeeded();
     }
 
     private void Update()
@@ -169,7 +180,14 @@ public class NPC : GameBehaviour, IInteractable
             }
 
             // Démarre le dialogue UI
-            UIGame.Instance.uiDialogue.StartDialogue(dialogue);
+            Dialogue dialogueToUse = dialogue;
+            if (useDialogueCondition && !IsConditionMet())
+            {
+                if (dialogueWhenIncomplete != null)
+                    dialogueToUse = dialogueWhenIncomplete;
+            }
+
+            UIGame.Instance.uiDialogue.StartDialogue(dialogueToUse);
 
             // Positionne la caméra après que la tête soit orientée
             if (dialogueVCam != null && useDialogueCamera && ShouldUseDialogueCamera(player))
@@ -280,7 +298,8 @@ public class NPC : GameBehaviour, IInteractable
             agent.speed = speed;
         }
         
-        onDialogueEnd?.Invoke();
+        if (!ShouldSkipDialogueEndEvent())
+            onDialogueEnd?.Invoke();
     }
 
     public void ForceReadyToInteract(bool unlock = false)
@@ -325,6 +344,48 @@ public class NPC : GameBehaviour, IInteractable
             return false;
 
         return true;
+    }
+
+    private bool IsConditionMet()
+    {
+        if (!useDialogueCondition)
+            return true;
+
+        GameManager gameManager = GameManager.Instance;
+        if (gameManager == null)
+            return false;
+
+        int unlockedCount = gameManager.GetUnlockedSpirimonzCount();
+        return unlockedCount >= requiredUnlockedSpirimonz;
+    }
+
+    private void InvokeConditionEventsIfNeeded()
+    {
+        if (!useDialogueCondition)
+            return;
+
+        if (IsConditionMet())
+            onConditionComplete?.Invoke();
+        else
+            onConditionIncomplete?.Invoke();
+    }
+
+    public void RefreshConditionEvents()
+    {
+        InvokeConditionEventsIfNeeded();
+    }
+
+    private bool ShouldSkipDialogueEndEvent()
+    {
+        if (!useDialogueCondition)
+            return false;
+
+        bool conditionMet = IsConditionMet();
+        if (conditionMet && skipDialogueEndWhenComplete)
+            return true;
+        if (!conditionMet && skipDialogueEndWhenIncomplete)
+            return true;
+        return false;
     }
 
     // =========================

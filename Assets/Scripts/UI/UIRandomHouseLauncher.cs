@@ -556,7 +556,7 @@ public class UIRandomHouseLauncher : GameBehaviour
 
         foreach (SpirimonzSettings s in _gameManager.allSpirimonzSettings)
         {
-            if (s != null)
+            if (s != null && _gameManager.IsSpirimonzCaptured(s.spirimonzID))
                 results.Add(s);
         }
 
