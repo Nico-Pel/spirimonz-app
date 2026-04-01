@@ -4,13 +4,30 @@ using UnityEditor;
 
 public class ClearSaveTool
 {
-    [MenuItem("Tools/Clear Save")]
-    static void ClearSave()
+    [MenuItem("Tools/Clear Save 1")]
+    static void ClearSave1()
     {
-        if (EditorUtility.DisplayDialog("Attention", "Voulez-vous vraiment supprimer la sauvegarde ?", "Oui", "Non"))
+        ClearSaveSlot(1);
+    }
+
+    [MenuItem("Tools/Clear Save 2")]
+    static void ClearSave2()
+    {
+        ClearSaveSlot(2);
+    }
+
+    [MenuItem("Tools/Clear Save 3")]
+    static void ClearSave3()
+    {
+        ClearSaveSlot(3);
+    }
+
+    private static void ClearSaveSlot(int slot)
+    {
+        if (EditorUtility.DisplayDialog("Attention", $"Voulez-vous vraiment supprimer la sauvegarde {slot} ?", "Oui", "Non"))
         {
-            SaveManager.DeleteSave(); // ← ta fonction pour supprimer la save
-            Debug.Log("Sauvegarde supprimée !");
+            SaveManager.DeleteSave(slot);
+            Debug.Log($"Sauvegarde {slot} supprimée !");
         }
     }
 }

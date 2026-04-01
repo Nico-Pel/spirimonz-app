@@ -114,7 +114,56 @@ public class QuestData
 
 public static class SaveManager
 {
-    private static string filePath => Path.Combine(Application.persistentDataPath, "savefile.json");
+    private const string LegacyFileName = "savefile.json";
+    private const string SaveFilePrefix = "savefile_";
+    private const int DefaultSlot = 1;
+    private const int MaxSlot = 4;
+    private const string ActiveSlotPref = "ActiveSaveSlot";
+    private const string TempSlotPref = "TempSaveSlotActive";
+
+    private static int _currentSlot = DefaultSlot;
+    private static bool _isTemporarySlot;
+
+    private static string LegacyFilePath => Path.Combine(Application.persistentDataPath, LegacyFileName);
+    private static string GetFilePath(int slot) => Path.Combine(Application.persistentDataPath, $"{SaveFilePrefix}{slot}.json");
+
+    public static int CurrentSlot => _currentSlot;
+    public static bool IsTemporarySlot => _isTemporarySlot;
+
+    public static void InitializeActiveSlotFromPrefs()
+    {
+        int slot = PlayerPrefs.GetInt(ActiveSlotPref, DefaultSlot);
+        if (slot < DefaultSlot || slot > MaxSlot)
+            slot = DefaultSlot;
+
+        bool temp = PlayerPrefs.GetInt(TempSlotPref, 0) == 1;
+        SetActiveSlot(slot, temp, persist: false);
+    }
+
+    public static void SetActiveSlot(int slot, bool temporary = false, bool persist = true)
+    {
+        if (slot < DefaultSlot || slot > MaxSlot)
+            slot = DefaultSlot;
+
+        _currentSlot = slot;
+        _isTemporarySlot = temporary;
+
+        if (!persist)
+            return;
+
+        PlayerPrefs.SetInt(ActiveSlotPref, _currentSlot);
+        PlayerPrefs.SetInt(TempSlotPref, _isTemporarySlot ? 1 : 0);
+        PlayerPrefs.Save();
+    }
+
+    public static bool SaveExists(int slot)
+    {
+        string path = GetFilePath(slot);
+        if (File.Exists(path))
+            return true;
+
+        return slot == DefaultSlot && File.Exists(LegacyFilePath);
+    }
 
     // Gère la liste de tous tes prefabs Spirimonz
     public static SpirimonzSettings[] allSpirimonzSettings;
@@ -122,21 +171,50 @@ public static class SaveManager
     // Sauvegarde
     public static void Save(GameData data)
     {
-        string json = JsonUtility.ToJson(data, true);
-        File.WriteAllText(filePath, json);
-        Debug.Log("Game saved to: " + filePath);
+        Save(data, _currentSlot);
     }
 
     // Chargement
     public static GameData Load()
     {
-        if (!File.Exists(filePath))
+        return Load(_currentSlot, createIfMissing: true);
+    }
+
+    public static void Save(GameData data, int slot)
+    {
+        if (data == null)
+            return;
+
+        string path = GetFilePath(slot);
+        string json = JsonUtility.ToJson(data, true);
+        File.WriteAllText(path, json);
+        Debug.Log("Game saved to: " + path);
+    }
+
+    public static GameData Load(int slot, bool createIfMissing)
+    {
+        string path = GetFilePath(slot);
+
+        if (!File.Exists(path))
         {
-            Debug.Log("No save file found, creating new one.");
-            return CreateNewData();
+            if (slot == DefaultSlot && File.Exists(LegacyFilePath))
+            {
+                File.Copy(LegacyFilePath, path, overwrite: true);
+            }
         }
 
-        string json = File.ReadAllText(filePath);
+        if (!File.Exists(path))
+        {
+            if (!createIfMissing)
+                return null;
+
+            Debug.Log("No save file found, creating new one.");
+            GameData created = CreateNewData();
+            Save(created, slot);
+            return created;
+        }
+
+        string json = File.ReadAllText(path);
         GameData data = JsonUtility.FromJson<GameData>(json);
 
         // Vérifie si de nouveaux Spirimonz ont été ajoutés et les ajoute automatiquement
@@ -145,10 +223,25 @@ public static class SaveManager
         return data;
     }
 
+    public static GameData CreateNewSave(int slot)
+    {
+        GameData data = CreateNewData();
+        Save(data, slot);
+        return data;
+    }
+
     public static void DeleteSave()
     {
-        if (File.Exists(filePath))
-            File.Delete(filePath);
+        DeleteSave(_currentSlot);
+    }
+
+    public static void DeleteSave(int slot)
+    {
+        string path = GetFilePath(slot);
+        if (File.Exists(path))
+            File.Delete(path);
+        if (slot == DefaultSlot && File.Exists(LegacyFilePath))
+            File.Delete(LegacyFilePath);
     }
 
     public static void SaveInputBindings(GameData data, InputManager input)

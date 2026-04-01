@@ -43,6 +43,15 @@ public class UISettingsMenu : GameBehaviour
     public SoundParameters captureKeySound;
     public SoundParameters resetSound;
 
+    [Header("Delete Save")]
+    public Button deleteSaveButton;
+    public GameObject deleteConfirmPanel;
+    public Text deleteConfirmText;
+    public Button deleteConfirmYes;
+    public Button deleteConfirmNo;
+    [TextArea] public string deleteConfirmEnglish = "Are you sure you want to delete this save?";
+    [TextArea] public string deleteConfirmFrench = "Voulez-vous vraiment supprimer cette sauvegarde ?";
+
     private Button _resetButton;
     private bool _built;
     private bool _bindingsBuilt;
@@ -111,6 +120,16 @@ public class UISettingsMenu : GameBehaviour
         UISoundDefaults.AssignIfNull(ref captureKeySound);
         UISoundDefaults.AssignIfNull(ref resetSound);
 #endif
+
+        if (deleteSaveButton != null)
+            deleteSaveButton.onClick.AddListener(RequestDeleteSave);
+        if (deleteConfirmYes != null)
+            deleteConfirmYes.onClick.AddListener(ConfirmDeleteSave);
+        if (deleteConfirmNo != null)
+            deleteConfirmNo.onClick.AddListener(CancelDeleteSave);
+
+        if (deleteConfirmPanel != null)
+            deleteConfirmPanel.SetActive(false);
     }
 
     private void Update()
@@ -157,6 +176,9 @@ public class UISettingsMenu : GameBehaviour
         else
             CancelCapture();
 
+        if (!visible && deleteConfirmPanel != null)
+            deleteConfirmPanel.SetActive(false);
+
         if (visible)
         {
             if (openSound != null)
@@ -197,6 +219,8 @@ public class UISettingsMenu : GameBehaviour
         RefreshBindingTexts();
         RefreshLanguageDropdown();
 
+        UpdateDeleteConfirmText();
+
         if (_input != null && keybindingsRoot != null)
         {
             int definitionCount = _input.GetBindingDefinitions().Count;
@@ -205,6 +229,43 @@ public class UISettingsMenu : GameBehaviour
                 BuildBindingsUI(keybindingsRoot.transform, _font);
                 _bindingsBuilt = _bindings.Count > 0;
             }
+        }
+    }
+
+    private void UpdateDeleteConfirmText()
+    {
+        if (deleteConfirmText == null)
+            return;
+
+        string text = LanguageManager.CurrentLanguage == Language.French && !string.IsNullOrWhiteSpace(deleteConfirmFrench)
+            ? deleteConfirmFrench
+            : deleteConfirmEnglish;
+        deleteConfirmText.text = text;
+    }
+
+    private void RequestDeleteSave()
+    {
+        if (deleteConfirmPanel != null)
+            deleteConfirmPanel.SetActive(true);
+    }
+
+    private void CancelDeleteSave()
+    {
+        if (deleteConfirmPanel != null)
+            deleteConfirmPanel.SetActive(false);
+    }
+
+    private void ConfirmDeleteSave()
+    {
+        if (deleteConfirmPanel != null)
+            deleteConfirmPanel.SetActive(false);
+
+        SaveManager.DeleteSave(SaveManager.CurrentSlot);
+
+        GameManager gm = GameManager.Instance;
+        if (gm != null && !string.IsNullOrEmpty(gm.titleScreenSceneName))
+        {
+            gm.LoadScene(gm.titleScreenSceneName);
         }
     }
 

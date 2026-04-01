@@ -35,6 +35,10 @@ public class GameManager : GameBehaviour
 
     [Header("Challenge")]
     public bool royalChallengeActive;
+
+    [Header("Title Screen")]
+    public string titleScreenSceneName = "TitleScreen";
+    public string defaultWorldSceneName = "World01";
     
     [Space]
 
@@ -86,14 +90,22 @@ public class GameManager : GameBehaviour
 
         CheckUniqueSpirimonzIDs();
 
+        Scene currentScene = SceneManager.GetActiveScene();
+        bool isTitleScreen = !string.IsNullOrEmpty(titleScreenSceneName) &&
+                             currentScene.name == titleScreenSceneName;
+
         SaveManager.allSpirimonzSettings = allSpirimonzSettings;
+        SaveManager.InitializeActiveSlotFromPrefs();
+#if UNITY_EDITOR
+        if (!isTitleScreen && PlayerPrefs.GetInt("TempSaveSlotActive", 0) == 0)
+            SaveManager.SetActiveSlot(1, temporary: false, persist: false);
+#endif
+
         gameData = SaveManager.Load();
         EnsureSaveDefaults();
         ApplySavedFrameRateSetting();
         ApplyInputBindingsIfReady();
         ApplySavedSettingsIfPossible();
-
-        Scene currentScene = SceneManager.GetActiveScene();
 
         // On est déjà dans le dernier World sauvegardé ?
         bool alreadyInLastWorld = !string.IsNullOrEmpty(gameData.lastWorldSceneName) &&
@@ -104,7 +116,7 @@ public class GameManager : GameBehaviour
 
         bool isATestFromHouse = SceneManager.GetActiveScene().name.StartsWith("House");
 
-        if (isATestFromHouse == false)
+        if (isATestFromHouse == false && !isTitleScreen)
         {
             if ( !string.IsNullOrEmpty(gameData.lastWorldSceneName) && !alreadyInLastWorld)
             {
@@ -247,10 +259,7 @@ public class GameManager : GameBehaviour
     {
         ApplyInputBindingsIfReady();
         ApplySavedSettingsIfPossible();
-        _inventoryManager = InventoryManager.Instance;
-        _inventoryManager.LoadTeamFromSave();
-
-        InitDefaultSpirimonzIfNeeded();
+        TryInitInventoryManager();
     }
     
     private void InitDefaultSpirimonzIfNeeded()
@@ -293,6 +302,14 @@ public class GameManager : GameBehaviour
 
     private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
+        bool isTitleScreen = !string.IsNullOrEmpty(titleScreenSceneName) &&
+                             scene.name == titleScreenSceneName;
+        if (isTitleScreen)
+        {
+            SceneManager.sceneLoaded -= OnSceneLoaded;
+            return;
+        }
+
         if (player == null)
             player = FindObjectOfType<Player>();
 
@@ -353,18 +370,28 @@ public class GameManager : GameBehaviour
         }
         else
         {
-            if (_inventoryManager == null)
+            TryInitInventoryManager();
+            if (_inventoryManager != null)
             {
-                _inventoryManager = FindObjectOfType<InventoryManager>();
+                this.Invoke(0.1f, () =>
+                {
+                    _inventoryManager.OnLoadHouseScene();
+                });
             }
-            
-            this.Invoke(0.1f, () =>
-            {
-                _inventoryManager.OnLoadHouseScene();
-            });
         }
 
         SceneManager.sceneLoaded -= OnSceneLoaded;
+    }
+
+    private void TryInitInventoryManager()
+    {
+        if (_inventoryManager == null)
+            _inventoryManager = InventoryManager.Instance;
+        if (_inventoryManager == null)
+            return;
+
+        _inventoryManager.LoadTeamFromSave();
+        InitDefaultSpirimonzIfNeeded();
     }
 
     private void TryToTriggerReviveAnimation()
@@ -537,11 +564,6 @@ public class GameManager : GameBehaviour
         _isDead = true;
     }
 
-    private void OnApplicationQuit()
-    {
-        SaveGame();
-    }
-    
     public bool IsWorld() => _isWorld;
     public GameData GetGameData() => gameData;
 
@@ -555,6 +577,58 @@ public class GameManager : GameBehaviour
 
         SaveManager.SaveInputBindings(gameData, input);
         SaveManager.Save(gameData);
+    }
+
+    public void UseSaveSlot(int slot, bool createIfMissing = true, bool temporary = false)
+    {
+        SaveManager.SetActiveSlot(slot, temporary);
+        gameData = SaveManager.Load(slot, createIfMissing);
+        EnsureSaveDefaults();
+        ApplySavedFrameRateSetting();
+        ApplyInputBindingsIfReady();
+        ApplySavedSettingsIfPossible();
+
+        isLoadingFromHouse = gameData != null && gameData.currentHouseID >= 0;
+        SetCurrentHouseID(gameData != null ? gameData.currentHouseID : -1);
+    }
+
+    public void LoadWorldFromCurrentSave()
+    {
+        string sceneToLoad = gameData != null && !string.IsNullOrEmpty(gameData.lastWorldSceneName)
+            ? gameData.lastWorldSceneName
+            : defaultWorldSceneName;
+
+        if (!string.IsNullOrEmpty(sceneToLoad))
+        {
+            bool exitHouse = gameData != null && gameData.currentHouseID >= 0;
+            LoadScene(sceneToLoad, exitHouse);
+        }
+    }
+
+    private void CleanupTemporarySaveIfNeeded()
+    {
+        if (!SaveManager.IsTemporarySlot)
+            return;
+
+        SaveManager.DeleteSave(SaveManager.CurrentSlot);
+        SaveManager.SetActiveSlot(1, temporary: false, persist: true);
+    }
+
+    private void OnDestroy()
+    {
+        if (Application.isPlaying)
+            CleanupTemporarySaveIfNeeded();
+    }
+
+    private void OnApplicationQuit()
+    {
+        if (SaveManager.IsTemporarySlot)
+        {
+            CleanupTemporarySaveIfNeeded();
+            return;
+        }
+
+        SaveGame();
     }
 
     private void ApplyInputBindingsIfReady()

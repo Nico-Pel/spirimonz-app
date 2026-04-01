@@ -38,6 +38,9 @@ public class World : GameBehaviour
         if (gm == null)
             return;
 
+        if (SaveManager.IsTemporarySlot)
+            return;
+
         if (TutorialManager.TutorialDoorUnlockedRuntime)
             return;
 
