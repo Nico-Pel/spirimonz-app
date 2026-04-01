@@ -39,6 +39,15 @@ public class UIEndGame : GameBehaviour
     public Button bContinue;
     public float uninteractableTime = 3f;
 
+    [Header("Sounds")]
+    public SoundParameters continueSound;
+    public Button bQuit;
+    public Button bRetry;
+    public SoundParameters quitSound;
+    public SoundParameters retrySound;
+
+    private bool _soundHooksDone;
+
     public void SetTexts(EndTypes endType, House house)
     {
         tHouseName.text = house.map.houseName;
@@ -66,6 +75,9 @@ public class UIEndGame : GameBehaviour
 
         int totalValue = 0;
         bool isWin = endType == EndTypes.Win;
+        int rewardMultiplier = 1;
+        if (GameManager.Instance != null && GameManager.Instance.royalChallengeActive)
+            rewardMultiplier = 3;
 
         List<Article> articlesFound = house.currentPlayer.inventoryManager.articlesFoundInGame;
 
@@ -103,6 +115,9 @@ public class UIEndGame : GameBehaviour
                 totalArticleValue = house.map.victoryReward;
             }
 
+            unitValue *= rewardMultiplier;
+            totalArticleValue *= rewardMultiplier;
+
             newUILoot.Init(article, quantity, totalArticleValue, valueColorToUse);
 
             totalValue += totalArticleValue;
@@ -115,8 +130,12 @@ public class UIEndGame : GameBehaviour
         this.Invoke(uninteractableTime, () => bContinue.interactable = true);
         bContinue.onClick.AddListener(() =>
         {
+            if (continueSound != null)
+                continueSound.PlaySound();
+
             bool useDeadAnimation = endType == EndTypes.Lose;
-            if (TutorialManager.Instance != null && TutorialManager.Instance.IsTraining)
+            if (TutorialManager.Instance != null &&
+                (TutorialManager.Instance.IsTraining || TutorialManager.Instance.IsControlsTutorial))
                 useDeadAnimation = false;
 
             house.houseEntry.Entry(house.currentPlayer, useDeadAnimation);
@@ -128,10 +147,36 @@ public class UIEndGame : GameBehaviour
     private void OnEnable()
     {
         UIGame.Instance.tablet.bClose.gameObject.SetActive(false);
+
+        if (!_soundHooksDone)
+        {
+            _soundHooksDone = true;
+            if (bQuit != null)
+                bQuit.onClick.AddListener(() =>
+                {
+                    if (quitSound != null)
+                        quitSound.PlaySound();
+                });
+            if (bRetry != null)
+                bRetry.onClick.AddListener(() =>
+                {
+                    if (retrySound != null)
+                        retrySound.PlaySound();
+                });
+        }
     }
     
     private void OnDisable()
     {
         UIGame.Instance.tablet.bClose.gameObject.SetActive(true);
     }
+
+#if UNITY_EDITOR
+    private void OnValidate()
+    {
+        UISoundDefaults.AssignIfNull(ref continueSound);
+        UISoundDefaults.AssignIfNull(ref quitSound);
+        UISoundDefaults.AssignIfNull(ref retrySound);
+    }
+#endif
 }

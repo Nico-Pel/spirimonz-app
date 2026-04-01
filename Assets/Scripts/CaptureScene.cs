@@ -89,12 +89,8 @@ public class CaptureScene : GameBehaviour
         UnlockSpirimonz(selectedSpirimonz.spirimonzID);
         
         this.Invoke(8, () => Exit(false));
-        
-        foreach (Quest quest in _house.map.quests)
-        {
-            if(quest.type == Quest.QuestType.Capture)
-                GameManager.Instance.UpdateQuestProgress(quest, _house.map.houseID, 1);
-        }
+
+        EvaluateCaptureQuests();
     }
 
     private void UnlockSpirimonz(string spirimonzID)
@@ -156,5 +152,156 @@ public class CaptureScene : GameBehaviour
         
         if(isDead)
             _ghost.SetActive(false);
+    }
+
+    private void EvaluateCaptureQuests()
+    {
+        if (_house == null || _house.map == null || _house.map.quests == null)
+            return;
+
+        List<SpirimonzSettings> team = GetTeamSettings();
+        int teamCount = team.Count;
+        Ghost ghost = _house.currentGhost;
+        GhostParameters ghostParams = ghost != null ? ghost.ghostParameters : null;
+        GhostTypeData.GhostType ghostType = ghostParams != null && ghostParams.ghostTypeData != null
+            ? ghostParams.ghostTypeData.ghostType
+            : GhostTypeData.GhostType.DEBUG;
+        float elapsedMinutes = _house.GetElapsedMinutes();
+        float seenDuration = ghost != null ? ghost.playerSeenDuration : 0f;
+
+        foreach (Quest quest in _house.map.quests)
+        {
+            if (quest == null)
+                continue;
+
+            switch (quest.type)
+            {
+                case Quest.QuestType.Capture:
+                    GameManager.Instance.UpdateQuestProgress(quest, _house.map.houseID, 1);
+                    break;
+                case Quest.QuestType.CaptureWithMinUsefulForEvidence:
+                {
+                    int needed = Mathf.Max(1, quest.minUsefulCount);
+                    if (teamCount > 0 && CountUseful(team, quest.evidenceType) >= needed)
+                        GameManager.Instance.UpdateQuestProgress(quest, _house.map.houseID, 1);
+                    break;
+                }
+                case Quest.QuestType.CaptureWithOnlyUsefulForEvidence:
+                    if (teamCount > 0 && AllUseful(team, quest.evidenceType))
+                        GameManager.Instance.UpdateQuestProgress(quest, _house.map.houseID, 1);
+                    break;
+                case Quest.QuestType.CaptureWithoutUsefulForEvidence:
+                    if (teamCount > 0 && NoneUseful(team, quest.evidenceType))
+                        GameManager.Instance.UpdateQuestProgress(quest, _house.map.houseID, 1);
+                    break;
+                case Quest.QuestType.CaptureWithoutUsefulForEvidenceDouble:
+                {
+                    GhostInvestigator.EvidenceType a = quest.evidenceType;
+                    GhostInvestigator.EvidenceType b = quest.useSecondEvidenceType ? quest.evidenceTypeB : quest.evidenceType;
+                    if (teamCount > 0 && NoneUseful(team, a) && NoneUseful(team, b))
+                        GameManager.Instance.UpdateQuestProgress(quest, _house.map.houseID, 1);
+                    break;
+                }
+                case Quest.QuestType.CaptureWithMaxTeamCount:
+                    if (teamCount > 0 && teamCount <= Mathf.Max(1, quest.maxTeamCount))
+                        GameManager.Instance.UpdateQuestProgress(quest, _house.map.houseID, 1);
+                    break;
+                case Quest.QuestType.CaptureWithSingleSpirimonz:
+                    if (teamCount == 1)
+                        GameManager.Instance.UpdateQuestProgress(quest, _house.map.houseID, 1);
+                    break;
+                case Quest.QuestType.CaptureAfterSeenByGhost:
+                    if (teamCount > 0 && seenDuration >= Mathf.Max(0f, quest.minSeenSeconds))
+                        GameManager.Instance.UpdateQuestProgress(quest, _house.map.houseID, 1);
+                    break;
+                case Quest.QuestType.CaptureUnderTime:
+                    if (teamCount > 0 && elapsedMinutes <= Mathf.Max(0.01f, quest.maxMinutes))
+                        GameManager.Instance.UpdateQuestProgress(quest, _house.map.houseID, 1);
+                    break;
+                case Quest.QuestType.CaptureGhostType:
+                {
+                    bool match = ghostType == quest.ghostType;
+                    if (!match && quest.useSecondGhostType)
+                        match = ghostType == quest.ghostTypeB;
+                    if (match)
+                        GameManager.Instance.UpdateQuestProgress(quest, _house.map.houseID, 1);
+                    break;
+                }
+                case Quest.QuestType.CaptureWithNoDroppableSpirimonz:
+                    if (teamCount > 0 && AllDroppable(team, false))
+                        GameManager.Instance.UpdateQuestProgress(quest, _house.map.houseID, 1);
+                    break;
+                case Quest.QuestType.CaptureWithOnlyDroppableSpirimonz:
+                    if (teamCount > 0 && AllDroppable(team, true))
+                        GameManager.Instance.UpdateQuestProgress(quest, _house.map.houseID, 1);
+                    break;
+            }
+        }
+    }
+
+    private List<SpirimonzSettings> GetTeamSettings()
+    {
+        List<SpirimonzSettings> results = new List<SpirimonzSettings>();
+        InventoryManager inventory = InventoryManager.Instance;
+        if (inventory == null || inventory.spirimonzTeamSettings == null)
+            return results;
+
+        foreach (SpirimonzSettings s in inventory.spirimonzTeamSettings)
+        {
+            if (s != null)
+                results.Add(s);
+        }
+
+        return results;
+    }
+
+    private int CountUseful(List<SpirimonzSettings> team, GhostInvestigator.EvidenceType evidence)
+    {
+        int count = 0;
+        for (int i = 0; i < team.Count; i++)
+        {
+            if (team[i] != null && team[i].IsUsefulForEvidence(evidence))
+                count++;
+        }
+        return count;
+    }
+
+    private bool AllUseful(List<SpirimonzSettings> team, GhostInvestigator.EvidenceType evidence)
+    {
+        if (team.Count == 0)
+            return false;
+
+        for (int i = 0; i < team.Count; i++)
+        {
+            if (team[i] == null || !team[i].IsUsefulForEvidence(evidence))
+                return false;
+        }
+
+        return true;
+    }
+
+    private bool NoneUseful(List<SpirimonzSettings> team, GhostInvestigator.EvidenceType evidence)
+    {
+        for (int i = 0; i < team.Count; i++)
+        {
+            if (team[i] != null && team[i].IsUsefulForEvidence(evidence))
+                return false;
+        }
+
+        return true;
+    }
+
+    private bool AllDroppable(List<SpirimonzSettings> team, bool value)
+    {
+        if (team.Count == 0)
+            return false;
+
+        for (int i = 0; i < team.Count; i++)
+        {
+            if (team[i] == null || team[i].canBeDroppedOnMap != value)
+                return false;
+        }
+
+        return true;
     }
 }

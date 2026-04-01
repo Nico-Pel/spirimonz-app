@@ -48,6 +48,15 @@ public class UIRandomHouseLauncher : GameBehaviour
     public Color teamSlotEmptyColor = new Color(1f, 1f, 1f, 0.35f);
     public Color teamSlotFilledColor = Color.white;
 
+    [Header("Sounds")]
+    public SoundParameters paySound;
+    public SoundParameters cancelSound;
+    public SoundParameters closeSound;
+    public SoundParameters validateSound;
+    public SoundParameters selectChoiceSound;
+    public SoundParameters infoOpenSound;
+    public SoundParameters infoBackSound;
+
     private GameManager _gameManager;
     private InventoryManager _inventoryManager;
 
@@ -62,21 +71,75 @@ public class UIRandomHouseLauncher : GameBehaviour
 
     private void Awake()
     {
-        if (bPay != null) bPay.onClick.AddListener(TryPayAndStart);
-        if (bCancel != null) bCancel.onClick.AddListener(CloseWindow);
-        if (bClose != null) bClose.onClick.AddListener(CloseWindow);
-        if (bValidate != null) bValidate.onClick.AddListener(ValidateChoice);
-        if (bInfoBack != null) bInfoBack.onClick.AddListener(CloseInfo);
+        if (bPay != null) bPay.onClick.AddListener(() =>
+        {
+            if (paySound != null) paySound.PlaySound();
+            TryPayAndStart();
+        });
+        if (bCancel != null) bCancel.onClick.AddListener(() =>
+        {
+            if (cancelSound != null) cancelSound.PlaySound();
+            TryPlayCloseSound();
+            CloseWindow();
+        });
+        if (bClose != null) bClose.onClick.AddListener(() =>
+        {
+            TryPlayCloseSound();
+            CloseWindow();
+        });
+        if (bValidate != null) bValidate.onClick.AddListener(() =>
+        {
+            if (validateSound != null) validateSound.PlaySound();
+            ValidateChoice();
+        });
+        if (bInfoBack != null) bInfoBack.onClick.AddListener(() =>
+        {
+            if (infoBackSound != null) infoBackSound.PlaySound();
+            CloseInfo();
+        });
 
         for (int i = 0; i < choiceButtons.Length; i++)
         {
             int index = i;
             if (choiceButtons[i] != null)
-                choiceButtons[i].onClick.AddListener(() => SelectChoice(index));
+                choiceButtons[i].onClick.AddListener(() =>
+                {
+                    if (selectChoiceSound != null) selectChoiceSound.PlaySound();
+                    SelectChoice(index);
+                });
             if (choiceInfoButtons != null && i < choiceInfoButtons.Length && choiceInfoButtons[i] != null)
-                choiceInfoButtons[i].onClick.AddListener(() => OpenInfo(index));
+                choiceInfoButtons[i].onClick.AddListener(() =>
+                {
+                    if (infoOpenSound != null) infoOpenSound.PlaySound();
+                    OpenInfo(index);
+                });
         }
     }
+
+    private void TryPlayCloseSound()
+    {
+        if (closeSound == null)
+            return;
+
+        UITablet tablet = UIGame.Instance != null ? UIGame.Instance.tablet : null;
+        if (tablet != null && tablet.closeTabletSound != null)
+            return;
+
+        closeSound.PlaySound();
+    }
+
+#if UNITY_EDITOR
+    private void OnValidate()
+    {
+        UISoundDefaults.AssignIfNull(ref paySound);
+        UISoundDefaults.AssignIfNull(ref cancelSound);
+        UISoundDefaults.AssignIfNull(ref closeSound);
+        UISoundDefaults.AssignIfNull(ref validateSound);
+        UISoundDefaults.AssignIfNull(ref selectChoiceSound);
+        UISoundDefaults.AssignIfNull(ref infoOpenSound);
+        UISoundDefaults.AssignIfNull(ref infoBackSound);
+    }
+#endif
 
     private void OnEnable()
     {
@@ -101,6 +164,7 @@ public class UIRandomHouseLauncher : GameBehaviour
         if (setupScreen != null) setupScreen.SetActive(false);
         if (infoPanel != null) infoPanel.SetActive(false);
         if (selectionPanel != null) selectionPanel.SetActive(true);
+        if (bClose != null) bClose.gameObject.SetActive(true);
 
         _proposedSpirimonz.Clear();
         _team.Clear();
@@ -151,6 +215,7 @@ public class UIRandomHouseLauncher : GameBehaviour
         if (setupScreen != null) setupScreen.SetActive(true);
         if (infoPanel != null) infoPanel.SetActive(false);
         if (selectionPanel != null) selectionPanel.SetActive(true);
+        if (bClose != null) bClose.gameObject.SetActive(false);
 
         _chosenSceneName = GetRandomHouseSceneName();
         BuildEvidenceOrder();
@@ -216,6 +281,9 @@ public class UIRandomHouseLauncher : GameBehaviour
             Debug.LogError("UIRandomHouseLauncher: No house scene name available.");
             return;
         }
+
+        if (GameManager.Instance != null)
+            GameManager.Instance.royalChallengeActive = true;
 
         GameManager.Instance.LoadScene(_chosenSceneName);
     }

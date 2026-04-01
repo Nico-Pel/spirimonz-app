@@ -5,6 +5,7 @@ using Random = UnityEngine.Random;
 public class SoundParameters : GameBehaviour
 {
     [SerializeField] private bool playerOnEnabled;
+    [SerializeField] private bool usePlayerPos;
     
     [SerializeField] private AudioClip[] possibleClips;
     [SerializeField] public float volume = 1f;
@@ -24,6 +25,14 @@ public class SoundParameters : GameBehaviour
 
     public void PlaySound(Vector3 position, float forcedVolume = -1)
     {
+        if (possibleClips == null || possibleClips.Length == 0)
+            return;
+        if (SoundManager.Instance == null)
+            return;
+
+        if (usePlayerPos)
+            position = GetPlayerPosition(position);
+
         float volumeToUse = volume;
         
         if (forcedVolume >= 0)
@@ -38,10 +47,28 @@ public class SoundParameters : GameBehaviour
     
     public void PlaySound()
     {
+        if (possibleClips == null || possibleClips.Length == 0)
+            return;
+        if (SoundManager.Instance == null)
+            return;
+
         float volumeToUse = volume;
         
         AudioClip clip = possibleClips[Random.Range(0, possibleClips.Length)];
         float pitch = Random.Range(pitchMin, pitchMax);
-        SoundManager.Instance.PlaySound(clip, position: transform.position, volumeToUse, pitch, duration, range, loop, sourceParent, ignoreAudioOcclusion);
+        Vector3 positionToUse = usePlayerPos ? GetPlayerPosition(transform.position) : transform.position;
+        SoundManager.Instance.PlaySound(clip, position: positionToUse, volumeToUse, pitch, duration, range, loop, sourceParent, ignoreAudioOcclusion);
+    }
+
+    private Vector3 GetPlayerPosition(Vector3 fallback)
+    {
+        Player player = Player.Instance;
+        if (player == null)
+            return fallback;
+
+        if (player.head != null)
+            return player.head.position;
+
+        return player.transform.position;
     }
 }

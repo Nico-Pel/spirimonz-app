@@ -30,6 +30,11 @@ public class UITablet : MonoBehaviour
     public RectTransform tabletPanel;
     public float openDuration = 0.4f;
     public Ease openEase = Ease.OutCubic;
+
+    [Header("Sounds")]
+    public SoundParameters openTabletSound;
+    public SoundParameters closeTabletSound;
+    public SoundParameters tabSelectSound;
     
     private float _targetWidth;
 
@@ -59,6 +64,9 @@ public class UITablet : MonoBehaviour
         if (tabWindows == null || tabID < 0 || tabID >= tabWindows.Length)
             return;
 
+        if (tabSelectSound != null)
+            tabSelectSound.PlaySound();
+
         CurrentTabIndex = tabID;
         
         //Open right panel
@@ -78,6 +86,8 @@ public class UITablet : MonoBehaviour
     private void OnEnable()
     {
         TabletOpenAnimation();
+        if (openTabletSound != null)
+            openTabletSound.PlaySound();
     }
 
     private Player _player;
@@ -101,6 +111,8 @@ public class UITablet : MonoBehaviour
         CloseEndGamePanel();
         CurrentTabIndex = -1;
         gameObject.SetActive(false);
+        if (closeTabletSound != null)
+            closeTabletSound.PlaySound();
 
         if(_player == null)
             _player = Player.Instance;
@@ -159,4 +171,13 @@ public class UITablet : MonoBehaviour
         endGame.gameObject.SetActive(true);
         endGame.SetTexts(endType, house);
     }
+
+#if UNITY_EDITOR
+    private void OnValidate()
+    {
+        UISoundDefaults.AssignIfNull(ref openTabletSound);
+        UISoundDefaults.AssignIfNull(ref closeTabletSound);
+        UISoundDefaults.AssignIfNull(ref tabSelectSound);
+    }
+#endif
 }

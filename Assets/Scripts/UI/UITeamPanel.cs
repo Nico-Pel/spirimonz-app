@@ -23,6 +23,9 @@ public class UITeamPanel : GameBehaviour
 
     [Header("Buttons")] 
     public Button[] switchButtons;
+
+    [Header("Sounds")]
+    public SoundParameters selectSlotSound;
     
     public Color selectColor;
     public Color selectIconColor;
@@ -50,17 +53,11 @@ public class UITeamPanel : GameBehaviour
     {
         _inventoryManager = InventoryManager.Instance;
         _inputManager = InputManager.Instance;
-        
-        for (int i = 0; i < switchButtons.Length; i++)
-        {
-            bool isNull = _inventoryManager.spirimonzTeamSettings[i] == null;
-            switchButtons[i].interactable = !isNull;
-            if (isNull == false)
-            {
-                int index = i;
-                switchButtons[i].onClick.AddListener(() => SelectSpirimonz(index));
-            }
-        }
+
+        if (_inventoryManager != null)
+            _inventoryManager.onTeamChange.AddListener(RefreshFromTeam);
+
+        RefreshFromTeam();
 
         _initialized = true;
         SelectTargetedSpirimonz();
@@ -68,6 +65,8 @@ public class UITeamPanel : GameBehaviour
 
     private void OnEnable()
     {
+        RefreshFromTeam();
+
         if (autoSelection == AutoSelectionType.firstSpirimonz)
         {
             SelectSpirimonz(0);
@@ -96,20 +95,16 @@ public class UITeamPanel : GameBehaviour
 
     private void NextSpirimonz()
     {
-        int targetedID = _currentSelectionID + 1;
-        if (targetedID >= _inventoryManager.spirimonzTeam.Count)
-            targetedID = 0;
-        
-        SelectSpirimonz(targetedID);
+        int next = GetNextAvailableIndex(_currentSelectionID, 1);
+        if (next >= 0)
+            SelectSpirimonz(next);
     }
     
     private void PreviousSpirimonz()
     {
-        int targetedID = _currentSelectionID - 1;
-        if (targetedID < 0)
-            targetedID = _inventoryManager.spirimonzTeam.Count - 1;
-        
-        SelectSpirimonz(targetedID);
+        int prev = GetNextAvailableIndex(_currentSelectionID, -1);
+        if (prev >= 0)
+            SelectSpirimonz(prev);
     }
 
     private void SelectTargetedSpirimonz()
@@ -121,7 +116,10 @@ public class UITeamPanel : GameBehaviour
             {
                 indexToFocus = 0;
             }
-            SelectSpirimonz(indexToFocus);
+            if (!IsSlotValid(indexToFocus))
+                indexToFocus = GetFirstAvailableIndex();
+            if (indexToFocus >= 0)
+                SelectSpirimonz(indexToFocus);
         }
     }
 
@@ -142,7 +140,91 @@ public class UITeamPanel : GameBehaviour
         }
 
         _currentSelectionID = teamID;
+
+        if (selectSlotSound != null)
+            selectSlotSound.PlaySound();
     }
     
     public int GetCurrentSelectionID() => _currentSelectionID;
+
+    public void RefreshFromTeam()
+    {
+        if (_inventoryManager == null)
+            return;
+
+        for (int i = 0; i < switchButtons.Length; i++)
+        {
+            bool isNull = i >= _inventoryManager.spirimonzTeamSettings.Count || _inventoryManager.spirimonzTeamSettings[i] == null;
+            if (switchButtons[i] != null)
+            {
+                switchButtons[i].interactable = !isNull;
+                switchButtons[i].onClick.RemoveAllListeners();
+                if (!isNull)
+                {
+                    int index = i;
+                    switchButtons[i].onClick.AddListener(() => SelectSpirimonz(index));
+                }
+            }
+        }
+
+        if (!IsSlotValid(_currentSelectionID))
+        {
+            int first = GetFirstAvailableIndex();
+            if (first >= 0)
+                SelectSpirimonz(first);
+        }
+    }
+
+    private bool IsSlotValid(int index)
+    {
+        if (_inventoryManager == null)
+            return false;
+        if (index < 0 || index >= _inventoryManager.spirimonzTeamSettings.Count)
+            return false;
+        return _inventoryManager.spirimonzTeamSettings[index] != null;
+    }
+
+    private int GetFirstAvailableIndex()
+    {
+        if (_inventoryManager == null)
+            return -1;
+
+        for (int i = 0; i < _inventoryManager.spirimonzTeamSettings.Count; i++)
+        {
+            if (_inventoryManager.spirimonzTeamSettings[i] != null)
+                return i;
+        }
+
+        return -1;
+    }
+
+    private int GetNextAvailableIndex(int startIndex, int direction)
+    {
+        if (_inventoryManager == null || _inventoryManager.spirimonzTeamSettings == null)
+            return -1;
+
+        int count = _inventoryManager.spirimonzTeamSettings.Count;
+        if (count == 0)
+            return -1;
+
+        int index = startIndex;
+        for (int i = 0; i < count; i++)
+        {
+            index += direction;
+            if (index >= count) index = 0;
+            if (index < 0) index = count - 1;
+
+            if (_inventoryManager.spirimonzTeamSettings[index] != null)
+                return index;
+        }
+
+        return -1;
+    }
+
+#if UNITY_EDITOR
+    private void OnValidate()
+    {
+        UISoundDefaults.AssignIfNull(ref selectSlotSound);
+    }
+#endif
 }

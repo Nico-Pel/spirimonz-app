@@ -19,6 +19,9 @@ public class UIEvidence : GameBehaviour
     public Sprite dotSprite;
     public Sprite crossSprite;
 
+    [Header("Sounds")]
+    public SoundParameters changeEvidenceSound;
+
     private void Start()
     {
         if(dotButton != null)
@@ -48,6 +51,9 @@ public class UIEvidence : GameBehaviour
 
         investigator.SetEvidenceState(evidenceParameter.evidenceType, next);
         RefreshVisual(next);
+
+        if (changeEvidenceSound != null)
+            changeEvidenceSound.PlaySound();
     }
     
     private void RefreshVisual(GhostInvestigator.EvidenceState state)
@@ -70,4 +76,11 @@ public class UIEvidence : GameBehaviour
             );
         }
     }
+
+#if UNITY_EDITOR
+    private void OnValidate()
+    {
+        UISoundDefaults.AssignIfNull(ref changeEvidenceSound);
+    }
+#endif
 }

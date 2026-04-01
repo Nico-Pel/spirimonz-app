@@ -100,6 +100,7 @@ public class QuestData
     public string contextID;   // ID du contexte (ex: map ou house)
     public int progress;       // progression actuelle
     public bool completed;     // terminé ou pas
+    public bool rewardClaimed; // récompense récupérée ou pas
 
     public QuestData(string questID, string contextID)
     {
@@ -107,6 +108,7 @@ public class QuestData
         this.contextID = contextID;
         progress = 0;
         completed = false;
+        rewardClaimed = false;
     }
 }
 

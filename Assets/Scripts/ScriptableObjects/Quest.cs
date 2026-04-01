@@ -10,6 +10,17 @@ public class Quest : ScriptableObject
         TryToCapture,
         Capture,
         LightACandle,
+        CaptureWithMinUsefulForEvidence,
+        CaptureWithOnlyUsefulForEvidence,
+        CaptureWithoutUsefulForEvidence,
+        CaptureWithoutUsefulForEvidenceDouble,
+        CaptureWithMaxTeamCount,
+        CaptureWithSingleSpirimonz,
+        CaptureAfterSeenByGhost,
+        CaptureUnderTime,
+        CaptureGhostType,
+        CaptureWithNoDroppableSpirimonz,
+        CaptureWithOnlyDroppableSpirimonz
     }
 
     public QuestType type;
@@ -18,6 +29,19 @@ public class Quest : ScriptableObject
     public string questDescription;
     [TextArea] public string questDescriptionFrench;
     public int goal;
+    public int rewardPrice = 50;
+
+    [Header("Capture Conditions")]
+    public GhostInvestigator.EvidenceType evidenceType;
+    public GhostInvestigator.EvidenceType evidenceTypeB;
+    public bool useSecondEvidenceType;
+    public int minUsefulCount = 1;
+    public int maxTeamCount = 3;
+    public float minSeenSeconds = 5f;
+    public float maxMinutes = 5f;
+    public GhostTypeData.GhostType ghostType;
+    public GhostTypeData.GhostType ghostTypeB;
+    public bool useSecondGhostType;
     
     public bool IsCompleted(string houseID)
     {

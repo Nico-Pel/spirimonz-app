@@ -667,6 +667,9 @@ public class InventoryManager : GameBehaviour
 
     public bool IsSpirimonzInTeam(SpirimonzSettings spmz)
     {
+        if (spmz == null)
+            return false;
+
         foreach (SpirimonzSettings ss in spirimonzTeamSettings)
         {
             if (spmz == ss)

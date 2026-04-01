@@ -32,6 +32,9 @@ public class GameManager : GameBehaviour
     public bool useTutorialWorldSpawn;
     public bool disableMoneyGain;
     [SerializeField] private HouseSceneMode nextHouseSceneMode = HouseSceneMode.NormalMap;
+
+    [Header("Challenge")]
+    public bool royalChallengeActive;
     
     [Space]
 
@@ -313,6 +316,7 @@ public class GameManager : GameBehaviour
 
         if (_isWorld)
         {
+            royalChallengeActive = false;
             World world = World.Instance;
 
             if (world == null)
@@ -626,6 +630,24 @@ public class GameManager : GameBehaviour
     {
         QuestData qData = GetOrCreateQuestProgress(quest, contextID);
         return qData.completed;
+    }
+
+    public bool IsQuestRewardClaimed(Quest quest, string contextID)
+    {
+        QuestData qData = GetOrCreateQuestProgress(quest, contextID);
+        return qData.rewardClaimed;
+    }
+
+    public bool TryClaimQuestReward(Quest quest, string contextID)
+    {
+        QuestData qData = GetOrCreateQuestProgress(quest, contextID);
+        if (qData == null || qData.completed == false || qData.rewardClaimed)
+            return false;
+
+        qData.rewardClaimed = true;
+        AddMoney(Mathf.Max(0, quest.rewardPrice));
+        SaveGame();
+        return true;
     }
     
     public void SetInt(string id, int value)

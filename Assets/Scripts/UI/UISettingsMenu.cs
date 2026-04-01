@@ -37,6 +37,12 @@ public class UISettingsMenu : GameBehaviour
     public ScrollRect scrollRect;
     public ScrollRect keybindingsScrollRect;
 
+    [Header("Sounds")]
+    public SoundParameters openSound;
+    public SoundParameters closeSound;
+    public SoundParameters captureKeySound;
+    public SoundParameters resetSound;
+
     private Button _resetButton;
     private bool _built;
     private bool _bindingsBuilt;
@@ -98,6 +104,13 @@ public class UISettingsMenu : GameBehaviour
 
         _uiManager = GetComponentInParent<UIManager>();
         SetVisible(false);
+
+#if UNITY_EDITOR
+        UISoundDefaults.AssignIfNull(ref openSound);
+        UISoundDefaults.AssignIfNull(ref closeSound);
+        UISoundDefaults.AssignIfNull(ref captureKeySound);
+        UISoundDefaults.AssignIfNull(ref resetSound);
+#endif
     }
 
     private void Update()
@@ -143,6 +156,17 @@ public class UISettingsMenu : GameBehaviour
             Refresh();
         else
             CancelCapture();
+
+        if (visible)
+        {
+            if (openSound != null)
+                openSound.PlaySound();
+        }
+        else
+        {
+            if (closeSound != null)
+                closeSound.PlaySound();
+        }
 
         if (visible && Player.Instance != null)
             Player.Instance.LockControls(true);
@@ -441,12 +465,27 @@ public class UISettingsMenu : GameBehaviour
         _bindingsBuilt = _bindings.Count > 0;
 
         _resetButton = CreateActionButton(contentGO.transform, "Reset Settings", _font);
-        _resetButton.onClick.AddListener(ResetSettingsToDefault);
+        _resetButton.onClick.AddListener(() =>
+        {
+            if (resetSound != null)
+                resetSound.PlaySound();
+            ResetSettingsToDefault();
+        });
 
         HookSliders();
         HookFpsDropdown();
         HookLanguageDropdown();
     }
+
+#if UNITY_EDITOR
+    private void OnValidate()
+    {
+        UISoundDefaults.AssignIfNull(ref openSound);
+        UISoundDefaults.AssignIfNull(ref closeSound);
+        UISoundDefaults.AssignIfNull(ref captureKeySound);
+        UISoundDefaults.AssignIfNull(ref resetSound);
+    }
+#endif
 
     private GameObject CreateHeader(Transform parent, string title, Font font, int size = 24)
     {
@@ -937,6 +976,9 @@ public class UISettingsMenu : GameBehaviour
             entry.secondaryText.text = "...";
         else if (!secondary && entry.primaryText != null)
             entry.primaryText.text = "...";
+
+        if (captureKeySound != null)
+            captureKeySound.PlaySound();
     }
 
     private void SetEntrySelected(BindingEntry entry, bool secondary, bool selected)

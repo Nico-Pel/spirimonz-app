@@ -107,6 +107,8 @@ public class Ghost : GameBehaviour
     public float startHuntingStandingTime = 4;
     public float delayBeforeLosingPlayerTargeting = 4f;
     public float huntTimeVariation = 5f;
+
+    [ReadOnly] public float playerSeenDuration;
     
     [ReadOnly] public float forcedStartTargetingTime = 1f;
     [ReadOnly] public float angerThresholdStep = 10;
@@ -610,6 +612,8 @@ public class Ghost : GameBehaviour
                 agent.isStopped = false;
 
             bool canSeePlayer = vision.CanSeePlayer(house.currentPlayer);
+            if (canSeePlayer)
+                playerSeenDuration += Time.deltaTime;
             UpdateHuntMovementTracking();
 
             currentHuntTime -= Time.deltaTime;

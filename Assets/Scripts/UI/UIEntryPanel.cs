@@ -18,8 +18,16 @@ public class UIEntryPanel : GameBehaviour
     public Button bGo;
     public Button bGoTuto;
     public Button bGoTraining;
+    public Button bClose;
     public Color goColorBase;
     public Color goColorQuestsCompleted;
+
+    [Header("Sounds")]
+    public SoundParameters goSound;
+    public SoundParameters goPaidSound;
+    public SoundParameters goTutoSound;
+    public SoundParameters goTrainingSound;
+    public SoundParameters closeSound;
 
     [Header("Panels")]
     public GameObject normalPanel;
@@ -34,6 +42,8 @@ public class UIEntryPanel : GameBehaviour
     [TextArea] public string tipsAllCompletedFrench = "Toutes les quêtes sont complétées, l'accès est maintenant gratuit.";
     [TextArea] public string enterTextEnglish = "Enter";
     [TextArea] public string enterTextFrench = "Entrer";
+    [TextArea] public string freeTextEnglish = "Free";
+    [TextArea] public string freeTextFrench = "Gratuit";
 
     private GameManager _gameManager;
     private HouseEntry _entry;
@@ -61,7 +71,8 @@ public class UIEntryPanel : GameBehaviour
             }
         }
 
-        bool freeAccess = allQuestCompleted && questCount > 0;
+        bool freeByPrice = entry != null && entry.map != null && entry.map.entryPrince <= 0;
+        bool freeAccess = freeByPrice || (allQuestCompleted && questCount > 0);
         _allQuestCompleted = freeAccess;
 
         if (normalPanel != null)
@@ -74,13 +85,22 @@ public class UIEntryPanel : GameBehaviour
         tRoomsNb.text = entry.map.roomsNumber.ToString();
         mapImage.sprite = entry.map.sprite;
         
-        bGo.image.color = freeAccess ? goColorQuestsCompleted : goColorBase;
-        tPrice.text = freeAccess ? Localize(enterTextEnglish, enterTextFrench) : (entry.map.entryPrince + "$");
+        bGo.image.color = freeAccess && !freeByPrice ? goColorQuestsCompleted : goColorBase;
+        if (freeByPrice)
+            tPrice.text = Localize(freeTextEnglish, freeTextFrench);
+        else
+            tPrice.text = freeAccess ? Localize(enterTextEnglish, enterTextFrench) : (entry.map.entryPrince + "$");
 
         _entry = entry;
         
         bGo.onClick.RemoveAllListeners();
         bGo.onClick.AddListener(GoNormal);
+
+        if (bClose != null)
+        {
+            bClose.onClick.RemoveAllListeners();
+            bClose.onClick.AddListener(ClosePanel);
+        }
 
         if (bGoTuto != null)
         {
@@ -110,7 +130,7 @@ public class UIEntryPanel : GameBehaviour
 
         if (iTips != null)
         {
-            bool showTips = questCount > 0;
+            bool showTips = questCount > 0 && !freeByPrice;
             iTips.SetActive(showTips);
             if (showTips && tTips != null)
             {
@@ -124,20 +144,20 @@ public class UIEntryPanel : GameBehaviour
 
     private void GoNormal()
     {
-        TryEnterWithMode(GameManager.HouseSceneMode.NormalMap);
+        TryEnterWithMode(GameManager.HouseSceneMode.NormalMap, goSound, goPaidSound);
     }
 
     private void GoTutorial()
     {
-        TryEnterWithMode(GameManager.HouseSceneMode.Tutorial);
+        TryEnterWithMode(GameManager.HouseSceneMode.Tutorial, goTutoSound, goPaidSound);
     }
 
     private void GoTraining()
     {
-        TryEnterWithMode(GameManager.HouseSceneMode.Training);
+        TryEnterWithMode(GameManager.HouseSceneMode.Training, goTrainingSound, goPaidSound);
     }
 
-    private void TryEnterWithMode(GameManager.HouseSceneMode mode)
+    private void TryEnterWithMode(GameManager.HouseSceneMode mode, SoundParameters freeSound, SoundParameters paidSound)
     {
         if (_gameManager == null || _currentEntry == null)
             return;
@@ -146,11 +166,33 @@ public class UIEntryPanel : GameBehaviour
         if (price > 0 && !_gameManager.Buy(price))
             return;
 
+        if (price > 0)
+        {
+            if (paidSound != null)
+                paidSound.PlaySound();
+        }
+        else if (freeSound != null)
+        {
+            freeSound.PlaySound();
+        }
+
         _gameManager.SetNextHouseSceneMode(mode);
         {
             UIGame.Instance.CloseAllWindows();
             _entry.Entry(Player.Instance);
         }
+    }
+
+    private void ClosePanel()
+    {
+        if (closeSound != null)
+        {
+            UITablet tablet = UIGame.Instance != null ? UIGame.Instance.tablet : null;
+            if (tablet == null || tablet.closeTabletSound == null)
+                closeSound.PlaySound();
+        }
+
+        UIGame.Instance.CloseAllWindows();
     }
 
     private string Localize(string english, string french)
@@ -160,4 +202,15 @@ public class UIEntryPanel : GameBehaviour
 
         return english;
     }
+
+#if UNITY_EDITOR
+    private void OnValidate()
+    {
+        UISoundDefaults.AssignIfNull(ref goSound);
+        UISoundDefaults.AssignIfNull(ref goPaidSound);
+        UISoundDefaults.AssignIfNull(ref goTutoSound);
+        UISoundDefaults.AssignIfNull(ref goTrainingSound);
+        UISoundDefaults.AssignIfNull(ref closeSound);
+    }
+#endif
 }

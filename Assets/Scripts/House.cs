@@ -55,6 +55,8 @@ public class House : GameBehaviour
     public float temperatureMaxHouseVariation = 3.5f;
 
     [ReadOnly] public Ghost currentGhost;
+
+    [ReadOnly] public float houseStartTime;
     
     public Player currentPlayer;
     
@@ -96,8 +98,14 @@ public class House : GameBehaviour
 
     private void Start()
     {
+        houseStartTime = Time.time;
         UIGame.Instance.EnableOverlay(true, 0);
         UIGame.Instance.EnableOverlay(false, 3);
+    }
+
+    public float GetElapsedMinutes()
+    {
+        return (Time.time - houseStartTime) / 60f;
     }
 
     private void InitializeHouse()

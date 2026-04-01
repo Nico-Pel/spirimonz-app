@@ -10,6 +10,8 @@ public class UITeamBuilder : GameBehaviour
     public UITeamPanel teamPanel;
     public List<UISpirimonzPanelSelector> spirimonzPanelSelectors;
     public Transform spirimonzSelectorPanel;
+    public UISpirimonzPanelSelector emptySelectorPrefab;
+    public bool insertEmptySelector = true;
     
     [Space]
     
@@ -33,6 +35,10 @@ public class UITeamBuilder : GameBehaviour
 
     [Space] [Header("Filters")] 
     public UIFilterButton[] bFilterEvidences;
+
+    [Header("Sounds")]
+    public SoundParameters selectSpmzSound;
+    public SoundParameters addToTeamSound;
     
     private UISpirimonzPanelSelector _currentSelected;
     private Player _player;
@@ -75,10 +81,35 @@ public class UITeamBuilder : GameBehaviour
 
     private void InitializeSelectors()
     {
-        foreach (UISpirimonzPanelSelector spmzSelector in spirimonzSelectorPanel.GetComponentsInChildren<UISpirimonzPanelSelector>())
+        if (spirimonzPanelSelectors == null)
+            spirimonzPanelSelectors = new List<UISpirimonzPanelSelector>();
+        spirimonzPanelSelectors.Clear();
+
+        if (insertEmptySelector && emptySelectorPrefab != null && spirimonzSelectorPanel != null)
+        {
+            bool hasEmpty = false;
+            foreach (UISpirimonzPanelSelector existing in spirimonzSelectorPanel.GetComponentsInChildren<UISpirimonzPanelSelector>(true))
+            {
+                if (existing != null && existing.IsEmptySelector)
+                {
+                    hasEmpty = true;
+                    break;
+                }
+            }
+
+            if (!hasEmpty)
+            {
+                UISpirimonzPanelSelector instance = Instantiate(emptySelectorPrefab, spirimonzSelectorPanel);
+                instance.transform.SetAsFirstSibling();
+            }
+        }
+
+        foreach (UISpirimonzPanelSelector spmzSelector in spirimonzSelectorPanel.GetComponentsInChildren<UISpirimonzPanelSelector>(true))
         {
             spirimonzPanelSelectors.Add(spmzSelector);
             spmzSelector.Initialize(this, _player.inventoryManager);
+            if (spmzSelector.IsEmptySelector)
+                spmzSelector.transform.SetAsFirstSibling();
         }
         _isSelectorInitialized = true;
     }
@@ -88,9 +119,17 @@ public class UITeamBuilder : GameBehaviour
         SpirimonzSettings spmzSettings = infoSetter.GetLastSpirimonzSettings();
         if (spmzSettings == null)
         {
-            spmzSettings = _player.inventoryManager.spirimonzTeamSettings[0];
+            for (int i = 0; i < _player.inventoryManager.spirimonzTeamSettings.Count; i++)
+            {
+                if (_player.inventoryManager.spirimonzTeamSettings[i] != null)
+                {
+                    spmzSettings = _player.inventoryManager.spirimonzTeamSettings[i];
+                    break;
+                }
+            }
         }
-        secondaryTitleText.text = spmzSettings.spirimonzName;
+        if (spmzSettings != null)
+            secondaryTitleText.text = spmzSettings.spirimonzName;
     }
 
     private void OnEnable()
@@ -127,13 +166,24 @@ public class UITeamBuilder : GameBehaviour
             _currentSelected.Unselect();
         }
         
-        selectedSpirimonzInfoSetter.SetSpirimonz(spmzSelector.spirimonzSettings);
+        if (!spmzSelector.IsEmptySelector)
+            selectedSpirimonzInfoSetter.SetSpirimonz(spmzSelector.spirimonzSettings);
         selectionFooter.SetActive(true);
 
         _currentSelected = spmzSelector;
 
         int currentSpirimonzSelectedID = teamPanel.GetCurrentSelectionID();
-        bChooseSpirimonz.interactable = spmzSelector.spirimonzSettings != _player.inventoryManager.spirimonzTeamSettings[currentSpirimonzSelectedID];
+        if (spmzSelector.IsEmptySelector)
+        {
+            bChooseSpirimonz.interactable = CanRemoveSelectedSlot(currentSpirimonzSelectedID);
+        }
+        else
+        {
+            bChooseSpirimonz.interactable = spmzSelector.spirimonzSettings != _player.inventoryManager.spirimonzTeamSettings[currentSpirimonzSelectedID];
+        }
+
+        if (selectSpmzSound != null)
+            selectSpmzSound.PlaySound();
     }
 
     public void UnselectSpirimonzInPanel()
@@ -147,14 +197,36 @@ public class UITeamBuilder : GameBehaviour
         int forcedPosID = teamPanel.GetCurrentSelectionID();
 
         SpirimonzSettings currentSpirimonzAtThisPosition = _player.inventoryManager.spirimonzTeamSettings[forcedPosID];
+
+        if (_currentSelected.IsEmptySelector)
+        {
+            if (!CanRemoveSelectedSlot(forcedPosID))
+                return;
+
+            _player.inventoryManager.RemoveSpirimonzFromTeam(forcedPosID);
+            teamPanel.RefreshFromTeam();
+            if (currentSpirimonzAtThisPosition != null)
+            {
+                UISpirimonzPanelSelector oldSelector = GetSelectedSpirimonzPanelSelector(currentSpirimonzAtThisPosition);
+                if (oldSelector != null)
+                    oldSelector.Unselect();
+            }
+            UnselectSpirimonzInPanel();
+            return;
+        }
         
         _player.inventoryManager.AddSpirimonzToTeam(_currentSelected.spirimonzSettings, forcedPosID);
+
+        if (addToTeamSound != null)
+            addToTeamSound.PlaySound();
         
         teamPanel.spmzInfoSetter.SetSpirimonz(_currentSelected.spirimonzSettings);
         
         if (currentSpirimonzAtThisPosition != null)
         {
-            GetSelectedSpirimonzPanelSelector(currentSpirimonzAtThisPosition).Select();
+            UISpirimonzPanelSelector selector = GetSelectedSpirimonzPanelSelector(currentSpirimonzAtThisPosition);
+            if (selector != null)
+                selector.Select();
         }
     }
 
@@ -162,7 +234,7 @@ public class UITeamBuilder : GameBehaviour
     {
         foreach (UISpirimonzPanelSelector spmzSelector in spirimonzPanelSelectors)
         {
-            if (spmzSelector.spirimonzSettings == spmzSettings)
+            if (!spmzSelector.IsEmptySelector && spmzSelector.spirimonzSettings == spmzSettings)
             {
                 return spmzSelector;
             }
@@ -177,6 +249,12 @@ public class UITeamBuilder : GameBehaviour
 
         foreach (UISpirimonzPanelSelector spmzSelector in spirimonzPanelSelectors)
         {
+            if (spmzSelector.IsEmptySelector)
+            {
+                spmzSelector.gameObject.SetActive(true);
+                continue;
+            }
+
             if (_gameManager.IsSpirimonzCaptured(spmzSelector.spirimonzSettings.spirimonzID) == false)
             {
                 spmzSelector.gameObject.SetActive(false);
@@ -204,4 +282,33 @@ public class UITeamBuilder : GameBehaviour
             }
         }
     }
+
+    private bool CanRemoveSelectedSlot(int slotIndex)
+    {
+        if (_player == null || _player.inventoryManager == null)
+            return false;
+
+        int count = 0;
+        foreach (SpirimonzSettings s in _player.inventoryManager.spirimonzTeamSettings)
+        {
+            if (s != null)
+                count++;
+        }
+
+        if (count <= 1)
+            return false;
+
+        if (slotIndex < 0 || slotIndex >= _player.inventoryManager.spirimonzTeamSettings.Count)
+            return false;
+
+        return _player.inventoryManager.spirimonzTeamSettings[slotIndex] != null;
+    }
+
+#if UNITY_EDITOR
+    private void OnValidate()
+    {
+        UISoundDefaults.AssignIfNull(ref selectSpmzSound);
+        UISoundDefaults.AssignIfNull(ref addToTeamSound);
+    }
+#endif
 }

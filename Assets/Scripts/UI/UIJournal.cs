@@ -28,6 +28,10 @@ public class UIJournal : GameBehaviour
     public float trainingCtaScale = 1.08f;
     public float trainingCtaDuration = 0.25f;
     public Ease trainingCtaEase = Ease.OutBack;
+
+    [Header("Sounds")]
+    public SoundParameters selectGhostTypeSound;
+    public SoundParameters captureSound;
     
     private int _selectedSlotsCount;
     private Tweener _captureCtaTween;
@@ -35,9 +39,12 @@ public class UIJournal : GameBehaviour
     private UIGhostTypeSlot _ghostCtaSlot;
     private Vector3 _ghostCtaBaseScale;
     private Vector3 _captureCtaBaseScale;
+    private bool _captureBaseCached;
 
     private void Awake()
     {
+        CacheCaptureBaseScale();
+
         foreach (UIGhostTypeSlot slot in ghostTypeSlots)
         {
             slot.OnChangeForcedState.AddListener(SetCaptureButtonState);
@@ -110,6 +117,8 @@ public class UIJournal : GameBehaviour
     private void StartCapture()
     {
         gameObject.SetActive(false);
+        if (captureSound != null)
+            captureSound.PlaySound();
         GhostInvestigator.Instance.TryToCapture(GetSelectedGhosts());
         UIGame.Instance.tablet.TurnOffTablet();
     }
@@ -161,6 +170,9 @@ public class UIJournal : GameBehaviour
         }
 
         SetCaptureButtonState();
+
+        if (selectGhostTypeSound != null)
+            selectGhostTypeSound.PlaySound();
     }
 
     public void ClearForcedSelections()
@@ -315,7 +327,7 @@ public class UIJournal : GameBehaviour
         if (_captureCtaTween != null && _captureCtaTween.IsActive())
             return;
 
-        _captureCtaBaseScale = captureButton.transform.localScale;
+        CacheCaptureBaseScale();
         _captureCtaTween = captureButton.transform
             .DOScale(_captureCtaBaseScale * trainingCtaScale, trainingCtaDuration)
             .SetEase(trainingCtaEase)
@@ -330,6 +342,7 @@ public class UIJournal : GameBehaviour
             _captureCtaTween = null;
         }
 
+        CacheCaptureBaseScale();
         if (captureButton != null)
             captureButton.transform.localScale = _captureCtaBaseScale;
     }
@@ -339,4 +352,31 @@ public class UIJournal : GameBehaviour
         StopGhostCta();
         StopCaptureCta();
     }
+
+    private void CacheCaptureBaseScale()
+    {
+        if (_captureBaseCached)
+            return;
+
+        if (captureButton != null)
+        {
+            _captureCtaBaseScale = captureButton.transform.localScale;
+            if (_captureCtaBaseScale == Vector3.zero)
+                _captureCtaBaseScale = Vector3.one;
+        }
+        else
+        {
+            _captureCtaBaseScale = Vector3.one;
+        }
+
+        _captureBaseCached = true;
+    }
+
+#if UNITY_EDITOR
+    private void OnValidate()
+    {
+        UISoundDefaults.AssignIfNull(ref selectGhostTypeSound);
+        UISoundDefaults.AssignIfNull(ref captureSound);
+    }
+#endif
 }

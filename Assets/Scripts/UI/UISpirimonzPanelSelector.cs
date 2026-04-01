@@ -7,6 +7,7 @@ using UnityEngine.UI;
 public class UISpirimonzPanelSelector : GameBehaviour
 {
     public SpirimonzSettings spirimonzSettings;
+    public bool isEmptySelector;
     
     [Space]
     
@@ -19,6 +20,8 @@ public class UISpirimonzPanelSelector : GameBehaviour
     private bool _isSelected;
 
     private InventoryManager _inventoryManager;
+
+    public bool IsEmptySelector => isEmptySelector || spirimonzSettings == null;
     private void Awake()
     {
         bSelect.onClick.AddListener(SwitchSelectionState);
@@ -34,7 +37,15 @@ public class UISpirimonzPanelSelector : GameBehaviour
 
     private void UpdateIsInTeamIcon()
     {
-        inTeam.SetActive(_inventoryManager.IsSpirimonzInTeam(spirimonzSettings));
+        if (IsEmptySelector)
+        {
+            if (inTeam != null)
+                inTeam.SetActive(false);
+            return;
+        }
+
+        if (inTeam != null)
+            inTeam.SetActive(_inventoryManager.IsSpirimonzInTeam(spirimonzSettings));
     }
 
     private void SwitchSelectionState()
@@ -65,7 +76,18 @@ public class UISpirimonzPanelSelector : GameBehaviour
 
     public void OnValidate()
     {
-        if (spmzImg != null && spirimonzSettings != null)
+        if (spmzImg == null)
+            return;
+
+        if (spirimonzSettings != null)
+        {
             spmzImg.sprite = spirimonzSettings.img;
+            spmzImg.enabled = true;
+        }
+        else
+        {
+            spmzImg.sprite = null;
+            spmzImg.enabled = false;
+        }
     }
 }
