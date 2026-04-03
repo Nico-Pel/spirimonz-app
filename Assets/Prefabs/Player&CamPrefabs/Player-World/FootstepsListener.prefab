@@ -45,6 +45,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   range: 15
+  footstepVolume: 0.045
   footstepSounds:
   - groundTag: Untagged
     stepClips:
@@ -109,7 +110,14 @@ MonoBehaviour:
     volumeMultiplier: 1
     pitchMin: 0.95
     pitchMax: 1.05
-  footstepVolume: 0.045
+  - groundTag: Carpet
+    stepClips:
+    - {fileID: 8300000, guid: 4b0c6eca8647a41fc81e96e2111c61bd, type: 3}
+    - {fileID: 8300000, guid: 1fa8bf5efaba741e091943d61048faa2, type: 3}
+    - {fileID: 8300000, guid: 1fcde607bc2764066b5acbee976bc384, type: 3}
+    volumeMultiplier: 2
+    pitchMin: 0.95
+    pitchMax: 1.05
   ignoreAudioOcclusion: 1
   groundCheckDistance: 1.2
   groundLayers:

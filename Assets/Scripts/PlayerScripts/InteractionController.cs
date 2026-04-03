@@ -330,11 +330,7 @@ public class InteractionController : GameBehaviour
     {
         if (releaseDoor && _grabbedDoor != null)
         {
-            Rigidbody rb = _grabbedDoor.GetComponent<Rigidbody>();
-            _grabbedDoor.Release();
-            if (rb != null)
-                rb.useGravity = true;
-
+            _grabbedDoor.EndGrab();
             _grabbedDoor = null;
         }
 
@@ -432,10 +428,7 @@ public class InteractionController : GameBehaviour
         {
             if (_grabbedDoor != null)
             {
-                Rigidbody rb = _grabbedDoor.GetComponent<Rigidbody>();
-                _grabbedDoor.Release();
-                if (rb != null)
-                    rb.useGravity = true;
+                _grabbedDoor.EndGrab();
                 _grabbedDoor = null;
             }
             _targetedDoor = null;
@@ -452,7 +445,7 @@ public class InteractionController : GameBehaviour
             return;
         }
 
-        if (primaryUp)
+        if (primaryUp && _grabbedDoor == null)
         {
             if (_targetedDoor != null)
             {
@@ -475,19 +468,11 @@ public class InteractionController : GameBehaviour
                 else if (!primaryHeld)
                     _targetedDoor = null;
 
-                if (primaryDown && _targetedDoor != null)
+                if (primaryDown && _targetedDoor != null && _targetedDoor.CanBeGrabbed())
                 {
-                    Rigidbody rb = _targetedDoor.rb;
-                    HingeJoint hinge = _targetedDoor.hingeJoint;
-
-                    if (rb != null && hinge != null)
-                    {
-                        _grabbedDoor = _targetedDoor;
-                        _targetedDoor.Grab();
-                        _grabDistance = hit.distance;
-                        rb.useGravity = false;
-                        rb.freezeRotation = false;
-                    }
+                    _grabbedDoor = _targetedDoor;
+                    _grabDistance = hit.distance;
+                    _grabbedDoor.StartGrab();
                 }
             }
             else if (!primaryHeld && _targetedDoor != null)
@@ -502,19 +487,15 @@ public class InteractionController : GameBehaviour
 
         if (_grabbedDoor != null)
         {
-            Rigidbody rb = _grabbedDoor.GetComponent<Rigidbody>();
             Ray dragRay = (MobileInput.Enabled && MobileInput.HasPrimaryScreenPos)
                 ? _cam.ScreenPointToRay(MobileInput.PrimaryScreenPos)
                 : new Ray(_cam.transform.position, _cam.transform.forward);
             Vector3 targetPos = dragRay.origin + dragRay.direction * _grabDistance;
-            rb.velocity = (targetPos - rb.position) * 30f;
+            _grabbedDoor.ApplyGrabMovement(targetPos, 30f);
 
             if (primaryUp)
             {
-                if(_targetedDoor != null)
-                    _targetedDoor.Release();
-                
-                rb.useGravity = true;
+                _grabbedDoor.EndGrab();
                 _grabbedDoor = null;
                 _targetedDoor = null;
             }

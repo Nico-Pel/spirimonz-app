@@ -97,6 +97,7 @@ MonoBehaviour:
   addTorqueOnThrow: 1
   throwTorqueRange: {x: 0.2, y: 0.6}
   ignorePlayerCollisionDuration: 1
+  secondaryUseCooldown: 1
   autoSleepWhenIdle: 1
   autoSleepStartDelay: 1
   autoSleepCheckInterval: 0.5
@@ -122,6 +123,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   playerOnEnabled: 0
+  usePlayerPos: 0
+  isUISound: 0
   possibleClips:
   - {fileID: 8300000, guid: 07b22f24460e24874b92c369d4ab0577, type: 3}
   - {fileID: 8300000, guid: 29f8e4bfc3a9a4c818d65790b284b577, type: 3}
@@ -136,6 +139,7 @@ MonoBehaviour:
   loop: 0
   sourceParent: {fileID: 0}
   ignoreAudioOcclusion: 0
+  useDebugDeCon: 0
 --- !u!54 &7055402289030159528
 Rigidbody:
   m_ObjectHideFlags: 0

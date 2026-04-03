@@ -1412,6 +1412,7 @@ MonoBehaviour:
   showTrainingObjective: 1
   trainingObjectiveEnglish: Find the 3 evidences and capture the Spirimonz!
   trainingObjectiveFrench: Trouve les 3 preuves et capture le spirimonz !
+  trainingReloadFadeDuration: 1
   tutorialOnlyObjects:
   - {fileID: 3624520328303928700}
   - {fileID: 1242559907}
@@ -1893,6 +1894,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   playerOnEnabled: 0
+  usePlayerPos: 0
+  isUISound: 0
   possibleClips:
   - {fileID: 8300000, guid: c00e35c8cf55d4bd692ce58ad358d68e, type: 3}
   volume: 1
@@ -7039,6 +7042,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 31b2e9e9d2d964c8ab0504dd67e78010, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  roomType: 4
   currentTemperature: 20
   _smoothSpeed: 1
   minNormalTemperature: 1
@@ -12168,6 +12172,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   playerOnEnabled: 0
+  usePlayerPos: 0
+  isUISound: 0
   possibleClips:
   - {fileID: 8300000, guid: 2fe6e68f81ecd461cbfbdd6a013c51b6, type: 3}
   volume: 1
@@ -17283,6 +17289,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 31b2e9e9d2d964c8ab0504dd67e78010, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  roomType: 3
   currentTemperature: 20
   _smoothSpeed: 1
   minNormalTemperature: 1
@@ -20661,7 +20668,7 @@ GameObject:
   - component: {fileID: 1436026165}
   - component: {fileID: 1436026164}
   m_Layer: 2
-  m_Name: DinnerRoom
+  m_Name: DinningRoom
   m_TagString: Untagged
   m_Icon: {fileID: 2974397684917235467, guid: 0000000000000000d000000000000000, type: 0}
   m_NavMeshLayer: 0
@@ -20700,6 +20707,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 31b2e9e9d2d964c8ab0504dd67e78010, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  roomType: 5
   currentTemperature: 20
   _smoothSpeed: 1
   minNormalTemperature: 1
@@ -29631,6 +29639,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 31b2e9e9d2d964c8ab0504dd67e78010, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  roomType: 7
   currentTemperature: 20
   _smoothSpeed: 1
   minNormalTemperature: 1
@@ -30406,6 +30415,7 @@ MonoBehaviour:
   temperatureMaxRoomVariation: 3.5
   temperatureMaxHouseVariation: 3.5
   currentGhost: {fileID: 0}
+  houseStartTime: 0
   currentPlayer: {fileID: 1150835896}
   wayPoints: []
   onNewPrintSourceAddedToGame:

@@ -14,6 +14,7 @@ public class EyesBlinker : GameBehaviour
 
     private Tween _blinkTween;
     private Coroutine _blinkRoutine;
+    private Vector3 _initialEyeScale;
 
     private void Awake()
     {
@@ -23,10 +24,15 @@ public class EyesBlinker : GameBehaviour
             enabled = false;
             return;
         }
+
+        _initialEyeScale = eyes.localScale;
     }
 
     private void OnEnable()
     {
+        if (eyes != null)
+            eyes.localScale = _initialEyeScale;
+
         _blinkRoutine = StartCoroutine(BlinkLoop());
     }
 
@@ -36,6 +42,11 @@ public class EyesBlinker : GameBehaviour
             StopCoroutine(_blinkRoutine);
 
         _blinkTween?.Kill();
+        _blinkTween = null;
+        _blinkRoutine = null;
+
+        if (eyes != null)
+            eyes.localScale = _initialEyeScale;
     }
 
     private IEnumerator BlinkLoop()

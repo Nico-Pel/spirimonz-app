@@ -39,6 +39,7 @@ public class InventoryManager : GameBehaviour
     private Player _player;
     private GamePlayer _gamePlayer;
     private GameManager _gameManager;
+    private int _teamChangeDepth;
 
     public UnityEvent onTeamChange;
 
@@ -94,12 +95,17 @@ public class InventoryManager : GameBehaviour
 
         InitializeTeam();
         UseWatchObject();
-        onTeamChange?.Invoke();
+        NotifyTeamChange();
     }
 
     /// <summary>Remplit spirimonzTeamSettings à partir du gameData du GameManager</summary>
     public void LoadTeamFromSave()
     {
+        if (_gameManager == null)
+            _gameManager = GameManager.Instance;
+        if (_gameManager == null)
+            return;
+
         spirimonzTeamSettings.Clear();
         for (int i = 0; i < 5; i++) spirimonzTeamSettings.Add(null);
 
@@ -121,6 +127,10 @@ public class InventoryManager : GameBehaviour
     {
         if (_gameManager == null) return false;
 
+        bool changed = false;
+        BeginTeamChange();
+        try
+        {
         // Cherche si le Spirimonz est déjà dans la team
         int existingIndex = spirimonzTeamSettings.FindIndex(s => s != null && s.spirimonzID == spirimonz.spirimonzID);
 
@@ -140,6 +150,7 @@ public class InventoryManager : GameBehaviour
                 {
                     // Le nouveau slot est "plus haut" (index plus petit) → on retire l'ancien Spirimonz
                     RemoveSpirimonzFromTeam(existingIndex);
+                    changed = true;
                 }
                 else
                 {
@@ -155,6 +166,7 @@ public class InventoryManager : GameBehaviour
             if (existingIndex != -1 && existingIndex != position)
             {
                 RemoveSpirimonzFromTeam(existingIndex);
+                changed = true;
             }
         }
 
@@ -164,18 +176,25 @@ public class InventoryManager : GameBehaviour
             if (existingIndex != -1)
             {
                 AddSpirimonzToTeam(spirimonzTeamSettings[position], existingIndex);
+                changed = true;
             }
             RemoveSpirimonzFromTeam(position);
+            changed = true;
         }
 
         // Ajoute le Spirimonz
         spirimonzTeamSettings[position] = spirimonz;
+        changed = true;
 
         // Met à jour le GameManager / save
         _gameManager.SetSpirimonzInTeam(spirimonz.spirimonzID, position, true);
 
-        onTeamChange?.Invoke();
         return true;
+        }
+        finally
+        {
+            EndTeamChange(changed);
+        }
     }
 
 
@@ -191,7 +210,7 @@ public class InventoryManager : GameBehaviour
 
         // Mettre à jour le GameManager (et la save)
         _gameManager.SetSpirimonzInTeam(settings.spirimonzID, position, false);
-        onTeamChange?.Invoke();
+        NotifyTeamChange();
     }
 
     /// <summary>Instancie les Spirimonz dans les mains du joueur (uniquement quand on est dans une maison)</summary>
@@ -211,6 +230,25 @@ public class InventoryManager : GameBehaviour
             newSpirimonz.transform.localEulerAngles = Vector3.zero;
             newSpirimonz.ChangeLayer(fpsMask, 0);
         }
+    }
+
+    private void BeginTeamChange()
+    {
+        _teamChangeDepth++;
+    }
+
+    private void EndTeamChange(bool fireEvent)
+    {
+        if (_teamChangeDepth > 0)
+            _teamChangeDepth--;
+        if (fireEvent && _teamChangeDepth == 0)
+            onTeamChange?.Invoke();
+    }
+
+    private void NotifyTeamChange()
+    {
+        if (_teamChangeDepth == 0)
+            onTeamChange?.Invoke();
     }
     
     void Update()

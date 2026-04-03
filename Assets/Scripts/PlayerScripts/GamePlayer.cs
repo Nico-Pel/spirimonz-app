@@ -62,9 +62,74 @@ public class GamePlayer : Player
             spirimonzInHands.SetCurrentRoom(room);
     }
 
+    private Coroutine _slashSpeedRoutine;
+    private static readonly int SlashTrigger = Animator.StringToHash("Slash");
+
     public void UseSlashAnimation()
     {
-        handAnimator.SetTrigger("Slash");
+        UseSlashAnimation(1f);
+    }
+
+    public void UseSlashAnimation(float speed)
+    {
+        if (handAnimator == null)
+            return;
+
+        if (speed <= 0f)
+            speed = 1f;
+
+        handAnimator.SetTrigger(SlashTrigger);
+
+        if (_slashSpeedRoutine != null)
+            StopCoroutine(_slashSpeedRoutine);
+
+        _slashSpeedRoutine = StartCoroutine(SlashSpeedRoutine(speed));
+    }
+
+    private IEnumerator SlashSpeedRoutine(float speed)
+    {
+        float previousSpeed = handAnimator.speed;
+        handAnimator.speed = speed;
+
+        const float enterTimeout = 0.25f;
+        float enterTimer = 0f;
+        bool inSlash = false;
+
+        while (enterTimer < enterTimeout)
+        {
+            AnimatorStateInfo state = handAnimator.GetCurrentAnimatorStateInfo(0);
+            if (state.IsName("Slash") || state.IsTag("Slash"))
+            {
+                inSlash = true;
+                break;
+            }
+
+            enterTimer += Time.deltaTime;
+            yield return null;
+        }
+
+        if (inSlash)
+        {
+            while (true)
+            {
+                AnimatorStateInfo state = handAnimator.GetCurrentAnimatorStateInfo(0);
+                if (!state.IsName("Slash") && !state.IsTag("Slash"))
+                    break;
+
+                if (state.normalizedTime >= 1f)
+                    break;
+
+                yield return null;
+            }
+        }
+        else
+        {
+            float fallbackDuration = 0.6f / Mathf.Max(speed, 0.01f);
+            yield return new WaitForSeconds(fallbackDuration);
+        }
+
+        handAnimator.speed = previousSpeed;
+        _slashSpeedRoutine = null;
     }
     
     public void AlertTheHuntingGhost()

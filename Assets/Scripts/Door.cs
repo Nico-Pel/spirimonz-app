@@ -46,47 +46,52 @@ public class Door : GameBehaviour, IInteractable
     [ReadOnly] public float closeAngle;
     [ReadOnly] public float openFullAngle;
 
-    private float _lastAngle;
-    private float _almostCloseAngle;
-    private bool _askedForGhostSlam;
-    private bool _ghostJustInteracted;
-    private bool _isGrabbed;
+    protected float _lastAngle;
+    protected float _almostCloseAngle;
+    protected bool _askedForGhostSlam;
+    protected bool _ghostJustInteracted;
+    protected bool _isGrabbed;
     private bool _audioOcclusionInitialized;
     private bool _audioOcclusionState;
     private readonly List<Collider> _spirimonzColliders = new List<Collider>();
     private Collider[] _doorColliders;
     private bool _wasConsideredOpen;
     private float _lastOpenSoundTime = -999f;
-    private float _lastSpirimonzOpenRequestTime = -999f;
+    protected float _lastSpirimonzOpenRequestTime = -999f;
 
     public UnityEvent<Door> onGhostInteracted;
 
     //private float _lockTimeAfterGhostInteraction = 1.5f;
-    private Vector3 _basePosition;
-    private Quaternion _baseRotation;
+    protected Vector3 _basePosition;
+    protected Quaternion _baseRotation;
 
-    private void Start()
+    protected virtual bool UsesHinge => true;
+
+    protected virtual void Start()
     {
         _basePosition = transform.position;
         _baseRotation = transform.rotation;
         _doorColliders = GetComponentsInChildren<Collider>(true);
         
-        if (hingeJoint == null)
+        if (UsesHinge && hingeJoint == null)
         {
             Debug.LogError($"{name} : Missing HingeJoint");
             return;
         }
+        
+        if (UsesHinge && hingeJoint != null)
+        {
+            closeAngle = hingeJoint.angle;
 
-        closeAngle = hingeJoint.angle;
+            JointLimits limits = hingeJoint.limits;
+            float distToMin = Mathf.Abs(limits.min - closeAngle);
+            float distToMax = Mathf.Abs(limits.max - closeAngle);
 
-        JointLimits limits = hingeJoint.limits;
-        float distToMin = Mathf.Abs(limits.min - closeAngle);
-        float distToMax = Mathf.Abs(limits.max - closeAngle);
+            opensTowardNegative = distToMin > distToMax;
+            openFullAngle = opensTowardNegative ? limits.min : limits.max;
 
-        opensTowardNegative = distToMin > distToMax;
-        openFullAngle = opensTowardNegative ? limits.min : limits.max;
-
-        _almostCloseAngle = Mathf.Abs(closeAngle) + closeAnglePermissiveness;
+            _almostCloseAngle = Mathf.Abs(closeAngle) + closeAnglePermissiveness;
+        }
         
         SetCursor(cursorHand, cursorHandSize);
 
@@ -96,7 +101,7 @@ public class Door : GameBehaviour, IInteractable
 
     #region Grab / Release
 
-    public void Grab()
+    public virtual void Grab()
     {
         _lastAngle = hingeJoint.angle;
         _isGrabbed = true;
@@ -106,7 +111,7 @@ public class Door : GameBehaviour, IInteractable
         SetCursor(cursorGrab, cursorGrabSize);
     }
 
-    public void Release()
+    public virtual void Release()
     {
         _isGrabbed = false;
         CancelInvoke(nameof(CheckAngle));
@@ -119,11 +124,41 @@ public class Door : GameBehaviour, IInteractable
         SetCursor(cursorHand, cursorHandSize);
     }
 
+    public virtual bool CanBeGrabbed()
+    {
+        return rb != null && hingeJoint != null;
+    }
+
+    public virtual void StartGrab()
+    {
+        Grab();
+        if (rb != null)
+        {
+            rb.useGravity = false;
+            rb.freezeRotation = false;
+        }
+    }
+
+    public virtual void EndGrab()
+    {
+        Release();
+        if (rb != null)
+            rb.useGravity = true;
+    }
+
+    public virtual void ApplyGrabMovement(Vector3 targetPosition, float velocityMultiplier)
+    {
+        if (rb == null)
+            return;
+
+        rb.velocity = (targetPosition - rb.position) * velocityMultiplier;
+    }
+
     #endregion
 
     #region Door Actions
 
-    public void GhostDoorInteraction(float openPercentage, float moveSpeed, bool slam = false, bool openedBySpirimonz = false)
+    public virtual void GhostDoorInteraction(float openPercentage, float moveSpeed, bool slam = false, bool openedBySpirimonz = false)
     {
         rb.freezeRotation = false;
 
@@ -162,7 +197,7 @@ public class Door : GameBehaviour, IInteractable
             onGhostInteracted?.Invoke(this);
     }
 
-    public void CloseDoor(float closeSpeed, bool forcedSlam = false, bool ignoreAudioOcclusions = false)
+    public virtual void CloseDoor(float closeSpeed, bool forcedSlam = false, bool ignoreAudioOcclusions = false)
     {
         isOpen = false;
         EnableAudioOcclusions(true);
@@ -205,7 +240,7 @@ public class Door : GameBehaviour, IInteractable
         hingeJoint.useMotor = true;
     }
 
-    private void StopDoor()
+    protected virtual void StopDoor()
     {
         hingeJoint.useMotor = false;
         rb.freezeRotation = true;
@@ -215,12 +250,25 @@ public class Door : GameBehaviour, IInteractable
 
     #region Update / Detection
 
-    private void Update()
+    protected virtual void Update()
     {
         RefreshAudioOcclusionState();
         TrackOpenSound();
 
         if (_isGrabbed)
+            return;
+
+        UpdateDoor();
+    }
+
+    protected virtual void FixedUpdate()
+    {
+        FixedUpdateDoor();
+    }
+
+    protected virtual void UpdateDoor()
+    {
+        if (hingeJoint == null)
             return;
 
         if (isOpen && !_ghostJustInteracted && Mathf.Abs(hingeJoint.angle) < _almostCloseAngle)
@@ -229,7 +277,7 @@ public class Door : GameBehaviour, IInteractable
             StopDoor();
     }
 
-    private void FixedUpdate()
+    protected virtual void FixedUpdateDoor()
     {
         transform.position = _basePosition;
         RefreshSpirimonzCollisionIgnores();
@@ -242,7 +290,7 @@ public class Door : GameBehaviour, IInteractable
         }
     }
 
-    private void CheckAngle()
+    protected virtual void CheckAngle()
     {
         float currentAngle = hingeJoint.angle;
 
@@ -260,11 +308,11 @@ public class Door : GameBehaviour, IInteractable
         _lastAngle = currentAngle;
     }
 
-    private bool IsSlamDetected() => IsInvoking(nameof(ResetSlam)) == false;
+    protected bool IsSlamDetected() => IsInvoking(nameof(ResetSlam)) == false;
 
-    private void ResetSlam() { }
+    protected void ResetSlam() { }
 
-    private void ResetGhostInteraction()
+    protected void ResetGhostInteraction()
     {
         _ghostJustInteracted = false;
     }
@@ -278,7 +326,7 @@ public class Door : GameBehaviour, IInteractable
         return Mathf.Lerp(closeAngle, openFullAngle, Mathf.Clamp01(openPercentage));
     }
 
-    public float GetAngleFromClose()
+    public virtual float GetAngleFromClose()
     {
         if (hingeJoint == null)
             return 0f;
@@ -316,12 +364,12 @@ public class Door : GameBehaviour, IInteractable
             SetIgnoreForSpirimonz(spirimonzCollider, true);
     }
 
-    private void PlaySound(AudioClip clip, bool ignoreOcclusion)
+    protected void PlaySound(AudioClip clip, bool ignoreOcclusion)
     {
         PlaySound(clip, ignoreOcclusion, volume, 1f);
     }
 
-    private void PlaySound(AudioClip clip, bool ignoreOcclusion, float volumeToUse, float pitchToUse)
+    protected void PlaySound(AudioClip clip, bool ignoreOcclusion, float volumeToUse, float pitchToUse)
     {
         if (clip != null && SoundManager.Instance != null)
             SoundManager.Instance.PlaySound(clip, transform.position, volume: volumeToUse, pitch: pitchToUse, ignoreAudioOcclusion:ignoreOcclusion);
@@ -365,6 +413,14 @@ public class Door : GameBehaviour, IInteractable
 
     public bool IsGrabbed() => _isGrabbed;
 
+    public virtual float GetOpenVelocity()
+    {
+        if (hingeJoint == null)
+            return 0f;
+
+        return hingeJoint.velocity;
+    }
+
     public PrintSource GetRandomPrintSource()
     {
         if (printSources == null || printSources.Length == 0)
@@ -403,7 +459,7 @@ public class Door : GameBehaviour, IInteractable
         CursorSize = size;
     }
     
-    public float GetOpenRatio()
+    public virtual float GetOpenRatio()
     {
         float angle = Mathf.Abs(hingeJoint.angle);
         return Mathf.InverseLerp(
@@ -413,7 +469,7 @@ public class Door : GameBehaviour, IInteractable
         );
     }
 
-    private void EnableAudioOcclusions(bool enable)
+    protected void EnableAudioOcclusions(bool enable)
     {
         if (!enable)
         {
@@ -458,16 +514,21 @@ public class Door : GameBehaviour, IInteractable
         return false;
     }
 
+    protected virtual bool IsDoorConsideredOpen()
+    {
+        if (hingeJoint == null)
+            return isOpen;
+
+        float angleFromClose = Mathf.Abs(hingeJoint.angle - closeAngle);
+        return angleFromClose > closeAnglePermissiveness;
+    }
+
     private static bool IsDoorConsideredOpen(Door door)
     {
         if (door == null)
             return false;
-
-        if (door.hingeJoint == null)
-            return door.isOpen;
-
-        float angleFromClose = Mathf.Abs(door.hingeJoint.angle - door.closeAngle);
-        return angleFromClose > door.closeAnglePermissiveness;
+        
+        return door.IsDoorConsideredOpen();
     }
 
     private void ApplyAudioOcclusion(bool enable)
@@ -533,7 +594,7 @@ public class Door : GameBehaviour, IInteractable
         }
     }
 
-    private void RefreshSpirimonzCollisionIgnores()
+    protected void RefreshSpirimonzCollisionIgnores()
     {
         if (_spirimonzColliders.Count == 0 || _doorColliders == null || _doorColliders.Length == 0)
             return;

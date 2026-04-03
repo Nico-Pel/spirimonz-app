@@ -18,13 +18,20 @@ public class UIFilterButton : GameBehaviour
     public int startState = 0;
     public bool resetOnEnable = true;
 
+    [Header("Sounds")]
+    public SoundParameters changeSound;
+
     public UnityEvent onStateChanged;
     private int _currentState;
 
     private void Start()
     {
         _currentState = startState;
-        bFilter.onClick.AddListener(NextState);
+        if (bFilter != null)
+            bFilter.onClick.AddListener(NextState);
+
+        if (changeSound != null)
+            UISoundDefaults.MarkAsUi(changeSound);
     }
 
     private void OnEnable()
@@ -42,6 +49,7 @@ public class UIFilterButton : GameBehaviour
             _currentState = 0;
         
         ChangeFilterState(_currentState);
+        PlayChangeSound();
     }
 
     private void ChangeFilterState(int state)
@@ -54,4 +62,10 @@ public class UIFilterButton : GameBehaviour
     }
 
     public int GetState() => _currentState;
+
+    private void PlayChangeSound()
+    {
+        if (changeSound != null)
+            changeSound.PlaySound();
+    }
 }

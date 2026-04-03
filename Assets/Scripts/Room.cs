@@ -6,6 +6,21 @@ using UnityEngine.Serialization;
 
 public class Room : MonoBehaviour
 {
+    public enum RoomType
+    {
+        none,
+        bathroom,
+        toilet,
+        kitchen,
+        mainRoom,
+        dinningRoom,
+        dinningMainRoom,
+        bedRoom,
+        babyBedRoom,
+    }
+    
+    public RoomType roomType;
+    
     [Header("Temperature Settings")]
     [SerializeField] private float currentTemperature = 20f;
     private float _temperatureTarget = 20f;

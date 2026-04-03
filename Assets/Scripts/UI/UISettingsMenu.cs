@@ -23,10 +23,12 @@ public class UISettingsMenu : GameBehaviour
     public RectTransform panelRoot;
     public Slider ambientSlider;
     public Slider sfxSlider;
+    public Slider uiSlider;
     public Slider tpsSensitivitySlider;
     public Slider fpsSensitivitySlider;
     public Text ambientValue;
     public Text sfxValue;
+    public Text uiValue;
     public Text tpsValue;
     public Text fpsValue;
     public Dropdown fpsLimitDropdown;
@@ -49,8 +51,15 @@ public class UISettingsMenu : GameBehaviour
     public Text deleteConfirmText;
     public Button deleteConfirmYes;
     public Button deleteConfirmNo;
+    [TextArea] public string deleteButtonEnglish = "Delete Save";
+    [TextArea] public string deleteButtonFrench = "Supprimer la sauvegarde";
     [TextArea] public string deleteConfirmEnglish = "Are you sure you want to delete this save?";
     [TextArea] public string deleteConfirmFrench = "Voulez-vous vraiment supprimer cette sauvegarde ?";
+
+    [Header("Title Screen")]
+    public Button returnToTitleButton;
+    [TextArea] public string returnToTitleEnglish = "Back to Title Screen";
+    [TextArea] public string returnToTitleFrench = "Retour à l'écran titre";
 
     private Button _resetButton;
     private bool _built;
@@ -59,6 +68,8 @@ public class UISettingsMenu : GameBehaviour
     private InputManager _input;
     private SoundManager _sound;
     private UIManager _uiManager;
+    private Text _deleteSaveLabel;
+    private Text _returnToTitleLabel;
 
     private bool _isOpen;
     private bool _waitingForKey;
@@ -122,11 +133,20 @@ public class UISettingsMenu : GameBehaviour
 #endif
 
         if (deleteSaveButton != null)
+        {
+            deleteSaveButton.onClick.RemoveAllListeners();
             deleteSaveButton.onClick.AddListener(RequestDeleteSave);
+        }
         if (deleteConfirmYes != null)
+        {
+            deleteConfirmYes.onClick.RemoveAllListeners();
             deleteConfirmYes.onClick.AddListener(ConfirmDeleteSave);
+        }
         if (deleteConfirmNo != null)
+        {
+            deleteConfirmNo.onClick.RemoveAllListeners();
             deleteConfirmNo.onClick.AddListener(CancelDeleteSave);
+        }
 
         if (deleteConfirmPanel != null)
             deleteConfirmPanel.SetActive(false);
@@ -206,6 +226,7 @@ public class UISettingsMenu : GameBehaviour
         {
             SetSliderValue(ambientSlider, MultiplierToVolumeSlider(_sound.ambientVolumeMultiplier));
             SetSliderValue(sfxSlider, MultiplierToVolumeSlider(_sound.sfxVolumeMultiplier));
+            SetSliderValue(uiSlider, MultiplierToVolumeSlider(_sound.uiVolumeMultiplier));
         }
 
         if (_input != null)
@@ -234,13 +255,29 @@ public class UISettingsMenu : GameBehaviour
 
     private void UpdateDeleteConfirmText()
     {
-        if (deleteConfirmText == null)
-            return;
+        if (deleteConfirmText != null)
+        {
+            string text = LanguageManager.CurrentLanguage == Language.French && !string.IsNullOrWhiteSpace(deleteConfirmFrench)
+                ? deleteConfirmFrench
+                : deleteConfirmEnglish;
+            deleteConfirmText.text = text;
+        }
 
-        string text = LanguageManager.CurrentLanguage == Language.French && !string.IsNullOrWhiteSpace(deleteConfirmFrench)
-            ? deleteConfirmFrench
-            : deleteConfirmEnglish;
-        deleteConfirmText.text = text;
+        if (_deleteSaveLabel != null)
+        {
+            string label = LanguageManager.CurrentLanguage == Language.French && !string.IsNullOrWhiteSpace(deleteButtonFrench)
+                ? deleteButtonFrench
+                : deleteButtonEnglish;
+            _deleteSaveLabel.text = label;
+        }
+
+        if (_returnToTitleLabel != null)
+        {
+            string label = LanguageManager.CurrentLanguage == Language.French && !string.IsNullOrWhiteSpace(returnToTitleFrench)
+                ? returnToTitleFrench
+                : returnToTitleEnglish;
+            _returnToTitleLabel.text = label;
+        }
     }
 
     private void RequestDeleteSave()
@@ -269,12 +306,124 @@ public class UISettingsMenu : GameBehaviour
         }
     }
 
+    private void ReturnToTitleScreen()
+    {
+        GameManager gm = GameManager.Instance;
+        if (gm == null || string.IsNullOrEmpty(gm.titleScreenSceneName))
+            return;
+
+        if (closeSound != null)
+            closeSound.PlaySound();
+
+        gm.LoadScene(gm.titleScreenSceneName);
+    }
+
+    private GameObject CreateDeleteConfirmPanel(Transform parent, Font font)
+    {
+        GameObject overlay = new GameObject("DeleteConfirmPanel", typeof(RectTransform), typeof(Image), typeof(CanvasGroup), typeof(LayoutElement));
+        overlay.transform.SetParent(parent, false);
+        RectTransform overlayRect = overlay.GetComponent<RectTransform>();
+        overlayRect.anchorMin = Vector2.zero;
+        overlayRect.anchorMax = Vector2.one;
+        overlayRect.offsetMin = Vector2.zero;
+        overlayRect.offsetMax = Vector2.zero;
+
+        Image overlayImage = overlay.GetComponent<Image>();
+        overlayImage.color = new Color(0f, 0f, 0f, 0.65f);
+
+        LayoutElement overlayLayout = overlay.GetComponent<LayoutElement>();
+        overlayLayout.ignoreLayout = true;
+
+        CanvasGroup overlayGroup = overlay.GetComponent<CanvasGroup>();
+        overlayGroup.blocksRaycasts = true;
+        overlayGroup.interactable = true;
+
+        GameObject panel = new GameObject("ConfirmBox", typeof(RectTransform), typeof(Image));
+        panel.transform.SetParent(overlay.transform, false);
+        RectTransform panelRect = panel.GetComponent<RectTransform>();
+        panelRect.anchorMin = new Vector2(0.2f, 0.3f);
+        panelRect.anchorMax = new Vector2(0.8f, 0.7f);
+        panelRect.offsetMin = Vector2.zero;
+        panelRect.offsetMax = Vector2.zero;
+
+        Image panelImage = panel.GetComponent<Image>();
+        panelImage.color = new Color(0.08f, 0.1f, 0.16f, 0.98f);
+
+        VerticalLayoutGroup panelLayout = panel.AddComponent<VerticalLayoutGroup>();
+        panelLayout.childAlignment = TextAnchor.MiddleCenter;
+        panelLayout.childControlHeight = true;
+        panelLayout.childControlWidth = true;
+        panelLayout.childForceExpandHeight = false;
+        panelLayout.childForceExpandWidth = true;
+        panelLayout.spacing = 20f;
+        panelLayout.padding = new RectOffset(24, 24, 24, 24);
+
+        GameObject textGO = new GameObject("ConfirmText", typeof(RectTransform));
+        textGO.transform.SetParent(panel.transform, false);
+        Text text = textGO.AddComponent<Text>();
+        text.font = font;
+        text.fontSize = AllTextSize;
+        text.color = Color.white;
+        text.alignment = TextAnchor.MiddleCenter;
+        text.horizontalOverflow = HorizontalWrapMode.Wrap;
+        text.verticalOverflow = VerticalWrapMode.Overflow;
+        deleteConfirmText = text;
+
+        GameObject buttonsRow = new GameObject("Buttons", typeof(RectTransform));
+        buttonsRow.transform.SetParent(panel.transform, false);
+        HorizontalLayoutGroup buttonsLayout = buttonsRow.AddComponent<HorizontalLayoutGroup>();
+        buttonsLayout.childAlignment = TextAnchor.MiddleCenter;
+        buttonsLayout.childControlHeight = true;
+        buttonsLayout.childControlWidth = true;
+        buttonsLayout.childForceExpandHeight = false;
+        buttonsLayout.childForceExpandWidth = true;
+        buttonsLayout.spacing = 18f;
+
+        deleteConfirmYes = CreateConfirmButton(buttonsRow.transform, "Yes", font, new Color(0.2f, 0.7f, 0.3f, 0.35f));
+        deleteConfirmNo = CreateConfirmButton(buttonsRow.transform, "No", font, new Color(0.8f, 0.2f, 0.2f, 0.35f));
+
+        return overlay;
+    }
+
+    private Button CreateConfirmButton(Transform parent, string labelText, Font font, Color bgColor)
+    {
+        GameObject buttonGO = new GameObject($"Button_{labelText}", typeof(RectTransform), typeof(Image), typeof(Button));
+        buttonGO.transform.SetParent(parent, false);
+        Image image = buttonGO.GetComponent<Image>();
+        image.color = bgColor;
+
+        LayoutElement layout = buttonGO.AddComponent<LayoutElement>();
+        layout.minWidth = 220f;
+        layout.preferredWidth = 260f;
+        layout.minHeight = BindingButtonHeight;
+        layout.preferredHeight = BindingButtonHeight;
+        layout.flexibleWidth = 1f;
+
+        GameObject textGO = new GameObject("Label", typeof(RectTransform));
+        textGO.transform.SetParent(buttonGO.transform, false);
+        Text text = textGO.AddComponent<Text>();
+        text.text = labelText;
+        text.font = font;
+        text.fontSize = AllTextSize;
+        text.color = Color.white;
+        text.alignment = TextAnchor.MiddleCenter;
+        RectTransform textRect = textGO.GetComponent<RectTransform>();
+        textRect.anchorMin = Vector2.zero;
+        textRect.anchorMax = Vector2.one;
+        textRect.offsetMin = Vector2.zero;
+        textRect.offsetMax = Vector2.zero;
+
+        return buttonGO.GetComponent<Button>();
+    }
+
     private void UpdateValueTexts()
     {
         if (ambientValue != null && _sound != null)
             ambientValue.text = $"{_sound.ambientVolumeMultiplier:0.00}x";
         if (sfxValue != null && _sound != null)
             sfxValue.text = $"{_sound.sfxVolumeMultiplier:0.00}x";
+        if (uiValue != null && _sound != null)
+            uiValue.text = $"{_sound.uiVolumeMultiplier:0.00}x";
         if (tpsValue != null && _input != null)
             tpsValue.text = $"{_input.tpsLookSensitivityMultiplier:0.00}x";
         if (fpsValue != null && _input != null)
@@ -491,9 +640,21 @@ public class UISettingsMenu : GameBehaviour
         scrollRect.verticalScrollbar = scrollbar;
         scrollRect.verticalScrollbarVisibility = ScrollRect.ScrollbarVisibility.AutoHideAndExpandViewport;
 
+        returnToTitleButton = CreateActionButton(contentGO.transform, returnToTitleEnglish, _font);
+        if (returnToTitleButton != null)
+        {
+            returnToTitleButton.onClick.RemoveAllListeners();
+            Image titleImage = returnToTitleButton.GetComponent<Image>();
+            if (titleImage != null)
+                titleImage.color = new Color(1f, 1f, 1f, 0.22f);
+            _returnToTitleLabel = returnToTitleButton.GetComponentInChildren<Text>();
+            returnToTitleButton.onClick.AddListener(ReturnToTitleScreen);
+        }
+
         CreateHeader(contentGO.transform, "Audio", _font, AllTextSize);
         ambientSlider = CreateSliderRow(contentGO.transform, "Ambient Volume", _font, out ambientValue);
         sfxSlider = CreateSliderRow(contentGO.transform, "SFX Volume", _font, out sfxValue);
+        uiSlider = CreateSliderRow(contentGO.transform, "UI Volume", _font, out uiValue);
 
         CreateHeader(contentGO.transform, "Camera", _font, AllTextSize);
         tpsSensitivitySlider = CreateSliderRow(contentGO.transform, "TPS Camera Sensitivity", _font, out tpsValue);
@@ -532,6 +693,22 @@ public class UISettingsMenu : GameBehaviour
                 resetSound.PlaySound();
             ResetSettingsToDefault();
         });
+
+        deleteSaveButton = CreateActionButton(contentGO.transform, deleteButtonEnglish, _font);
+        if (deleteSaveButton != null)
+        {
+            Image deleteImage = deleteSaveButton.GetComponent<Image>();
+            if (deleteImage != null)
+                deleteImage.color = new Color(0.8f, 0.2f, 0.2f, 0.28f);
+            _deleteSaveLabel = deleteSaveButton.GetComponentInChildren<Text>();
+        }
+
+        deleteConfirmPanel = CreateDeleteConfirmPanel(root.transform, _font);
+        if (deleteConfirmPanel != null)
+        {
+            deleteConfirmPanel.SetActive(false);
+            deleteConfirmPanel.transform.SetAsLastSibling();
+        }
 
         HookSliders();
         HookFpsDropdown();
@@ -1087,6 +1264,17 @@ public class UISettingsMenu : GameBehaviour
                 UpdateValueTexts();
             });
 
+        if (uiSlider != null)
+            uiSlider.onValueChanged.AddListener(value =>
+            {
+                if (_sound == null) _sound = SoundManager.Instance;
+                float multiplier = SliderToVolumeMultiplier(value);
+                if (_sound != null)
+                    _sound.SetUiVolumeMultiplier(multiplier);
+                SaveSettingFloat(SaveKeys.UI_VOLUME_MULTIPLIER, multiplier);
+                UpdateValueTexts();
+            });
+
         if (tpsSensitivitySlider != null)
             tpsSensitivitySlider.onValueChanged.AddListener(value =>
             {
@@ -1164,6 +1352,7 @@ public class UISettingsMenu : GameBehaviour
 
         float ambient = DefaultVolumeMultiplier;
         float sfx = DefaultVolumeMultiplier;
+        float ui = DefaultVolumeMultiplier;
         float tps = DefaultSensitivityMultiplier;
         float fps = DefaultSensitivityMultiplier;
 
@@ -1171,6 +1360,7 @@ public class UISettingsMenu : GameBehaviour
         {
             _sound.SetAmbientVolumeMultiplier(ambient);
             _sound.SetSfxVolumeMultiplier(sfx);
+            _sound.SetUiVolumeMultiplier(ui);
         }
 
         if (_input != null)
@@ -1186,12 +1376,14 @@ public class UISettingsMenu : GameBehaviour
 
         SaveSettingFloat(SaveKeys.AMBIENT_VOLUME_MULTIPLIER, ambient);
         SaveSettingFloat(SaveKeys.SFX_VOLUME_MULTIPLIER, sfx);
+        SaveSettingFloat(SaveKeys.UI_VOLUME_MULTIPLIER, ui);
         SaveSettingFloat(SaveKeys.TPS_SENSITIVITY_MULTIPLIER, tps);
         SaveSettingFloat(SaveKeys.FPS_SENSITIVITY_MULTIPLIER, fps);
         SaveSettingInt(SaveKeys.LANGUAGE, (int)DefaultLanguage);
 
         SetSliderValue(ambientSlider, MultiplierToVolumeSlider(ambient));
         SetSliderValue(sfxSlider, MultiplierToVolumeSlider(sfx));
+        SetSliderValue(uiSlider, MultiplierToVolumeSlider(ui));
         SetSliderValue(tpsSensitivitySlider, MultiplierToSensitivitySlider(tps));
         SetSliderValue(fpsSensitivitySlider, MultiplierToSensitivitySlider(fps));
         UpdateValueTexts();

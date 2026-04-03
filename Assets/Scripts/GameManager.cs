@@ -188,6 +188,10 @@ public class GameManager : GameBehaviour
         if (!float.IsNaN(sfx) && sound != null)
             sound.SetSfxVolumeMultiplier(sfx);
 
+        float uiVolume = GetFloat(SaveKeys.UI_VOLUME_MULTIPLIER, float.NaN);
+        if (!float.IsNaN(uiVolume) && sound != null)
+            sound.SetUiVolumeMultiplier(uiVolume);
+
         InputManager input = InputManager.Instance;
         if (input != null)
         {
@@ -309,6 +313,10 @@ public class GameManager : GameBehaviour
             SceneManager.sceneLoaded -= OnSceneLoaded;
             return;
         }
+
+        TryInitInventoryManager();
+        if (_inventoryManager == null)
+            this.Invoke(0.2f, TryInitInventoryManager);
 
         if (player == null)
             player = FindObjectOfType<Player>();

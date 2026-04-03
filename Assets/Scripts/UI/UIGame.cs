@@ -52,10 +52,18 @@ public class UIGame : UIManager
         Instance = this;
         CloseAllWindows();
         _canvas = GetComponent<Canvas>();
+        UISoundDefaults.MarkHierarchyAsUiSounds(gameObject);
 
         if(pointerON != null)
             _baseBigPointer = pointerON.sprite;
     }
+
+#if UNITY_EDITOR
+    private void OnValidate()
+    {
+        UISoundDefaults.MarkHierarchyAsUiSounds(gameObject);
+    }
+#endif
     
     protected override void Start()
     {
@@ -83,6 +91,7 @@ public class UIGame : UIManager
 
         if (settingsMenu == null)
             settingsMenu = UISettingsMenu.EnsureExists(this);
+        UISoundDefaults.MarkHierarchyAsUiSounds(gameObject);
         
         EnableOverlay(true, 0);
         EnableOverlay(false, openSceneFadeDuration);

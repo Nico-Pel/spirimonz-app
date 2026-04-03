@@ -26,6 +26,9 @@ public class UITeamPanel : GameBehaviour
 
     [Header("Sounds")]
     public SoundParameters selectSlotSound;
+
+    [Header("Selection")]
+    public bool allowEmptySelection;
     
     public Color selectColor;
     public Color selectIconColor;
@@ -69,7 +72,7 @@ public class UITeamPanel : GameBehaviour
 
         if (autoSelection == AutoSelectionType.firstSpirimonz)
         {
-            SelectSpirimonz(0);
+            SelectSpirimonz(0, false);
         }
         else if (autoSelection == AutoSelectionType.equipedSpirimonz)
         {
@@ -97,14 +100,14 @@ public class UITeamPanel : GameBehaviour
     {
         int next = GetNextAvailableIndex(_currentSelectionID, 1);
         if (next >= 0)
-            SelectSpirimonz(next);
+            SelectSpirimonz(next, true);
     }
     
     private void PreviousSpirimonz()
     {
         int prev = GetNextAvailableIndex(_currentSelectionID, -1);
         if (prev >= 0)
-            SelectSpirimonz(prev);
+            SelectSpirimonz(prev, true);
     }
 
     private void SelectTargetedSpirimonz()
@@ -119,18 +122,25 @@ public class UITeamPanel : GameBehaviour
             if (!IsSlotValid(indexToFocus))
                 indexToFocus = GetFirstAvailableIndex();
             if (indexToFocus >= 0)
-                SelectSpirimonz(indexToFocus);
+                SelectSpirimonz(indexToFocus, false);
         }
     }
 
-    private void SelectSpirimonz(int teamID)
+    private void SelectSpirimonz(int teamID, bool playSound)
     {
         if (teamID < 0) return;
         if (teamID >= _inventoryManager.spirimonzTeamSettings.Count) return;
-        if (_inventoryManager.spirimonzTeamSettings[teamID] == null) return;
-        
         SpirimonzSettings spmz = _inventoryManager.spirimonzTeamSettings[teamID];
-        spmzInfoSetter.SetSpirimonz(spmz);
+        if (spmz == null && !allowEmptySelection) return;
+        
+        if (spmz != null)
+        {
+            spmzInfoSetter.SetSpirimonz(spmz);
+        }
+        else if (allowEmptySelection && spmzInfoSetter != null)
+        {
+            spmzInfoSetter.SetEmptyInfo(UISpirimonzInformationsSetter.EmptyInfoMode.Empty);
+        }
 
         for (int i = 0; i < switchButtons.Length; i++)
         {
@@ -141,7 +151,7 @@ public class UITeamPanel : GameBehaviour
 
         _currentSelectionID = teamID;
 
-        if (selectSlotSound != null)
+        if (playSound && selectSlotSound != null)
             selectSlotSound.PlaySound();
     }
     
@@ -157,21 +167,40 @@ public class UITeamPanel : GameBehaviour
             bool isNull = i >= _inventoryManager.spirimonzTeamSettings.Count || _inventoryManager.spirimonzTeamSettings[i] == null;
             if (switchButtons[i] != null)
             {
-                switchButtons[i].interactable = !isNull;
+                switchButtons[i].interactable = !isNull || allowEmptySelection;
                 switchButtons[i].onClick.RemoveAllListeners();
-                if (!isNull)
+                if (!isNull || allowEmptySelection)
                 {
                     int index = i;
-                    switchButtons[i].onClick.AddListener(() => SelectSpirimonz(index));
+                    switchButtons[i].onClick.AddListener(() => SelectSpirimonz(index, true));
                 }
             }
         }
 
         if (!IsSlotValid(_currentSelectionID))
         {
-            int first = GetFirstAvailableIndex();
-            if (first >= 0)
-                SelectSpirimonz(first);
+            if (allowEmptySelection && _inventoryManager.spirimonzTeamSettings.Count > 0)
+            {
+                int index = Mathf.Clamp(_currentSelectionID, 0, _inventoryManager.spirimonzTeamSettings.Count - 1);
+                SelectSpirimonz(index, false);
+            }
+            else
+            {
+                int first = GetFirstAvailableIndex();
+                if (first >= 0)
+                    SelectSpirimonz(first, false);
+            }
+        }
+        else if (allowEmptySelection && spmzInfoSetter != null)
+        {
+            if (_currentSelectionID >= 0 && _currentSelectionID < _inventoryManager.spirimonzTeamSettings.Count)
+            {
+                SpirimonzSettings spmz = _inventoryManager.spirimonzTeamSettings[_currentSelectionID];
+                if (spmz != null)
+                    spmzInfoSetter.SetSpirimonz(spmz);
+                else
+                    spmzInfoSetter.SetEmptyInfo(UISpirimonzInformationsSetter.EmptyInfoMode.Empty);
+            }
         }
     }
 
@@ -181,7 +210,7 @@ public class UITeamPanel : GameBehaviour
             return false;
         if (index < 0 || index >= _inventoryManager.spirimonzTeamSettings.Count)
             return false;
-        return _inventoryManager.spirimonzTeamSettings[index] != null;
+        return allowEmptySelection || _inventoryManager.spirimonzTeamSettings[index] != null;
     }
 
     private int GetFirstAvailableIndex()

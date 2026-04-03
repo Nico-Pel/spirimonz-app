@@ -37,6 +37,9 @@ public class CatchableObject : GameBehaviour, IInteractable
     [Header("Drop Collision Safety")]
     public float ignorePlayerCollisionDuration = 1f;
 
+    [Header("Secondary Use")]
+    public float secondaryUseCooldown = 1f;
+
     [Header("Physics Optimization")]
     public bool autoSleepWhenIdle = true;
     [Min(0f)] public float autoSleepStartDelay = 1f;
@@ -53,6 +56,7 @@ public class CatchableObject : GameBehaviour, IInteractable
     private Coroutine _ignorePlayerCollisionRoutine;
     private Coroutine _autoSleepRoutine;
     private float _idleStableTime;
+    private float _nextSecondaryUseTime;
 
     public UnityEvent onGrab;
     public UnityEvent onSecondaryUse;
@@ -380,6 +384,12 @@ public class CatchableObject : GameBehaviour, IInteractable
 
     public virtual void OnSecondaryUse()
     {
+        if (secondaryUseCooldown > 0f && Time.time < _nextSecondaryUseTime)
+            return;
+
+        if (secondaryUseCooldown > 0f)
+            _nextSecondaryUseTime = Time.time + secondaryUseCooldown;
+
         onSecondaryUse?.Invoke();
         SpecialActionInHandsOnClick();
     }

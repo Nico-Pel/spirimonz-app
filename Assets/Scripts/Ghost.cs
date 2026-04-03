@@ -1011,6 +1011,36 @@ public class Ghost : GameBehaviour
         ResetAntiExploitState();
     }
 
+    public void StopHuntByKatana(bool playApparitionFx = true, float delayBeforeStop = 0.2f)
+    {
+        if (playApparitionFx && fxApparition != null)
+            fxApparition.Play();
+
+        if (delayBeforeStop > 0f)
+        {
+            if (agent != null && agent.enabled)
+            {
+                agent.isStopped = true;
+                agent.velocity = Vector3.zero;
+                agent.ResetPath();
+            }
+
+            CancelInvoke(nameof(StopHuntByKatanaInternal));
+            this.Invoke(nameof(StopHuntByKatanaInternal), delayBeforeStop, StopHuntByKatanaInternal);
+            return;
+        }
+
+        StopHuntByKatanaInternal();
+    }
+
+    private void StopHuntByKatanaInternal()
+    {
+        if (IsHunting(includeWillHunt: true))
+            StopHunting();
+        else
+            CancelHuntCompletely();
+    }
+
     private void Kill()
     {
         if (_isLocked) return;

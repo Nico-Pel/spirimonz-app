@@ -23,6 +23,10 @@ public class UITitleSaveSlot : GameBehaviour
     [Header("Button")]
     public Button bSelect;
 
+    [Header("Sounds")]
+    public SoundParameters selectSound;
+    public SoundParameters selectNewGameSound;
+
     [ReadOnly] public bool hasSave;
 
     private GameObject _previewBody;
@@ -31,6 +35,12 @@ public class UITitleSaveSlot : GameBehaviour
     public void Initialize(UITitleScreen screen)
     {
         _titleScreen = screen;
+#if UNITY_EDITOR
+        UISoundDefaults.AssignIfNull(ref selectSound);
+        UISoundDefaults.AssignIfNull(ref selectNewGameSound);
+#endif
+        UISoundDefaults.MarkAsUi(selectSound);
+        UISoundDefaults.MarkAsUi(selectNewGameSound);
         if (bSelect != null)
         {
             bSelect.onClick.RemoveAllListeners();
@@ -74,6 +84,18 @@ public class UITitleSaveSlot : GameBehaviour
 
     private void OnSelectPressed()
     {
+        if (hasSave)
+        {
+            if (selectSound != null)
+                selectSound.PlaySound();
+        }
+        else
+        {
+            if (selectNewGameSound != null)
+                selectNewGameSound.PlaySound();
+            else if (selectSound != null)
+                selectSound.PlaySound();
+        }
         if (_titleScreen != null)
             _titleScreen.OnSlotSelected(this);
     }

@@ -27,7 +27,7 @@ public class ElectricLight : ActivableObject
         {
             foreach (MeshRenderer mr in group.renderers)
             {
-                mr.material = group.materialOn;
+                ApplyMaterialSwap(mr, group.materialOff, group.materialOn);
             }
         }
 
@@ -47,7 +47,7 @@ public class ElectricLight : ActivableObject
         {
             foreach (MeshRenderer mr in group.renderers)
             {
-                mr.material = group.materialOff;
+                ApplyMaterialSwap(mr, group.materialOn, group.materialOff);
             }
         }
 
@@ -55,6 +55,35 @@ public class ElectricLight : ActivableObject
         foreach (GameObject g in objectsToEnable)
         {
             g.SetActive(false);
+        }
+    }
+
+    private void ApplyMaterialSwap(MeshRenderer renderer, Material fromMaterial, Material toMaterial)
+    {
+        if (renderer == null || fromMaterial == null || toMaterial == null)
+            return;
+
+        Material[] materials = renderer.sharedMaterials;
+        if (materials == null || materials.Length == 0)
+            return;
+
+        bool found = false;
+        for (int i = 0; i < materials.Length; i++)
+        {
+            if (materials[i] != fromMaterial)
+                continue;
+
+            materials[i] = toMaterial;
+            found = true;
+        }
+
+        if (found)
+        {
+            renderer.sharedMaterials = materials;
+        }
+        else
+        {
+            Debug.LogWarning($"ElectricLight: material '{fromMaterial.name}' not found on renderer '{renderer.name}'.", renderer);
         }
     }
 }

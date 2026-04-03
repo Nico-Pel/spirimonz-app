@@ -15,13 +15,23 @@ public class SoundManager : GameBehaviour
     public float ambientSoundVolume = 0.2f;
     [Range(0.5f, 1.5f)] public float ambientVolumeMultiplier = 1f;
     [Range(0.5f, 1.5f)] public float sfxVolumeMultiplier = 1f;
+    [Range(0.5f, 1.5f)] public float uiVolumeMultiplier = 1f;
+
+    [Header("UI Sounds")]
+    public bool blockUiSoundsOnStartup = true;
+    [Min(0f)] public float uiSoundStartupDelay = 0.2f;
+    public bool uiSoundsRequireInput = true;
+    [Min(0f)] public float uiSoundInputGracePeriod = 0.25f;
 
     private AudioSource _ambientSource;
     private Ghost _ghost;
+    private float _uiSoundStartupTime;
+    private float _lastUiInputTime = -999f;
 
     private void Awake()
     {
         Instance = this;
+        _uiSoundStartupTime = Time.realtimeSinceStartup;
         
         if (ambientSound != null)
         {
@@ -105,6 +115,52 @@ public class SoundManager : GameBehaviour
         return new SoundInstance(source, go);
     }
 
+    public bool ShouldBlockUiSound()
+    {
+        if (!blockUiSoundsOnStartup)
+            return false;
+
+        if (uiSoundStartupDelay > 0f && Time.realtimeSinceStartup - _uiSoundStartupTime < uiSoundStartupDelay)
+            return true;
+
+        if (!uiSoundsRequireInput)
+            return false;
+
+        if (RegisterUiInputIfAny())
+            return false;
+
+        if (uiSoundInputGracePeriod <= 0f)
+            return true;
+
+        return Time.unscaledTime - _lastUiInputTime > uiSoundInputGracePeriod;
+    }
+
+    private bool RegisterUiInputIfAny()
+    {
+        bool hasInput = Input.anyKeyDown ||
+                        Input.GetMouseButtonDown(0) ||
+                        Input.GetMouseButtonDown(1) ||
+                        Input.GetMouseButtonDown(2);
+
+        if (!hasInput && Input.touchCount > 0)
+        {
+            for (int i = 0; i < Input.touchCount; i++)
+            {
+                Touch touch = Input.GetTouch(i);
+                if (touch.phase == TouchPhase.Began)
+                {
+                    hasInput = true;
+                    break;
+                }
+            }
+        }
+
+        if (hasInput)
+            _lastUiInputTime = Time.unscaledTime;
+
+        return hasInput;
+    }
+
     // --- Nouvelle fonction pour les sons d'ambiance
     public void PlayAmbient(AudioClip clip, float volume = 1f, bool loop = true)
     {
@@ -136,6 +192,11 @@ public class SoundManager : GameBehaviour
     public void SetSfxVolumeMultiplier(float multiplier)
     {
         sfxVolumeMultiplier = multiplier;
+    }
+
+    public void SetUiVolumeMultiplier(float multiplier)
+    {
+        uiVolumeMultiplier = multiplier;
     }
 
     private Coroutine _ambientFadeCoroutine;

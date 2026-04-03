@@ -5352,6 +5352,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 31b2e9e9d2d964c8ab0504dd67e78010, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  roomType: 3
   currentTemperature: 20
   _smoothSpeed: 1
   minNormalTemperature: 1
@@ -9076,6 +9077,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 31b2e9e9d2d964c8ab0504dd67e78010, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  roomType: 7
   currentTemperature: 20
   _smoothSpeed: 1
   minNormalTemperature: 1
@@ -21288,6 +21290,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 31b2e9e9d2d964c8ab0504dd67e78010, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  roomType: 6
   currentTemperature: 20
   _smoothSpeed: 1
   minNormalTemperature: 1
@@ -24096,6 +24099,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 31b2e9e9d2d964c8ab0504dd67e78010, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  roomType: 1
   currentTemperature: 20
   _smoothSpeed: 1
   minNormalTemperature: 1
@@ -24847,9 +24851,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   map: {fileID: 11400000, guid: ce4f9a8c8498f482fa9729084559e18d, type: 2}
   selectedGhostParameter: {fileID: 0}
-  useDebugs: 0
+  useDebugs: 1
   playerCantDie: 0
-  forcedGhostParameters: {fileID: 0}
+  forcedGhostParameters: {fileID: 11400000, guid: 349a6494c90b04ac48863433d25a2e07, type: 2}
   forcedGhostModel: {fileID: 0}
   forcedGhostActivity: 7
   forcedFavoriteRoomID: -1
@@ -24872,6 +24876,7 @@ MonoBehaviour:
   temperatureMaxRoomVariation: 3.5
   temperatureMaxHouseVariation: 3.5
   currentGhost: {fileID: 0}
+  houseStartTime: 0
   currentPlayer: {fileID: 1150835896}
   wayPoints: []
   onNewPrintSourceAddedToGame:

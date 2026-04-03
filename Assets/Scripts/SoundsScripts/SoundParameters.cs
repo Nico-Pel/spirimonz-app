@@ -6,6 +6,7 @@ public class SoundParameters : GameBehaviour
 {
     [SerializeField] private bool playerOnEnabled;
     [SerializeField] private bool usePlayerPos;
+    [SerializeField] public bool isUISound;
     
     [SerializeField] private AudioClip[] possibleClips;
     [SerializeField] public float volume = 1f;
@@ -17,6 +18,7 @@ public class SoundParameters : GameBehaviour
     [SerializeField] private Transform sourceParent = null;
     [SerializeField] private bool ignoreAudioOcclusion = false;
 
+    public bool useDebugDeCon;
     private void OnEnable()
     {
         if(playerOnEnabled)
@@ -29,6 +31,8 @@ public class SoundParameters : GameBehaviour
             return;
         if (SoundManager.Instance == null)
             return;
+        if (isUISound && SoundManager.Instance.ShouldBlockUiSound())
+            return;
 
         if (usePlayerPos)
             position = GetPlayerPosition(position);
@@ -39,6 +43,9 @@ public class SoundParameters : GameBehaviour
         {
             volumeToUse = forcedVolume;
         }
+
+        if (isUISound && SoundManager.Instance != null)
+            volumeToUse *= SoundManager.Instance.uiVolumeMultiplier;
         
         AudioClip clip = possibleClips[Random.Range(0, possibleClips.Length)];
         float pitch = Random.Range(pitchMin, pitchMax);
@@ -51,8 +58,13 @@ public class SoundParameters : GameBehaviour
             return;
         if (SoundManager.Instance == null)
             return;
+        if (isUISound && SoundManager.Instance.ShouldBlockUiSound())
+            return;
 
         float volumeToUse = volume;
+
+        if (isUISound && SoundManager.Instance != null)
+            volumeToUse *= SoundManager.Instance.uiVolumeMultiplier;
         
         AudioClip clip = possibleClips[Random.Range(0, possibleClips.Length)];
         float pitch = Random.Range(pitchMin, pitchMax);

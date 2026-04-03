@@ -85,6 +85,13 @@ public class Spirimonz : GameBehaviour, IInteractable
     public float escapingSpeed = 5f;
     public int nbOfWayPointsToConsider = 3;
 
+    [Header("Spirimonz Settings : Room Detection")]
+    public bool enableRoomValidation = true;
+    [Min(0.05f)] public float roomValidationInterval = 0.5f;
+    [Min(0.01f)] public float roomDetectionRadius = 0.2f;
+    [Min(0.001f)] public float roomProbeRadius = 0.05f;
+    public LayerMask roomLayerMask;
+
     private bool _escaping;
     private bool _stopMoving;
     private float _waitDoorTime = 1f;
@@ -106,6 +113,7 @@ public class Spirimonz : GameBehaviour, IInteractable
     private bool _pauseRoamAfterInteract;
     private float _pauseRoamEndTime;
     private Coroutine _lookAtInteractCoroutine;
+    private float _nextRoomValidationTime;
 
     public UnityEvent onInteract;
     public UnityEvent onSecondaryButtonUsed;
@@ -406,7 +414,7 @@ public class Spirimonz : GameBehaviour, IInteractable
         float currentRatio = door.GetOpenRatio();
 
         // ⛔ Refuse toute interaction qui réduirait l'ouverture
-        if (currentRatio > 0.05f && door.hingeJoint.velocity < 0f)
+        if (currentRatio > 0.05f && door.GetOpenVelocity() < 0f)
             return;
 
         _stopMoving = true;
@@ -432,6 +440,7 @@ public class Spirimonz : GameBehaviour, IInteractable
             OnClickInHands();
         }
         
+        ValidateCurrentRoom();
         UpdateSpirimonzBehaviour();
         
         if (animator != null)
@@ -443,6 +452,94 @@ public class Spirimonz : GameBehaviour, IInteractable
         }
         
         UpdateMovementBehaviour();
+    }
+
+    private void ValidateCurrentRoom()
+    {
+        if (!enableRoomValidation || !isOnTheMap)
+            return;
+
+        if (Time.time < _nextRoomValidationTime)
+            return;
+
+        _nextRoomValidationTime = Time.time + Mathf.Max(0.05f, roomValidationInterval);
+
+        Room detected = FindRoomAtPosition(transform.position);
+        if (detected != null && detected != currentRoom)
+        {
+            SetCurrentRoom(detected);
+        }
+    }
+
+    private Room FindRoomAtPosition(Vector3 position)
+    {
+        int mask = GetRoomOverlapMask();
+        float radius = Mathf.Max(0.01f, roomDetectionRadius);
+        Collider[] hits = Physics.OverlapSphere(position, radius, mask, QueryTriggerInteraction.Collide);
+        if (hits != null && hits.Length > 0)
+        {
+            Room bestRoom = null;
+            float bestDistance = float.MaxValue;
+            for (int i = 0; i < hits.Length; i++)
+            {
+                Collider hit = hits[i];
+                if (hit == null) continue;
+
+                Room candidate = hit.GetComponentInParent<Room>();
+                if (candidate == null) continue;
+
+                Vector3 closest = hit.ClosestPoint(position);
+                float dist = (closest - position).sqrMagnitude;
+                if (dist < bestDistance)
+                {
+                    bestDistance = dist;
+                    bestRoom = candidate;
+                }
+            }
+
+            if (bestRoom != null)
+                return bestRoom;
+        }
+
+        if (TryFindRoomAtPoint(position, mask, out Room roomAtPoint))
+            return roomAtPoint;
+
+        return currentRoom;
+    }
+
+    private bool TryFindRoomAtPoint(Vector3 point, int mask, out Room room)
+    {
+        room = null;
+        float radius = Mathf.Max(0.001f, roomProbeRadius);
+        Collider[] hits = Physics.OverlapSphere(point, radius, mask, QueryTriggerInteraction.Collide);
+        if (hits == null || hits.Length == 0)
+            return false;
+
+        for (int i = 0; i < hits.Length; i++)
+        {
+            Collider hit = hits[i];
+            if (hit == null) continue;
+
+            Room candidate = hit.GetComponentInParent<Room>();
+            if (candidate == null) continue;
+
+            room = candidate;
+            return true;
+        }
+
+        return false;
+    }
+
+    private int GetRoomOverlapMask()
+    {
+        if (roomLayerMask.value != 0)
+            return roomLayerMask.value;
+
+        int ignoreRaycast = LayerMask.NameToLayer("Ignore Raycast");
+        if (ignoreRaycast >= 0)
+            return 1 << ignoreRaycast;
+
+        return Physics.AllLayers;
     }
 
     protected virtual void UpdateMovementBehaviour()
@@ -947,7 +1044,7 @@ public class Spirimonz : GameBehaviour, IInteractable
         animator.SetBool("Wait", newBehaviour == SpirimonzBehaviourState.Wait);
     }
 
-    private void HandleLookAtPlayerOnInteract()
+    protected void HandleLookAtPlayerOnInteract()
     {
         if (!lookAtPlayerOnInteract || _house == null || _house.currentPlayer == null)
             return;
