@@ -60,15 +60,25 @@ public class Room : MonoBehaviour
         // Initialisation aléatoire de la température
         float temperatureRandomVariation = Random.Range(-house.temperatureMaxRoomVariation, house.temperatureMaxRoomVariation);
 
-        // La pièce favorite du fantôme ne peut pas avoir de variation négative sauf pour les fantômes Blazing
-        if (house.currentGhost.favoriteRoom == this && 
-            house.currentGhost.ghostParameters.ghostTypeData.ghostType != GhostTypeData.GhostType.Blazing && 
-            temperatureRandomVariation < 0)
+        bool isFavoriteRoom = house.currentGhost != null && house.currentGhost.favoriteRoom == this;
+        bool isBlazingGhost = house.currentGhost != null &&
+                              house.currentGhost.ghostParameters != null &&
+                              house.currentGhost.ghostParameters.ghostTypeData != null &&
+                              house.currentGhost.ghostParameters.ghostTypeData.ghostType == GhostTypeData.GhostType.Blazing;
+
+        // Default bias: the favorite room is slightly colder (unless Blazing ghosts).
+        if (isFavoriteRoom && !isBlazingGhost)
         {
-            temperatureRandomVariation = -temperatureRandomVariation;
+            temperatureRandomVariation = -Mathf.Abs(temperatureRandomVariation);
+            float penalty = Mathf.Max(0f, house.favoriteRoomTemperaturePenalty);
+            temperatureRandomVariation -= penalty;
         }
 
         currentTemperature = house.averageStartTemperature + temperatureRandomVariation;
+        float minTemperature = house.currentGhost.ghostParameters.FreezingTemperature
+            ? minFreezingTemperature
+            : minNormalTemperature;
+        currentTemperature = Mathf.Clamp(currentTemperature, minTemperature, maxTemperature);
         _temperatureTarget = currentTemperature; // synchronisation initiale
         _startTemperature = currentTemperature;
     }

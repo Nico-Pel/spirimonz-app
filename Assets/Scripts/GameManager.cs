@@ -21,6 +21,8 @@ public class GameManager : GameBehaviour
     public bool ignoreAllHouseDebugs;
     public bool considerEverySpirimonzUnlocked;
     public bool enableDebugMoneyButton = true;
+    [Tooltip("Editor only: start in the currently open scene without auto-loading the last saved World scene.")]
+    public bool allowEditorStartInCurrentScene;
 
     [Header("Mobile Controls")]
     public bool mobileControlsEnabled;
@@ -116,7 +118,12 @@ public class GameManager : GameBehaviour
 
         bool isATestFromHouse = SceneManager.GetActiveScene().name.StartsWith("House");
 
-        if (isATestFromHouse == false && !isTitleScreen)
+        bool editorStartInCurrentScene = false;
+#if UNITY_EDITOR
+        editorStartInCurrentScene = allowEditorStartInCurrentScene && !isATestFromHouse && !isTitleScreen;
+#endif
+
+        if (!editorStartInCurrentScene && isATestFromHouse == false && !isTitleScreen)
         {
             if ( !string.IsNullOrEmpty(gameData.lastWorldSceneName) && !alreadyInLastWorld)
             {

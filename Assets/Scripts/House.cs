@@ -50,9 +50,11 @@ public class House : GameBehaviour
     public Room[] hauntableRooms;
     public bool electricCurrentEnabled = true;
 
+    [Header("Temperature Settings")]
     public float averageStartTemperature = 17;
     public float temperatureMaxRoomVariation = 3.5f;
     public float temperatureMaxHouseVariation = 3.5f;
+    public float favoriteRoomTemperaturePenalty = 1.5f;
 
     [ReadOnly] public Ghost currentGhost;
 

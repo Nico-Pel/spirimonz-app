@@ -219,13 +219,19 @@ public class InventoryManager : GameBehaviour
         spirimonzTeam.Clear();
 
         if (_gamePlayer == null) return;
+        if (spirimonzTeamSettings == null || spirimonzTeamSettings.Count == 0) return;
 
-        foreach (var spmzS in spirimonzTeamSettings)
+        // Keep list aligned with team slots so empty slots don't shift indices.
+        for (int i = 0; i < spirimonzTeamSettings.Count; i++)
+            spirimonzTeam.Add(null);
+
+        for (int i = 0; i < spirimonzTeamSettings.Count; i++)
         {
+            SpirimonzSettings spmzS = spirimonzTeamSettings[i];
             if (spmzS == null) continue;
 
             Spirimonz newSpirimonz = Instantiate(spmzS.spirimonzPrefab, _gamePlayer.spirimonzHandPos);
-            spirimonzTeam.Add(newSpirimonz);
+            spirimonzTeam[i] = newSpirimonz;
             newSpirimonz.transform.localPosition = Vector3.zero;
             newSpirimonz.transform.localEulerAngles = Vector3.zero;
             newSpirimonz.ChangeLayer(fpsMask, 0);
