@@ -45,7 +45,10 @@ public class NPC : GameBehaviour, IInteractable
     public bool turnBodyToTalk = true;
     public float bodyTurnDuration = 0.25f;
     public bool useAnimationTalk = true;
+    public bool useNeckLookAt = true;
     public bool lockRotationToY = true;
+    [Tooltip("Ignore angle check when the player is closer than this distance. 0 = use player default.")]
+    public float interactionAngleIgnoreDistance = 0f;
 
     [Header("Moving Settings")] 
     public NPCMovingPoint firstMovingPoint;
@@ -74,18 +77,23 @@ public class NPC : GameBehaviour, IInteractable
 
     private void Awake()
     {
-        _neckRotationBase = neck.localEulerAngles;
+        if (neck == null)
+            neck = transform;
+        if (neck != null)
+            _neckRotationBase = neck.localEulerAngles;
 
         if (agent == null || firstMovingPoint == null)
         {
             movingType = MovingType.none;
-            agent.enabled = false;
+            if (agent != null)
+                agent.enabled = false;
         }
         else
         {
             if (movingType == MovingType.walk)
             {
-                animator.SetBool("Walking", true);
+                if (animator != null)
+                    animator.SetBool("Walking", true);
 
             }
         }
@@ -155,27 +163,29 @@ public class NPC : GameBehaviour, IInteractable
         CloseCTA();
 
         // Animation de dialogue
-        if(useAnimationTalk)
+        if (useAnimationTalk && animator != null)
             animator.SetBool("Talking", true);
 
         // Calcul direction + angle
-        Vector3 dirToPlayer = (player.head.position - neck.position).normalized;
+        Transform neckTarget = neck != null ? neck : transform;
+        Vector3 dirToPlayer = (player.head.position - neckTarget.position).normalized;
         float angle = Vector3.Angle(transform.forward, dirToPlayer);
 
         // Fonction locale pour démarrer dialogue + caméra
         void StartDialogueAndCamera()
         {
-            if (agent.enabled)
+            if (agent != null && agent.enabled)
             {
                 agent.speed = 0;
                 agent.isStopped = true;
             }
             // La tête regarde le joueur
-            neck.DOLookAt(player.head.position - Vector3.up * 0.2f, 0.2f);
+            if (useNeckLookAt && neckTarget != null)
+                neckTarget.DOLookAt(player.head.position - Vector3.up * 0.2f, 0.2f);
 
             if (player is GamePlayer gamePlayer && disableDialogueCameraInFPS && gamePlayer.fpsController != null)
             {
-                Transform lookTarget = neck != null ? neck : transform;
+                Transform lookTarget = neckTarget != null ? neckTarget : transform;
                 gamePlayer.fpsController.SmoothLookAt(lookTarget, 0.35f);
             }
 
@@ -236,6 +246,7 @@ public class NPC : GameBehaviour, IInteractable
     private void PositionDialogueCamera(Player player)
     {
         if (dialogueVCam == null) return;
+        Transform neckTarget = neck != null ? neck : transform;
     
         Vector3 directionToTarget = transform.position - player.characterController.transform.position;
         float dot = Vector3.Dot(player.characterController.transform.right, directionToTarget);
@@ -253,14 +264,14 @@ public class NPC : GameBehaviour, IInteractable
                 ? dialogueVCam.transform.right * (-dist / 3) 
                 : dialogueVCam.transform.right * (dist / 3);
 
-            dialogueVCam.transform.LookAt(neck.position + neckOffset, Vector3.up);
+            dialogueVCam.transform.LookAt(neckTarget.position + neckOffset, Vector3.up);
         }
         else
         {
-            dialogueVCam.transform.LookAt(neck.position);
+            dialogueVCam.transform.LookAt(neckTarget.position);
             float dist = Vector3.Distance(player.characterController.transform.position, transform.position);
             Vector3 neckOffset = useRightShoulder ? dialogueVCam.transform.right * (-dist / 3) : dialogueVCam.transform.right * (dist / 3);
-            dialogueVCam.transform.LookAt(neck.position + neckOffset);
+            dialogueVCam.transform.LookAt(neckTarget.position + neckOffset);
         }
     }
 
@@ -268,20 +279,23 @@ public class NPC : GameBehaviour, IInteractable
     {
         // Ne montre le CTA que si le joueur est devant ou si l'interaction arrière est autorisée
         if (mustBeInFront && !IsPlayerInFront(player)) return;
-        cta.SetCallToAction(true, player);
+        if (cta != null)
+            cta.SetCallToAction(true, player);
     }
 
     public void CloseCTA()
     {
-        cta.SetCallToAction(false, null);
+        if (cta != null)
+            cta.SetCallToAction(false, null);
     }
 
     public void Reset(Player player = null)
     {
-        if(useAnimationTalk)
+        if (useAnimationTalk && animator != null)
             animator.SetBool("Talking", false);
         
-        neck.DOLocalRotate(_neckRotationBase, 0.25f);
+        if (useNeckLookAt && neck != null)
+            neck.DOLocalRotate(_neckRotationBase, 0.25f);
 
         // Désactive la caméra
         if (dialogueVCam != null)
@@ -292,7 +306,7 @@ public class NPC : GameBehaviour, IInteractable
         // Déverrouille le joueur
         player?.LockControls(false);
         
-        if (agent.enabled)
+        if (agent != null && agent.enabled)
         {
             agent.isStopped = false;
             agent.speed = speed;

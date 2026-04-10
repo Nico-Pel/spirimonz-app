@@ -55,6 +55,7 @@ public class GameManager : GameBehaviour
     private bool isLoadingFromHouse = false;
     private bool _isWorld;
     private bool _firstLoad = true;
+    private readonly HashSet<string> _temporaryWorldSceneNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
     private InventoryManager _inventoryManager;
     private bool _isDead;
@@ -349,30 +350,50 @@ public class GameManager : GameBehaviour
         if (_isWorld)
         {
             royalChallengeActive = false;
+            bool isTemporaryWorld = IsTemporaryWorldScene(scene.name);
             World world = World.Instance;
+            bool didSpawn = false;
 
             if (world == null)
             {
                 world = FindObjectOfType<World>();
             }
 
-            if (useTutorialWorldSpawn && world != null && world.startPosTuto != null)
+            if (!isTemporaryWorld && scene.name == defaultWorldSceneName && ConsumeSecretWorldReturnToTaxi())
+            {
+                if (world != null && world.spawnTaxiPos != null)
+                {
+                    player.SetPosition(world.spawnTaxiPos.position);
+                    player.SetRotation(world.spawnTaxiPos.rotation);
+                    didSpawn = true;
+                }
+            }
+
+            if (!didSpawn && !isTemporaryWorld && useTutorialWorldSpawn && world != null && world.startPosTuto != null)
             {
                 player.SetPosition(world.startPosTuto.position);
                 player.SetRotation(world.startPosTuto.rotation);
                 useTutorialWorldSpawn = false;
+                didSpawn = true;
             }
-            else if (isLoadingFromHouse && currentHouseID >= 0 && currentHouseID < world.spawnPoints.Length)
+            else if (!didSpawn && !isTemporaryWorld && isLoadingFromHouse && currentHouseID >= 0 && currentHouseID < world.spawnPoints.Length)
             {
                 // Spawn devant la maison
                 player.SetPosition(world.spawnPoints[currentHouseID].position);
                 player.SetRotation(world.spawnPoints[currentHouseID].rotation);
+                didSpawn = true;
             }
-            else
+            else if (!didSpawn && !isTemporaryWorld)
             {
                 // Spawn à la position sauvegardée dans le world
                 player.SetPosition(gameData.playerPosition);
                 player.SetRotation(gameData.playerRotation);
+                didSpawn = true;
+            }
+
+            if (isTemporaryWorld && isLoadingFromHouse)
+            {
+                IncrementSecretWorldPriceSteps();
             }
 
             if (_isDead)
@@ -549,20 +570,36 @@ public class GameManager : GameBehaviour
 
         Scene currentScene = SceneManager.GetActiveScene();
         bool isWorld = currentScene.name.ToLower().StartsWith("world");
+        bool markSecretWorldReturn = false;
 
         if (isWorld)
         {
-            // Sauvegarde position + rotation dans le world
-            gameData.lastWorldSceneName = currentScene.name;
-            gameData.playerPosition = player.GetPosition();
-            gameData.playerRotation = player.GetRotation(); // <<< ajouté
+            if (!IsTemporaryWorldScene(currentScene.name))
+            {
+                // Sauvegarde position + rotation dans le world
+                gameData.lastWorldSceneName = currentScene.name;
+                gameData.playerPosition = player.GetPosition();
+                gameData.playerRotation = player.GetRotation(); // <<< ajouté
+            }
+            else
+            {
+                markSecretWorldReturn = true;
+            }
+
             gameData.currentHouseID = -1;
         }
         else
         {
             // Sauvegarde maison
             gameData.currentHouseID = currentHouseID;
+
+            House house = House.Instance;
+            if (house != null && house.map != null && house.map.linkedSecretWorld != null)
+                markSecretWorldReturn = true;
         }
+
+        if (markSecretWorldReturn)
+            SetInt(SaveKeys.SECRET_WORLD_RETURN_TO_TAXI, 1);
 
         SaveManager.SaveInputBindings(gameData, InputManager.Instance);
         SaveManager.Save(gameData);
@@ -581,6 +618,154 @@ public class GameManager : GameBehaviour
 
     public bool IsWorld() => _isWorld;
     public GameData GetGameData() => gameData;
+
+    public void RegisterTemporaryWorldScene(string sceneName)
+    {
+        if (string.IsNullOrWhiteSpace(sceneName))
+            return;
+
+        _temporaryWorldSceneNames.Add(sceneName);
+        SetString(SaveKeys.SECRET_WORLD_SCENE_NAME, sceneName);
+    }
+
+    public void MarkSecretWorldReturnToTaxi()
+    {
+        SetInt(SaveKeys.SECRET_WORLD_RETURN_TO_TAXI, 1);
+    }
+
+    public bool ConsumeSecretWorldReturnToTaxi()
+    {
+        bool shouldReturn = GetInt(SaveKeys.SECRET_WORLD_RETURN_TO_TAXI, 0) == 1;
+        if (shouldReturn)
+            SetInt(SaveKeys.SECRET_WORLD_RETURN_TO_TAXI, 0);
+
+        return shouldReturn;
+    }
+
+    public bool IsTemporaryWorldScene(string sceneName)
+    {
+        if (string.IsNullOrWhiteSpace(sceneName))
+            return false;
+
+        if (_temporaryWorldSceneNames.Contains(sceneName))
+            return true;
+
+        string savedSecretScene = GetString(SaveKeys.SECRET_WORLD_SCENE_NAME, string.Empty);
+        if (!string.IsNullOrWhiteSpace(savedSecretScene) &&
+            string.Equals(savedSecretScene, sceneName, StringComparison.OrdinalIgnoreCase))
+            return true;
+
+        return false;
+    }
+
+    public long GetSecretWorldRotationTicks()
+    {
+        DateTime now = DateTime.Now;
+        int rotationHour = Mathf.Clamp(GetInt(SaveKeys.SECRET_WORLD_ROTATION_HOUR, 0), 0, 23);
+        int rotationMinute = Mathf.Clamp(GetInt(SaveKeys.SECRET_WORLD_ROTATION_MINUTE, 0), 0, 59);
+        DateTime todayRotation = new DateTime(now.Year, now.Month, now.Day, rotationHour, rotationMinute, 0, DateTimeKind.Local);
+        DateTime candidate = now < todayRotation ? todayRotation.AddDays(-1) : todayRotation;
+
+        string raw = GetString(SaveKeys.SECRET_WORLD_LAST_ROTATION_LOCAL_TICKS, string.Empty);
+        if (long.TryParse(raw, out long ticks) && ticks > 0)
+        {
+            DateTime saved = new DateTime(ticks, DateTimeKind.Local);
+            if (candidate > saved)
+            {
+                SetString(SaveKeys.SECRET_WORLD_LAST_ROTATION_LOCAL_TICKS, candidate.Ticks.ToString());
+                return candidate.Ticks;
+            }
+
+            return saved.Ticks;
+        }
+
+        SetString(SaveKeys.SECRET_WORLD_LAST_ROTATION_LOCAL_TICKS, candidate.Ticks.ToString());
+        return candidate.Ticks;
+    }
+
+    public int GetSecretWorldIndex()
+    {
+        return GetInt(SaveKeys.SECRET_WORLD_INDEX, -1);
+    }
+
+    public void SetSecretWorldPriceConfig(int increment, int maxSteps)
+    {
+        SetInt(SaveKeys.SECRET_WORLD_PRICE_INCREMENT, Mathf.Max(0, increment));
+        SetInt(SaveKeys.SECRET_WORLD_PRICE_MAX_STEPS, Mathf.Max(0, maxSteps));
+    }
+
+    public int GetSecretWorldPriceSteps()
+    {
+        EnsureSecretWorldPriceSchedule();
+        return Mathf.Max(0, GetInt(SaveKeys.SECRET_WORLD_PRICE_STEPS, 0));
+    }
+
+    public void IncrementSecretWorldPriceSteps()
+    {
+        EnsureSecretWorldPriceSchedule();
+
+        int steps = Mathf.Max(0, GetInt(SaveKeys.SECRET_WORLD_PRICE_STEPS, 0));
+        int maxSteps = Mathf.Max(0, GetInt(SaveKeys.SECRET_WORLD_PRICE_MAX_STEPS, 0));
+        if (maxSteps > 0)
+            steps = Mathf.Min(steps + 1, maxSteps);
+        else
+            steps += 1;
+
+        SetInt(SaveKeys.SECRET_WORLD_PRICE_STEPS, steps);
+    }
+
+    public int GetSecretWorldHouseEntryPrice(SecretWorld world)
+    {
+        if (world == null)
+            return 0;
+
+        int steps = GetSecretWorldPriceSteps();
+        int maxSteps = Mathf.Max(0, world.maxHouseEntryPriceIncreases);
+        int increment = Mathf.Max(0, world.houseEntryPriceIncrease);
+        if (maxSteps > 0)
+            steps = Mathf.Clamp(steps, 0, maxSteps);
+
+        return increment * Mathf.Max(0, steps);
+    }
+
+    public bool IsSecretWorldTravelPaid(int index)
+    {
+        long rotationTicks = GetSecretWorldRotationTicks();
+        if (rotationTicks <= 0)
+            return false;
+
+        int paidIndex = GetInt(SaveKeys.SECRET_WORLD_TRAVEL_PAID_INDEX, -1);
+        string paidTicks = GetString(SaveKeys.SECRET_WORLD_TRAVEL_PAID_ROTATION_TICKS, string.Empty);
+        return paidIndex == index && paidTicks == rotationTicks.ToString();
+    }
+
+    public void MarkSecretWorldTravelPaid(int index)
+    {
+        long rotationTicks = GetSecretWorldRotationTicks();
+        if (rotationTicks <= 0)
+            return;
+
+        SetInt(SaveKeys.SECRET_WORLD_TRAVEL_PAID_INDEX, index);
+        SetString(SaveKeys.SECRET_WORLD_TRAVEL_PAID_ROTATION_TICKS, rotationTicks.ToString());
+    }
+
+    private void EnsureSecretWorldPriceSchedule()
+    {
+        long rotationTicks = GetSecretWorldRotationTicks();
+        int index = GetSecretWorldIndex();
+        if (rotationTicks <= 0 || index < 0)
+            return;
+
+        string savedTicks = GetString(SaveKeys.SECRET_WORLD_PRICE_ROTATION_TICKS, string.Empty);
+        int savedIndex = GetInt(SaveKeys.SECRET_WORLD_PRICE_INDEX, -1);
+
+        if (savedIndex != index || savedTicks != rotationTicks.ToString())
+        {
+            SetInt(SaveKeys.SECRET_WORLD_PRICE_STEPS, 0);
+            SetString(SaveKeys.SECRET_WORLD_PRICE_ROTATION_TICKS, rotationTicks.ToString());
+            SetInt(SaveKeys.SECRET_WORLD_PRICE_INDEX, index);
+        }
+    }
 
     public void SaveInputBindings()
     {

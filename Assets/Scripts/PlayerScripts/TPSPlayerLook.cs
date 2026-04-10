@@ -55,8 +55,15 @@ public class TPSPlayerLook : MonoBehaviour
     void UpdateNeckRotation()
     {
         // 1️⃣ Direction caméra + offset vertical
-        Vector3 lookDir = (_player != null && _player.currentNPC != null) ? _player.currentNPC.neck.transform.position : cameraTransform.forward + Vector3.up * verticalLookOffset;
-        lookDir.Normalize();
+        Vector3 lookDir;
+        if (_player != null && _player.currentNPC != null && _player.currentNPC.neck != null)
+        {
+            lookDir = (_player.currentNPC.neck.position - neck.position).normalized;
+        }
+        else
+        {
+            lookDir = (cameraTransform.forward + Vector3.up * verticalLookOffset).normalized;
+        }
 
         // 2️⃣ Calcul angle entre forward personnage et direction caméra
         float angleFromForward = Vector3.Angle(characterRoot.forward, lookDir);

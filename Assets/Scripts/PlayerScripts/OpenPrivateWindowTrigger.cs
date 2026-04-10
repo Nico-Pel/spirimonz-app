@@ -6,6 +6,8 @@ using UnityEngine;
 
 public class OpenPrivateWindowTrigger : GameBehaviour
 {
+    public bool ignoreTrigger = false;
+    
     public int windowID;
     private UIGame _uiGame;
     
@@ -20,7 +22,7 @@ public class OpenPrivateWindowTrigger : GameBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
-        if (_canBeTriggered == false) return;
+        if (_canBeTriggered == false || ignoreTrigger) return;
         
         if (other.CompareTag("Player"))
         {

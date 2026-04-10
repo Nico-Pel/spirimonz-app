@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
+using UnityEngine.SceneManagement;
 
 public class UIEntryPanel : GameBehaviour
 {
@@ -35,11 +36,16 @@ public class UIEntryPanel : GameBehaviour
 
     [Header("Tips")]
     public GameObject iTips;
+    public Image tipsBackground;
+    public Color tipsBackgroundDefault = new Color(1f, 1f, 1f, 0.15f);
+    public Color tipsBackgroundSecretWorld = new Color(1f, 0.85f, 0.3f, 0.2f);
     public TextMeshProUGUI tTips;
     [TextArea] public string tipsHasQuestsEnglish = "Complete all quests to gain free access to this location.";
     [TextArea] public string tipsHasQuestsFrench = "Complete toutes les quêtes pour accéder gratuitement à cet endroit.";
     [TextArea] public string tipsAllCompletedEnglish = "All quests completed, access is now free.";
     [TextArea] public string tipsAllCompletedFrench = "Toutes les quêtes sont complétées, l'accès est maintenant gratuit.";
+    [TextArea] public string tipsSecretWorldEnglish = "The entry cost for this house increases with the number of runs in this world until your next visit.";
+    [TextArea] public string tipsSecretWorldFrench = "Le coût d'entrée augmente avec le nombre de runs dans ce monde jusqu'à ta prochaine visite.";
     [TextArea] public string enterTextEnglish = "Enter";
     [TextArea] public string enterTextFrench = "Entrer";
     [TextArea] public string freeTextEnglish = "Free";
@@ -54,6 +60,11 @@ public class UIEntryPanel : GameBehaviour
     public void OpenPanel(HouseEntry entry)
     {
         _currentEntry = entry;
+
+        if (_gameManager == null)
+        {
+            _gameManager = GameManager.Instance;
+        }
 
         bool allQuestCompleted = true;
         int questCount = entry != null && entry.map != null && entry.map.quests != null ? entry.map.quests.Length : 0;
@@ -75,6 +86,17 @@ public class UIEntryPanel : GameBehaviour
         bool freeAccess = freeByPrice || (allQuestCompleted && questCount > 0);
         _allQuestCompleted = freeAccess;
 
+        bool isSecretWorldHouse = entry != null && entry.map != null && entry.map.linkedSecretWorld != null;
+        bool isInSecretWorld = _gameManager != null &&
+                               _gameManager.IsTemporaryWorldScene(SceneManager.GetActiveScene().name);
+        bool useSecretWorldPricing = isSecretWorldHouse && isInSecretWorld;
+        if (useSecretWorldPricing && _gameManager != null)
+        {
+            _gameManager.SetSecretWorldPriceConfig(
+                entry.map.linkedSecretWorld.houseEntryPriceIncrease,
+                entry.map.linkedSecretWorld.maxHouseEntryPriceIncreases);
+        }
+
         if (normalPanel != null)
             normalPanel.SetActive(entry == null || !entry.hasTutorialModes);
         if (tutoPanel != null)
@@ -86,10 +108,22 @@ public class UIEntryPanel : GameBehaviour
         mapImage.sprite = entry.map.sprite;
         
         bGo.image.color = freeAccess && !freeByPrice ? goColorQuestsCompleted : goColorBase;
-        if (freeByPrice)
-            tPrice.text = Localize(freeTextEnglish, freeTextFrench);
-        else
-            tPrice.text = freeAccess ? Localize(enterTextEnglish, enterTextFrench) : (entry.map.entryPrince + "$");
+
+        int priceToUse = entry != null && entry.map != null ? entry.map.entryPrince : 0;
+        if (useSecretWorldPricing)
+            priceToUse = _gameManager != null ? _gameManager.GetSecretWorldHouseEntryPrice(entry.map.linkedSecretWorld) : 0;
+        else if (freeAccess)
+            priceToUse = 0;
+
+        if (tPrice != null)
+        {
+            if (priceToUse <= 0)
+                tPrice.text = Localize(freeTextEnglish, freeTextFrench);
+            else if (!useSecretWorldPricing && freeAccess && !freeByPrice)
+                tPrice.text = Localize(enterTextEnglish, enterTextFrench);
+            else
+                tPrice.text = priceToUse + "$";
+        }
 
         _entry = entry;
         
@@ -114,12 +148,7 @@ public class UIEntryPanel : GameBehaviour
             bGoTraining.onClick.AddListener(GoTraining);
         }
 
-        if (_gameManager == null)
-        {
-            _gameManager = GameManager.Instance;;
-        }
-
-        int price = freeAccess ? 0 : entry.map.entryPrince;
+        int price = priceToUse;
         bool enoughMoney = price <= 0 || _gameManager.CanBuy(price);
         bGo.interactable = enoughMoney;
         tPrice.color = enoughMoney ? Color.white : Color.red;
@@ -130,14 +159,24 @@ public class UIEntryPanel : GameBehaviour
 
         if (iTips != null)
         {
-            bool showTips = questCount > 0 && !freeByPrice;
+            bool showTips = useSecretWorldPricing || (questCount > 0 && !freeByPrice);
             iTips.SetActive(showTips);
+            if (tipsBackground != null)
+                tipsBackground.color = useSecretWorldPricing ? tipsBackgroundSecretWorld : tipsBackgroundDefault;
+
             if (showTips && tTips != null)
             {
-                string tips = freeAccess
-                    ? Localize(tipsAllCompletedEnglish, tipsAllCompletedFrench)
-                    : Localize(tipsHasQuestsEnglish, tipsHasQuestsFrench);
-                tTips.text = tips;
+                if (useSecretWorldPricing)
+                {
+                    tTips.text = Localize(tipsSecretWorldEnglish, tipsSecretWorldFrench);
+                }
+                else
+                {
+                    string tips = freeAccess
+                        ? Localize(tipsAllCompletedEnglish, tipsAllCompletedFrench)
+                        : Localize(tipsHasQuestsEnglish, tipsHasQuestsFrench);
+                    tTips.text = tips;
+                }
             }
         }
     }
@@ -162,7 +201,14 @@ public class UIEntryPanel : GameBehaviour
         if (_gameManager == null || _currentEntry == null)
             return;
 
+        bool isSecretWorldHouse = _currentEntry.map != null && _currentEntry.map.linkedSecretWorld != null;
+        bool isInSecretWorld = _gameManager.IsTemporaryWorldScene(SceneManager.GetActiveScene().name);
+        bool useSecretWorldPricing = isSecretWorldHouse && isInSecretWorld;
+
         int price = _allQuestCompleted ? 0 : _currentEntry.map.entryPrince;
+        if (useSecretWorldPricing)
+            price = _gameManager.GetSecretWorldHouseEntryPrice(_currentEntry.map.linkedSecretWorld);
+
         if (price > 0 && !_gameManager.Buy(price))
             return;
 

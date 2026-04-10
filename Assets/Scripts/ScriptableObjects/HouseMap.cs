@@ -16,6 +16,7 @@ public class HouseMap : ScriptableObject
     public Quest[] quests;
     public int entryPrince = 50;
     public int victoryReward = 100;
+    public SecretWorld linkedSecretWorld;
     
     //Use bake rooms button in house scene
     [ReadOnly] public int roomsNumber;

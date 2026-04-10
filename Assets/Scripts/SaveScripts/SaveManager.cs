@@ -17,6 +17,20 @@ public static class SaveKeys
     public const string FPS_SENSITIVITY_MULTIPLIER = "fps_sensitivity_multiplier";
     public const string LANGUAGE = "language";
     public const string TUTORIAL_DOOR_UNLOCKED = "tutorial_door_unlocked";
+    public const string SECRET_WORLD_INDEX = "secret_world_index";
+    public const string SECRET_WORLD_START_UTC_TICKS = "secret_world_start_utc_ticks";
+    public const string SECRET_WORLD_LAST_ROTATION_LOCAL_TICKS = "secret_world_last_rotation_local_ticks";
+    public const string SECRET_WORLD_SCENE_NAME = "secret_world_scene_name";
+    public const string SECRET_WORLD_PRICE_STEPS = "secret_world_price_steps";
+    public const string SECRET_WORLD_PRICE_ROTATION_TICKS = "secret_world_price_rotation_ticks";
+    public const string SECRET_WORLD_PRICE_INDEX = "secret_world_price_index";
+    public const string SECRET_WORLD_PRICE_MAX_STEPS = "secret_world_price_max_steps";
+    public const string SECRET_WORLD_PRICE_INCREMENT = "secret_world_price_increment";
+    public const string SECRET_WORLD_TRAVEL_PAID_INDEX = "secret_world_travel_paid_index";
+    public const string SECRET_WORLD_TRAVEL_PAID_ROTATION_TICKS = "secret_world_travel_paid_rotation_ticks";
+    public const string SECRET_WORLD_ROTATION_HOUR = "secret_world_rotation_hour";
+    public const string SECRET_WORLD_ROTATION_MINUTE = "secret_world_rotation_minute";
+    public const string SECRET_WORLD_RETURN_TO_TAXI = "secret_world_return_to_taxi";
 }
 
 [Serializable]

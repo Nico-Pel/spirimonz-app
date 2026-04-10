@@ -18,7 +18,6 @@ public class SoundParameters : GameBehaviour
     [SerializeField] private Transform sourceParent = null;
     [SerializeField] private bool ignoreAudioOcclusion = false;
 
-    public bool useDebugDeCon;
     private void OnEnable()
     {
         if(playerOnEnabled)
@@ -54,6 +53,7 @@ public class SoundParameters : GameBehaviour
     
     public void PlaySound()
     {
+        Debug.Log("POUET1 " + name);
         if (possibleClips == null || possibleClips.Length == 0)
             return;
         if (SoundManager.Instance == null)
@@ -70,6 +70,8 @@ public class SoundParameters : GameBehaviour
         float pitch = Random.Range(pitchMin, pitchMax);
         Vector3 positionToUse = usePlayerPos ? GetPlayerPosition(transform.position) : transform.position;
         SoundManager.Instance.PlaySound(clip, position: positionToUse, volumeToUse, pitch, duration, range, loop, sourceParent, ignoreAudioOcclusion);
+        
+        Debug.Log("POUET2 " + name);
     }
 
     private Vector3 GetPlayerPosition(Vector3 fallback)

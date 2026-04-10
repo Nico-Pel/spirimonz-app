@@ -20,6 +20,7 @@ public class Player : GameBehaviour
     public bool detectNPC;
     [SerializeField] float interactionDistance = 3f;
     [SerializeField] float interactionAngle = 45f;
+    [SerializeField] float interactionAngleIgnoreDistance = 0.6f;
     [SerializeField] LayerMask npcLayer;
 
     [ReadOnly] public NPC currentNPC;
@@ -117,8 +118,11 @@ public class Player : GameBehaviour
             Vector3 dirToNPC = (npc.transform.position - characterController.transform.position).normalized;
 
             float angle = Vector3.Angle(characterController.transform.forward, dirToNPC);
+            float distToNpc = Vector3.Distance(characterController.transform.position, npc.transform.position);
+            float ignoreDistance = npc.interactionAngleIgnoreDistance > 0f ? npc.interactionAngleIgnoreDistance : interactionAngleIgnoreDistance;
+            bool withinAngle = angle <= interactionAngle || (ignoreDistance > 0f && distToNpc <= ignoreDistance);
 
-            if (angle <= interactionAngle && npc.CanInteract(this))
+            if (withinAngle && npc.CanInteract(this))
             {
                 if (currentNPC == null)
                 {

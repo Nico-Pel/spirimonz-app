@@ -10,6 +10,9 @@ public class World : GameBehaviour
     public string worldName;
     public Transform[] spawnPoints;
     public Transform startPosTuto;
+    public Transform spawnTaxiPos;
+    public Animator travelAnimator;
+    public string travelTrigger = "Travel";
 
     [Header("Tutorial Redirect")]
     public bool autoRedirectToTutorial = true;
@@ -51,5 +54,16 @@ public class World : GameBehaviour
             return;
 
         gm.LoadHouseSceneWithMode(tutorialSceneName, GameManager.HouseSceneMode.Tutorial);
+    }
+
+    public void PlayTravelAnimation()
+    {
+        if (travelAnimator == null)
+            return;
+
+        if (string.IsNullOrWhiteSpace(travelTrigger))
+            return;
+
+        travelAnimator.SetTrigger(travelTrigger);
     }
 }

@@ -161,6 +161,13 @@ public class HouseEntry : GameBehaviour
         player.LockControls(true);
         
         UIGame.Instance?.EnableOverlay(true, fadeDuration);
+
+        if (isExit && _gameManager != null)
+        {
+            House house = House.Instance;
+            if (house != null && house.map != null && house.map.linkedSecretWorld != null)
+                _gameManager.MarkSecretWorldReturnToTaxi();
+        }
         
         if(_gameManager != null && !isExit)
             _gameManager.SetCurrentHouseID(houseID);

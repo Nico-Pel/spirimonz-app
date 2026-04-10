@@ -40,6 +40,8 @@ public class InventoryManager : GameBehaviour
     private GamePlayer _gamePlayer;
     private GameManager _gameManager;
     private int _teamChangeDepth;
+    private int _loadHouseSceneRetries;
+    private const int MaxLoadHouseSceneRetries = 10;
 
     public UnityEvent onTeamChange;
 
@@ -69,7 +71,18 @@ public class InventoryManager : GameBehaviour
     public void OnLoadHouseScene()
     {
         InitPlayer();
-        InitializeTeam(); 
+        if (_gamePlayer == null)
+        {
+            if (_loadHouseSceneRetries < MaxLoadHouseSceneRetries)
+            {
+                _loadHouseSceneRetries++;
+                this.Invoke(0.05f, OnLoadHouseScene);
+            }
+            return;
+        }
+
+        _loadHouseSceneRetries = 0;
+        InitializeTeam();
         UseWatchObject();
     }
 
@@ -430,16 +443,25 @@ public class InventoryManager : GameBehaviour
 
     private void UseWatchObject()
     {
-        if (_gamePlayer.interactionController.objectInHands) return;
+        if (_gamePlayer == null)
+            return;
+
+        if (_gamePlayer.interactionController != null && _gamePlayer.interactionController.objectInHands)
+            return;
         
-        _gamePlayer.handAnimator.SetInteger("HandPos", (int)HandPoses.LightAim);
+        if (_gamePlayer.handAnimator != null)
+            _gamePlayer.handAnimator.SetInteger("HandPos", (int)HandPoses.LightAim);
         UnequipSpirimonz();
     }
 
     private void EquipSpirimonz(int teamIndex)
     {
+        if (_gamePlayer == null)
+            return;
+
         //You can't select a Spirimonz if an object in hands
-        if (_gamePlayer.interactionController.objectInHands != null) return;
+        if (_gamePlayer.interactionController != null && _gamePlayer.interactionController.objectInHands != null)
+            return;
 
         if (teamIndex < 0 || teamIndex >= spirimonzTeam.Count)
             return;
