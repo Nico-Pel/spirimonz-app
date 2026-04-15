@@ -8,4 +8,9 @@ public class Article : ScriptableObject
     public float winValueMultiplier = 2;
     public string articleName;
     public int value = 10;
+
+    public string GetLocalizedName()
+    {
+        return LocalizationManager.Get(LocalizationKeys.ArticleName(this), articleName);
+    }
 }

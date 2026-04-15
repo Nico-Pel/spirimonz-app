@@ -51,6 +51,12 @@ public class UIEntryPanel : GameBehaviour
     [TextArea] public string freeTextEnglish = "Free";
     [TextArea] public string freeTextFrench = "Gratuit";
 
+    private const string TipsHasQuestsKey = "ui.entry.tips.has_quests";
+    private const string TipsAllCompletedKey = "ui.entry.tips.all_completed";
+    private const string TipsSecretWorldKey = "ui.entry.tips.secret_world";
+    private const string EnterKey = "ui.entry.enter";
+    private const string FreeKey = "ui.common.free";
+
     private GameManager _gameManager;
     private HouseEntry _entry;
 
@@ -103,7 +109,7 @@ public class UIEntryPanel : GameBehaviour
             tutoPanel.SetActive(entry != null && entry.hasTutorialModes);
         
         gameObject.SetActive(true);
-        tTitleMap.text = entry.map.houseName;
+        tTitleMap.text = entry.map.GetLocalizedName();
         tRoomsNb.text = entry.map.roomsNumber.ToString();
         mapImage.sprite = entry.map.sprite;
         
@@ -118,9 +124,9 @@ public class UIEntryPanel : GameBehaviour
         if (tPrice != null)
         {
             if (priceToUse <= 0)
-                tPrice.text = Localize(freeTextEnglish, freeTextFrench);
+                tPrice.text = LocalizationManager.Get(FreeKey, LocalizeFallback(freeTextEnglish, freeTextFrench));
             else if (!useSecretWorldPricing && freeAccess && !freeByPrice)
-                tPrice.text = Localize(enterTextEnglish, enterTextFrench);
+                tPrice.text = LocalizationManager.Get(EnterKey, LocalizeFallback(enterTextEnglish, enterTextFrench));
             else
                 tPrice.text = priceToUse + "$";
         }
@@ -168,13 +174,13 @@ public class UIEntryPanel : GameBehaviour
             {
                 if (useSecretWorldPricing)
                 {
-                    tTips.text = Localize(tipsSecretWorldEnglish, tipsSecretWorldFrench);
+                    tTips.text = LocalizationManager.Get(TipsSecretWorldKey, LocalizeFallback(tipsSecretWorldEnglish, tipsSecretWorldFrench));
                 }
                 else
                 {
                     string tips = freeAccess
-                        ? Localize(tipsAllCompletedEnglish, tipsAllCompletedFrench)
-                        : Localize(tipsHasQuestsEnglish, tipsHasQuestsFrench);
+                        ? LocalizationManager.Get(TipsAllCompletedKey, LocalizeFallback(tipsAllCompletedEnglish, tipsAllCompletedFrench))
+                        : LocalizationManager.Get(TipsHasQuestsKey, LocalizeFallback(tipsHasQuestsEnglish, tipsHasQuestsFrench));
                     tTips.text = tips;
                 }
             }
@@ -241,7 +247,7 @@ public class UIEntryPanel : GameBehaviour
         UIGame.Instance.CloseAllWindows();
     }
 
-    private string Localize(string english, string french)
+    private string LocalizeFallback(string english, string french)
     {
         if (LanguageManager.CurrentLanguage == Language.French && !string.IsNullOrWhiteSpace(french))
             return french;

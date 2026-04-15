@@ -44,6 +44,7 @@ public class UITeamBuilder : GameBehaviour
 
     [Header("Remove UI")]
     public Color removeLabelColor = new Color(1f, 0.3f, 0.3f, 1f);
+    private const string RemoveKey = "ui.team_builder.remove";
     
     private UISpirimonzPanelSelector _currentSelected;
     private Player _player;
@@ -146,7 +147,7 @@ public class UITeamBuilder : GameBehaviour
             }
         }
         if (leftTitleText != null && spmzSettings != null)
-            leftTitleText.text = spmzSettings.spirimonzName;
+            leftTitleText.text = spmzSettings.GetLocalizedName();
     }
 
     private void OnEnable()
@@ -205,7 +206,7 @@ public class UITeamBuilder : GameBehaviour
         {
             if (secondaryTitleText != null)
             {
-                secondaryTitleText.text = spmzSelector.spirimonzSettings.spirimonzName;
+                secondaryTitleText.text = spmzSelector.spirimonzSettings.GetLocalizedName();
                 secondaryTitleText.color = Color.white;
             }
             if (selectedSpirimonzInfoSetter != null)
@@ -303,7 +304,7 @@ public class UITeamBuilder : GameBehaviour
             bInfoRight.interactable = false;
         if (secondaryTitleText != null)
         {
-            secondaryTitleText.text = "Remove";
+            secondaryTitleText.text = LocalizationManager.Get(RemoveKey, "Remove");
             secondaryTitleText.color = removeLabelColor;
         }
     }

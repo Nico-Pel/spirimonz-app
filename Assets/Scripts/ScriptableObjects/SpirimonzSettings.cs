@@ -64,4 +64,18 @@ public class SpirimonzSettings : ScriptableObject
             a.evidenceTypes != null &&
             a.evidenceTypes.Contains(evidenceType));
     }
+
+    public string GetLocalizedName()
+    {
+        return LocalizationManager.Get(LocalizationKeys.SpirimonzName(this), spirimonzName);
+    }
+
+    public string GetLocalizedAbilityDescription(int index)
+    {
+        if (abilities == null || index < 0 || index >= abilities.Length)
+            return string.Empty;
+
+        string fallback = abilities[index].description;
+        return LocalizationManager.Get(LocalizationKeys.SpirimonzAbility(this, index), fallback);
+    }
 }

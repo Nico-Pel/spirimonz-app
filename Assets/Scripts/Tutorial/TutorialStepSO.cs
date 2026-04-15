@@ -12,4 +12,12 @@ public class TutorialStepSO : ScriptableObject
     [Header("Completion Flow")]
     public bool requireNpcReturn = true;
     [Min(0f)] public float autoAdvanceDelay = 3f;
+
+    public string GetLocalizedObjectiveTitle()
+    {
+        string fallback = LanguageManager.CurrentLanguage == Language.French && !string.IsNullOrWhiteSpace(objective.titleFrench)
+            ? objective.titleFrench
+            : objective.titleEnglish;
+        return LocalizationManager.Get(LocalizationKeys.TutorialObjectiveTitle(this), fallback);
+    }
 }

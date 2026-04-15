@@ -57,6 +57,7 @@ public class InputManager : GameBehaviour
     {
         public string id;
         public string label;
+        public string labelKey;
         public Func<KeyCode> getPrimary;
         public Action<KeyCode> setPrimary;
         public Func<KeyCode> getSecondary;
@@ -141,14 +142,19 @@ public class InputManager : GameBehaviour
         return GetKeyName(primary) + " / " + GetKeyName(secondary);
     }
 
+    public string GetKeyDisplayName(KeyCode key)
+    {
+        return GetKeyName(key);
+    }
+
     private string GetKeyName(KeyCode key)
     {
         if (key == KeyCode.Mouse0)
-            return LanguageManager.CurrentLanguage == Language.French ? "Clic gauche" : "Left Mouse Button";
+            return LocalizationManager.Get("input.mouse.left", "Left Mouse Button");
         if (key == KeyCode.Mouse1)
-            return LanguageManager.CurrentLanguage == Language.French ? "Clic droit" : "Right Mouse Button";
+            return LocalizationManager.Get("input.mouse.right", "Right Mouse Button");
         if (key == KeyCode.Mouse2)
-            return LanguageManager.CurrentLanguage == Language.French ? "Clic milieu" : "Middle Mouse Button";
+            return LocalizationManager.Get("input.mouse.middle", "Middle Mouse Button");
 
         return key.ToString();
     }
@@ -299,24 +305,24 @@ public class InputManager : GameBehaviour
     {
         var bindings = new List<BindingDefinition>
         {
-            new BindingDefinition { id = "move_forward", label = "Move Forward", getPrimary = () => forwardKey, setPrimary = v => forwardKey = v, getSecondary = () => forwardKeyAlt, setSecondary = v => forwardKeyAlt = v },
-            new BindingDefinition { id = "move_backward", label = "Move Backward", getPrimary = () => backwardKey, setPrimary = v => backwardKey = v, getSecondary = () => backwardKeyAlt, setSecondary = v => backwardKeyAlt = v },
-            new BindingDefinition { id = "move_left", label = "Move Left", getPrimary = () => leftKey, setPrimary = v => leftKey = v, getSecondary = () => leftKeyAlt, setSecondary = v => leftKeyAlt = v },
-            new BindingDefinition { id = "move_right", label = "Move Right", getPrimary = () => rightKey, setPrimary = v => rightKey = v, getSecondary = () => rightKeyAlt, setSecondary = v => rightKeyAlt = v },
-            new BindingDefinition { id = "sprint", label = "Sprint", getPrimary = () => sprintKey, setPrimary = v => sprintKey = v, getSecondary = () => sprintKeyAlt, setSecondary = v => sprintKeyAlt = v },
-            new BindingDefinition { id = "drop_spmz", label = "Drop Spirimonz", getPrimary = () => dropSpirimonz, setPrimary = v => dropSpirimonz = v, getSecondary = () => dropSpirimonzAlt, setSecondary = v => dropSpirimonzAlt = v },
-            new BindingDefinition { id = "grab", label = "Grab", getPrimary = () => grabObject, setPrimary = v => grabObject = v, getSecondary = () => grabObjectAlt, setSecondary = v => grabObjectAlt = v },
-            new BindingDefinition { id = "drop", label = "Drop", getPrimary = () => dropObject, setPrimary = v => dropObject = v, getSecondary = () => dropObjectAlt, setSecondary = v => dropObjectAlt = v },
-            new BindingDefinition { id = "throw", label = "Throw", getPrimary = () => throwObject, setPrimary = v => throwObject = v, getSecondary = () => throwObjectAlt, setSecondary = v => throwObjectAlt = v },
-            new BindingDefinition { id = "toggle_light", label = "Toggle Light", getPrimary = () => turnLight, setPrimary = v => turnLight = v, getSecondary = () => turnLightAlt, setSecondary = v => turnLightAlt = v },
-            new BindingDefinition { id = "open_journal", label = "Open Journal", getPrimary = () => openJournal, setPrimary = v => openJournal = v, getSecondary = () => openJournalAlt, setSecondary = v => openJournalAlt = v },
-            new BindingDefinition { id = "open_team", label = "Open Team", getPrimary = () => openTeamMenu, setPrimary = v => openTeamMenu = v, getSecondary = () => openTeamMenuAlt, setSecondary = v => openTeamMenuAlt = v },
-            new BindingDefinition { id = "exit_menus", label = "Exit Menus", getPrimary = () => exitMenus, setPrimary = v => exitMenus = v, getSecondary = () => exitMenusAlt, setSecondary = v => exitMenusAlt = v },
-            new BindingDefinition { id = "crouch", label = "Crouch", getPrimary = () => crouchKey, setPrimary = v => crouchKey = v, getSecondary = () => crouchKeyAlt, setSecondary = v => crouchKeyAlt = v },
-            new BindingDefinition { id = "jump", label = "Jump", getPrimary = () => jumpKey, setPrimary = v => jumpKey = v, getSecondary = () => jumpKeyAlt, setSecondary = v => jumpKeyAlt = v },
-            new BindingDefinition { id = "world_interaction", label = "World Interaction", getPrimary = () => worldInteractions, setPrimary = v => worldInteractions = v, getSecondary = () => worldInteractionsAlt, setSecondary = v => worldInteractionsAlt = v },
-            new BindingDefinition { id = "next", label = "Next", getPrimary = () => primaryNext, setPrimary = v => primaryNext = v, getSecondary = () => secondaryNext, setSecondary = v => secondaryNext = v },
-            new BindingDefinition { id = "previous", label = "Previous", getPrimary = () => primaryPrevious, setPrimary = v => primaryPrevious = v, getSecondary = () => secondaryPrevious, setSecondary = v => secondaryPrevious = v }
+            new BindingDefinition { id = "move_forward", labelKey = "input.binding.move_forward", label = "Move Forward", getPrimary = () => forwardKey, setPrimary = v => forwardKey = v, getSecondary = () => forwardKeyAlt, setSecondary = v => forwardKeyAlt = v },
+            new BindingDefinition { id = "move_backward", labelKey = "input.binding.move_backward", label = "Move Backward", getPrimary = () => backwardKey, setPrimary = v => backwardKey = v, getSecondary = () => backwardKeyAlt, setSecondary = v => backwardKeyAlt = v },
+            new BindingDefinition { id = "move_left", labelKey = "input.binding.move_left", label = "Move Left", getPrimary = () => leftKey, setPrimary = v => leftKey = v, getSecondary = () => leftKeyAlt, setSecondary = v => leftKeyAlt = v },
+            new BindingDefinition { id = "move_right", labelKey = "input.binding.move_right", label = "Move Right", getPrimary = () => rightKey, setPrimary = v => rightKey = v, getSecondary = () => rightKeyAlt, setSecondary = v => rightKeyAlt = v },
+            new BindingDefinition { id = "sprint", labelKey = "input.binding.sprint", label = "Sprint", getPrimary = () => sprintKey, setPrimary = v => sprintKey = v, getSecondary = () => sprintKeyAlt, setSecondary = v => sprintKeyAlt = v },
+            new BindingDefinition { id = "drop_spmz", labelKey = "input.binding.drop_spirimonz", label = "Drop Spirimonz", getPrimary = () => dropSpirimonz, setPrimary = v => dropSpirimonz = v, getSecondary = () => dropSpirimonzAlt, setSecondary = v => dropSpirimonzAlt = v },
+            new BindingDefinition { id = "grab", labelKey = "input.binding.grab", label = "Grab", getPrimary = () => grabObject, setPrimary = v => grabObject = v, getSecondary = () => grabObjectAlt, setSecondary = v => grabObjectAlt = v },
+            new BindingDefinition { id = "drop", labelKey = "input.binding.drop", label = "Drop", getPrimary = () => dropObject, setPrimary = v => dropObject = v, getSecondary = () => dropObjectAlt, setSecondary = v => dropObjectAlt = v },
+            new BindingDefinition { id = "throw", labelKey = "input.binding.throw", label = "Throw", getPrimary = () => throwObject, setPrimary = v => throwObject = v, getSecondary = () => throwObjectAlt, setSecondary = v => throwObjectAlt = v },
+            new BindingDefinition { id = "toggle_light", labelKey = "input.binding.toggle_light", label = "Toggle Light", getPrimary = () => turnLight, setPrimary = v => turnLight = v, getSecondary = () => turnLightAlt, setSecondary = v => turnLightAlt = v },
+            new BindingDefinition { id = "open_journal", labelKey = "input.binding.open_journal", label = "Open Journal", getPrimary = () => openJournal, setPrimary = v => openJournal = v, getSecondary = () => openJournalAlt, setSecondary = v => openJournalAlt = v },
+            new BindingDefinition { id = "open_team", labelKey = "input.binding.open_team", label = "Open Team", getPrimary = () => openTeamMenu, setPrimary = v => openTeamMenu = v, getSecondary = () => openTeamMenuAlt, setSecondary = v => openTeamMenuAlt = v },
+            new BindingDefinition { id = "exit_menus", labelKey = "input.binding.exit_menus", label = "Exit Menus", getPrimary = () => exitMenus, setPrimary = v => exitMenus = v, getSecondary = () => exitMenusAlt, setSecondary = v => exitMenusAlt = v },
+            new BindingDefinition { id = "crouch", labelKey = "input.binding.crouch", label = "Crouch", getPrimary = () => crouchKey, setPrimary = v => crouchKey = v, getSecondary = () => crouchKeyAlt, setSecondary = v => crouchKeyAlt = v },
+            new BindingDefinition { id = "jump", labelKey = "input.binding.jump", label = "Jump", getPrimary = () => jumpKey, setPrimary = v => jumpKey = v, getSecondary = () => jumpKeyAlt, setSecondary = v => jumpKeyAlt = v },
+            new BindingDefinition { id = "world_interaction", labelKey = "input.binding.world_interaction", label = "World Interaction", getPrimary = () => worldInteractions, setPrimary = v => worldInteractions = v, getSecondary = () => worldInteractionsAlt, setSecondary = v => worldInteractionsAlt = v },
+            new BindingDefinition { id = "next", labelKey = "input.binding.next", label = "Next", getPrimary = () => primaryNext, setPrimary = v => primaryNext = v, getSecondary = () => secondaryNext, setSecondary = v => secondaryNext = v },
+            new BindingDefinition { id = "previous", labelKey = "input.binding.previous", label = "Previous", getPrimary = () => primaryPrevious, setPrimary = v => primaryPrevious = v, getSecondary = () => secondaryPrevious, setSecondary = v => secondaryPrevious = v }
         };
 
         if (inventoryKeys == null || inventoryKeys.Length != 6)

@@ -29,6 +29,10 @@ public class UISecretWorldWindow : GameBehaviour
     [TextArea] public string freeTextEnglish = "Free";
     [TextArea] public string freeTextFrench = "Gratuit";
 
+    private const string ConditionsKey = "ui.secret_world.conditions";
+    private const string TipsKey = "ui.secret_world.tips";
+    private const string FreeKey = "ui.common.free";
+
     [Header("Rotation")]
     [Range(0, 23)] public int rotationHourLocal = 0;
     [Range(0, 59)] public int rotationMinuteLocal = 0;
@@ -162,13 +166,13 @@ public class UISecretWorldWindow : GameBehaviour
         }
 
         if (tWorldName != null)
-            tWorldName.text = world.worldName;
+            tWorldName.text = world.GetLocalizedName();
         if (worldImage != null)
             worldImage.sprite = world.worldImage;
         if (tConditions != null)
-            tConditions.text = Localize(conditionsEnglish, conditionsFrench);
+            tConditions.text = LocalizationManager.Get(ConditionsKey, LocalizeFallback(conditionsEnglish, conditionsFrench));
         if (tTips != null)
-            tTips.text = Localize(tipsEnglish, tipsFrench);
+            tTips.text = LocalizationManager.Get(TipsKey, LocalizeFallback(tipsEnglish, tipsFrench));
 
         if (_gameManager != null)
             _gameManager.SetSecretWorldPriceConfig(world.houseEntryPriceIncrease, world.maxHouseEntryPriceIncreases);
@@ -223,7 +227,9 @@ public class UISecretWorldWindow : GameBehaviour
 
         if (tPrice != null)
         {
-            tPrice.text = price <= 0 ? Localize(freeTextEnglish, freeTextFrench) : (price + "$");
+            tPrice.text = price <= 0
+                ? LocalizationManager.Get(FreeKey, LocalizeFallback(freeTextEnglish, freeTextFrench))
+                : (price + "$");
             tPrice.color = canPay ? priceOkColor : priceNotEnoughColor;
         }
 
@@ -342,7 +348,7 @@ public class UISecretWorldWindow : GameBehaviour
         _gameManager.SetString(SaveKeys.SECRET_WORLD_LAST_ROTATION_LOCAL_TICKS, lastRotationLocal.Ticks.ToString());
     }
 
-    private string Localize(string english, string french)
+    private string LocalizeFallback(string english, string french)
     {
         if (LanguageManager.CurrentLanguage == Language.French && !string.IsNullOrWhiteSpace(french))
             return french;

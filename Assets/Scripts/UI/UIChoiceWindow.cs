@@ -52,6 +52,24 @@ public class UIChoiceWindow : GameBehaviour
         OpenInternal(questionEnglish, questionFrench, answersEnglish, answersFrench, null, null, polarities, onChoice);
     }
 
+    public void OpenWithKeys(
+        string questionKey,
+        string[] answerKeys,
+        ChoicePolarity[] polarities,
+        Action<int> onChoice)
+    {
+        string question = LocalizationManager.Get(questionKey);
+        string[] answers = null;
+        if (answerKeys != null)
+        {
+            answers = new string[answerKeys.Length];
+            for (int i = 0; i < answerKeys.Length; i++)
+                answers[i] = LocalizationManager.Get(answerKeys[i]);
+        }
+
+        OpenInternal(question, question, answers, answers, null, null, polarities, onChoice);
+    }
+
     private void OpenInternal(
         string questionEnglish,
         string questionFrench,

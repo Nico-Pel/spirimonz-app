@@ -25,6 +25,22 @@ public class Dialogue : ScriptableObject
     };
     
     private LetterSoundProfile _lastProfile; 
+
+    public string GetLocalizedNpcName()
+    {
+        string fallback = npcName;
+        return LocalizationManager.Get(LocalizationKeys.DialogueNpcName(this), fallback);
+    }
+
+    public string GetLocalizedLine(int index)
+    {
+        if (lines == null || index < 0 || index >= lines.Count)
+            return string.Empty;
+
+        DialogueLine line = lines[index];
+        string fallback = LanguageManager.CurrentLanguage == Language.French ? line.french : line.english;
+        return LocalizationManager.Get(LocalizationKeys.DialogueLine(this, index), fallback);
+    }
     
     private void OnValidate()
     {

@@ -13,6 +13,16 @@ public class EvidenceParameter : ScriptableObject
     public string info;
     public Sprite icon;
 
+    public string GetLocalizedTitle()
+    {
+        return LocalizationManager.Get(LocalizationKeys.EvidenceTitle(this), title);
+    }
+
+    public string GetLocalizedInfo()
+    {
+        return LocalizationManager.Get(LocalizationKeys.EvidenceInfo(this), info);
+    }
+
     [Header("Evidence in Books")] 
     public Material linkedMaterial;
     public float offsetYYes = 0f;

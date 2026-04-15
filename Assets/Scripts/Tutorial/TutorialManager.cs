@@ -47,8 +47,10 @@ public class TutorialManager : GameBehaviour
     public List<SpirimonzSettings> forcedTeam = new List<SpirimonzSettings>(5);
 
     [Header("UI Text")]
+    public string returnToNpcKey = "tutorial.return_to_npc";
     public string returnToNpcEnglish = "Return to Vaness !";
     public string returnToNpcFrench = "Retourne voir Vaness !";
+    public string objectiveCompleteKey = "tutorial.objective_complete";
     public string objectiveCompleteEnglish = "Objective completed !";
     public string objectiveCompleteFrench = "Objectif termine !";
 
@@ -102,6 +104,7 @@ public class TutorialManager : GameBehaviour
 
     [Header("Training Objective")]
     public bool showTrainingObjective = true;
+    public string trainingObjectiveKey = "tutorial.training_objective";
     [TextArea] public string trainingObjectiveEnglish = "Find the 3 evidences and capture the Spirimonz!";
     [TextArea] public string trainingObjectiveFrench = "Trouve les 3 preuves et capture le spirimonz !";
 
@@ -368,7 +371,7 @@ public class TutorialManager : GameBehaviour
             EnsureTrainingJournalVisibility();
 
             if (showTrainingObjective && objectiveUI != null)
-                objectiveUI.ShowMessage(Localize(trainingObjectiveEnglish, trainingObjectiveFrench), false);
+                objectiveUI.ShowMessage(GetLocalizedTrainingObjective(), false);
         }
 
 #if UNITY_EDITOR
@@ -567,12 +570,12 @@ public class TutorialManager : GameBehaviour
         {
             _state = StepState.WaitingReturn;
             AllowNpcNavigationInputs();
-            ShowCompletionCTA(Localize(returnToNpcEnglish, returnToNpcFrench), true);
+            ShowCompletionCTA(GetLocalizedReturnToNpc(), true);
         }
         else
         {
             _state = StepState.AutoAdvance;
-            ShowCompletionCTA(Localize(objectiveCompleteEnglish, objectiveCompleteFrench), true);
+            ShowCompletionCTA(GetLocalizedObjectiveComplete(), true);
             float delay = _currentStep != null ? Mathf.Max(0f, _currentStep.autoAdvanceDelay) : 0f;
             _autoAdvanceRoutine = StartCoroutine(AutoAdvanceRoutine(delay));
         }
@@ -1388,7 +1391,7 @@ public class TutorialManager : GameBehaviour
         if (objectiveUI == null || _currentStep == null || _currentStep.objective == null)
             return;
 
-        string title = Localize(_currentStep.objective.titleEnglish, _currentStep.objective.titleFrench);
+        string title = _currentStep != null ? _currentStep.GetLocalizedObjectiveTitle() : string.Empty;
         objectiveUI.ShowObjective(title, _progress, GetGoal());
         objectiveUI.BounceOnce();
     }
@@ -1421,7 +1424,7 @@ public class TutorialManager : GameBehaviour
         if (objectiveUI == null)
             return;
 
-        string text = Localize(returnToNpcEnglish, returnToNpcFrench);
+        string text = GetLocalizedReturnToNpc();
         objectiveUI.ShowReturnToNpc(text);
     }
 
@@ -1434,13 +1437,28 @@ public class TutorialManager : GameBehaviour
         objectiveUI.BounceOnce(loop);
     }
 
-    private string Localize(string english, string french)
+    private string GetLocalizedReturnToNpc()
     {
-        string result;
-        if (LanguageManager.CurrentLanguage == Language.French)
-            result = string.IsNullOrWhiteSpace(french) ? english : french;
-        else
-            result = string.IsNullOrWhiteSpace(english) ? french : english;
+        return GetLocalizedText(returnToNpcKey, returnToNpcEnglish, returnToNpcFrench);
+    }
+
+    private string GetLocalizedObjectiveComplete()
+    {
+        return GetLocalizedText(objectiveCompleteKey, objectiveCompleteEnglish, objectiveCompleteFrench);
+    }
+
+    private string GetLocalizedTrainingObjective()
+    {
+        return GetLocalizedText(trainingObjectiveKey, trainingObjectiveEnglish, trainingObjectiveFrench);
+    }
+
+    private string GetLocalizedText(string key, string english, string french)
+    {
+        string fallback = LanguageManager.CurrentLanguage == Language.French && !string.IsNullOrWhiteSpace(french)
+            ? french
+            : english;
+
+        string result = LocalizationManager.Get(key, fallback);
 
         InputManager input = InputManager.Instance;
         if (input != null)

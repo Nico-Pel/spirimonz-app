@@ -61,7 +61,7 @@ public class UIGhostTypeSlot : GameBehaviour
         if (ghostParameters != null)
         {
             ghostIcon.sprite = ghostParameters.ghostTypeData.ghostSprite;
-            titleText.text = ghostParameters.ghostTypeData.ghostType.ToString();
+            titleText.text = LocalizationManager.GetGhostTypeName(ghostParameters.ghostTypeData.ghostType);
         }
     }
 

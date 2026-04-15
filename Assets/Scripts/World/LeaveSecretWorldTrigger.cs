@@ -6,12 +6,9 @@ public class LeaveSecretWorldTrigger : GameBehaviour
     public UIChoiceWindow choiceWindow;
 
     [Header("Texts")]
-    [TextArea] public string questionEnglish = "Are you sure you want to leave?";
-    [TextArea] public string questionFrench = "Es-tu sûr de vouloir partir ?";
-    [TextArea] public string yesEnglish = "Yes";
-    [TextArea] public string yesFrench = "Oui";
-    [TextArea] public string noEnglish = "No";
-    [TextArea] public string noFrench = "Non";
+    public string questionKey = "ui.choice.leave_secret_world";
+    public string yesKey = "ui.common.yes";
+    public string noKey = "ui.common.no";
 
     [Header("Button Style")]
     public UIChoiceWindow.ChoicePolarity yesPolarity = UIChoiceWindow.ChoicePolarity.Positive;
@@ -60,11 +57,10 @@ public class LeaveSecretWorldTrigger : GameBehaviour
         if (choiceWindow == null)
             return;
 
-        string[] answersEn = { yesEnglish, noEnglish };
-        string[] answersFr = { yesFrench, noFrench };
+        string[] answersKeys = { yesKey, noKey };
         UIChoiceWindow.ChoicePolarity[] polarities = { yesPolarity, noPolarity };
 
-        choiceWindow.OpenWithPolarity(questionEnglish, questionFrench, answersEn, answersFr, polarities, HandleChoice);
+        choiceWindow.OpenWithKeys(questionKey, answersKeys, polarities, HandleChoice);
 
         Player player = Player.Instance;
         if (player != null)

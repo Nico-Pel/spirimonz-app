@@ -8,9 +8,10 @@ public class UILootRecap : GameBehaviour
 
     public void Init(Article article, int quantity, int totalValue, Color valueTextColor)
     {
+        string articleName = article.GetLocalizedName();
         tName.text = quantity > 1
-            ? $"{article.articleName} x{quantity}"
-            : article.articleName;
+            ? $"{articleName} x{quantity}"
+            : articleName;
 
         tValue.text = totalValue + "$";
         tValue.color = valueTextColor;

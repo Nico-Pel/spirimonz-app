@@ -5,10 +5,28 @@ using UnityEngine;
 public enum Language
 {
     English,
-    French
+    French,
+    Spanish,
+    Portuguese
 }
 
 public static class LanguageManager
 {
-    public static Language CurrentLanguage = Language.English;
+    public static event System.Action<Language> OnLanguageChanged;
+
+    private static Language _currentLanguage = Language.English;
+
+    public static Language CurrentLanguage
+    {
+        get => _currentLanguage;
+        set
+        {
+            if (_currentLanguage == value)
+                return;
+
+            _currentLanguage = value;
+            LocalizationManager.Load(_currentLanguage);
+            OnLanguageChanged?.Invoke(_currentLanguage);
+        }
+    }
 }

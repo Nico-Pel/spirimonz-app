@@ -50,4 +50,9 @@ public class HouseMap : ScriptableObject
         
         return possibleGhosts[Random.Range(0, possibleGhosts.Count)];
     }
+
+    public string GetLocalizedName()
+    {
+        return LocalizationManager.Get(LocalizationKeys.HouseName(this), houseName);
+    }
 }

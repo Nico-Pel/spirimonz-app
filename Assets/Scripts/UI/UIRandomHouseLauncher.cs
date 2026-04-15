@@ -18,6 +18,7 @@ public class UIRandomHouseLauncher : GameBehaviour
     public Color priceNotEnoughColor = Color.red;
     [TextArea] public string freeTextEnglish = "Free";
     [TextArea] public string freeTextFrench = "Gratuit";
+    private const string FreeKey = "ui.common.free";
     public Button bPay;
     public Button bCancel;
     public Button bClose;
@@ -183,7 +184,9 @@ public class UIRandomHouseLauncher : GameBehaviour
     private void RefreshPayButton()
     {
         if (tPrice != null)
-            tPrice.text = price <= 0 ? Localize(freeTextEnglish, freeTextFrench) : (price + "$");
+            tPrice.text = price <= 0
+                ? LocalizationManager.Get(FreeKey, LocalizeFallback(freeTextEnglish, freeTextFrench))
+                : (price + "$");
 
         if (_gameManager == null)
         {
@@ -232,7 +235,7 @@ public class UIRandomHouseLauncher : GameBehaviour
         ResetTeamSlots();
     }
 
-    private string Localize(string english, string french)
+    private string LocalizeFallback(string english, string french)
     {
         if (LanguageManager.CurrentLanguage == Language.French && !string.IsNullOrWhiteSpace(french))
             return french;

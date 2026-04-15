@@ -11,4 +11,9 @@ public class SecretWorld : ScriptableObject
     [Header("House Entry Pricing")]
     public int houseEntryPriceIncrease = 10;
     public int maxHouseEntryPriceIncreases = 5;
+
+    public string GetLocalizedName()
+    {
+        return LocalizationManager.Get(LocalizationKeys.SecretWorldName(this), worldName);
+    }
 }

@@ -18,11 +18,17 @@ public class UIEndGame : GameBehaviour
     public string spiritVictoryText = "You have captured a {0} Spirimonz!";
     public string spiritEscapeText = "You have fled from a {0} spirit...";
     public string spiritLoseText = "A {0} spirit knocked you out...";
+    private const string SpiritVictoryKey = "ui.endgame.spirit_victory";
+    private const string SpiritEscapeKey = "ui.endgame.spirit_escape";
+    private const string SpiritLoseKey = "ui.endgame.spirit_lose";
     
     [Header("Loot info text")]
     public string lootVictoryText = "Your discoveries have gained value thanks to your achievements!";
     public string lootEscapeText = "Your loot did not increase in value following a victory...";
     public string lootLoseText = "The items found on site were lost...";
+    private const string LootVictoryKey = "ui.endgame.loot_victory";
+    private const string LootEscapeKey = "ui.endgame.loot_escape";
+    private const string LootLoseKey = "ui.endgame.loot_lose";
     public Color normalTextColor = Color.white;
     public Color winTextColor = Color.yellow;
     
@@ -50,28 +56,29 @@ public class UIEndGame : GameBehaviour
 
     public void SetTexts(EndTypes endType, House house)
     {
-        tHouseName.text = house.map.houseName;
+        tHouseName.text = house.map.GetLocalizedName();
         
         string victoryText = null;
+        string ghostTypeName = LocalizationManager.GetGhostTypeName(house.currentGhost.ghostParameters.ghostTypeData.ghostType);
         switch (endType)
         {
             case EndTypes.Win:
-                victoryText = spiritVictoryText;
-                tLootInfo.text = lootVictoryText;
+                victoryText = LocalizationManager.Get(SpiritVictoryKey, spiritVictoryText);
+                tLootInfo.text = LocalizationManager.Get(LootVictoryKey, lootVictoryText);
                 tLootInfo.color = winTextColor;
                 break;
             case EndTypes.Escape:
-                victoryText = spiritEscapeText;
-                tLootInfo.text = lootEscapeText;
+                victoryText = LocalizationManager.Get(SpiritEscapeKey, spiritEscapeText);
+                tLootInfo.text = LocalizationManager.Get(LootEscapeKey, lootEscapeText);
                 tLootInfo.color = normalTextColor;
                 break;
             case EndTypes.Lose:
-                victoryText = spiritLoseText;
-                tLootInfo.text = lootLoseText;
+                victoryText = LocalizationManager.Get(SpiritLoseKey, spiritLoseText);
+                tLootInfo.text = LocalizationManager.Get(LootLoseKey, lootLoseText);
                 tLootInfo.color = normalTextColor;
                 break;
         }
-        tSubtitle.text = string.Format(victoryText, house.currentGhost.ghostParameters.ghostTypeData.ghostType.ToString());
+        tSubtitle.text = string.Format(victoryText, ghostTypeName);
 
         int totalValue = 0;
         bool isWin = endType == EndTypes.Win;

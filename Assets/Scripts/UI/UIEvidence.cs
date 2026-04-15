@@ -27,8 +27,8 @@ public class UIEvidence : GameBehaviour
         if(dotButton != null)
             dotButton.onClick.AddListener(DotPressed);
         
-        titleText.text = evidenceParameter.title;
-        infoText.text = evidenceParameter.info;
+        titleText.text = evidenceParameter.GetLocalizedTitle();
+        infoText.text = evidenceParameter.GetLocalizedInfo();
         evidenceIcon.sprite = evidenceParameter.icon;
     }
 

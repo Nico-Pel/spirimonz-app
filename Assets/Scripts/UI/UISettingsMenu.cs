@@ -18,6 +18,8 @@ public class UISettingsMenu : GameBehaviour
     private const int AllTextSize = 54;
     private const float BindingButtonMinWidth = 220f;
     private const float BindingButtonHeight = 90f;
+    private const float LanguageDropdownMinWidth = 520f;
+    private const float LanguageDropdownTemplateHeight = 320f;
 
     public CanvasGroup canvasGroup;
     public RectTransform panelRoot;
@@ -70,6 +72,7 @@ public class UISettingsMenu : GameBehaviour
     private UIManager _uiManager;
     private Text _deleteSaveLabel;
     private Text _returnToTitleLabel;
+    private bool _localizationSubscribed;
 
     private bool _isOpen;
     private bool _waitingForKey;
@@ -83,7 +86,39 @@ public class UISettingsMenu : GameBehaviour
 
     private readonly List<BindingEntry> _bindings = new List<BindingEntry>();
     private static readonly int[] FpsLimitOptions = { 0, 30, 60, 90, 120, -1 };
-    private static readonly string[] FpsLimitLabels = { "Auto (VSync)", "30 FPS", "60 FPS", "90 FPS", "120 FPS", "Unlimited" };
+    private static readonly string[] FpsLimitLabelKeys =
+    {
+        "ui.settings.fps_limit.auto_vsync",
+        "ui.settings.fps_limit.30",
+        "ui.settings.fps_limit.60",
+        "ui.settings.fps_limit.90",
+        "ui.settings.fps_limit.120",
+        "ui.settings.fps_limit.unlimited"
+    };
+
+    private const string SettingsHeaderKey = "ui.settings.header";
+    private const string AudioHeaderKey = "ui.settings.audio";
+    private const string AmbientVolumeKey = "ui.settings.ambient_volume";
+    private const string SfxVolumeKey = "ui.settings.sfx_volume";
+    private const string UiVolumeKey = "ui.settings.ui_volume";
+    private const string CameraHeaderKey = "ui.settings.camera";
+    private const string TpsSensitivityKey = "ui.settings.tps_sensitivity";
+    private const string FpsSensitivityKey = "ui.settings.fps_sensitivity";
+    private const string FpsLimitKey = "ui.settings.fps_limit";
+    private const string LanguageHeaderKey = "ui.settings.language";
+    private const string KeyBindingsHeaderKey = "ui.settings.key_bindings";
+    private const string ResetSettingsKey = "ui.settings.reset";
+    private const string ReturnToTitleKey = "ui.settings.return_to_title";
+    private const string DeleteSaveKey = "ui.settings.delete_save";
+    private const string DeleteConfirmKey = "ui.settings.delete_confirm";
+
+    private struct LocalizedTextBinding
+    {
+        public Text text;
+        public string key;
+    }
+
+    private readonly List<LocalizedTextBinding> _localizedTextBindings = new List<LocalizedTextBinding>();
 
     public bool IsOpen => _isOpen;
     public bool IsCapturingKey => _waitingForKey;
@@ -91,6 +126,8 @@ public class UISettingsMenu : GameBehaviour
     private class BindingEntry
     {
         public string label;
+        public string labelKey;
+        public Text labelText;
         public Func<KeyCode> getPrimary;
         public Action<KeyCode> setPrimary;
         public Func<KeyCode> getSecondary;
@@ -203,11 +240,15 @@ public class UISettingsMenu : GameBehaviour
         {
             if (openSound != null)
                 openSound.PlaySound();
+
+            SubscribeLocalization();
         }
         else
         {
             if (closeSound != null)
                 closeSound.PlaySound();
+
+            UnsubscribeLocalization();
         }
 
         if (visible && Player.Instance != null)
@@ -239,6 +280,7 @@ public class UISettingsMenu : GameBehaviour
         RefreshFpsDropdown();
         RefreshBindingTexts();
         RefreshLanguageDropdown();
+        RefreshLocalizedTexts();
 
         UpdateDeleteConfirmText();
 
@@ -257,26 +299,76 @@ public class UISettingsMenu : GameBehaviour
     {
         if (deleteConfirmText != null)
         {
-            string text = LanguageManager.CurrentLanguage == Language.French && !string.IsNullOrWhiteSpace(deleteConfirmFrench)
+            string fallback = LanguageManager.CurrentLanguage == Language.French && !string.IsNullOrWhiteSpace(deleteConfirmFrench)
                 ? deleteConfirmFrench
                 : deleteConfirmEnglish;
-            deleteConfirmText.text = text;
+            deleteConfirmText.text = LocalizationManager.Get(DeleteConfirmKey, fallback);
         }
 
         if (_deleteSaveLabel != null)
         {
-            string label = LanguageManager.CurrentLanguage == Language.French && !string.IsNullOrWhiteSpace(deleteButtonFrench)
+            string fallback = LanguageManager.CurrentLanguage == Language.French && !string.IsNullOrWhiteSpace(deleteButtonFrench)
                 ? deleteButtonFrench
                 : deleteButtonEnglish;
-            _deleteSaveLabel.text = label;
+            _deleteSaveLabel.text = LocalizationManager.Get(DeleteSaveKey, fallback);
         }
 
         if (_returnToTitleLabel != null)
         {
-            string label = LanguageManager.CurrentLanguage == Language.French && !string.IsNullOrWhiteSpace(returnToTitleFrench)
+            string fallback = LanguageManager.CurrentLanguage == Language.French && !string.IsNullOrWhiteSpace(returnToTitleFrench)
                 ? returnToTitleFrench
                 : returnToTitleEnglish;
-            _returnToTitleLabel.text = label;
+            _returnToTitleLabel.text = LocalizationManager.Get(ReturnToTitleKey, fallback);
+        }
+    }
+
+    private void SubscribeLocalization()
+    {
+        if (_localizationSubscribed)
+            return;
+        LanguageManager.OnLanguageChanged += HandleLanguageChanged;
+        _localizationSubscribed = true;
+    }
+
+    private void UnsubscribeLocalization()
+    {
+        if (!_localizationSubscribed)
+            return;
+        LanguageManager.OnLanguageChanged -= HandleLanguageChanged;
+        _localizationSubscribed = false;
+    }
+
+    private void HandleLanguageChanged(Language lang)
+    {
+        RefreshLocalizedTexts();
+        UpdateDeleteConfirmText();
+        RefreshLanguageDropdown();
+        RefreshFpsDropdown();
+    }
+
+    private void RegisterLocalizedText(Text text, string key)
+    {
+        if (text == null || string.IsNullOrWhiteSpace(key))
+            return;
+
+        _localizedTextBindings.Add(new LocalizedTextBinding { text = text, key = key });
+        text.text = LocalizationManager.Get(key, text.text);
+    }
+
+    private void RefreshLocalizedTexts()
+    {
+        foreach (LocalizedTextBinding binding in _localizedTextBindings)
+        {
+            if (binding.text == null || string.IsNullOrWhiteSpace(binding.key))
+                continue;
+            binding.text.text = LocalizationManager.Get(binding.key, binding.text.text);
+        }
+
+        foreach (BindingEntry entry in _bindings)
+        {
+            if (entry.labelText == null || string.IsNullOrWhiteSpace(entry.labelKey))
+                continue;
+            entry.labelText.text = LocalizationManager.Get(entry.labelKey, entry.label);
         }
     }
 
@@ -379,13 +471,13 @@ public class UISettingsMenu : GameBehaviour
         buttonsLayout.childForceExpandWidth = true;
         buttonsLayout.spacing = 18f;
 
-        deleteConfirmYes = CreateConfirmButton(buttonsRow.transform, "Yes", font, new Color(0.2f, 0.7f, 0.3f, 0.35f));
-        deleteConfirmNo = CreateConfirmButton(buttonsRow.transform, "No", font, new Color(0.8f, 0.2f, 0.2f, 0.35f));
+        deleteConfirmYes = CreateConfirmButton(buttonsRow.transform, "Yes", font, new Color(0.2f, 0.7f, 0.3f, 0.35f), "ui.common.yes");
+        deleteConfirmNo = CreateConfirmButton(buttonsRow.transform, "No", font, new Color(0.8f, 0.2f, 0.2f, 0.35f), "ui.common.no");
 
         return overlay;
     }
 
-    private Button CreateConfirmButton(Transform parent, string labelText, Font font, Color bgColor)
+    private Button CreateConfirmButton(Transform parent, string labelText, Font font, Color bgColor, string localizationKey = null)
     {
         GameObject buttonGO = new GameObject($"Button_{labelText}", typeof(RectTransform), typeof(Image), typeof(Button));
         buttonGO.transform.SetParent(parent, false);
@@ -402,7 +494,7 @@ public class UISettingsMenu : GameBehaviour
         GameObject textGO = new GameObject("Label", typeof(RectTransform));
         textGO.transform.SetParent(buttonGO.transform, false);
         Text text = textGO.AddComponent<Text>();
-        text.text = labelText;
+        text.text = localizationKey != null ? LocalizationManager.Get(localizationKey, labelText) : labelText;
         text.font = font;
         text.fontSize = AllTextSize;
         text.color = Color.white;
@@ -412,6 +504,9 @@ public class UISettingsMenu : GameBehaviour
         textRect.anchorMax = Vector2.one;
         textRect.offsetMin = Vector2.zero;
         textRect.offsetMax = Vector2.zero;
+
+        if (!string.IsNullOrWhiteSpace(localizationKey))
+            RegisterLocalizedText(text, localizationKey);
 
         return buttonGO.GetComponent<Button>();
     }
@@ -438,12 +533,12 @@ public class UISettingsMenu : GameBehaviour
         foreach (BindingEntry entry in _bindings)
         {
             if (entry.primaryText != null)
-                entry.primaryText.text = entry.getPrimary?.Invoke().ToString() ?? "-";
+                entry.primaryText.text = entry.getPrimary != null ? _input.GetKeyDisplayName(entry.getPrimary()) : "-";
 
             if (entry.secondaryText != null)
             {
                 KeyCode secondary = entry.getSecondary != null ? entry.getSecondary() : KeyCode.None;
-                entry.secondaryText.text = secondary == KeyCode.None ? "-" : secondary.ToString();
+                entry.secondaryText.text = secondary == KeyCode.None ? "-" : _input.GetKeyDisplayName(secondary);
             }
         }
     }
@@ -551,7 +646,7 @@ public class UISettingsMenu : GameBehaviour
         layout.spacing = 20f;
         layout.padding = new RectOffset(32, 32, 28, 28);
 
-        CreateHeader(root.transform, "Settings", _font, AllTextSize);
+        CreateHeader(root.transform, "Settings", _font, AllTextSize, SettingsHeaderKey);
 
         GameObject accentBar = new GameObject("AccentBar", typeof(RectTransform), typeof(Image));
         accentBar.transform.SetParent(root.transform, false);
@@ -640,7 +735,7 @@ public class UISettingsMenu : GameBehaviour
         scrollRect.verticalScrollbar = scrollbar;
         scrollRect.verticalScrollbarVisibility = ScrollRect.ScrollbarVisibility.AutoHideAndExpandViewport;
 
-        returnToTitleButton = CreateActionButton(contentGO.transform, returnToTitleEnglish, _font);
+        returnToTitleButton = CreateActionButton(contentGO.transform, returnToTitleEnglish, _font, ReturnToTitleKey);
         if (returnToTitleButton != null)
         {
             returnToTitleButton.onClick.RemoveAllListeners();
@@ -651,20 +746,20 @@ public class UISettingsMenu : GameBehaviour
             returnToTitleButton.onClick.AddListener(ReturnToTitleScreen);
         }
 
-        CreateHeader(contentGO.transform, "Audio", _font, AllTextSize);
-        ambientSlider = CreateSliderRow(contentGO.transform, "Ambient Volume", _font, out ambientValue);
-        sfxSlider = CreateSliderRow(contentGO.transform, "SFX Volume", _font, out sfxValue);
-        uiSlider = CreateSliderRow(contentGO.transform, "UI Volume", _font, out uiValue);
+        CreateHeader(contentGO.transform, "Audio", _font, AllTextSize, AudioHeaderKey);
+        ambientSlider = CreateSliderRow(contentGO.transform, "Ambient Volume", _font, out ambientValue, AmbientVolumeKey);
+        sfxSlider = CreateSliderRow(contentGO.transform, "SFX Volume", _font, out sfxValue, SfxVolumeKey);
+        uiSlider = CreateSliderRow(contentGO.transform, "UI Volume", _font, out uiValue, UiVolumeKey);
 
-        CreateHeader(contentGO.transform, "Camera", _font, AllTextSize);
-        tpsSensitivitySlider = CreateSliderRow(contentGO.transform, "TPS Camera Sensitivity", _font, out tpsValue);
-        fpsSensitivitySlider = CreateSliderRow(contentGO.transform, "FPS Camera Sensitivity", _font, out fpsValue);
-        fpsLimitDropdown = CreateDropdownRow(contentGO.transform, "FPS Limit", _font);
+        CreateHeader(contentGO.transform, "Camera", _font, AllTextSize, CameraHeaderKey);
+        tpsSensitivitySlider = CreateSliderRow(contentGO.transform, "TPS Camera Sensitivity", _font, out tpsValue, TpsSensitivityKey);
+        fpsSensitivitySlider = CreateSliderRow(contentGO.transform, "FPS Camera Sensitivity", _font, out fpsValue, FpsSensitivityKey);
+        fpsLimitDropdown = CreateDropdownRow(contentGO.transform, "FPS Limit", _font, FpsLimitKey);
 
-        CreateHeader(contentGO.transform, "Language", _font, AllTextSize);
-        languageDropdown = CreateLanguageDropdownRow(contentGO.transform, "Language", _font);
+        CreateHeader(contentGO.transform, "Language", _font, AllTextSize, LanguageHeaderKey);
+        languageDropdown = CreateLanguageDropdownRow(contentGO.transform, "Language", _font, LanguageHeaderKey);
 
-        keybindingsHeader = CreateHeader(contentGO.transform, "Key Bindings", _font, AllTextSize);
+        keybindingsHeader = CreateHeader(contentGO.transform, "Key Bindings", _font, AllTextSize, KeyBindingsHeaderKey);
         GameObject keyRoot = new GameObject("KeybindingsRoot", typeof(RectTransform));
         keyRoot.transform.SetParent(contentGO.transform, false);
         keybindingsContainer = keyRoot;
@@ -686,7 +781,7 @@ public class UISettingsMenu : GameBehaviour
         BuildBindingsUI(keybindingsRoot.transform, _font);
         _bindingsBuilt = _bindings.Count > 0;
 
-        _resetButton = CreateActionButton(contentGO.transform, "Reset Settings", _font);
+        _resetButton = CreateActionButton(contentGO.transform, "Reset Settings", _font, ResetSettingsKey);
         _resetButton.onClick.AddListener(() =>
         {
             if (resetSound != null)
@@ -694,7 +789,7 @@ public class UISettingsMenu : GameBehaviour
             ResetSettingsToDefault();
         });
 
-        deleteSaveButton = CreateActionButton(contentGO.transform, deleteButtonEnglish, _font);
+        deleteSaveButton = CreateActionButton(contentGO.transform, deleteButtonEnglish, _font, DeleteSaveKey);
         if (deleteSaveButton != null)
         {
             Image deleteImage = deleteSaveButton.GetComponent<Image>();
@@ -725,12 +820,12 @@ public class UISettingsMenu : GameBehaviour
     }
 #endif
 
-    private GameObject CreateHeader(Transform parent, string title, Font font, int size = 24)
+    private GameObject CreateHeader(Transform parent, string title, Font font, int size = 24, string localizationKey = null)
     {
         GameObject header = new GameObject($"Header_{title}", typeof(RectTransform));
         header.transform.SetParent(parent, false);
         Text text = header.AddComponent<Text>();
-        text.text = title;
+        text.text = localizationKey != null ? LocalizationManager.Get(localizationKey, title) : title;
         text.font = font;
         text.fontSize = size;
         text.color = _accentColor;
@@ -738,10 +833,14 @@ public class UISettingsMenu : GameBehaviour
         LayoutElement layout = header.AddComponent<LayoutElement>();
         layout.preferredHeight = size + 14f;
         layout.flexibleHeight = 0f;
+
+        if (!string.IsNullOrWhiteSpace(localizationKey))
+            RegisterLocalizedText(text, localizationKey);
+
         return header;
     }
 
-    private Slider CreateSliderRow(Transform parent, string label, Font font, out Text valueText)
+    private Slider CreateSliderRow(Transform parent, string label, Font font, out Text valueText, string localizationKey = null)
     {
         GameObject row = new GameObject($"Row_{label}", typeof(RectTransform));
         row.transform.SetParent(parent, false);
@@ -761,7 +860,7 @@ public class UISettingsMenu : GameBehaviour
         GameObject labelGO = new GameObject("Label", typeof(RectTransform));
         labelGO.transform.SetParent(row.transform, false);
         Text labelText = labelGO.AddComponent<Text>();
-        labelText.text = label;
+        labelText.text = localizationKey != null ? LocalizationManager.Get(localizationKey, label) : label;
         labelText.font = font;
         labelText.fontSize = AllTextSize;
         labelText.color = Color.white;
@@ -773,6 +872,9 @@ public class UISettingsMenu : GameBehaviour
         labelLayout.minWidth = 320f;
         labelLayout.preferredWidth = 420f;
         labelLayout.flexibleWidth = 1f;
+
+        if (!string.IsNullOrWhiteSpace(localizationKey))
+            RegisterLocalizedText(labelText, localizationKey);
 
         GameObject sliderGO = new GameObject("Slider", typeof(RectTransform));
         sliderGO.transform.SetParent(row.transform, false);
@@ -854,7 +956,7 @@ public class UISettingsMenu : GameBehaviour
         return slider;
     }
 
-    private Dropdown CreateDropdownRow(Transform parent, string label, Font font)
+    private Dropdown CreateDropdownRow(Transform parent, string label, Font font, string localizationKey = null)
     {
         GameObject row = new GameObject($"Row_{label}", typeof(RectTransform));
         row.transform.SetParent(parent, false);
@@ -874,7 +976,7 @@ public class UISettingsMenu : GameBehaviour
         GameObject labelGO = new GameObject("Label", typeof(RectTransform));
         labelGO.transform.SetParent(row.transform, false);
         Text labelText = labelGO.AddComponent<Text>();
-        labelText.text = label;
+        labelText.text = localizationKey != null ? LocalizationManager.Get(localizationKey, label) : label;
         labelText.font = font;
         labelText.fontSize = AllTextSize;
         labelText.color = Color.white;
@@ -886,13 +988,27 @@ public class UISettingsMenu : GameBehaviour
         labelLayout.preferredWidth = 420f;
         labelLayout.flexibleWidth = 1f;
 
+        if (!string.IsNullOrWhiteSpace(localizationKey))
+            RegisterLocalizedText(labelText, localizationKey);
+
         Dropdown dropdown = CreateDropdown(row.transform, font);
         return dropdown;
     }
 
-    private Dropdown CreateLanguageDropdownRow(Transform parent, string label, Font font)
+    private Dropdown CreateLanguageDropdownRow(Transform parent, string label, Font font, string localizationKey = null)
     {
-        return CreateDropdownRow(parent, label, font);
+        Dropdown dropdown = CreateDropdownRow(parent, label, font, localizationKey);
+        if (dropdown == null)
+            return null;
+
+        LayoutElement layout = dropdown.GetComponent<LayoutElement>();
+        if (layout != null)
+            layout.minWidth = LanguageDropdownMinWidth;
+
+        if (dropdown.template != null)
+            dropdown.template.sizeDelta = new Vector2(dropdown.template.sizeDelta.x, LanguageDropdownTemplateHeight);
+
+        return dropdown;
     }
 
     private Dropdown CreateDropdown(Transform parent, Font font)
@@ -1078,11 +1194,11 @@ public class UISettingsMenu : GameBehaviour
         List<InputManager.BindingDefinition> definitions = _input.GetBindingDefinitions();
         foreach (var def in definitions)
         {
-            AddBinding(parent, font, def.label, def.getPrimary, def.setPrimary, def.getSecondary, def.setSecondary);
+            AddBinding(parent, font, def.label, def.labelKey, def.getPrimary, def.setPrimary, def.getSecondary, def.setSecondary);
         }
     }
 
-    private void AddBinding(Transform parent, Font font, string label,
+    private void AddBinding(Transform parent, Font font, string label, string labelKey,
         Func<KeyCode> getPrimary, Action<KeyCode> setPrimary,
         Func<KeyCode> getSecondary, Action<KeyCode> setSecondary)
     {
@@ -1102,7 +1218,9 @@ public class UISettingsMenu : GameBehaviour
         GameObject labelGO = new GameObject("Label", typeof(RectTransform));
         labelGO.transform.SetParent(row.transform, false);
         Text labelText = labelGO.AddComponent<Text>();
-        labelText.text = label;
+        labelText.text = string.IsNullOrWhiteSpace(labelKey)
+            ? label
+            : LocalizationManager.Get(labelKey, label);
         labelText.font = font;
         labelText.fontSize = AllTextSize;
         labelText.color = Color.white;
@@ -1120,6 +1238,8 @@ public class UISettingsMenu : GameBehaviour
         BindingEntry entry = new BindingEntry
         {
             label = label,
+            labelKey = labelKey,
+            labelText = labelText,
             getPrimary = getPrimary,
             setPrimary = setPrimary,
             getSecondary = getSecondary,
@@ -1168,7 +1288,7 @@ public class UISettingsMenu : GameBehaviour
         return buttonGO.GetComponent<Button>();
     }
 
-    private Button CreateActionButton(Transform parent, string labelText, Font font)
+    private Button CreateActionButton(Transform parent, string labelText, Font font, string localizationKey = null)
     {
         GameObject buttonGO = new GameObject($"Button_{labelText}", typeof(RectTransform), typeof(Image), typeof(Button));
         buttonGO.transform.SetParent(parent, false);
@@ -1184,7 +1304,7 @@ public class UISettingsMenu : GameBehaviour
         GameObject textGO = new GameObject("Label", typeof(RectTransform));
         textGO.transform.SetParent(buttonGO.transform, false);
         Text text = textGO.AddComponent<Text>();
-        text.text = labelText;
+        text.text = localizationKey != null ? LocalizationManager.Get(localizationKey, labelText) : labelText;
         text.font = font;
         text.fontSize = AllTextSize;
         text.color = Color.white;
@@ -1194,6 +1314,9 @@ public class UISettingsMenu : GameBehaviour
         textRect.anchorMax = Vector2.one;
         textRect.offsetMin = Vector2.zero;
         textRect.offsetMax = Vector2.zero;
+
+        if (!string.IsNullOrWhiteSpace(localizationKey))
+            RegisterLocalizedText(text, localizationKey);
 
         return buttonGO.GetComponent<Button>();
     }
@@ -1399,7 +1522,7 @@ public class UISettingsMenu : GameBehaviour
         Language[] languages = (Language[])Enum.GetValues(typeof(Language));
         List<string> options = new List<string>();
         foreach (Language language in languages)
-            options.Add(language.ToString());
+            options.Add(GetLanguageDisplayName(language));
 
         languageDropdown.ClearOptions();
         languageDropdown.AddOptions(options);
@@ -1416,12 +1539,21 @@ public class UISettingsMenu : GameBehaviour
             return;
 
         fpsLimitDropdown.ClearOptions();
-        fpsLimitDropdown.AddOptions(new List<string>(FpsLimitLabels));
+        List<string> labels = new List<string>();
+        for (int i = 0; i < FpsLimitLabelKeys.Length; i++)
+            labels.Add(LocalizationManager.Get(FpsLimitLabelKeys[i]));
+        fpsLimitDropdown.AddOptions(labels);
 
         int setting = ResolveCurrentFpsSetting();
         int index = GetFpsIndex(setting);
         fpsLimitDropdown.SetValueWithoutNotify(index);
         fpsLimitDropdown.RefreshShownValue();
+    }
+
+    private string GetLanguageDisplayName(Language language)
+    {
+        string key = $"language.{language.ToString().ToLowerInvariant()}";
+        return LocalizationManager.Get(key, language.ToString());
     }
 
     private int ResolveCurrentFpsSetting()

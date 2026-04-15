@@ -59,17 +59,17 @@ public class Quest : ScriptableObject
 
     public string GetLocalizedName()
     {
-        if (LanguageManager.CurrentLanguage == Language.French && !string.IsNullOrWhiteSpace(questNameFrench))
-            return questNameFrench;
-
-        return questName;
+        string fallback = LanguageManager.CurrentLanguage == Language.French && !string.IsNullOrWhiteSpace(questNameFrench)
+            ? questNameFrench
+            : questName;
+        return LocalizationManager.Get(LocalizationKeys.QuestName(this), fallback);
     }
 
     public string GetLocalizedDescription()
     {
-        if (LanguageManager.CurrentLanguage == Language.French && !string.IsNullOrWhiteSpace(questDescriptionFrench))
-            return questDescriptionFrench;
-
-        return questDescription;
+        string fallback = LanguageManager.CurrentLanguage == Language.French && !string.IsNullOrWhiteSpace(questDescriptionFrench)
+            ? questDescriptionFrench
+            : questDescription;
+        return LocalizationManager.Get(LocalizationKeys.QuestDescription(this), fallback);
     }
 }

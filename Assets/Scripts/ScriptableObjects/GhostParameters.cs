@@ -67,6 +67,16 @@ public class GhostParameters : ScriptableObject
     public bool SpiritOrbs;
     public bool Radioactivity;
 
+    public string GetLocalizedClue(int index)
+    {
+        if (ghostClues == null || index < 0 || index >= ghostClues.Length)
+            return string.Empty;
+
+        string fallback = ghostClues[index].description;
+        string key = $"ghost_clue.{name}.clue_{index}";
+        return LocalizationManager.Get(key, fallback);
+    }
+
     [Header("Spirit Prints")] 
     public float chancesToPutPrintOnDoors = 33;
     public float chancesToPutPrintOnPrintTriggers = 33;

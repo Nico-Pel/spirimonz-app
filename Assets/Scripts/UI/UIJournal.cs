@@ -125,7 +125,8 @@ public class UIJournal : GameBehaviour
 
     public void OpenGhostFrame(GhostParameters ghostParameters)
     {
-        tGhostName.text = ghostParameters.ghostTypeData.ghostType.ToString() + " spirit";
+        string ghostTypeName = LocalizationManager.GetGhostTypeName(ghostParameters.ghostTypeData.ghostType);
+        tGhostName.text = LocalizationManager.Format("ui.journal.ghost_name", ghostTypeName);
         iGhostImage.sprite = ghostParameters.ghostTypeData.ghostSprite;
         for (int i = 0; i < ghostClues.Length; i++)
         {
@@ -133,7 +134,7 @@ public class UIJournal : GameBehaviour
             ghostClues[i].SetActive(visible);
             if (visible)
             {
-                tGhostClues[i].text = ghostParameters.ghostClues[i].description;
+                tGhostClues[i].text = ghostParameters.GetLocalizedClue(i);
             }
         }
         

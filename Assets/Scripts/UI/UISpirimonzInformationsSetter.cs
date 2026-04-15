@@ -93,7 +93,7 @@ public class UISpirimonzInformationsSetter : GameBehaviour
 
         if(tSpirimonzName != null)
         {
-            tSpirimonzName.text = spmz.spirimonzName;
+            tSpirimonzName.text = spmz.GetLocalizedName();
             tSpirimonzName.color = _nameBaseColor;
         }
 
@@ -219,7 +219,7 @@ public class UISpirimonzInformationsSetter : GameBehaviour
                 
             if(tSpirimonzAbilities[i] != null)
             {
-                tSpirimonzAbilities[i].text = abilityExist ? spmz.abilities[i].description : "";
+                tSpirimonzAbilities[i].text = abilityExist ? spmz.GetLocalizedAbilityDescription(i) : "";
                 if (_abilityBaseColors != null && i < _abilityBaseColors.Length)
                     tSpirimonzAbilities[i].color = _abilityBaseColors[i];
             }

@@ -95,7 +95,7 @@ public class UIDialogue : GameBehaviour
         _dialogueActive = true;
         _inputIgnoreUntil = Time.unscaledTime + Mathf.Max(0.01f, inputIgnoreDuration);
 
-        titleText.text = dialogue.npcName;
+        titleText.text = dialogue.GetLocalizedNpcName();
 
         // --- On initialise le son des lettres ---
         SetLetterSoundProfile(dialogue);
@@ -146,7 +146,7 @@ public class UIDialogue : GameBehaviour
 
         boxText.text = "";
 
-        string text = line.GetText();
+        string text = _currentDialogue.GetLocalizedLine(_currentLine);
         if (_inputManager != null)
             text = _inputManager.ReplaceInputTokens(text);
         _writingText = true;
