@@ -55,6 +55,7 @@ public class GameManager : GameBehaviour
     private bool isLoadingFromHouse = false;
     private bool _isWorld;
     private bool _firstLoad = true;
+    private bool _isSavingGame;
     private readonly HashSet<string> _temporaryWorldSceneNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
     private InventoryManager _inventoryManager;
@@ -565,45 +566,54 @@ public class GameManager : GameBehaviour
 
     public void SaveGame()
     {
-        if (gameData == null || player == null)
+        if (_isSavingGame || gameData == null || player == null)
             return;
+
+        _isSavingGame = true;
 
         Scene currentScene = SceneManager.GetActiveScene();
         bool isWorld = currentScene.name.ToLower().StartsWith("world");
         bool markSecretWorldReturn = false;
 
-        if (isWorld)
+        try
         {
-            if (!IsTemporaryWorldScene(currentScene.name))
+            if (isWorld)
             {
-                // Sauvegarde position + rotation dans le world
-                gameData.lastWorldSceneName = currentScene.name;
-                gameData.playerPosition = player.GetPosition();
-                gameData.playerRotation = player.GetRotation(); // <<< ajouté
+                if (!IsTemporaryWorldScene(currentScene.name))
+                {
+                    // Sauvegarde position + rotation dans le world
+                    gameData.lastWorldSceneName = currentScene.name;
+                    gameData.playerPosition = player.GetPosition();
+                    gameData.playerRotation = player.GetRotation();
+                }
+                else
+                {
+                    markSecretWorldReturn = true;
+                }
+
+                gameData.currentHouseID = -1;
             }
             else
             {
-                markSecretWorldReturn = true;
+                // Sauvegarde maison
+                gameData.currentHouseID = currentHouseID;
+
+                House house = House.Instance;
+                if (house != null && house.map != null && house.map.linkedSecretWorld != null)
+                    markSecretWorldReturn = true;
             }
 
-            gameData.currentHouseID = -1;
+            if (markSecretWorldReturn)
+                SetIntInternal(SaveKeys.SECRET_WORLD_RETURN_TO_TAXI, 1);
+
+            SaveManager.SaveInputBindings(gameData, InputManager.Instance);
+            SaveManager.Save(gameData);
+            Debug.Log("Game saved!");
         }
-        else
+        finally
         {
-            // Sauvegarde maison
-            gameData.currentHouseID = currentHouseID;
-
-            House house = House.Instance;
-            if (house != null && house.map != null && house.map.linkedSecretWorld != null)
-                markSecretWorldReturn = true;
+            _isSavingGame = false;
         }
-
-        if (markSecretWorldReturn)
-            SetInt(SaveKeys.SECRET_WORLD_RETURN_TO_TAXI, 1);
-
-        SaveManager.SaveInputBindings(gameData, InputManager.Instance);
-        SaveManager.Save(gameData);
-        Debug.Log("Game saved!");
     }
 
     private void OnApplicationPause(bool pause)
@@ -926,17 +936,7 @@ public class GameManager : GameBehaviour
     
     public void SetInt(string id, int value)
     {
-        var entry = gameData.ints.Find(i => i.id == id);
-
-        if (entry == null)
-        {
-            gameData.ints.Add(new SaveVariableInt { id = id, value = value });
-        }
-        else
-        {
-            entry.value = value;
-        }
-
+        SetIntInternal(id, value);
         SaveGame();
     }
 
@@ -991,14 +991,28 @@ public class GameManager : GameBehaviour
     
     public void SetString(string id, string value)
     {
+        SetStringInternal(id, value);
+        SaveGame();
+    }
+
+    private void SetIntInternal(string id, int value)
+    {
+        var entry = gameData.ints.Find(i => i.id == id);
+
+        if (entry == null)
+            gameData.ints.Add(new SaveVariableInt { id = id, value = value });
+        else
+            entry.value = value;
+    }
+
+    private void SetStringInternal(string id, string value)
+    {
         var entry = gameData.strings.Find(s => s.id == id);
 
         if (entry == null)
             gameData.strings.Add(new SaveVariableString { id = id, value = value });
         else
             entry.value = value;
-
-        SaveGame();
     }
 
     public string GetString(string id, string defaultValue = "")
