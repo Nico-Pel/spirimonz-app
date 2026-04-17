@@ -1142,6 +1142,14 @@ public class Spirimonz : GameBehaviour, IInteractable
 
     public virtual void OnClickInHands()
     {
+        FireTrigger[] fireTriggers = GetComponentsInChildren<FireTrigger>(true);
+        for (int i = 0; i < fireTriggers.Length; i++)
+        {
+            FireTrigger fireTrigger = fireTriggers[i];
+            if (fireTrigger != null)
+                fireTrigger.ArmHeldTransmission();
+        }
+
         onSecondaryButtonUsed?.Invoke();
     }
     

@@ -48,6 +48,11 @@ public class HouseEditor : Editor
             house.BakeRoomsCount();
         }
 
+        if (GUILayout.Button("Fix WayPoints"))
+        {
+            house.FixWayPoints();
+        }
+
         serializedObject.ApplyModifiedProperties();
     }
 

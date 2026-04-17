@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.AI;
 using UnityEngine.Events;
 using DG.Tweening;
 using UnityEngine.Serialization;
@@ -608,23 +609,81 @@ public class InventoryManager : GameBehaviour
         if (selectedSpirimonz == null) return; //No spirimonz in hands
         if (selectedSpirimonz.canBeDroppedOnMap == false) return;
 
-        Vector3 dropPos = _gamePlayer.interactionController.GetLastGroundPos();
-        if (dropPos == Vector3.zero)
+        if (!TryGetSafeSpirimonzDropPosition(out Vector3 dropPos))
         {
-            if (_gamePlayer.interactionController.DetectCollisionForward())
-            {
-                dropPos = this.transform.position;
-            }
-            else
-            {
-                Vector3 playerPos = _player.transform.position; // ou _gamePlayer.transform.position
-                Vector3 playerForward = _gamePlayer.GetForward().normalized; 
-                dropPos = playerPos + new Vector3(playerForward.x, 0, playerForward.z) * 1f; // 1m devant le joueur
-
-            }
+            Debug.LogWarning($"Cannot find a safe drop position for Spirimonz '{selectedSpirimonz.name}'.");
+            return;
         }
 
         DropSpirimonz(dropPos);
+    }
+
+    private bool TryGetSafeSpirimonzDropPosition(out Vector3 dropPos)
+    {
+        dropPos = Vector3.zero;
+
+        if (_gamePlayer == null || _player == null || _gamePlayer.interactionController == null)
+            return false;
+
+        InteractionController interactionController = _gamePlayer.interactionController;
+        Vector3 targetedGroundPos = interactionController.GetLastGroundPos();
+        if (targetedGroundPos != Vector3.zero && TryResolveSpirimonzDropPosition(targetedGroundPos, out dropPos))
+            return true;
+
+        Vector3 forward = _gamePlayer.GetForward();
+        forward.y = 0f;
+        if (forward.sqrMagnitude <= 0.0001f)
+            forward = _player.transform.forward;
+
+        forward.y = 0f;
+        if (forward.sqrMagnitude <= 0.0001f)
+            forward = Vector3.forward;
+
+        forward.Normalize();
+
+        float fallbackDistance = interactionController.DetectCollisionForward() ? 0.6f : 1f;
+        Vector3 fallbackPos = _player.transform.position + forward * fallbackDistance;
+        return TryResolveSpirimonzDropPosition(fallbackPos, out dropPos);
+    }
+
+    private bool TryResolveSpirimonzDropPosition(Vector3 candidatePos, out Vector3 resolvedPos)
+    {
+        resolvedPos = candidatePos;
+
+        if (TryProjectSpirimonzDropToGround(candidatePos, out resolvedPos))
+            return true;
+
+        if (NavMesh.SamplePosition(candidatePos, out NavMeshHit navHit, 1.5f, NavMesh.AllAreas))
+        {
+            if (TryProjectSpirimonzDropToGround(navHit.position, out resolvedPos))
+                return true;
+
+            resolvedPos = navHit.position;
+            return true;
+        }
+
+        return false;
+    }
+
+    private bool TryProjectSpirimonzDropToGround(Vector3 candidatePos, out Vector3 groundedPos)
+    {
+        groundedPos = candidatePos;
+
+        if (_gamePlayer == null || _gamePlayer.interactionController == null)
+            return false;
+
+        LayerMask groundMask = _gamePlayer.interactionController.groundLayer;
+        if (groundMask.value == 0)
+            return false;
+
+        Vector3 origin = candidatePos + Vector3.up * 2f;
+        if (Physics.Raycast(origin, Vector3.down, out RaycastHit hit, 6f, groundMask, QueryTriggerInteraction.Ignore))
+        {
+            groundedPos = hit.point;
+            return true;
+        }
+
+        return false;
     }
 
     private void DropSpirimonz(Vector3 dropPos)

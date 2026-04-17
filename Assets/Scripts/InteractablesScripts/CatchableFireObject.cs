@@ -117,6 +117,9 @@ public class CatchableFireObject : CatchableObject
     {
         _player.UseSlashAnimation();
         linkedFlammableElement.canBeTurnedOn = true;
+        FireTrigger fireTrigger = GetComponent<FireTrigger>();
+        if (fireTrigger != null)
+            fireTrigger.ArmHeldTransmission();
 
         this.Invoke(0.5f, () =>
         {

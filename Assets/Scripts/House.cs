@@ -9,6 +9,7 @@ using Random = UnityEngine.Random;
 
 #if UNITY_EDITOR
 using UnityEditor;
+using UnityEditor.SceneManagement;
 #endif
 
 public class House : GameBehaviour
@@ -44,6 +45,39 @@ public class House : GameBehaviour
         map.roomsNumber = rooms.Length;
         EditorUtility.SetDirty(map);
         Debug.Log($"Baked {rooms.Length} rooms into {map.name}");
+    }
+
+    public void FixWayPoints()
+    {
+        int fixedCount = 0;
+        int missingParentRoomCount = 0;
+
+        foreach (WayPoint wayPoint in GetComponentsInChildren<WayPoint>(true))
+        {
+            if (wayPoint == null)
+                continue;
+
+            Room parentRoom = wayPoint.GetComponentInParent<Room>();
+            if (parentRoom == null)
+            {
+                missingParentRoomCount++;
+                Debug.LogWarning($"WayPoint '{wayPoint.name}' has no parent Room.", wayPoint);
+                continue;
+            }
+
+            if (wayPoint.linkedRoom == parentRoom)
+                continue;
+
+            Undo.RecordObject(wayPoint, "Fix WayPoints");
+            wayPoint.linkedRoom = parentRoom;
+            EditorUtility.SetDirty(wayPoint);
+            fixedCount++;
+        }
+
+        if (fixedCount > 0)
+            EditorSceneManager.MarkSceneDirty(gameObject.scene);
+
+        Debug.Log($"FixWayPoints finished on {name}: {fixedCount} waypoint(s) updated, {missingParentRoomCount} without parent Room.");
     }
 #endif
     
