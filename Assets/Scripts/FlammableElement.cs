@@ -26,6 +26,9 @@ public class FlammableElement : GameBehaviour
     public AudioClip blowUpByGhostSoundClip;
     public float ghostVolume = 1f;
     public float ghostPitch = 1f;
+    
+    [Header("Loop Sound")]
+    public SoundParameters activeLoopSound;
 
     public bool canBeTurnedOn = true;
 
@@ -59,6 +62,7 @@ public class FlammableElement : GameBehaviour
     private bool _cursedWarmupActive;
     private float _cursedWarmupStartTime;
     private Color _cursedWarmupStartColor;
+    private SoundManager.SoundInstance _activeLoopSoundInstance;
 
     public UnityEvent<bool> onChangeFireState;
 
@@ -114,6 +118,8 @@ public class FlammableElement : GameBehaviour
                 SoundManager.Instance.PlaySound(blowUpByGhostSoundClip, transform.position, ghostVolume, ghostPitch, -1f, 15f);
             }
         }
+
+        UpdateActiveLoopSound();
 
         if (enable && type != FlammableType.Candle && _usedForAQuest == false)
         {
@@ -334,5 +340,31 @@ public class FlammableElement : GameBehaviour
         _cursedWarmupStartTime = Time.time;
         _cursedWarmupActive = true;
         SetCursedFxColors(_currentCursedColor);
+    }
+
+    private void UpdateActiveLoopSound()
+    {
+        if (_isOnFire)
+        {
+            if ((_activeLoopSoundInstance == null || !_activeLoopSoundInstance.IsPlaying) && activeLoopSound != null)
+                _activeLoopSoundInstance = activeLoopSound.PlayManagedSound(transform.position);
+
+            return;
+        }
+
+        if (_activeLoopSoundInstance != null)
+        {
+            _activeLoopSoundInstance.Stop(false);
+            _activeLoopSoundInstance = null;
+        }
+    }
+
+    private void OnDisable()
+    {
+        if (_activeLoopSoundInstance != null)
+        {
+            _activeLoopSoundInstance.Stop(false);
+            _activeLoopSoundInstance = null;
+        }
     }
 }

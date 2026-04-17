@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using DG.Tweening;
+using UnityEngine.Events;
 
 public class StaticBreakableObject : GameBehaviour
 {
@@ -23,14 +24,14 @@ public class StaticBreakableObject : GameBehaviour
     public float fractureRandomTorque = 1f;
     public float ignoreOriginalCollisionsDuration = 0.2f;
 
-    [Space] 
-    [Header("Break Components")]
-    public GameObject model;
+    [Space] [Header("Break Components")] public GameObject model;
     public GameObject fracturedObject;
     public SoundParameters breakingSoundParameters;
 
     private List<Rigidbody> _fracturedRigidbodies;
     private bool _canBreak;
+    
+    public UnityEvent OnBreak;
 
     private void Awake()
     {
@@ -54,7 +55,7 @@ public class StaticBreakableObject : GameBehaviour
             return;
 
         float impactForce = other.relativeVelocity.magnitude;
-        if (impactForce >= minForceToBreak)
+        if (minForceToBreak >= 0f && impactForce >= minForceToBreak)
             Break(impactForce);
     }
 
@@ -144,6 +145,8 @@ public class StaticBreakableObject : GameBehaviour
                 }
             });
         }
+        
+        OnBreak?.Invoke();
     }
 
     private IEnumerator TemporaryIgnoreOriginalCollisions(Collider[] originalColliders, float duration)

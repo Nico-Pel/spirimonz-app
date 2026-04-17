@@ -44,7 +44,7 @@ public class CatchableBreakingObject : CatchableObject
 
     protected override void OnCollision(Transform other, float impactForce)
     {
-        if (impactForce > minForceToBreak)
+        if (minForceToBreak >= 0f && impactForce > minForceToBreak)
         {
             BreakObject(impactForce);
         }
@@ -52,6 +52,11 @@ public class CatchableBreakingObject : CatchableObject
         {
             base.OnCollision(other, impactForce);
         }
+    }
+
+    public void BreakByAxe(float impactForce = 0f)
+    {
+        BreakObject(impactForce);
     }
 
     private void BreakObject(float impactForce)

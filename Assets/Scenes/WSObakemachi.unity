@@ -5339,12 +5339,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   choiceWindowId: 3
   choiceWindow: {fileID: 3070242414788049933}
-  questionEnglish: Are you sure you want to leave?
-  questionFrench: "Es-tu s\xFBr de vouloir partir ?"
-  yesEnglish: Yes
-  yesFrench: Oui
-  noEnglish: No
-  noFrench: Non
+  questionKey: ui.choice.leave_secret_world
+  yesKey: ui.common.yes
+  noKey: ui.common.no
   yesPolarity: 1
   noPolarity: 2
   fadeDuration: 0.5
@@ -8404,7 +8401,7 @@ Transform:
   m_GameObject: {fileID: 1840571238}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: 1, z: -0, w: -0.00000035762784}
-  m_LocalPosition: {x: -24, y: 0.1, z: 6.75}
+  m_LocalPosition: {x: 0.15, y: 0.1, z: 7.54}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -8518,7 +8515,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1872218935}
-  m_Enabled: 0
+  m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 4f04aba96052f45f98117aaf21e3b819, type: 3}
   m_Name: 
@@ -8527,6 +8524,7 @@ MonoBehaviour:
   spawnPoints:
   - {fileID: 1840571239}
   startPosTuto: {fileID: 0}
+  spawnTaxiPos: {fileID: 0}
   travelAnimator: {fileID: 0}
   travelTrigger: Travel
   autoRedirectToTutorial: 0
@@ -16363,6 +16361,14 @@ PrefabInstance:
     - target: {fileID: 1757840798884801266, guid: 88c20dcc7aa6c4bdca5d392a05ea79a1, type: 3}
       propertyPath: m_Name
       value: AsianHouse
+      objectReference: {fileID: 0}
+    - target: {fileID: 4811571170905003281, guid: 88c20dcc7aa6c4bdca5d392a05ea79a1, type: 3}
+      propertyPath: m_Enabled
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 6604729979414953188, guid: 88c20dcc7aa6c4bdca5d392a05ea79a1, type: 3}
+      propertyPath: m_Layer
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 7178739224779037921, guid: 88c20dcc7aa6c4bdca5d392a05ea79a1, type: 3}
       propertyPath: m_LocalPosition.x

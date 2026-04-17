@@ -26,12 +26,17 @@ public class SoundParameters : GameBehaviour
 
     public void PlaySound(Vector3 position, float forcedVolume = -1)
     {
+        PlayManagedSound(position, forcedVolume);
+    }
+
+    public SoundManager.SoundInstance PlayManagedSound(Vector3 position, float forcedVolume = -1)
+    {
         if (possibleClips == null || possibleClips.Length == 0)
-            return;
+            return null;
         if (SoundManager.Instance == null)
-            return;
+            return null;
         if (isUISound && SoundManager.Instance.ShouldBlockUiSound())
-            return;
+            return null;
 
         if (usePlayerPos)
             position = GetPlayerPosition(position);
@@ -48,18 +53,23 @@ public class SoundParameters : GameBehaviour
         
         AudioClip clip = possibleClips[Random.Range(0, possibleClips.Length)];
         float pitch = Random.Range(pitchMin, pitchMax);
-        SoundManager.Instance.PlaySound(clip, position, volumeToUse, pitch, duration, range, loop, sourceParent, ignoreAudioOcclusion);
+        return SoundManager.Instance.PlaySound(clip, position, volumeToUse, pitch, duration, range, loop, sourceParent, ignoreAudioOcclusion);
     }
     
     public void PlaySound()
     {
+        PlayManagedSound();
+    }
+
+    public SoundManager.SoundInstance PlayManagedSound()
+    {
         Debug.Log("POUET1 " + name);
         if (possibleClips == null || possibleClips.Length == 0)
-            return;
+            return null;
         if (SoundManager.Instance == null)
-            return;
+            return null;
         if (isUISound && SoundManager.Instance.ShouldBlockUiSound())
-            return;
+            return null;
 
         float volumeToUse = volume;
 
@@ -69,9 +79,10 @@ public class SoundParameters : GameBehaviour
         AudioClip clip = possibleClips[Random.Range(0, possibleClips.Length)];
         float pitch = Random.Range(pitchMin, pitchMax);
         Vector3 positionToUse = usePlayerPos ? GetPlayerPosition(transform.position) : transform.position;
-        SoundManager.Instance.PlaySound(clip, position: positionToUse, volumeToUse, pitch, duration, range, loop, sourceParent, ignoreAudioOcclusion);
+        SoundManager.SoundInstance soundInstance = SoundManager.Instance.PlaySound(clip, position: positionToUse, volumeToUse, pitch, duration, range, loop, sourceParent, ignoreAudioOcclusion);
         
         Debug.Log("POUET2 " + name);
+        return soundInstance;
     }
 
     private Vector3 GetPlayerPosition(Vector3 fallback)

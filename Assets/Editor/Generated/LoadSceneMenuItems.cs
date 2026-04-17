@@ -31,5 +31,9 @@ public static class LoadSceneMenuItems
     private static void Open_WSObakemachi_9() => Open("Assets/Scenes/WSObakemachi.unity");
     [MenuItem("LoadScene/HouseSakura")]
     private static void Open_HouseSakura_10() => Open("Assets/Scenes/HouseSakura.unity");
+    [MenuItem("LoadScene/HouseWinter")]
+    private static void Open_HouseWinter_11() => Open("Assets/Scenes/HouseWinter.unity");
+    [MenuItem("LoadScene/WSWinter")]
+    private static void Open_WSWinter_12() => Open("Assets/Scenes/WSWinter.unity");
 }
 #endif
