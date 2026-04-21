@@ -97,6 +97,7 @@ public class House : GameBehaviour
     public Player currentPlayer;
     
     public List<WayPoint> wayPoints = new List<WayPoint>();
+    public List<HidingSpot> hidingSpots = new List<HidingSpot>();
 
     public UnityEvent<PrintSource> onNewPrintSourceAddedToGame;
     public List<PrintSource> printSourcesAddedToGame = new List<PrintSource>();
@@ -106,6 +107,8 @@ public class House : GameBehaviour
     private void Awake()
     {
         Instance = this;
+
+        RefreshHidingSpots();
         
         #if UNITY_EDITOR
         CheckIgnoreDebugs();
@@ -159,6 +162,12 @@ public class House : GameBehaviour
         {
             r.Initialize(this);
         }
+    }
+
+    public void RefreshHidingSpots()
+    {
+        hidingSpots.Clear();
+        hidingSpots.AddRange(GetComponentsInChildren<HidingSpot>(true));
     }
 
     private void InstantiateGhost()

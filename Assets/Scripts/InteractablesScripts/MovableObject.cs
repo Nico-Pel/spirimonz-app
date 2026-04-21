@@ -113,6 +113,19 @@ public class MovableObject : ClickableObject
         AudioClip clip = _isActivated && moveSoundBack != null ? moveSoundBack : moveSound;
         SoundManager.Instance?.PlaySound(clip, activitySource.transform.position, volume, Random.Range(pitchMin, pitchMax));
     }
+
+    public bool IsActivated()
+    {
+        return _isActivated;
+    }
+
+    public void SetActivatedState(bool active)
+    {
+        if (_isActivated == active)
+            return;
+
+        OnClick();
+    }
     
     protected override void GhostClickedDuringAHunt()
     {

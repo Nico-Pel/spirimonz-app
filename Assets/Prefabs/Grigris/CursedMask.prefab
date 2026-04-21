@@ -120,8 +120,20 @@ MonoBehaviour:
   isGrabbed: 0
   collisionSoundParameters: {fileID: 3320866403266024919}
   minForceToPlayCollision: 1
+  addTorqueOnThrow: 1
+  throwTorqueRange: {x: 0.2, y: 0.6}
   ignorePlayerCollisionDuration: 1
+  secondaryUseCooldown: 1
+  autoSleepWhenIdle: 1
+  autoSleepStartDelay: 1
+  autoSleepCheckInterval: 0.5
+  autoSleepMinStableTime: 0.5
+  autoSleepVelocity: 0.02
+  autoSleepAngularVelocity: 0.02
   onGrab:
+    m_PersistentCalls:
+      m_Calls: []
+  onSecondaryUse:
     m_PersistentCalls:
       m_Calls: []
   article: {fileID: 11400000, guid: 34d594b7b89894ea4840f338177ca360, type: 2}
@@ -139,6 +151,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 40b88c04d7940466da713f4000ddccc8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  playerOnEnabled: 0
+  usePlayerPos: 0
+  isUISound: 0
   possibleClips:
   - {fileID: 8300000, guid: a7716a4b3552c4862a4287895dd8c818, type: 3}
   volume: 1.2
@@ -313,6 +328,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 40b88c04d7940466da713f4000ddccc8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  playerOnEnabled: 0
+  usePlayerPos: 0
+  isUISound: 0
   possibleClips:
   - {fileID: 8300000, guid: 0e88b0731e98b4b00aaf5a5279cee8fd, type: 3}
   volume: 0.5

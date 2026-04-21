@@ -76,7 +76,7 @@ public class UITitleSaveSlot : GameBehaviour
             _previewBody = Instantiate(firstTeamSpmz.spirimonzBodyPrefab, spmzPos);
             _previewBody.transform.localPosition = firstTeamSpmz.bodyPresentationOffset;
             _previewBody.transform.localRotation = Quaternion.identity;
-            _previewBody.transform.localScale = Vector3.one * previewScale;
+            _previewBody.transform.localScale *= previewScale;
             if (previewLayer.value != 0)
                 ApplyLayerRecursively(_previewBody, LayerMaskToLayer(previewLayer));
         }

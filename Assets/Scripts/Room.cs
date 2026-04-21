@@ -52,10 +52,20 @@ public class Room : MonoBehaviour
     {
         house = h;
         foreach (ClickableObject c in clickableObjects)
+        {
+            if (c == null)
+                continue;
+
             c.Initialize(house);
+        }
 
         foreach (ActivableObject a in activableObjects)
+        {
+            if (a == null)
+                continue;
+
             a.Initialize(house);
+        }
 
         // Initialisation aléatoire de la température
         float temperatureRandomVariation = Random.Range(-house.temperatureMaxRoomVariation, house.temperatureMaxRoomVariation);
@@ -75,9 +85,7 @@ public class Room : MonoBehaviour
         }
 
         currentTemperature = house.averageStartTemperature + temperatureRandomVariation;
-        float minTemperature = house.currentGhost.ghostParameters.FreezingTemperature
-            ? minFreezingTemperature
-            : minNormalTemperature;
+        float minTemperature = GetMinTemperature();
         currentTemperature = Mathf.Clamp(currentTemperature, minTemperature, maxTemperature);
         _temperatureTarget = currentTemperature; // synchronisation initiale
         _startTemperature = currentTemperature;
@@ -152,9 +160,7 @@ public class Room : MonoBehaviour
         // Optional subtle noise
         currentTemperature += Random.Range(-0.02f, 0.02f);
 
-        float minTemperature = house.currentGhost.ghostParameters.FreezingTemperature
-            ? minFreezingTemperature
-            : minNormalTemperature;
+        float minTemperature = GetMinTemperature();
         currentTemperature = Mathf.Clamp(currentTemperature, minTemperature, maxTemperature);
 
         //Radiations
@@ -202,9 +208,7 @@ public class Room : MonoBehaviour
             delta *= Mathf.Max(0.1f, TutorialManager.Instance.tutorialCoolingMultiplier);
 
         _temperatureTarget += delta;
-        float minTemperature = house.currentGhost.ghostParameters.FreezingTemperature
-            ? minFreezingTemperature
-            : minNormalTemperature;
+        float minTemperature = GetMinTemperature();
         _temperatureTarget = Mathf.Clamp(_temperatureTarget, minTemperature, maxTemperature);
     }
 
@@ -214,9 +218,7 @@ public class Room : MonoBehaviour
             delta *= Mathf.Max(0.1f, TutorialManager.Instance.tutorialCoolingMultiplier);
 
         _temperatureTarget += delta;
-        float minTemperature = house.currentGhost.ghostParameters.FreezingTemperature
-            ? minFreezingTemperature
-            : minNormalTemperature;
+        float minTemperature = GetMinTemperature();
         minTemperature = Mathf.Max(minTemperature, minAllowedTemperature);
         _temperatureTarget = Mathf.Clamp(_temperatureTarget, minTemperature, maxTemperature);
     }
@@ -227,9 +229,7 @@ public class Room : MonoBehaviour
             return;
 
         _temperatureTarget += delta;
-        float minTemperature = house.currentGhost.ghostParameters.FreezingTemperature
-            ? minFreezingTemperature
-            : minNormalTemperature;
+        float minTemperature = GetMinTemperature();
         float maxTemp = Mathf.Min(maxAllowedTemperature, maxTemperature);
         _temperatureTarget = Mathf.Clamp(_temperatureTarget, minTemperature, maxTemp);
     }
@@ -244,5 +244,15 @@ public class Room : MonoBehaviour
     public float GetTemperatureFahrenheit()
     { 
         return (currentTemperature * 9f / 5f) + 32f;
+    }
+
+    private float GetMinTemperature()
+    {
+        bool freezingTemperature = house != null &&
+                                   house.currentGhost != null &&
+                                   house.currentGhost.ghostParameters != null &&
+                                   house.currentGhost.ghostParameters.FreezingTemperature;
+
+        return freezingTemperature ? minFreezingTemperature : minNormalTemperature;
     }
 }

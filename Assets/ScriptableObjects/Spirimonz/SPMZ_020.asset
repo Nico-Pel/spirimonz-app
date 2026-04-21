@@ -1,0 +1,37 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2da69e9a0e0f54f3c905a18b7cedd84c, type: 3}
+  m_Name: SPMZ_020
+  m_EditorClassIdentifier: 
+  unlockedByDefault: 0
+  spirimonzID: SPMZ_020
+  spirimonzName: Bonome
+  spirimonzPrefab: {fileID: 368480814045509084, guid: c7204209b37654c56a18e53a98e5310f, type: 3}
+  spirimonzBodyPrefab: {fileID: 4292749182891659313, guid: 294181b3b504d4c468adf2c165ecb847, type: 3}
+  bodyPresentationOffset: {x: 0, y: 0, z: 0}
+  img: {fileID: 21300000, guid: 4c8c43c4c26f14e09b9764d2d6f3749d, type: 3}
+  abilities:
+  - evidenceTypes: 
+    description: Bonome runs to hide inside the house. When you find him, interact
+      with him so he runs to another hiding spot.
+  - evidenceTypes: 06000000
+    description: Bonome detects the radioactivity of the rooms he passes through
+      and has a good chance of detecting whether the malevolent spirit is radioactive
+      as he passes through it.
+  - evidenceTypes: 
+    description: When he moves, Bonome reveals the Grigris hidden around the house.
+  primarySPMZType: {fileID: 11400000, guid: 6b74578408ec14b618200c6b1e1360a0, type: 2}
+  secondarySPMZType: {fileID: 11400000, guid: 02e113f3a6b9d45c6bea07f9359a9b9b, type: 2}
+  canUsePowerInHands: 0
+  canBeDroppedOnMap: 1
+  canBeTakenBackInHands: 0
+  canFollowPlayer: 0

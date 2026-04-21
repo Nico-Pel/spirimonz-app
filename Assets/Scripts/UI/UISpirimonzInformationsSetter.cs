@@ -232,7 +232,7 @@ public class UISpirimonzInformationsSetter : GameBehaviour
 
         currentSpirimonzBody = Instantiate(spmz.spirimonzBodyPrefab, spmzBodyPos.position, spmzBodyPos.rotation, spmzBodyPos);
         spmzBodyPos.localPosition = Vector3.zero + spmz.bodyPresentationOffset;
-        currentSpirimonzBody.transform.localScale = Vector3.one * 7f;
+        currentSpirimonzBody.transform.localScale *= 7f;
         ChangeLayer(currentSpirimonzBody, 5);
     }
 

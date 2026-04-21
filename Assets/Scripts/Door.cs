@@ -33,7 +33,7 @@ public class Door : GameBehaviour, IInteractable
     public AudioClip closeSound;
     public AudioClip slamSound;
     public float spirimonzOpenVolumeOffset = -0.25f;
-    public float spirimonzOpenPitchOffset = 0.2f;
+    public float spirimonzOpenPitchOffset = 0.05f;
 
     [Header("Audio Occlusion")] 
     public AudioOccluder mAudioOccluder;
