@@ -69,7 +69,11 @@ public class Player : GameBehaviour
             DetectNPC();
 
             bool allowInteract = TutorialInputGate.IsAllowed(TutorialInputGate.AllowInteract);
-            if (allowInteract && currentNPC != null && ((!MobileInput.Enabled && inputManager.GetWorldInteractionDown()) || MobileInput.GrabDown))
+            bool mobileNpcInteractDown = false;
+            if (MobileInput.Enabled && currentNPC != null)
+                mobileNpcInteractDown = MobileInput.GrabDown || MobileInput.PrimaryDown || MobileInput.ConsumeGrabDown() || MobileInput.ConsumePrimaryDown();
+
+            if (allowInteract && currentNPC != null && ((!MobileInput.Enabled && inputManager.GetWorldInteractionDown()) || mobileNpcInteractDown))
             {
                 _canStartDialogue = false;
                 if (currentNPC.CanInteract(this))

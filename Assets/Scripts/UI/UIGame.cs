@@ -229,7 +229,7 @@ public class UIGame : UIManager
 
     public void InitControlTexts(InputManager controller)
     {
-        tGrab.text = LocalizationManager.Format("ui.grab_item", controller.GetKeyDisplay(controller.grabObject, controller.grabObjectAlt));
+        tGrab.text = LocalizationManager.Format("ui.grab_item", controller.GetGrabDisplay());
     }
 
     public void EnablePointer(bool enable)

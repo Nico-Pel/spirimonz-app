@@ -135,6 +135,20 @@ public class InputManager : GameBehaviour
         return TutorialInputGate.IsInventorySlotAllowed(index) && GetKeyDown(primary, secondary);
     }
 
+    public string GetWorldInteractionDisplay()
+    {
+        return MobileInput.Enabled
+            ? GetMobileLabel("input.mobile.a", "A")
+            : GetKeyDisplay(worldInteractions, worldInteractionsAlt);
+    }
+
+    public string GetGrabDisplay()
+    {
+        return MobileInput.Enabled
+            ? GetMobileLabel("input.mobile.a", "A")
+            : GetKeyDisplay(grabObject, grabObjectAlt);
+    }
+
     public string GetKeyDisplay(KeyCode primary, KeyCode secondary)
     {
         if (secondary == KeyCode.None)
@@ -192,48 +206,66 @@ public class InputManager : GameBehaviour
             case "drop_spmz":
             case "drop_spirimonz":
             case "dropspirimonz":
-                display = GetKeyDisplay(dropSpirimonz, dropSpirimonzAlt);
+                display = MobileInput.Enabled
+                    ? GetMobileLabel("input.mobile.tap", "Tap")
+                    : GetKeyDisplay(dropSpirimonz, dropSpirimonzAlt);
                 return true;
             case "secondary":
             case "rightclick":
             case "mouse1":
-                display = GetKeyDisplay(KeyCode.Mouse1, KeyCode.None);
+                display = MobileInput.Enabled
+                    ? GetMobileLabel("input.mobile.b", "B")
+                    : GetKeyDisplay(KeyCode.Mouse1, KeyCode.None);
                 return true;
             case "drop":
-                display = GetKeyDisplay(dropObject, dropObjectAlt);
+                display = MobileInput.Enabled
+                    ? GetMobileLabel("input.mobile.a", "A")
+                    : GetKeyDisplay(dropObject, dropObjectAlt);
                 return true;
             case "throw":
-                display = GetKeyDisplay(throwObject, throwObjectAlt);
+                display = MobileInput.Enabled
+                    ? GetMobileLabel("input.mobile.b", "B")
+                    : GetKeyDisplay(throwObject, throwObjectAlt);
                 return true;
             case "grab":
-                display = GetKeyDisplay(grabObject, grabObjectAlt);
+                display = GetGrabDisplay();
                 return true;
             case "pickupspmz":
             case "pickup_spmz":
             case "pickup_spirimonz":
             case "pickupspirimonz":
-                display = GetKeyDisplay(grabObject, grabObjectAlt);
+                display = MobileInput.Enabled
+                    ? GetMobileLabel("input.mobile.a", "A")
+                    : GetKeyDisplay(grabObject, grabObjectAlt);
                 return true;
             case "interact":
             case "use":
-                display = GetKeyDisplay(KeyCode.Mouse0, KeyCode.None);
+                display = MobileInput.Enabled
+                    ? GetMobileLabel("input.mobile.tap", "Tap")
+                    : GetKeyDisplay(KeyCode.Mouse0, KeyCode.None);
                 return true;
             case "interactspmz":
             case "interact_spmz":
             case "interact_spirimonz":
             case "interactspirimonz":
-                display = GetKeyDisplay(KeyCode.Mouse0, KeyCode.None);
+                display = MobileInput.Enabled
+                    ? GetMobileLabel("input.mobile.tap", "Tap")
+                    : GetKeyDisplay(KeyCode.Mouse0, KeyCode.None);
                 return true;
             case "usewatch":
             case "use_watch":
-                display = GetKeyDisplay(KeyCode.Mouse0, KeyCode.None);
+                display = MobileInput.Enabled
+                    ? GetMobileLabel("input.mobile.b", "B")
+                    : GetKeyDisplay(KeyCode.Mouse0, KeyCode.None);
                 return true;
             case "journal":
-                display = GetKeyDisplay(openJournal, openJournalAlt);
+                display = MobileInput.Enabled
+                    ? GetMobileLabel("input.mobile.journal", "Journal")
+                    : GetKeyDisplay(openJournal, openJournalAlt);
                 return true;
             case "team":
             case "teammenu":
-                display = GetKeyDisplay(openTeamMenu, openTeamMenuAlt);
+                display = GetMobileInventoryDisplay();
                 return true;
             case "sprint":
                 display = GetKeyDisplay(sprintKey, sprintKeyAlt);
@@ -246,7 +278,28 @@ public class InputManager : GameBehaviour
                 return true;
             case "light":
             case "togglelight":
-                display = GetKeyDisplay(turnLight, turnLightAlt);
+                display = MobileInput.Enabled
+                    ? GetMobileLabel("input.mobile.lamp", "Lamp")
+                    : GetKeyDisplay(turnLight, turnLightAlt);
+                return true;
+            case "settings":
+            case "menu":
+            case "escape":
+            case "esc":
+                display = MobileInput.Enabled
+                    ? GetMobileLabel("input.mobile.settings", "Settings")
+                    : GetKeyDisplay(exitMenus, exitMenusAlt);
+                return true;
+            case "next":
+                display = MobileInput.Enabled
+                    ? GetMobileLabel("input.mobile.next", "Next")
+                    : GetKeyDisplay(primaryNext, secondaryNext);
+                return true;
+            case "prev":
+            case "previous":
+                display = MobileInput.Enabled
+                    ? GetMobileLabel("input.mobile.previous", "Previous")
+                    : GetKeyDisplay(primaryPrevious, secondaryPrevious);
                 return true;
             case "moveforward":
             case "forward":
@@ -292,6 +345,12 @@ public class InputManager : GameBehaviour
         if (inventoryKeys == null || index < 0 || index >= inventoryKeys.Length)
             return false;
 
+        if (MobileInput.Enabled)
+        {
+            display = GetMobileSlotDisplay(index);
+            return true;
+        }
+
         KeyCode primary = inventoryKeys[index];
         KeyCode secondary = (inventoryKeysAlt != null && index < inventoryKeysAlt.Length)
             ? inventoryKeysAlt[index]
@@ -299,6 +358,31 @@ public class InputManager : GameBehaviour
 
         display = GetKeyDisplay(primary, secondary);
         return true;
+    }
+
+    private string GetMobileInventoryDisplay()
+    {
+        if (!MobileInput.Enabled)
+            return GetKeyDisplay(openTeamMenu, openTeamMenuAlt);
+
+        int selectedIndex = -1;
+        if (InventoryManager.Instance != null)
+            selectedIndex = InventoryManager.Instance.currentSelectedIndex;
+
+        if (selectedIndex >= 0 && selectedIndex < 6 && TutorialInputGate.IsInventorySlotAllowed(selectedIndex))
+            return GetMobileSlotDisplay(selectedIndex);
+
+        return GetMobileLabel("input.mobile.inventory", "Inventory Footer");
+    }
+
+    private string GetMobileSlotDisplay(int index)
+    {
+        return LocalizationManager.Format("input.mobile.slot", index + 1);
+    }
+
+    private string GetMobileLabel(string key, string fallback)
+    {
+        return LocalizationManager.Get(key, fallback);
     }
 
     public List<BindingDefinition> GetBindingDefinitions()

@@ -47,6 +47,8 @@ public class InteractionController : GameBehaviour
     private GamePlayer _player;
     private UIGame _uiGame;
 
+    public NPC CurrentNpcTarget => _currentNpcTarget;
+
     public UnityEvent<CatchableObject> OnGrabItem;
     public UnityEvent<CatchableObject> OnDropItem;
 

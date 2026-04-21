@@ -39,7 +39,7 @@ public class MobileControlsBootstrap : MonoBehaviour
     public float actionButtonAngleCenter = 90f; // E
     public float actionButtonAngleRight = 60f;  // G
     public Vector2 actionButtonsOffset = new Vector2(-120f, 80f);
-    public string secondaryButtonLabel = "R";
+    public string secondaryButtonLabel = "B";
     public int actionButtonFontSize = 30;
     public Color actionButtonColor = new Color(0f, 0f, 0f, 0.55f);
     public Color actionButtonTextColor = new Color(1f, 1f, 1f, 0.95f);
@@ -54,7 +54,10 @@ public class MobileControlsBootstrap : MonoBehaviour
 
     public static void EnsureExists()
     {
-        if (_created || FindObjectOfType<MobileControlsBootstrap>() != null || FindObjectOfType<MobileControlsRoot>() != null)
+        if (_created ||
+            FindObjectOfType<MobileControlsBootstrap>() != null ||
+            FindObjectOfType<MobileControlsView>() != null ||
+            FindObjectOfType<MobileControlsRoot>() != null)
             return;
 
         GameObject go = new GameObject("MobileControlsBootstrap");
@@ -65,15 +68,33 @@ public class MobileControlsBootstrap : MonoBehaviour
 
     private void Awake()
     {
-        if (FindObjectOfType<MobileControlsRoot>() != null)
+        if (FindObjectOfType<MobileControlsView>() != null || FindObjectOfType<MobileControlsRoot>() != null)
         {
             _created = true;
             return;
         }
 
         CreateEventSystemIfMissing();
-        CreateCanvasAndJoysticks();
+        if (!TryInstantiatePrefab())
+            CreateCanvasAndJoysticks();
         _created = true;
+    }
+
+    private bool TryInstantiatePrefab()
+    {
+        GameObject prefab = Resources.Load<GameObject>(MobileControlsView.ResourcePath);
+        if (prefab == null)
+            return false;
+
+        GameObject instance = Instantiate(prefab);
+        instance.name = prefab.name;
+        DontDestroyOnLoad(instance);
+
+        MobileControlsView view = instance.GetComponent<MobileControlsView>();
+        if (view != null)
+            view.InitializeAfterInstantiation();
+
+        return true;
     }
 
     private void CreateEventSystemIfMissing()
@@ -340,11 +361,9 @@ public class MobileControlsBootstrap : MonoBehaviour
         Vector2 leftPos = arcCenter + AngleToOffset(actionButtonAngleLeft, actionButtonRadius);
         Vector2 rightPos = arcCenter + AngleToOffset(actionButtonAngleRight, actionButtonRadius);
 
-        GameObject grabButton = CreateActionButton(groupRect, "Action_E", "E", MobileButton.Action.Grab, leftPos, actionButtonSize);
-        GameObject secondaryButton = CreateActionButton(groupRect, "Action_R", secondaryButtonLabel, MobileButton.Action.Secondary,
+        GameObject grabButton = CreateActionButton(groupRect, "Action_A", "A", MobileButton.Action.Grab, leftPos, actionButtonSize);
+        GameObject secondaryButton = CreateActionButton(groupRect, "Action_B", secondaryButtonLabel, MobileButton.Action.Secondary,
             rightPos, actionButtonSize);
-        GameObject dropButton = CreateActionButton(groupRect, "Action_F", "F", MobileButton.Action.Drop, leftPos, actionButtonSize);
-        GameObject throwButton = CreateActionButton(groupRect, "Action_G", "G", MobileButton.Action.Throw, rightPos, actionButtonSize);
 
         GameObject torchButton = null;
         if (createTorchButton)
@@ -354,9 +373,7 @@ public class MobileControlsBootstrap : MonoBehaviour
         }
 
         MobileActionButtons actionButtons = group.AddComponent<MobileActionButtons>();
-        actionButtons.grabButton = grabButton;
-        actionButtons.dropButton = dropButton;
-        actionButtons.throwButton = throwButton;
+        actionButtons.primaryButton = grabButton;
         actionButtons.secondaryButton = secondaryButton;
         actionButtons.torchButton = torchButton;
     }

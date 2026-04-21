@@ -22,6 +22,7 @@ public class UIDialogue : GameBehaviour
     private Dialogue _currentDialogue;
 
     private bool _dialogueActive = false;
+    public bool IsDialogueActive => _dialogueActive || (dialogueBox != null && dialogueBox.activeSelf);
     private float _inputIgnoreUntil;
     private InputManager _inputManager;
     private SoundManager _soundManager;
@@ -57,7 +58,7 @@ public class UIDialogue : GameBehaviour
                 _player = Player.Instance;
 
             if(_inputManager != null)
-                tNext.text = _inputManager.GetKeyDisplay(_inputManager.worldInteractions, _inputManager.worldInteractionsAlt);
+                tNext.text = _inputManager.GetWorldInteractionDisplay();
         });
 
         bNext.gameObject.SetActive(false);
@@ -69,11 +70,12 @@ public class UIDialogue : GameBehaviour
         bool rawInteractionDown = false;
         if (_inputManager != null)
         {
+            bool mobileDialogueAdvanceDown = MobileInput.GrabDown || MobileInput.ConsumeGrabDown();
             rawInteractionDown =
                 (!MobileInput.Enabled &&
                  (_inputManager.GetKeyDown(_inputManager.worldInteractions, _inputManager.worldInteractionsAlt) ||
                   _inputManager.GetKeyDown(_inputManager.grabObject, _inputManager.grabObjectAlt)))
-                || MobileInput.GrabDown;
+                || (MobileInput.Enabled && mobileDialogueAdvanceDown);
         }
 
         if (_dialogueActive &&

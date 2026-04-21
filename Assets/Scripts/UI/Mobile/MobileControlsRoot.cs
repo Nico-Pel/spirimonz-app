@@ -20,14 +20,25 @@ public class MobileControlsRoot : MonoBehaviour
 
     private void Update()
     {
-        bool tabletActive = false;
-        if (!alwaysVisibleWhenMobile && hideWhenTablet && UIGame.Instance != null)
+        bool shouldHide = false;
+        if (UIGame.Instance != null)
         {
-            if (UIGame.Instance.tablet != null && UIGame.Instance.tablet.gameObject.activeSelf)
-                tabletActive = true;
+            if (!alwaysVisibleWhenMobile && hideWhenTablet && UIGame.Instance.tablet != null && UIGame.Instance.tablet.gameObject.activeSelf)
+                shouldHide = true;
+
+            if (hideWhenDialogue && UIGame.Instance.uiDialogue != null && UIGame.Instance.uiDialogue.IsDialogueActive)
+                shouldHide = true;
+
+            if (hideWhenEndGame &&
+                UIGame.Instance.tablet != null &&
+                UIGame.Instance.tablet.endGame != null &&
+                UIGame.Instance.tablet.endGame.gameObject.activeSelf)
+            {
+                shouldHide = true;
+            }
         }
 
-        bool shouldShow = MobileInput.Enabled && !tabletActive;
+        bool shouldShow = MobileInput.Enabled && !shouldHide;
         if (_lastEnabled == shouldShow)
             return;
 

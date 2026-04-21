@@ -37,7 +37,7 @@ public class CTA : GameBehaviour
 
         if (player != null)
         {
-            tInput.text = player.inputManager.GetKeyDisplay(player.inputManager.worldInteractions, player.inputManager.worldInteractionsAlt);
+            tInput.text = player.inputManager.GetWorldInteractionDisplay();
             
             lookAtConstraint.constraintActive = enable;
 

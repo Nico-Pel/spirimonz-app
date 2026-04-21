@@ -44,7 +44,8 @@ public class MobileButton : MonoBehaviour, IPointerDownHandler, IPointerUpHandle
                 MobileInput.SetSprintHeld(true);
                 break;
             case Action.Grab:
-                MobileInput.PressGrab();
+                if (!TryInteractWithNpc())
+                    MobileInput.PressGrab();
                 break;
             case Action.Drop:
                 MobileInput.PressDrop();
@@ -123,5 +124,32 @@ public class MobileButton : MonoBehaviour, IPointerDownHandler, IPointerUpHandle
             MobileInput.SetSecondaryHeld(false);
         else if (action == Action.Sprint)
             MobileInput.SetSprintHeld(false);
+    }
+
+    private static bool TryInteractWithNpc()
+    {
+        if (!MobileInput.Enabled)
+            return false;
+
+        Player player = Player.Instance;
+        if (player == null || player.IsLocked())
+            return false;
+
+        NPC npc = player.currentNPC;
+        if (npc == null && player is GamePlayer gamePlayer && gamePlayer.interactionController != null)
+            npc = gamePlayer.interactionController.CurrentNpcTarget;
+
+        if (npc == null)
+            return false;
+
+        if (!TutorialInputGate.IsAllowed(TutorialInputGate.AllowInteract))
+            return false;
+
+        if (!npc.CanInteract(player))
+            return false;
+
+        player.LockControls(true);
+        npc.Interact(player);
+        return true;
     }
 }

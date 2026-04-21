@@ -12,6 +12,7 @@ public static class MobileInput
     private static int _primaryDownFrame = -1;
     private static int _primaryUpFrame = -1;
     private static bool _primaryHeld;
+    private static bool _primaryDownPending;
 
     private static int _secondaryDownFrame = -1;
     private static int _secondaryUpFrame = -1;
@@ -20,6 +21,7 @@ public static class MobileInput
     private static bool _sprintHeld;
 
     private static int _grabDownFrame = -1;
+    private static bool _grabDownPending;
     private static int _dropDownFrame = -1;
     private static int _throwDownFrame = -1;
     private static int _crouchDownFrame = -1;
@@ -53,6 +55,7 @@ public static class MobileInput
         _primaryDownFrame = -1;
         _primaryUpFrame = -1;
         _primaryHeld = false;
+        _primaryDownPending = false;
 
         _secondaryDownFrame = -1;
         _secondaryUpFrame = -1;
@@ -61,6 +64,7 @@ public static class MobileInput
         _sprintHeld = false;
 
         _grabDownFrame = -1;
+        _grabDownPending = false;
         _dropDownFrame = -1;
         _throwDownFrame = -1;
         _crouchDownFrame = -1;
@@ -118,7 +122,11 @@ public static class MobileInput
     public static void SetPrimaryHeld(bool held)
     {
         if (!Enabled) return;
-        if (held && !_primaryHeld) _primaryDownFrame = Time.frameCount;
+        if (held && !_primaryHeld)
+        {
+            _primaryDownFrame = Time.frameCount;
+            _primaryDownPending = true;
+        }
         if (!held && _primaryHeld) _primaryUpFrame = Time.frameCount;
         _primaryHeld = held;
     }
@@ -132,6 +140,15 @@ public static class MobileInput
         if (!Enabled) return;
         _primaryDownFrame = Time.frameCount;
         _primaryUpFrame = Time.frameCount;
+        _primaryDownPending = true;
+    }
+
+    public static bool ConsumePrimaryDown()
+    {
+        if (!Enabled) return false;
+        if (!_primaryDownPending) return false;
+        _primaryDownPending = false;
+        return true;
     }
 
     // Secondary action (equivalent to mouse right)
@@ -157,8 +174,21 @@ public static class MobileInput
     public static bool SprintHeld => Enabled && _sprintHeld;
 
     // One-shot actions
-    public static void PressGrab() { if (Enabled) _grabDownFrame = Time.frameCount; }
+    public static void PressGrab()
+    {
+        if (!Enabled) return;
+        _grabDownFrame = Time.frameCount;
+        _grabDownPending = true;
+    }
     public static bool GrabDown => Enabled && _grabDownFrame == Time.frameCount;
+
+    public static bool ConsumeGrabDown()
+    {
+        if (!Enabled) return false;
+        if (!_grabDownPending) return false;
+        _grabDownPending = false;
+        return true;
+    }
 
     public static void PressDrop() { if (Enabled) _dropDownFrame = Time.frameCount; }
     public static bool DropDown => Enabled && _dropDownFrame == Time.frameCount;
