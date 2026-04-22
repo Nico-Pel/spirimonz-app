@@ -8356,7 +8356,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 1013128147196722236, guid: e967d553734564e4c93c4295918bc960, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 1.697
+      value: 1.814
       objectReference: {fileID: 0}
     - target: {fileID: 1013128147196722236, guid: e967d553734564e4c93c4295918bc960, type: 3}
       propertyPath: m_LocalPosition.y
@@ -8364,7 +8364,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1013128147196722236, guid: e967d553734564e4c93c4295918bc960, type: 3}
       propertyPath: m_LocalPosition.z
-      value: -3.788
+      value: -4.912
       objectReference: {fileID: 0}
     - target: {fileID: 1013128147196722236, guid: e967d553734564e4c93c4295918bc960, type: 3}
       propertyPath: m_LocalRotation.w
@@ -8397,6 +8397,18 @@ PrefabInstance:
     - target: {fileID: 2590491529400644313, guid: e967d553734564e4c93c4295918bc960, type: 3}
       propertyPath: m_Name
       value: HidingSpot (1)
+      objectReference: {fileID: 0}
+    - target: {fileID: 6407036457855790120, guid: e967d553734564e4c93c4295918bc960, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: -0.23
+      objectReference: {fileID: 0}
+    - target: {fileID: 6407036457855790120, guid: e967d553734564e4c93c4295918bc960, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0.012
+      objectReference: {fileID: 0}
+    - target: {fileID: 6407036457855790120, guid: e967d553734564e4c93c4295918bc960, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: -1.1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -13676,7 +13688,8 @@ PrefabInstance:
       value: Chair01 (3)
       objectReference: {fileID: 0}
     m_RemovedComponents: []
-    m_RemovedGameObjects: []
+    m_RemovedGameObjects:
+    - {fileID: 228480313719263769, guid: 22664ebf6f60f43cfa62803ccf263413, type: 3}
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 22664ebf6f60f43cfa62803ccf263413, type: 3}
@@ -36309,7 +36322,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1833521299}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
@@ -36326,7 +36339,7 @@ Transform:
   - {fileID: 1216316843}
   - {fileID: 627243245}
   - {fileID: 2027642545}
-  m_Father: {fileID: 0}
+  m_Father: {fileID: 543450653374424382}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &1837801015
 PrefabInstance:
@@ -43364,6 +43377,7 @@ Transform:
   - {fileID: 521767450}
   - {fileID: 98319228}
   - {fileID: 1756800670}
+  - {fileID: 1833521300}
   - {fileID: 985059684}
   - {fileID: 385037564}
   - {fileID: 2054888501}
@@ -43523,12 +43537,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   map: {fileID: 11400000, guid: bdeb4d0bd98f84d72a67fb487f2f61f5, type: 2}
   selectedGhostParameter: {fileID: 0}
-  useDebugs: 0
+  useDebugs: 1
   playerCantDie: 1
-  forcedGhostParameters: {fileID: 0}
+  forcedGhostParameters: {fileID: 11400000, guid: 2b135e37d107d4344b20a22b4139f807, type: 2}
   forcedGhostModel: {fileID: 0}
   forcedGhostActivity: 0
-  forcedFavoriteRoomID: 0
+  forcedFavoriteRoomID: 1
   tripleActivityDebug: 1
   useHuntTimeMultiplierDebug: 0
   huntTimeMultiplierDebug: 10
@@ -47217,4 +47231,3 @@ SceneRoots:
   - {fileID: 8082123606022772275}
   - {fileID: 1385653081}
   - {fileID: 4508596003705151731}
-  - {fileID: 1833521300}

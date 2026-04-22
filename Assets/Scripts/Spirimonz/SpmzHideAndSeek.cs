@@ -15,6 +15,10 @@ public class SpmzHideAndSeek : Spirimonz
     public Ease hideSnapEase = Ease.OutSine;
     [Min(0.1f)] public float navMeshSampleMaxDistance = 2f;
     [Min(0f)] public float maxAllowedNavMeshOffset = 1.5f;
+    [Min(0f)] public float hidingSpotTiltPermissiveness = 1f;
+    public SoundParameters hiddenLoopSound;
+    [Min(0.1f)] public float hiddenSoundMinDelay = 5f;
+    [Min(0.1f)] public float hiddenSoundMaxDelay = 15f;
 
     [Header("Radiation Detection")]
     [Range(0f, 1f)] public float radiationDetectionChance = 0.5f;
@@ -23,6 +27,10 @@ public class SpmzHideAndSeek : Spirimonz
     [Min(0)] public int radiationFeedbackMaterialIndex;
     public Material baseRadiationMaterial;
     public Material detectedRadiationMaterial;
+    public ParticleSystem radiationFeedbackParticles;
+    public Color baseRadiationParticleColor = new Color32(0xA6, 0xCA, 0xD9, 0xFF);
+    public Color detectedRadiationParticleColor = new Color32(0xA6, 0xD9, 0xA7, 0xFF);
+    [Min(0.01f)] public float radiationParticleBlendDuration = 0.5f;
     public SoundParameters radiationDetectedSound;
 
     [Header("Detector References")]
@@ -31,6 +39,7 @@ public class SpmzHideAndSeek : Spirimonz
     public RadiationDetector radiationDetector;
     public ArticlesDetector articlesDetector;
     public SoundParameters ghostTriggeredSound;
+    public SoundParameters foundSound;
 
     [Header("Movables")]
     [FormerlySerializedAs("movableAutoOpenDistance")]
@@ -48,7 +57,10 @@ public class SpmzHideAndSeek : Spirimonz
     private bool _isHidingOnSpot;
     private bool _isSnappingToSpot;
     private float _radiationFeedbackEndTime;
+    private SoundManager.SoundInstance _radiationDetectedSoundInstance;
     private Material[] _baseSharedMaterials;
+    private Tween _radiationParticleColorTween;
+    private Color _currentRadiationParticleColor;
     private Collider _ghostTriggerCollider;
     private Vector3 _baseColliderCenter;
     private float _baseCapsuleRadius;
@@ -56,6 +68,7 @@ public class SpmzHideAndSeek : Spirimonz
     private float _baseSphereRadius;
     private Vector3 _baseBoxSize;
     private bool _cachedMainColliderState;
+    private const string HIDDEN_SOUND_INVOKE = "SpmzHideAndSeek.HiddenSound";
 
     public override void InitSpirimonz()
     {
@@ -63,6 +76,8 @@ public class SpmzHideAndSeek : Spirimonz
 
         CacheBaseMaterials();
         CacheGhostTriggerCollider();
+        _currentRadiationParticleColor = baseRadiationParticleColor;
+        SetRadiationParticleColor(_currentRadiationParticleColor);
 
         if (ghostTrigger != null)
         {
@@ -122,6 +137,7 @@ public class SpmzHideAndSeek : Spirimonz
         CloseOpenedMovables();
         SetHidingColliderState(false);
         SetEscapeSystemsEnabled(false);
+        CancelHiddenSoundLoop();
         ApplyRadiationFeedback(false);
         return true;
     }
@@ -184,6 +200,7 @@ public class SpmzHideAndSeek : Spirimonz
         if (!_isHidingOnSpot)
             return;
 
+        foundSound?.PlaySound(transform.position);
         StartExitHideSequence();
     }
 
@@ -203,7 +220,10 @@ public class SpmzHideAndSeek : Spirimonz
     {
         SetEscapeSystemsEnabled(false);
         CloseOpenedMovables();
+        CancelHiddenSoundLoop();
         ApplyRadiationFeedback(false);
+        KillRadiationParticleColorTween();
+        SetRadiationParticleColor(baseRadiationParticleColor);
         base.OnDisable();
     }
 
@@ -324,7 +344,10 @@ public class SpmzHideAndSeek : Spirimonz
         if (hidingSpot == null)
             return false;
 
-        Vector3 targetPosition = hidingSpot.GetWorldPosition();
+        if (IsHidingSpotTilted(hidingSpot))
+            return false;
+
+        Vector3 targetPosition = hidingSpot.GetApproachPosition();
         if (!NavMesh.SamplePosition(targetPosition, out NavMeshHit hit, navMeshSampleMaxDistance, NavMesh.AllAreas))
         {
             Debug.LogError($"{name}: HidingSpot '{hidingSpot.name}' is not reachable from the NavMesh.", hidingSpot);
@@ -345,12 +368,32 @@ public class SpmzHideAndSeek : Spirimonz
         return true;
     }
 
+    private bool IsHidingSpotTilted(HidingSpot hidingSpot)
+    {
+        Quaternion worldRotation = hidingSpot.GetWorldRotation();
+        Vector3 euler = worldRotation.eulerAngles;
+        float xTilt = Mathf.DeltaAngle(0f, euler.x);
+        float zTilt = Mathf.DeltaAngle(0f, euler.z);
+        float maxTilt = Mathf.Max(0f, hidingSpotTiltPermissiveness);
+
+        bool isTilted = Mathf.Abs(xTilt) > maxTilt || Mathf.Abs(zTilt) > maxTilt;
+        if (isTilted)
+        {
+            Debug.LogWarning(
+                $"{name}: HidingSpot '{hidingSpot.name}' ignored because it is tilted (X:{xTilt:0.0} / Z:{zTilt:0.0}).",
+                hidingSpot
+            );
+        }
+
+        return isTilted;
+    }
+
     private float GetPlayerTravelDistance(Player player, HidingSpot hidingSpot)
     {
         if (player == null || hidingSpot == null)
             return float.MaxValue;
 
-        Vector3 targetPosition = hidingSpot.GetWorldPosition();
+        Vector3 targetPosition = hidingSpot.GetApproachPosition();
         if (IsHidingSpotReachable(hidingSpot, out Vector3 approachPosition))
             targetPosition = approachPosition;
 
@@ -366,7 +409,7 @@ public class SpmzHideAndSeek : Spirimonz
         if (IsHidingSpotReachable(hidingSpot, out Vector3 approachPosition))
             return approachPosition;
 
-        return hidingSpot != null ? hidingSpot.GetWorldPosition() : transform.position;
+        return hidingSpot != null ? hidingSpot.GetApproachPosition() : transform.position;
     }
 
     private void StartHideSequence()
@@ -449,9 +492,36 @@ public class SpmzHideAndSeek : Spirimonz
         _isHidingOnSpot = hiding;
         canInteract = hiding;
         SetHidingColliderState(hiding);
+        UpdateHiddenSoundLoop();
 
         if (animator != null)
             animator.SetBool("Hiding", hiding);
+    }
+
+    private void UpdateHiddenSoundLoop()
+    {
+        CancelHiddenSoundLoop();
+
+        if (!_isHidingOnSpot || !isOnTheMap || hiddenLoopSound == null)
+            return;
+
+        float minDelay = Mathf.Max(0.1f, hiddenSoundMinDelay);
+        float maxDelay = Mathf.Max(minDelay, hiddenSoundMaxDelay);
+        float delay = Random.Range(minDelay, maxDelay);
+        this.Invoke(HIDDEN_SOUND_INVOKE, delay, PlayHiddenSound);
+    }
+
+    private void CancelHiddenSoundLoop()
+    {
+        CancelInvoke(HIDDEN_SOUND_INVOKE);
+    }
+
+    private void PlayHiddenSound()
+    {
+        if (_isHidingOnSpot && isOnTheMap && hiddenLoopSound != null)
+            hiddenLoopSound.PlaySound(transform.position);
+
+        UpdateHiddenSoundLoop();
     }
 
     private void SetEscapeSystemsEnabled(bool enable)
@@ -490,7 +560,13 @@ public class SpmzHideAndSeek : Spirimonz
 
         ghostTriggeredSound?.PlaySound(transform.position);
 
-        if (radiationDetector == null || !radiationDetector.IsDetectingRadiation())
+        if (_house == null)
+            _house = House.Instance;
+
+        if (_house == null || _house.currentGhost == null || _house.currentGhost.ghostParameters == null)
+            return;
+
+        if (!_house.currentGhost.ghostParameters.Radioactivity)
             return;
 
         if (Random.value > radiationDetectionChance)
@@ -498,7 +574,7 @@ public class SpmzHideAndSeek : Spirimonz
 
         _radiationFeedbackEndTime = Time.time + radiationFeedbackDuration;
         ApplyRadiationFeedback(true);
-        radiationDetectedSound?.PlaySound(transform.position);
+        PlayRadiationDetectedSound();
     }
 
     private void CacheBaseMaterials()
@@ -602,6 +678,14 @@ public class SpmzHideAndSeek : Spirimonz
 
     private void ApplyRadiationFeedback(bool active)
     {
+        if (animator != null)
+            animator.SetBool("Radioactivity", active);
+
+        ApplyRadiationParticleFeedback(active);
+
+        if (!active)
+            StopRadiationDetectedSound();
+
         if (radiationFeedbackRenderer == null || detectedRadiationMaterial == null)
             return;
 
@@ -612,6 +696,68 @@ public class SpmzHideAndSeek : Spirimonz
         Material baseMaterial = baseRadiationMaterial != null ? baseRadiationMaterial : materials[radiationFeedbackMaterialIndex];
         materials[radiationFeedbackMaterialIndex] = active ? detectedRadiationMaterial : baseMaterial;
         radiationFeedbackRenderer.materials = materials;
+    }
+
+    private void ApplyRadiationParticleFeedback(bool active)
+    {
+        if (radiationFeedbackParticles == null)
+            return;
+
+        Color targetColor = active ? detectedRadiationParticleColor : baseRadiationParticleColor;
+        KillRadiationParticleColorTween();
+
+        _radiationParticleColorTween = DOTween.To(
+                () => _currentRadiationParticleColor,
+                color =>
+                {
+                    _currentRadiationParticleColor = color;
+                    SetRadiationParticleColor(color);
+                },
+                targetColor,
+                Mathf.Max(0.01f, radiationParticleBlendDuration)
+            )
+            .SetEase(Ease.Linear)
+            .SetLink(gameObject);
+    }
+
+    private void SetRadiationParticleColor(Color color)
+    {
+        if (radiationFeedbackParticles == null)
+            return;
+
+        ParticleSystem.MainModule main = radiationFeedbackParticles.main;
+        main.startColor = color;
+    }
+
+    private void KillRadiationParticleColorTween()
+    {
+        if (_radiationParticleColorTween == null)
+            return;
+
+        if (_radiationParticleColorTween.IsActive())
+            _radiationParticleColorTween.Kill();
+
+        _radiationParticleColorTween = null;
+    }
+
+    private void PlayRadiationDetectedSound()
+    {
+        if (radiationDetectedSound == null)
+            return;
+
+        if (_radiationDetectedSoundInstance != null && _radiationDetectedSoundInstance.IsPlaying)
+            return;
+
+        _radiationDetectedSoundInstance = radiationDetectedSound.PlayManagedSound(transform.position);
+    }
+
+    private void StopRadiationDetectedSound()
+    {
+        if (_radiationDetectedSoundInstance == null)
+            return;
+
+        _radiationDetectedSoundInstance.Stop(false);
+        _radiationDetectedSoundInstance = null;
     }
 
     private void OpenMovable(MovableObject movable)

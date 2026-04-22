@@ -4,6 +4,10 @@ using UnityEngine;
 
 public class AnimationSoundTrigger : GameBehaviour
 {
+    public SoundParameters soundParameters;
+
+    [Space]
+    
     public AudioClip clip;
     public float volume = 1f;
     public float pitchMin = 0.9f;
@@ -12,6 +16,10 @@ public class AnimationSoundTrigger : GameBehaviour
 
     public void PlaySound()
     {
-        SoundManager.Instance.PlaySound(clip, transform.position, volume, pitchMin, pitchMax, range);
+        if(clip != null)
+            SoundManager.Instance.PlaySound(clip, transform.position, volume, pitchMin, pitchMax, range);
+        
+        if(soundParameters != null)
+            soundParameters.PlaySound();
     }
 }

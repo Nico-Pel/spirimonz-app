@@ -147,6 +147,12 @@ public static class LocalizationManager
                 return "Spanish";
             case Language.Portuguese:
                 return "Portuguese";
+            case Language.Polish:
+                return "Polish";
+            case Language.Turkish:
+                return "Turkish";
+            case Language.Indonesian:
+                return "Indonesian";
             default:
                 return "English";
         }

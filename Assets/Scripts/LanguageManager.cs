@@ -7,7 +7,10 @@ public enum Language
     English,
     French,
     Spanish,
-    Portuguese
+    Portuguese,
+    Polish,
+    Turkish,
+    Indonesian
 }
 
 public static class LanguageManager

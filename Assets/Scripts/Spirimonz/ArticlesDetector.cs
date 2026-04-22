@@ -20,6 +20,8 @@ public class ArticlesDetector : GameBehaviour
         _detectionEnabled = enable;
         if (enable)
             _nextDetectionTime = Time.time;
+        else
+            ClearAllReveals();
     }
 
     private void Update()
@@ -36,8 +38,14 @@ public class ArticlesDetector : GameBehaviour
         for (int i = 0; i < articles.Length; i++)
         {
             ArticleObject article = articles[i];
-            if (article == null || article.isGrabbed)
+            if (article == null)
                 continue;
+
+            if (article.isGrabbed)
+            {
+                RemoveReveal(article);
+                continue;
+            }
 
             if (Vector3.Distance(transform.position, article.transform.position) > detectionRadius)
                 continue;
@@ -74,9 +82,38 @@ public class ArticlesDetector : GameBehaviour
             Destroy(revealInstance);
     }
 
+    private void RemoveReveal(ArticleObject article)
+    {
+        if (article == null)
+            return;
+
+        if (!_activeReveals.TryGetValue(article, out GameObject revealInstance))
+            return;
+
+        _activeReveals.Remove(article);
+
+        if (revealInstance != null)
+            Destroy(revealInstance);
+    }
+
+    private void ClearAllReveals()
+    {
+        if (_activeReveals.Count == 0)
+            return;
+
+        foreach (KeyValuePair<ArticleObject, GameObject> pair in _activeReveals)
+        {
+            if (pair.Value != null)
+                Destroy(pair.Value);
+        }
+
+        _activeReveals.Clear();
+    }
+
     private void OnDisable()
     {
         _detectionEnabled = false;
+        ClearAllReveals();
     }
 
     private void OnDrawGizmosSelected()
