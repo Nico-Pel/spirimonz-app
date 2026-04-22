@@ -242,7 +242,7 @@ MonoBehaviour:
   isUISound: 0
   possibleClips:
   - {fileID: 8300000, guid: 82e32a8aa05034159afa6baef5c2c697, type: 3}
-  volume: 0.9
+  volume: 0.75
   pitchMin: 1
   pitchMax: 1.2
   duration: -1
@@ -1136,7 +1136,7 @@ MonoBehaviour:
   lookAtPlayerOnInteractDuration: 0.25
   interactionCooldown: 0
   openDoorsOnItsWay: 1
-  lookForwardOnDropOnMap: 0
+  lookForwardOnDropOnMap: 1
   lookAtDistanceFromPlayer: 10
   forecastTimeBeforeAHunt: 1
   jumpForceMultiplier: 1
@@ -1193,6 +1193,7 @@ MonoBehaviour:
   hideSnapEase: 3
   navMeshSampleMaxDistance: 2
   maxAllowedNavMeshOffset: 1.5
+  hidingSpotTiltPermissiveness: 1
   hiddenLoopSound: {fileID: 815463965403072281}
   hiddenSoundMinDelay: 5
   hiddenSoundMaxDelay: 15

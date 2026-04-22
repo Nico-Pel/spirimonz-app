@@ -699,16 +699,21 @@ public class InventoryManager : GameBehaviour
         spirimonzToDrop.transform.parent = House.Instance.transform;
         spirimonzToDrop.ChangeLayer(spirimonzMask, 0);
 
+        Vector3 dropRotation = Vector3.zero;
         if (spirimonzToDrop.lookForwardOnDropOnMap)
         {
-            spirimonzToDrop.transform.DORotate(transform.localEulerAngles, 0.5f, RotateMode.Fast);
+            dropRotation.y = _gamePlayer.transform.eulerAngles.y;
         }
         else
         {
-            Vector3 oppositeRotation = transform.localEulerAngles;
-            oppositeRotation.y += 180f;
-            spirimonzToDrop.transform.DORotate(oppositeRotation, 0.5f, RotateMode.Fast);
+            Vector3 lookDirection = _gamePlayer.transform.position - dropPos;
+            lookDirection.y = 0f;
+
+            if (lookDirection.sqrMagnitude > 0.001f)
+                dropRotation.y = Quaternion.LookRotation(lookDirection).eulerAngles.y;
         }
+
+        spirimonzToDrop.transform.DORotate(dropRotation, 0.5f, RotateMode.Fast);
 
         spirimonzToDrop.DroppingOnMap();
         float camX = _gamePlayer.camera.transform.localEulerAngles.x;

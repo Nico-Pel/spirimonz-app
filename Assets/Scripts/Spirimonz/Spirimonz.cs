@@ -300,6 +300,11 @@ public class Spirimonz : GameBehaviour, IInteractable
         {
             animator.SetBool("Wait", true);
         }
+
+        if (!lookForwardOnDropOnMap)
+        {
+            LookAtPlayerFlatImmediately();
+        }
         
         onDroppedOnMap?.Invoke();
     }
@@ -606,6 +611,23 @@ public class Spirimonz : GameBehaviour, IInteractable
             Quaternion.Euler(euler),
             lookAtSpeed * Time.deltaTime
         );
+    }
+
+    private void LookAtPlayerFlatImmediately()
+    {
+        if (_house == null || _house.currentPlayer == null)
+            return;
+
+        Vector3 targetDir = _house.currentPlayer.transform.position - transform.position;
+        targetDir.y = 0f;
+
+        if (targetDir.sqrMagnitude < 0.001f)
+            return;
+
+        Quaternion targetRotation = Quaternion.LookRotation(targetDir);
+        Vector3 euler = transform.rotation.eulerAngles;
+        euler.y = targetRotation.eulerAngles.y;
+        transform.rotation = Quaternion.Euler(euler);
     }
 
     public virtual void UpdateSpecialMovement()

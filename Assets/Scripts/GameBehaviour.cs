@@ -12,6 +12,17 @@ public class GameBehaviour : MonoBehaviour
 {
     private Dictionary<string, Coroutine> _invokes = new Dictionary<string, Coroutine>();
 
+    private Dictionary<string, Coroutine> Invokes
+    {
+        get
+        {
+            if (_invokes == null)
+                _invokes = new Dictionary<string, Coroutine>();
+
+            return _invokes;
+        }
+    }
+
     // Invoke avec nom optionnel
     public void Invoke(float delay, Action action)
     {
@@ -27,22 +38,22 @@ public class GameBehaviour : MonoBehaviour
         CancelInvoke(name);
 
         Coroutine coroutine = StartCoroutine(InvokeCoroutine(delay, action, name));
-        _invokes[name] = coroutine;
+        Invokes[name] = coroutine;
     }
 
     private IEnumerator InvokeCoroutine(float delay, Action action, string name)
     {
         yield return new WaitForSeconds(delay);
-        _invokes.Remove(name); // Supprime après exécution
+        Invokes.Remove(name); // Supprime après exécution
         action?.Invoke();
     }
 
     public void CancelInvoke(string name)
     {
-        if (_invokes.TryGetValue(name, out Coroutine coroutine))
+        if (Invokes.TryGetValue(name, out Coroutine coroutine))
         {
             StopCoroutine(coroutine);
-            _invokes.Remove(name);
+            Invokes.Remove(name);
         }
     }
     
