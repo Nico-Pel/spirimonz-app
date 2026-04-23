@@ -27,6 +27,7 @@ public class SpirimonzSettings : ScriptableObject
     public Spirimonz spirimonzPrefab;
     public GameObject spirimonzBodyPrefab;
     public Vector3 bodyPresentationOffset;
+    public float bodyPresentationScale = 7f;
 
     [Space] 
     

@@ -10,6 +10,7 @@ public class SpmzColdSeeker : Spirimonz
     public int minColdestRooms = 1;
     public int maxColdestRooms = 3;
     [Min(0f)] public float coldestRoomTieMargin = 0.05f;
+    public bool requireNoColderNeighborToWait = false;
 
     [Header("Freezing Sleep")]
     public bool useSpirimonzTemperatureThreshold = true;
@@ -152,7 +153,14 @@ public class SpmzColdSeeker : Spirimonz
 
         float threshold = _roomBuffer[coldestCount - 1].GetTemperatureCelsius();
         float temp = room.GetTemperatureCelsius();
-        return temp <= threshold + coldestRoomTieMargin;
+        bool isAmongColdestRooms = temp <= threshold + coldestRoomTieMargin;
+        if (!isAmongColdestRooms)
+            return false;
+
+        if (!requireNoColderNeighborToWait)
+            return true;
+
+        return !HasColderNeighborRoom(room, temp);
     }
 
     private int ComputeColdestRoomCount(int roomCount)
@@ -170,6 +178,25 @@ public class SpmzColdSeeker : Spirimonz
             threshold = _temperatureColor.FreezingThreshold;
 
         return room.GetTemperatureCelsius() < threshold;
+    }
+
+    private bool HasColderNeighborRoom(Room room, float currentTemperature)
+    {
+        if (room == null || room.neighborRooms == null || room.neighborRooms.Length == 0)
+            return false;
+
+        float allowedTemperature = currentTemperature - coldestRoomTieMargin;
+        for (int i = 0; i < room.neighborRooms.Length; i++)
+        {
+            Room neighbor = room.neighborRooms[i];
+            if (neighbor == null)
+                continue;
+
+            if (neighbor.GetTemperatureCelsius() < allowedTemperature)
+                return true;
+        }
+
+        return false;
     }
 
     private void TrySpawnSleepReward(Room room)
