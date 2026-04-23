@@ -204,6 +204,14 @@ public class SpmzHideAndSeek : Spirimonz
         StartExitHideSequence();
     }
 
+    protected override bool ShouldHideFromGhostHunt()
+    {
+        if (_isHidingOnSpot || _isSnappingToSpot)
+            return false;
+
+        return !IsInHidingMode();
+    }
+
     protected override void OnHuntStart()
     {
         base.OnHuntStart();

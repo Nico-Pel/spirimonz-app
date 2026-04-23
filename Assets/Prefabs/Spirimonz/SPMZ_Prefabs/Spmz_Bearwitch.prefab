@@ -565,7 +565,7 @@ MonoBehaviour:
   openDoorsOnItsWay: 0
   lookForwardOnDropOnMap: 0
   lookAtDistanceFromPlayer: 0
-  forecastTimeBeforeAHunt: 0
+  forecastTimeBeforeAHunt: 1
   jumpForceMultiplier: 0
   handPosType: 5
   baseBehaviour: 0
@@ -616,11 +616,11 @@ MonoBehaviour:
   candleCheckInterval: 0.2
   sourceRefreshInterval: 0.35
   candleDetectionOrigin: {fileID: 5176813430004355706}
-  candleDetectionLocalOffset: {x: 0, y: 0, z: 0.5}
-  candleDetectionRadius: 1
+  candleDetectionLocalOffset: {x: 0, y: 0.25, z: 0.5}
+  candleDetectionRadius: 1.5
   candleDetectionLayerMask:
     serializedVersion: 2
-    m_Bits: 512
+    m_Bits: 4608
   activityDetectionOrigin: {fileID: 6998938461891683760}
   activityDetectionRange: 100
   activitySources: []

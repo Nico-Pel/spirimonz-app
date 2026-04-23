@@ -101,6 +101,12 @@ public class GhostParameters : ScriptableObject
     [Header("Cold temperature")] 
     public float refreshmentAfterActivityMin = -1;
     public float refreshmentAfterActivityMax = -5;
+    [Range(0f, 1f)] public float favoriteRoomIndirectCoolingPercent = 0.1f;
+    [Range(0f, 1f)] public float glacialFavoriteRoomIndirectCoolingPercent = 0.3f;
+    [Min(0f)] public float favoriteRoomRewarmMargin = 2f;
+    [Min(0f)] public float maxNonFavoriteColderThanFavorite = 3.5f;
+    [Min(0f)] public float nonFavoriteOvercoolGraceDuration = 10f;
+    [Min(0f)] public float nonFavoriteCorrectionPerSecond = 0.35f;
 
     [Header("Spirit Orbs")] 
     public float nextOrbsDelayMin = 3f;
@@ -114,6 +120,12 @@ public class GhostParameters : ScriptableObject
     [Header("Other settings")] 
     [Tooltip("Ignore electronic and lights (Switch)")]
     public float chancesToInteractWithAClickableInstedOfNothing = 50f;
+    [Range(0f, 100f)] public float chancesToReturnToFavoriteRoom = 30f;
+
+    [Header("Favorite Room Bias")]
+    [Range(0f, 100f)] public float chancesToDoNothingAfterNonFavoriteActivity = 35f;
+    [Range(0f, 100f)] public float chancesToChangeRoomAfterNonFavoriteActivity = 25f;
+    [Range(0f, 100f)] public float chancesToReturnToFavoriteAfterNonFavoriteActivity = 40f;
 
     
     public int GetRandomActivityValue()

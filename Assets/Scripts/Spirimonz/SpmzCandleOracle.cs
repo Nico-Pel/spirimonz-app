@@ -264,15 +264,43 @@ public class SpmzCandleOracle : Spirimonz
             if (hit == null)
                 continue;
 
-            FlammableElement flammable = hit.GetComponentInParent<FlammableElement>();
-            if (flammable == null)
-                continue;
-
-            if (flammable.type == FlammableElement.FlammableType.Candle && flammable.IsOnFire())
+            if (IsHitLitCandle(hit))
                 return true;
         }
 
         return false;
+    }
+
+    private bool IsHitLitCandle(Collider hit)
+    {
+        if (hit == null)
+            return false;
+
+        FlammableElement flammable = hit.GetComponentInParent<FlammableElement>();
+        if (IsLitCandle(flammable))
+            return true;
+
+        CatchableFireObject fireObject = hit.GetComponentInParent<CatchableFireObject>();
+        if (fireObject != null && IsLitCandle(fireObject.linkedFlammableElement))
+            return true;
+
+        Spirimonz nearbySpirimonz = hit.GetComponentInParent<Spirimonz>();
+        if (nearbySpirimonz == null)
+            return false;
+
+        CatchableFireObject embeddedFireObject = nearbySpirimonz.GetComponentInChildren<CatchableFireObject>(true);
+        if (embeddedFireObject != null && IsLitCandle(embeddedFireObject.linkedFlammableElement))
+            return true;
+
+        FlammableElement embeddedFlammable = nearbySpirimonz.GetComponentInChildren<FlammableElement>(true);
+        return IsLitCandle(embeddedFlammable);
+    }
+
+    private static bool IsLitCandle(FlammableElement flammable)
+    {
+        return flammable != null &&
+               flammable.type == FlammableElement.FlammableType.Candle &&
+               flammable.IsOnFire();
     }
 
     private void RefreshBestActivitySource(bool forceTrigger)

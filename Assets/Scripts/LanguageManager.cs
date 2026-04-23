@@ -10,7 +10,9 @@ public enum Language
     Portuguese,
     Polish,
     Turkish,
-    Indonesian
+    Indonesian,
+    Italian,
+    German
 }
 
 public static class LanguageManager

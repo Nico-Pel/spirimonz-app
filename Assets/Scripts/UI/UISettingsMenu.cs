@@ -18,8 +18,9 @@ public class UISettingsMenu : GameBehaviour
     private const int AllTextSize = 54;
     private const float BindingButtonMinWidth = 220f;
     private const float BindingButtonHeight = 90f;
-    private const float LanguageDropdownMinWidth = 520f;
-    private const float LanguageDropdownTemplateHeight = 320f;
+    private const float LanguageDropdownMinWidth = 620f;
+    private const float LanguageDropdownTemplateHeight = 460f;
+    private const float LanguageDropdownItemHeight = 104f;
 
     public CanvasGroup canvasGroup;
     public RectTransform panelRoot;
@@ -64,6 +65,8 @@ public class UISettingsMenu : GameBehaviour
     [TextArea] public string returnToTitleFrench = "Retour à l'écran titre";
 
     private Button _resetButton;
+    private Button _privacyPolicyButton;
+    private Button _termsOfUseButton;
     private bool _built;
     private bool _bindingsBuilt;
     private Font _font;
@@ -72,6 +75,9 @@ public class UISettingsMenu : GameBehaviour
     private UIManager _uiManager;
     private Text _deleteSaveLabel;
     private Text _returnToTitleLabel;
+    private Text _legalHeaderLabel;
+    private Text _privacyPolicyLabel;
+    private Text _termsOfUseLabel;
     private bool _localizationSubscribed;
 
     private bool _isOpen;
@@ -320,6 +326,15 @@ public class UISettingsMenu : GameBehaviour
                 : returnToTitleEnglish;
             _returnToTitleLabel.text = LocalizationManager.Get(ReturnToTitleKey, fallback);
         }
+
+        if (_legalHeaderLabel != null)
+            _legalHeaderLabel.text = LegalDocuments.GetSectionHeaderLabel();
+
+        if (_privacyPolicyLabel != null)
+            _privacyPolicyLabel.text = LegalDocuments.GetPrivacyButtonLabel();
+
+        if (_termsOfUseLabel != null)
+            _termsOfUseLabel.text = LegalDocuments.GetTermsButtonLabel();
     }
 
     private void SubscribeLocalization()
@@ -759,6 +774,23 @@ public class UISettingsMenu : GameBehaviour
         CreateHeader(contentGO.transform, "Language", _font, AllTextSize, LanguageHeaderKey);
         languageDropdown = CreateLanguageDropdownRow(contentGO.transform, "Language", _font, LanguageHeaderKey);
 
+        GameObject legalHeader = CreateHeader(contentGO.transform, LegalDocuments.GetSectionHeaderLabel(), _font, AllTextSize);
+        if (legalHeader != null)
+            _legalHeaderLabel = legalHeader.GetComponent<Text>();
+        _privacyPolicyButton = CreateActionButton(contentGO.transform, LegalDocuments.GetPrivacyButtonLabel(), _font);
+        if (_privacyPolicyButton != null)
+        {
+            _privacyPolicyLabel = _privacyPolicyButton.GetComponentInChildren<Text>();
+            _privacyPolicyButton.onClick.AddListener(() => UILegalOverlay.Instance.ShowDocument(LegalDocumentType.PrivacyPolicy));
+        }
+
+        _termsOfUseButton = CreateActionButton(contentGO.transform, LegalDocuments.GetTermsButtonLabel(), _font);
+        if (_termsOfUseButton != null)
+        {
+            _termsOfUseLabel = _termsOfUseButton.GetComponentInChildren<Text>();
+            _termsOfUseButton.onClick.AddListener(() => UILegalOverlay.Instance.ShowDocument(LegalDocumentType.TermsOfUse));
+        }
+
         keybindingsHeader = CreateHeader(contentGO.transform, "Key Bindings", _font, AllTextSize, KeyBindingsHeaderKey);
         GameObject keyRoot = new GameObject("KeybindingsRoot", typeof(RectTransform));
         keyRoot.transform.SetParent(contentGO.transform, false);
@@ -1007,6 +1039,23 @@ public class UISettingsMenu : GameBehaviour
 
         if (dropdown.template != null)
             dropdown.template.sizeDelta = new Vector2(dropdown.template.sizeDelta.x, LanguageDropdownTemplateHeight);
+
+        if (dropdown.captionText != null)
+            dropdown.captionText.fontSize = AllTextSize + 4;
+
+        if (dropdown.itemText != null)
+            dropdown.itemText.fontSize = AllTextSize + 2;
+
+        RectTransform itemRect = dropdown.itemText != null ? dropdown.itemText.transform.parent as RectTransform : null;
+        if (itemRect != null)
+            itemRect.sizeDelta = new Vector2(itemRect.sizeDelta.x, LanguageDropdownItemHeight);
+
+        LayoutElement itemLayout = itemRect != null ? itemRect.GetComponent<LayoutElement>() : null;
+        if (itemLayout != null)
+        {
+            itemLayout.minHeight = LanguageDropdownItemHeight;
+            itemLayout.preferredHeight = LanguageDropdownItemHeight;
+        }
 
         return dropdown;
     }

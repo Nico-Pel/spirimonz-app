@@ -56,12 +56,21 @@ public class UIGhostTypeSlot : GameBehaviour
         _journal = j;
     }
 
+    public void RefreshLocalization()
+    {
+        if (ghostParameters == null)
+            return;
+
+        if (titleText != null)
+            titleText.text = LocalizationManager.GetGhostTypeName(ghostParameters.ghostTypeData.ghostType);
+    }
+
     private void OnValidate()
     {
         if (ghostParameters != null)
         {
             ghostIcon.sprite = ghostParameters.ghostTypeData.ghostSprite;
-            titleText.text = LocalizationManager.GetGhostTypeName(ghostParameters.ghostTypeData.ghostType);
+            RefreshLocalization();
         }
     }
 

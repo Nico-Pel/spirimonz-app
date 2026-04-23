@@ -26,10 +26,21 @@ public class UIEvidence : GameBehaviour
     {
         if(dotButton != null)
             dotButton.onClick.AddListener(DotPressed);
-        
-        titleText.text = evidenceParameter.GetLocalizedTitle();
-        infoText.text = evidenceParameter.GetLocalizedInfo();
+
+        RefreshLocalization();
         evidenceIcon.sprite = evidenceParameter.icon;
+    }
+
+    public void RefreshLocalization()
+    {
+        if (evidenceParameter == null)
+            return;
+
+        if (titleText != null)
+            titleText.text = evidenceParameter.GetLocalizedTitle();
+
+        if (infoText != null)
+            infoText.text = evidenceParameter.GetLocalizedInfo();
     }
 
     private void DotPressed()

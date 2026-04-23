@@ -13,8 +13,12 @@ public class SpmzEnabler : Spirimonz
     public GameObject[] turnOnOnMap;
     public GameObject[] turnOffOnMap;
 
+    private FlammableElement[] _childFlammables;
+
     private void Awake()
     {
+        CacheChildFlammables();
+
         if (GetComponentInParent<Player>())
         {
             EnableHandsElements();
@@ -36,12 +40,16 @@ public class SpmzEnabler : Spirimonz
     {
         foreach (GameObject g in turnOnInHands)
         {
-            g.SetActive(true);
+            if (g != null)
+                g.SetActive(true);
         }
         foreach (GameObject g in turnOffInHands)
         {
-            g.SetActive(false);
+            if (g != null)
+                g.SetActive(false);
         }
+
+        RefreshChildFlammables(immediate: false);
     }
 
     public override void DroppedOnMap()
@@ -54,11 +62,37 @@ public class SpmzEnabler : Spirimonz
     {
         foreach (GameObject g in turnOnOnMap)
         {
-            g.SetActive(true);
+            if (g != null)
+                g.SetActive(true);
         }
         foreach (GameObject g in turnOffOnMap)
         {
-            g.SetActive(false);
+            if (g != null)
+                g.SetActive(false);
+        }
+
+        RefreshChildFlammables(immediate: false);
+    }
+
+    private void CacheChildFlammables()
+    {
+        _childFlammables = GetComponentsInChildren<FlammableElement>(true);
+    }
+
+    private void RefreshChildFlammables(bool immediate)
+    {
+        if (_childFlammables == null || _childFlammables.Length == 0)
+            CacheChildFlammables();
+
+        if (_childFlammables == null)
+            return;
+
+        foreach (FlammableElement flammable in _childFlammables)
+        {
+            if (flammable == null)
+                continue;
+
+            flammable.RefreshFireVisuals(immediate);
         }
     }
 }

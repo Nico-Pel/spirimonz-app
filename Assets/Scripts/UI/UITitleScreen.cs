@@ -24,6 +24,7 @@ public class UITitleScreen : GameBehaviour
     private void Start()
     {
         RefreshSlots();
+        UILegalOverlay.Instance.ShowFirstLaunchGateIfNeeded();
     }
 
     public void RefreshSlots()

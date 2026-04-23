@@ -215,6 +215,9 @@ public class Ghost : GameBehaviour
     private NavMeshPath _playerPath;
     private bool _agentUpdatePositionBase = true;
     private bool _agentUpdateRotationBase = true;
+    private readonly Dictionary<Room, float> _nonFavoriteOvercoolTimers = new Dictionary<Room, float>();
+    private float _favoriteRoomColdestTemperatureReached = float.MaxValue;
+    private bool _forceReturnToFavoriteRoom;
 
     private void Start()
     {
@@ -258,6 +261,8 @@ public class Ghost : GameBehaviour
         transform.position = house.SelectRandomWayPointFromARoom(favoriteRoom).transform.position;
         currentRoom = favoriteRoom;
         agent.enabled = true;
+        if (favoriteRoom != null)
+            _favoriteRoomColdestTemperatureReached = favoriteRoom.GetTemperatureCelsius();
         
 
         if (ghostParameters.ghostTypeData.ghostType == GhostTypeData.GhostType.Trickster)
@@ -384,6 +389,9 @@ public class Ghost : GameBehaviour
             {
                 currentRoom = newRoom;
             }
+
+            if (_forceReturnToFavoriteRoom && favoriteRoom != null && currentRoom == favoriteRoom)
+                _forceReturnToFavoriteRoom = false;
         }
         else if (other.TryGetComponent(out Player touchedPlayer))
         {
@@ -599,6 +607,8 @@ public class Ghost : GameBehaviour
 
     private void Update()
     {
+        UpdateFavoriteRoomTemperatureRules();
+
         if (currentState == GhostState.standingState)
         {
             agent.isStopped = true;
@@ -1479,7 +1489,7 @@ public class Ghost : GameBehaviour
     
     private void SelectNewHidingWaypoint()
     {
-        Room roomToGo = favoriteRoom;
+        Room roomToGo = currentRoom != null ? currentRoom : favoriteRoom;
 
         if (tutorialOverrideEnabled && !tutorialAllowRoomChange)
         {
@@ -1489,13 +1499,42 @@ public class Ghost : GameBehaviour
         {
             roomToGo = tutorialForcedRoom;
         }
+        else if (_forceReturnToFavoriteRoom && favoriteRoom != null && currentRoom != favoriteRoom)
+        {
+            roomToGo = favoriteRoom;
+        }
         else
         {
-        
-            float chances = Random.Range(0f, 100f);
-            if (chances <= chancesToRoamInAnotherRoom && favoriteRoom.neighborRooms.Length > 0)
+            bool shouldReturnToFavoriteRoom =
+                currentRoom != null &&
+                currentRoom != favoriteRoom &&
+                favoriteRoom != null &&
+                Random.Range(0f, 100f) <= ghostParameters.chancesToReturnToFavoriteRoom;
+
+            if (shouldReturnToFavoriteRoom)
             {
-                roomToGo = favoriteRoom.neighborRooms[Random.Range(0, favoriteRoom.neighborRooms.Length)];
+                roomToGo = favoriteRoom;
+            }
+            else
+            {
+                Room sourceRoom = currentRoom != null ? currentRoom : favoriteRoom;
+                float chances = Random.Range(0f, 100f);
+                if (sourceRoom != null &&
+                    sourceRoom.neighborRooms != null &&
+                    sourceRoom.neighborRooms.Length > 0 &&
+                    chances <= chancesToRoamInAnotherRoom)
+                {
+                    List<Room> validNeighbors = new List<Room>();
+                    for (int i = 0; i < sourceRoom.neighborRooms.Length; i++)
+                    {
+                        Room neighbor = sourceRoom.neighborRooms[i];
+                        if (neighbor != null)
+                            validNeighbors.Add(neighbor);
+                    }
+
+                    if (validNeighbors.Count > 0)
+                        roomToGo = validNeighbors[Random.Range(0, validNeighbors.Count)];
+                }
             }
         }
 
@@ -1853,6 +1892,9 @@ public class Ghost : GameBehaviour
             currentRoom.AddTemperatureDeltaClamped(refreshment, currentRoom.minNormalTemperature);
         else
             currentRoom.AddTemperatureDelta(refreshment);
+
+        ApplyFavoriteRoomIndirectCooling(refreshment);
+        HandlePostActivityRoomDecision();
     }
 
     private bool TutorialAllowsHunt()
@@ -1894,6 +1936,152 @@ public class Ghost : GameBehaviour
         tutorialAllowHunt = true;
         tutorialAllowRoomChange = true;
         tutorialAllowedActivities.Clear();
+    }
+
+    private void ApplyFavoriteRoomIndirectCooling(float refreshment)
+    {
+        if (favoriteRoom == null || currentRoom == null || currentRoom == favoriteRoom || ghostParameters == null)
+            return;
+
+        float coolingPercent = ghostParameters.favoriteRoomIndirectCoolingPercent;
+        if (ghostParameters.ghostTypeData != null &&
+            ghostParameters.ghostTypeData.ghostType == GhostTypeData.GhostType.Glacial)
+        {
+            coolingPercent = ghostParameters.glacialFavoriteRoomIndirectCoolingPercent;
+        }
+
+        coolingPercent = Mathf.Clamp01(coolingPercent);
+        if (coolingPercent <= 0f)
+            return;
+
+        favoriteRoom.AddTemperatureDelta(refreshment * coolingPercent);
+    }
+
+    private void UpdateFavoriteRoomTemperatureRules()
+    {
+        if (!ShouldMaintainFavoriteRoomCold())
+            return;
+
+        float favoriteTemperature = favoriteRoom.GetTemperatureCelsius();
+        _favoriteRoomColdestTemperatureReached = Mathf.Min(_favoriteRoomColdestTemperatureReached, favoriteTemperature);
+
+        float favoriteRoomMaxRewarm = _favoriteRoomColdestTemperatureReached +
+                                      Mathf.Max(0f, ghostParameters.favoriteRoomRewarmMargin);
+        favoriteRoom.ClampTemperatureTargetMax(favoriteRoomMaxRewarm);
+
+        if (house == null || house.rooms == null)
+            return;
+
+        float maxDiff = Mathf.Max(0f, ghostParameters.maxNonFavoriteColderThanFavorite);
+        float allowedMinTemperature = favoriteTemperature - maxDiff;
+        float graceDuration = Mathf.Max(0f, ghostParameters.nonFavoriteOvercoolGraceDuration);
+        float correctionPerSecond = Mathf.Max(0f, ghostParameters.nonFavoriteCorrectionPerSecond);
+
+        for (int i = 0; i < house.rooms.Length; i++)
+        {
+            Room room = house.rooms[i];
+            if (room == null || room == favoriteRoom)
+                continue;
+
+            float roomTemperature = room.GetTemperatureCelsius();
+            if (roomTemperature < allowedMinTemperature)
+            {
+                float timer = 0f;
+                _nonFavoriteOvercoolTimers.TryGetValue(room, out timer);
+                timer += Time.deltaTime;
+                _nonFavoriteOvercoolTimers[room] = timer;
+
+                if (timer >= graceDuration && correctionPerSecond > 0f)
+                    room.AddHeating(correctionPerSecond * Time.deltaTime);
+
+                if (timer >= graceDuration)
+                    room.ClampTemperatureCurrentAndTargetMin(allowedMinTemperature);
+            }
+            else
+            {
+                _nonFavoriteOvercoolTimers.Remove(room);
+            }
+        }
+    }
+
+    private bool ShouldMaintainFavoriteRoomCold()
+    {
+        if (ghostParameters == null || favoriteRoom == null)
+            return false;
+
+        if (ghostParameters.ghostTypeData != null &&
+            ghostParameters.ghostTypeData.ghostType == GhostTypeData.GhostType.Blazing)
+            return false;
+
+        return true;
+    }
+
+    private void HandlePostActivityRoomDecision()
+    {
+        if (ghostParameters == null || favoriteRoom == null || currentRoom == null)
+            return;
+
+        if (currentRoom == favoriteRoom)
+            return;
+
+        if (tutorialOverrideEnabled && !tutorialAllowRoomChange)
+            return;
+
+        float roll = Random.Range(0f, 100f);
+        float cumulative = Mathf.Max(0f, ghostParameters.chancesToDoNothingAfterNonFavoriteActivity);
+        if (roll < cumulative)
+            return;
+
+        cumulative += Mathf.Max(0f, ghostParameters.chancesToChangeRoomAfterNonFavoriteActivity);
+        if (roll < cumulative)
+        {
+            TryMoveToNeighborRoomImmediately();
+            return;
+        }
+
+        cumulative += Mathf.Max(0f, ghostParameters.chancesToReturnToFavoriteAfterNonFavoriteActivity);
+        if (roll < cumulative)
+        {
+            ForceReturnToFavoriteRoom();
+        }
+    }
+
+    private void TryMoveToNeighborRoomImmediately()
+    {
+        if (currentRoom == null || currentRoom.neighborRooms == null || currentRoom.neighborRooms.Length == 0)
+            return;
+
+        List<Room> validNeighbors = new List<Room>();
+        for (int i = 0; i < currentRoom.neighborRooms.Length; i++)
+        {
+            Room neighbor = currentRoom.neighborRooms[i];
+            if (neighbor != null)
+                validNeighbors.Add(neighbor);
+        }
+
+        if (validNeighbors.Count == 0)
+            return;
+
+        Room nextRoom = validNeighbors[Random.Range(0, validNeighbors.Count)];
+        WayPoint nextWaypoint = house.SelectRandomWayPointFromARoom(nextRoom);
+        if (nextWaypoint == null)
+            return;
+
+        currentWayPoint = nextWaypoint;
+    }
+
+    private void ForceReturnToFavoriteRoom()
+    {
+        if (favoriteRoom == null)
+            return;
+
+        _forceReturnToFavoriteRoom = currentRoom != favoriteRoom;
+
+        WayPoint nextWaypoint = house.SelectRandomWayPointFromARoom(favoriteRoom);
+        if (nextWaypoint == null)
+            return;
+
+        currentWayPoint = nextWaypoint;
     }
 
     public void ApplyTutorialGhostParameters(GhostParameters parameters, bool reschedule = true)
@@ -1941,6 +2129,9 @@ public class Ghost : GameBehaviour
 
         favoriteRoom = room;
         currentRoom = room;
+        _forceReturnToFavoriteRoom = false;
+        _favoriteRoomColdestTemperatureReached = room.GetTemperatureCelsius();
+        _nonFavoriteOvercoolTimers.Clear();
 
         WayPoint target = house.SelectRandomWayPointFromARoom(room);
         if (target != null)

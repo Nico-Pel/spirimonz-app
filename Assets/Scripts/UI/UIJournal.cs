@@ -40,6 +40,7 @@ public class UIJournal : GameBehaviour
     private Vector3 _ghostCtaBaseScale;
     private Vector3 _captureCtaBaseScale;
     private bool _captureBaseCached;
+    private GhostParameters _openedGhostParameters;
 
     private void Awake()
     {
@@ -72,9 +73,16 @@ public class UIJournal : GameBehaviour
 
     private void OnEnable()
     {
+        LanguageManager.OnLanguageChanged += HandleLanguageChanged;
         CloseGhostFrame();
         ApplyModeVisibility();
+        RefreshLocalization();
         UpdateTrainingCtas();
+    }
+
+    private void OnDisable()
+    {
+        LanguageManager.OnLanguageChanged -= HandleLanguageChanged;
     }
 
     private void ApplyModeVisibility()
@@ -125,6 +133,8 @@ public class UIJournal : GameBehaviour
 
     public void OpenGhostFrame(GhostParameters ghostParameters)
     {
+        _openedGhostParameters = ghostParameters;
+
         string ghostTypeName = LocalizationManager.GetGhostTypeName(ghostParameters.ghostTypeData.ghostType);
         tGhostName.text = LocalizationManager.Format("ui.journal.ghost_name", ghostTypeName);
         iGhostImage.sprite = ghostParameters.ghostTypeData.ghostSprite;
@@ -150,7 +160,32 @@ public class UIJournal : GameBehaviour
 
     public void CloseGhostFrame()
     {
+        _openedGhostParameters = null;
         ghostFrame.SetActive(false);
+    }
+
+    private void RefreshLocalization()
+    {
+        if (ghostTypeSlots != null)
+        {
+            for (int i = 0; i < ghostTypeSlots.Length; i++)
+            {
+                if (ghostTypeSlots[i] != null)
+                    ghostTypeSlots[i].RefreshLocalization();
+            }
+        }
+
+        UIEvidence[] evidences = GetComponentsInChildren<UIEvidence>(true);
+        for (int i = 0; i < evidences.Length; i++)
+            evidences[i].RefreshLocalization();
+
+        if (ghostFrame != null && ghostFrame.activeSelf && _openedGhostParameters != null)
+            OpenGhostFrame(_openedGhostParameters);
+    }
+
+    private void HandleLanguageChanged(Language language)
+    {
+        RefreshLocalization();
     }
 
     public void SelectGhostTypeSlot(UIGhostTypeSlot selectedSlot)

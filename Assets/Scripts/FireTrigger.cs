@@ -115,8 +115,10 @@ public class FireTrigger : MonoBehaviour
 
         if (linkedFlammableObject != null && linkedFlammableObject.type == FlammableElement.FlammableType.Candle)
         {
+            // A lit candle placed in the world should transmit fire normally.
+            // The temporary held activation gate only applies while the candle is in hands.
             if (_linkedCatchableObject == null || !_linkedCatchableObject.isGrabbed)
-                return false;
+                return true;
 
             return Time.time <= _heldActivationUntil;
         }

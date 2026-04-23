@@ -241,11 +241,19 @@ public class Spirimonz : GameBehaviour, IInteractable
         if (!IsGhostHuntStillPending())
             return;
 
+        if (!ShouldHideFromGhostHunt())
+            return;
+
         _hidingFromAGhost = true;
         agent.speed = 0;
         agent.velocity = Vector3.zero;
         
         SetSpiritHideMode(true);
+    }
+
+    protected virtual bool ShouldHideFromGhostHunt()
+    {
+        return true;
     }
 
     private bool IsGhostHuntStillPending()
@@ -270,8 +278,11 @@ public class Spirimonz : GameBehaviour, IInteractable
         {
             CancelInvoke(FEEL_HUNT_INVOKE);
             _shouldFeelAHunt = false;
+            bool wasHidingFromGhost = _hidingFromAGhost;
             _hidingFromAGhost = false;
-            SetSpiritHideMode(false);
+
+            if (wasHidingFromGhost)
+                SetSpiritHideMode(false);
         }
     }
 
@@ -693,6 +704,11 @@ public class Spirimonz : GameBehaviour, IInteractable
             _house = House.Instance;
 
         InitializeRoamSettings();
+
+        // A room retarget should cancel any pending idle/wait window from the previous roam state.
+        _isWaitingForNextRoamWaypoint = false;
+        _nextRoamWaypointTime = 0f;
+        _pauseRoamAfterInteract = false;
 
         Room roomToUse = room != null ? room : SelectRandomHouseRoom();
         _currentRoamRoom = roomToUse;

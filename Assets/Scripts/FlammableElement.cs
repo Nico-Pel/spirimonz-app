@@ -30,6 +30,12 @@ public class FlammableElement : GameBehaviour
     [Header("Loop Sound")]
     public SoundParameters activeLoopSound;
 
+    [Header("Optional Linked Light")]
+    public Light linkedLight;
+    public bool useLinkedLightBlend = true;
+    [Min(0f)] public float linkedLightBlendDuration = 0.35f;
+    public bool blendLinkedLightOnInitialEnable = false;
+
     public bool canBeTurnedOn = true;
 
     [Header("Room Heating")]
@@ -59,20 +65,37 @@ public class FlammableElement : GameBehaviour
     private bool _isCursed;
     private Color _currentCursedColor;
     private Tween _cursedColorTween;
+    private Tween _linkedLightTween;
     private bool _cursedWarmupActive;
     private float _cursedWarmupStartTime;
     private Color _cursedWarmupStartColor;
     private SoundManager.SoundInstance _activeLoopSoundInstance;
+    private float _linkedLightBaseIntensity;
+    private bool _linkedLightCached;
+    private bool _linkedLightInitialized;
+    private MobileLightOptimizedLight _linkedOptimizedLight;
+    private Spirimonz _parentSpirimonz;
 
     public UnityEvent<bool> onChangeFireState;
+    public UnityEvent onBecomeCursed;
 
     private bool _usedForAQuest;
 
     private void Start()
     {
+        CacheLinkedLightIfNeeded();
+        bool immediateInitialLightState = !blendLinkedLightOnInitialEnable;
+        _linkedLightInitialized = !immediateInitialLightState;
         EnableFire(startOnFire, false);
         CacheCursedReferencesIfNeeded();
         EnsureCursedGradient();
+        _linkedLightInitialized = true;
+    }
+
+    private void OnEnable()
+    {
+        if (_linkedLightInitialized)
+            RefreshFireVisuals(immediate: false);
     }
 
     private void Update()
@@ -97,11 +120,17 @@ public class FlammableElement : GameBehaviour
         if (enable == true && (canBeTurnedOn == false && forced == false)) return;
         
         _isOnFire = enable;
+
+        if (enable)
+            PrepareLinkedLightForActivation();
         
         foreach (GameObject fire in fireObjects)
         {
-            fire.SetActive(enable);
+            if (fire != null)
+                fire.SetActive(enable);
         }
+
+        UpdateLinkedLight(enable, immediate: !_linkedLightInitialized);
 
         if (enable == false && useParticlesOff && fireOffParticles.Length > 0)
         {
@@ -145,6 +174,20 @@ public class FlammableElement : GameBehaviour
         return _isOnFire;
     }
 
+    public void RefreshFireVisuals(bool immediate = false)
+    {
+        foreach (GameObject fire in fireObjects)
+        {
+            if (fire != null)
+                fire.SetActive(_isOnFire);
+        }
+
+        UpdateLinkedLight(_isOnFire, immediate);
+
+        if (_isCursed)
+            SetCursedFxColors(_currentCursedColor);
+    }
+
     private void OnTriggerEnter(Collider other)
     {
         if (optionalLinkedRoom != null)
@@ -173,6 +216,7 @@ public class FlammableElement : GameBehaviour
             return;
 
         _isCursed = true;
+        onBecomeCursed?.Invoke();
         CacheCursedReferencesIfNeeded();
         EnsureCursedGradient();
 
@@ -195,6 +239,15 @@ public class FlammableElement : GameBehaviour
     {
         if (optionalLinkedRoom != null)
             return optionalLinkedRoom;
+
+        if (_parentSpirimonz == null)
+            _parentSpirimonz = GetComponentInParent<Spirimonz>();
+
+        if (_parentSpirimonz != null && _parentSpirimonz.currentRoom != null)
+        {
+            _cachedRoom = _parentSpirimonz.currentRoom;
+            return _cachedRoom;
+        }
 
         if (_cachedRoom == null)
             _cachedRoom = GetComponentInParent<Room>();
@@ -359,6 +412,98 @@ public class FlammableElement : GameBehaviour
         }
     }
 
+    private void CacheLinkedLightIfNeeded()
+    {
+        if (linkedLight == null || _linkedLightCached)
+            return;
+
+        _linkedLightBaseIntensity = Mathf.Max(0f, linkedLight.intensity);
+        _linkedOptimizedLight = linkedLight.GetComponent<MobileLightOptimizedLight>();
+        _linkedLightCached = true;
+    }
+
+    private void PrepareLinkedLightForActivation()
+    {
+        CacheLinkedLightIfNeeded();
+        if (linkedLight == null)
+            return;
+
+        float duration = Mathf.Max(0f, linkedLightBlendDuration);
+        bool shouldBlend = _linkedLightInitialized && useLinkedLightBlend && duration > 0f;
+        if (!shouldBlend)
+            return;
+
+        if (_linkedLightTween != null && _linkedLightTween.IsActive())
+            _linkedLightTween.Kill();
+
+        if (_linkedOptimizedLight != null)
+            _linkedOptimizedLight.SetBaseEnabledState(true);
+
+        linkedLight.enabled = true;
+        linkedLight.intensity = 0f;
+    }
+
+    private void ApplyLinkedLightImmediate(bool enable)
+    {
+        CacheLinkedLightIfNeeded();
+        if (linkedLight == null)
+            return;
+
+        if (_linkedLightTween != null && _linkedLightTween.IsActive())
+            _linkedLightTween.Kill();
+
+        if (_linkedOptimizedLight != null)
+            _linkedOptimizedLight.SetBaseEnabledState(enable);
+
+        linkedLight.enabled = enable;
+        linkedLight.intensity = enable ? _linkedLightBaseIntensity : 0f;
+    }
+
+    private void UpdateLinkedLight(bool enable, bool immediate = false)
+    {
+        CacheLinkedLightIfNeeded();
+        if (linkedLight == null)
+            return;
+
+        if (_linkedLightTween != null && _linkedLightTween.IsActive())
+            _linkedLightTween.Kill();
+
+        if (_linkedOptimizedLight != null)
+            _linkedOptimizedLight.SetBaseEnabledState(enable);
+
+        float duration = Mathf.Max(0f, linkedLightBlendDuration);
+        if (immediate || !useLinkedLightBlend || duration <= 0f)
+        {
+            ApplyLinkedLightImmediate(enable);
+            return;
+        }
+
+        if (enable)
+        {
+            linkedLight.enabled = true;
+            linkedLight.intensity = 0f;
+            _linkedLightTween = DOTween.To(
+                () => linkedLight.intensity,
+                value => linkedLight.intensity = value,
+                _linkedLightBaseIntensity,
+                duration
+            );
+            return;
+        }
+
+        linkedLight.enabled = true;
+        _linkedLightTween = DOTween.To(
+            () => linkedLight.intensity,
+            value => linkedLight.intensity = value,
+            0f,
+            duration
+        ).OnComplete(() =>
+         {
+             if (linkedLight != null)
+                 linkedLight.enabled = false;
+         });
+    }
+
     private void OnDisable()
     {
         if (_activeLoopSoundInstance != null)
@@ -368,3 +513,37 @@ public class FlammableElement : GameBehaviour
         }
     }
 }
+
+#if UNITY_EDITOR
+[UnityEditor.CustomEditor(typeof(FlammableElement))]
+public class FlammableElementEditor : UnityEditor.Editor
+{
+    public override void OnInspectorGUI()
+    {
+        DrawDefaultInspector();
+
+        UnityEditor.EditorGUILayout.Space();
+
+        FlammableElement flammable = (FlammableElement)target;
+        if (flammable == null)
+            return;
+
+        using (new UnityEditor.EditorGUI.DisabledScope(!Application.isPlaying))
+        {
+            if (GUILayout.Button("Force Fire ON"))
+                flammable.EnableFire(true, useParticlesOff: false, forced: true);
+
+            if (GUILayout.Button("Force Fire OFF"))
+                flammable.EnableFire(false, useParticlesOff: false, forced: true);
+        }
+
+        if (!Application.isPlaying)
+        {
+            UnityEditor.EditorGUILayout.HelpBox(
+                "These test buttons are available in Play Mode only.",
+                UnityEditor.MessageType.Info
+            );
+        }
+    }
+}
+#endif

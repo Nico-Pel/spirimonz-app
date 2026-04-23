@@ -234,6 +234,20 @@ public class Room : MonoBehaviour
         _temperatureTarget = Mathf.Clamp(_temperatureTarget, minTemperature, maxTemp);
     }
 
+    public void ClampTemperatureTargetMax(float maxAllowedTemperature)
+    {
+        float minTemperature = GetMinTemperature();
+        float clampedMax = Mathf.Clamp(maxAllowedTemperature, minTemperature, maxTemperature);
+        _temperatureTarget = Mathf.Clamp(_temperatureTarget, minTemperature, clampedMax);
+    }
+
+    public void ClampTemperatureCurrentAndTargetMin(float minAllowedTemperature)
+    {
+        float minTemperature = Mathf.Max(GetMinTemperature(), minAllowedTemperature);
+        _temperatureTarget = Mathf.Clamp(_temperatureTarget, minTemperature, maxTemperature);
+        currentTemperature = Mathf.Clamp(currentTemperature, minTemperature, maxTemperature);
+    }
+
     // Pour compatibilité et lisibilité
     public void AddCooling(float value) => AddTemperatureDelta(-value);
     public void AddHeating(float value) => AddTemperatureDelta(value);

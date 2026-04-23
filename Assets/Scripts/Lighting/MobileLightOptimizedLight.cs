@@ -61,6 +61,17 @@ public class MobileLightOptimizedLight : MonoBehaviour
         _baseEnabled = targetLight.enabled;
     }
 
+    public void SetBaseEnabledState(bool enabled)
+    {
+        _baseEnabled = enabled;
+
+        if (targetLight == null)
+            return;
+
+        if (!_disabledByOptimizer || !_isOverriding)
+            targetLight.enabled = enabled;
+    }
+
     public void Restore()
     {
         if (targetLight == null)

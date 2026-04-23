@@ -85,11 +85,14 @@ public class SpmzColdRoamer : Spirimonz
             return;
         }
 
-        bool shouldKeepCurrentTarget = !force &&
-                                       coldestRoom == _targetColdRoom &&
-                                       currentRoom == coldestRoom;
-        if (shouldKeepCurrentTarget)
+        bool alreadyTargetingColdestRoom = coldestRoom == _targetColdRoom && currentRoom == coldestRoom;
+        if (!force && alreadyTargetingColdestRoom)
+        {
+            if (CurrentBehaviour() != SpirimonzBehaviourState.Roam)
+                ChangeBehaviour(SpirimonzBehaviourState.Roam);
+
             return;
+        }
 
         _targetColdRoom = coldestRoom;
         SetRoamRoom(coldestRoom);
