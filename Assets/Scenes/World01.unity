@@ -3241,6 +3241,31 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 91889305}
   m_Mesh: {fileID: -2309305249758762421, guid: 3ab5828a2c0df444194f01ffeadd12b1, type: 3}
+--- !u!1 &91907171 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 545825175453194803, guid: 6999dba701dce469aa514f065667c7ec, type: 3}
+  m_PrefabInstance: {fileID: 2088875494}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &91907174
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 91907171}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d0bedb8895a13485f9481e45d51580cd, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  targetLight: {fileID: 0}
+  ignoreOptimization: 1
+  allowDisableWhenFar: 1
+  useCustomDistances: 0
+  nearDistance: 10
+  shadowDisableDistance: 14
+  farDistance: 22
+  disableDistance: 30
 --- !u!1001 &95549004
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -83034,6 +83059,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 4938291718060269145, guid: 6999dba701dce469aa514f065667c7ec, type: 3}
       insertIndex: -1
       addedObject: {fileID: 0}
+    - targetCorrespondingSourceObject: {fileID: 545825175453194803, guid: 6999dba701dce469aa514f065667c7ec, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 91907174}
   m_SourcePrefab: {fileID: 100100000, guid: 6999dba701dce469aa514f065667c7ec, type: 3}
 --- !u!4 &2088875495 stripped
 Transform:

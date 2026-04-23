@@ -7,6 +7,14 @@ using TMPro;
 
 public class UITeamBuilder : GameBehaviour
 {
+    [Serializable]
+    public class TeamEvidenceIndicator
+    {
+        public GhostInvestigator.EvidenceType evidenceType;
+        public Image circleImage;
+        public Image iconImage;
+    }
+
     public UITeamPanel teamPanel;
     public List<UISpirimonzPanelSelector> spirimonzPanelSelectors;
     public Transform spirimonzSelectorPanel;
@@ -36,6 +44,11 @@ public class UITeamBuilder : GameBehaviour
 
     [Space] [Header("Filters")] 
     public UIFilterButton[] bFilterEvidences;
+
+    [Space] [Header("Team Evidence Indicators")]
+    public TeamEvidenceIndicator[] teamEvidenceIndicators;
+    [Range(0f, 1f)] public float activeEvidenceAlpha = 1f;
+    [Range(0f, 1f)] public float inactiveEvidenceAlpha = 0.5f;
 
     [Header("Sounds")]
     public SoundParameters selectSpmzSound;
@@ -88,9 +101,12 @@ public class UITeamBuilder : GameBehaviour
     {
         _player = Player.Instance;
         _gameManager = GameManager.Instance;
+        if (_player != null && _player.inventoryManager != null)
+            _player.inventoryManager.onTeamChange.AddListener(RefreshTeamEvidenceIndicators);
         
         InitializeSelectors();
         UpdateSpirimonzPanel();
+        RefreshTeamEvidenceIndicators();
         
         UISpirimonzInformationsSetter infoSetter = teamPanel.spmzInfoSetter;
         teamPanel.spmzInfoSetter.onInfoChanges.AddListener(() => SetLeftTitleText(infoSetter));
@@ -153,6 +169,7 @@ public class UITeamBuilder : GameBehaviour
     private void OnEnable()
     {
         UpdateSpirimonzPanel();
+        RefreshTeamEvidenceIndicators();
 
         if (_currentSelected != null)
         {
@@ -173,6 +190,12 @@ public class UITeamBuilder : GameBehaviour
             teamPanel.allowEmptySelection = false;
             teamPanel.RefreshFromTeam();
         }
+    }
+
+    private void OnDestroy()
+    {
+        if (_player != null && _player.inventoryManager != null)
+            _player.inventoryManager.onTeamChange.RemoveListener(RefreshTeamEvidenceIndicators);
     }
 
     private void SwitchRightInfoState()
@@ -355,6 +378,51 @@ public class UITeamBuilder : GameBehaviour
                 spmzSelector.gameObject.SetActive(true);
             }
         }
+    }
+
+    private void RefreshTeamEvidenceIndicators()
+    {
+        if (teamEvidenceIndicators == null || teamEvidenceIndicators.Length == 0)
+            return;
+
+        List<SpirimonzSettings> teamSettings = null;
+        if (_player != null && _player.inventoryManager != null)
+            teamSettings = _player.inventoryManager.spirimonzTeamSettings;
+
+        for (int i = 0; i < teamEvidenceIndicators.Length; i++)
+        {
+            TeamEvidenceIndicator indicator = teamEvidenceIndicators[i];
+            bool hasUsefulSpirimonz = TeamHasUsefulSpirimonzForEvidence(teamSettings, indicator.evidenceType);
+            float alpha = hasUsefulSpirimonz ? activeEvidenceAlpha : inactiveEvidenceAlpha;
+
+            SetImageAlpha(indicator.circleImage, alpha);
+            SetImageAlpha(indicator.iconImage, alpha);
+        }
+    }
+
+    private bool TeamHasUsefulSpirimonzForEvidence(List<SpirimonzSettings> teamSettings, GhostInvestigator.EvidenceType evidenceType)
+    {
+        if (teamSettings == null)
+            return false;
+
+        for (int i = 0; i < teamSettings.Count; i++)
+        {
+            SpirimonzSettings settings = teamSettings[i];
+            if (settings != null && settings.IsUsefulForEvidence(evidenceType))
+                return true;
+        }
+
+        return false;
+    }
+
+    private static void SetImageAlpha(Image image, float alpha)
+    {
+        if (image == null)
+            return;
+
+        Color color = image.color;
+        color.a = alpha;
+        image.color = color;
     }
 
     private bool CanRemoveSelectedSlot(int slotIndex)

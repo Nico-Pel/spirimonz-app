@@ -15,6 +15,7 @@ public class UIGame : UIManager
 
     [Space] [Header("Money elements")]
     public TextMeshProUGUI tGold;
+    public GameObject uiMoney;
     public bool forceShowMoney = true;
     
     [Space]
@@ -40,6 +41,8 @@ public class UIGame : UIManager
     private Rect _lastMoneySafeArea;
     private Vector2Int _lastMoneyScreenSize;
     private Canvas _canvas;
+    private bool _lastMoneyVisibility;
+    private bool _moneyVisibilityCached;
 
     private void Awake()
     {
@@ -85,7 +88,7 @@ public class UIGame : UIManager
         _gameManager = GameManager.Instance;
         _gameManager.onMoneyUpdated.AddListener(UpdateGold);
         ApplyTutorialUIVisibility();
-        EnsureMoneyVisible();
+        RefreshMoneyVisibility();
         ApplyMoneySafeArea();
         UpdateGold();
 
@@ -107,7 +110,7 @@ public class UIGame : UIManager
         if(_gameManager != null)
         {
             ApplyTutorialUIVisibility();
-            EnsureMoneyVisible();
+            RefreshMoneyVisibility();
             ApplyMoneySafeArea();
             UpdateGold();
         }
@@ -120,21 +123,51 @@ public class UIGame : UIManager
         tGold.text = "$" + _gameManager.GetInt(SaveKeys.GOLD);
     }
 
-    private void EnsureMoneyVisible()
+    private GameObject GetMoneyRoot()
+    {
+        if (uiMoney != null)
+            return uiMoney;
+
+        if (tGold != null && tGold.transform.parent != null)
+            return tGold.transform.parent.gameObject;
+
+        return tGold != null ? tGold.gameObject : null;
+    }
+
+    private bool ShouldShowMoney()
     {
         if (TutorialManager.Instance != null &&
             (TutorialManager.Instance.IsControlsTutorial || TutorialManager.Instance.IsTraining))
+            return false;
+
+        bool isWorld = _gameManager != null && _gameManager.IsWorld();
+        if (isWorld)
+            return true;
+
+        bool tabletOpen = tablet != null && tablet.gameObject.activeSelf;
+        if (tabletOpen)
+            return true;
+
+        return forceShowMoney && MobileInput.Enabled;
+    }
+
+    private void RefreshMoneyVisibility()
+    {
+        GameObject moneyRoot = GetMoneyRoot();
+        if (moneyRoot == null)
             return;
 
-        bool shouldForce = forceShowMoney || MobileInput.Enabled;
-        if (!shouldForce || tGold == null)
+        bool shouldShow = ShouldShowMoney();
+        if (_moneyVisibilityCached && _lastMoneyVisibility == shouldShow && moneyRoot.activeSelf == shouldShow)
             return;
 
-        Transform parent = tGold.transform.parent;
-        if (parent != null && !parent.gameObject.activeSelf)
-            parent.gameObject.SetActive(true);
-        if (!tGold.gameObject.activeSelf)
-            tGold.gameObject.SetActive(true);
+        moneyRoot.SetActive(shouldShow);
+
+        if (tGold != null && tGold.gameObject != moneyRoot)
+            tGold.gameObject.SetActive(shouldShow);
+
+        _lastMoneyVisibility = shouldShow;
+        _moneyVisibilityCached = true;
     }
 
     private void CacheMoneyRect()
@@ -181,6 +214,7 @@ public class UIGame : UIManager
 
     private void Update()
     {
+        RefreshMoneyVisibility();
         ApplyMoneySafeArea();
         HandleUI();
     }
@@ -299,10 +333,7 @@ public class UIGame : UIManager
 
         if (tGold != null)
         {
-            Transform parent = tGold.transform.parent;
-            if (parent != null)
-                parent.gameObject.SetActive(!hideMoney);
-            tGold.gameObject.SetActive(!hideMoney);
+            _moneyVisibilityCached = false;
         }
 
         if (tablet != null && tablet.tabsObject != null)

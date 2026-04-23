@@ -31,6 +31,9 @@ public class UIRandomHouseLauncher : GameBehaviour
     public EvidenceParameter[] evidenceParameters;
     public Image[] evidenceIcons;
     public GameObject[] evidenceValidatedMarks;
+    public GameObject[] evidenceMissingMarks;
+    [Range(0f, 1f)] public float selectedEvidenceAlpha = 1f;
+    [Range(0f, 1f)] public float missingEvidenceAlpha = 0.35f;
 
     [Header("Choices")]
     public Button[] choiceButtons;
@@ -438,7 +441,10 @@ public class UIRandomHouseLauncher : GameBehaviour
         for (int i = 0; i < evidenceIcons.Length; i++)
         {
             if (evidenceIcons[i] != null)
+            {
                 evidenceIcons[i].sprite = null;
+                SetImageAlpha(evidenceIcons[i], selectedEvidenceAlpha);
+            }
         }
 
         if (evidenceValidatedMarks != null)
@@ -449,24 +455,39 @@ public class UIRandomHouseLauncher : GameBehaviour
                     evidenceValidatedMarks[i].SetActive(false);
             }
         }
+
+        if (evidenceMissingMarks != null)
+        {
+            for (int i = 0; i < evidenceMissingMarks.Length; i++)
+            {
+                if (evidenceMissingMarks[i] != null)
+                    evidenceMissingMarks[i].SetActive(false);
+            }
+        }
     }
 
     private void UpdateEvidenceIcons()
     {
-        for (int i = 0; i < evidenceIcons.Length; i++)
+        if (evidenceParameters == null)
+            return;
+
+        int iconCount = evidenceIcons != null ? evidenceIcons.Length : 0;
+        for (int i = 0; i < iconCount; i++)
         {
-            if (evidenceIcons[i] == null) continue;
+            Image icon = evidenceIcons[i];
+            if (icon == null) continue;
 
-            if (i >= _evidenceOrder.Count)
-            {
-                evidenceIcons[i].sprite = null;
-                evidenceIcons[i].gameObject.SetActive(false);
-                continue;
-            }
+            GhostInvestigator.EvidenceType? displayedType = GetDisplayedEvidenceTypeAtSlot(i);
+            EvidenceParameter param = displayedType.HasValue ? GetEvidenceParameter(displayedType.Value) : null;
+            bool isSelected = displayedType.HasValue && _evidenceOrder.Contains(displayedType.Value);
+            bool showMissingMark = displayedType.HasValue && !isSelected;
 
-            EvidenceParameter param = GetEvidenceParameter(_evidenceOrder[i]);
-            evidenceIcons[i].sprite = param != null ? param.icon : null;
-            evidenceIcons[i].gameObject.SetActive(true);
+            icon.sprite = param != null ? param.icon : null;
+            icon.gameObject.SetActive(param != null);
+            SetImageAlpha(icon, isSelected ? selectedEvidenceAlpha : missingEvidenceAlpha);
+
+            if (evidenceMissingMarks != null && i < evidenceMissingMarks.Length && evidenceMissingMarks[i] != null)
+                evidenceMissingMarks[i].SetActive(showMissingMark);
         }
 
         UpdateEvidenceProgress();
@@ -474,21 +495,26 @@ public class UIRandomHouseLauncher : GameBehaviour
 
     private void UpdateEvidenceProgress()
     {
-        if (evidenceValidatedMarks == null) return;
+        if (evidenceValidatedMarks == null || evidenceParameters == null) return;
 
         for (int i = 0; i < evidenceValidatedMarks.Length; i++)
         {
             if (evidenceValidatedMarks[i] == null) continue;
-            evidenceValidatedMarks[i].SetActive(i < _currentRound);
+
+            GhostInvestigator.EvidenceType? displayedType = GetDisplayedEvidenceTypeAtSlot(i);
+            if (!displayedType.HasValue)
+            {
+                evidenceValidatedMarks[i].SetActive(false);
+                continue;
+            }
+
+            evidenceValidatedMarks[i].SetActive(IsEvidenceAlreadyValidated(displayedType.Value));
         }
     }
 
     private void MarkEvidenceValidated(int index)
     {
-        if (evidenceValidatedMarks == null) return;
-        if (index < 0 || index >= evidenceValidatedMarks.Length) return;
-        if (evidenceValidatedMarks[index] != null)
-            evidenceValidatedMarks[index].SetActive(true);
+        UpdateEvidenceProgress();
     }
 
     private EvidenceParameter GetEvidenceParameter(GhostInvestigator.EvidenceType type)
@@ -523,6 +549,52 @@ public class UIRandomHouseLauncher : GameBehaviour
         int targetCount = Mathf.Clamp(roundCount, 1, _evidenceOrder.Count);
         if (_evidenceOrder.Count > targetCount)
             _evidenceOrder.RemoveRange(targetCount, _evidenceOrder.Count - targetCount);
+    }
+
+    private bool IsEvidenceAlreadyValidated(GhostInvestigator.EvidenceType evidenceType)
+    {
+        int validatedCount = Mathf.Clamp(_currentRound, 0, _evidenceOrder.Count);
+        for (int i = 0; i < validatedCount; i++)
+        {
+            if (_evidenceOrder[i] == evidenceType)
+                return true;
+        }
+
+        return false;
+    }
+
+    private GhostInvestigator.EvidenceType? GetDisplayedEvidenceTypeAtSlot(int slotIndex)
+    {
+        if (slotIndex < 0)
+            return null;
+
+        if (slotIndex < _evidenceOrder.Count)
+            return _evidenceOrder[slotIndex];
+
+        int missingIndex = slotIndex - _evidenceOrder.Count;
+        if (missingIndex != 0)
+            return null;
+
+        foreach (GhostInvestigator.EvidenceType type in Enum.GetValues(typeof(GhostInvestigator.EvidenceType)))
+        {
+            if (type == GhostInvestigator.EvidenceType.SpiritOrbs)
+                continue;
+
+            if (!_evidenceOrder.Contains(type))
+                return type;
+        }
+
+        return null;
+    }
+
+    private static void SetImageAlpha(Image image, float alpha)
+    {
+        if (image == null)
+            return;
+
+        Color color = image.color;
+        color.a = alpha;
+        image.color = color;
     }
 
     private List<SpirimonzSettings> BuildChoicesForEvidence(GhostInvestigator.EvidenceType evidenceType)
