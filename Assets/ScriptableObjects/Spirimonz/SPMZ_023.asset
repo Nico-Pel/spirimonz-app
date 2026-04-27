@@ -1,0 +1,37 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2da69e9a0e0f54f3c905a18b7cedd84c, type: 3}
+  m_Name: SPMZ_023
+  m_EditorClassIdentifier: 
+  unlockedByDefault: 0
+  spirimonzID: SPMZ_023
+  spirimonzName: Snorifik
+  spirimonzPrefab: {fileID: 1294010170790049084, guid: a8e4b3171992c4ffcba82cdef852fa0d, type: 3}
+  spirimonzBodyPrefab: {fileID: 5411969030204366672, guid: d5422e26a3f714cf5846dca5e6054af4, type: 3}
+  bodyPresentationOffset: {x: 0, y: 0, z: 0}
+  bodyPresentationScale: 7
+  img: {fileID: 21300000, guid: 4adffb39fef004ee9bb650e652ba095f, type: 3}
+  abilities:
+  - evidenceTypes: 
+    description: When you give the command or when the Dark Spirit attacks you, Snorifik
+      crashes to the ground. When the Dark Spirit steps on it, it slows down and
+      may leave invisible footprints behind.
+  - evidenceTypes: 04000000
+    description: Snorifik detects <color=#F9AB2D>spiritual activity</color> around
+      him and reveals its power. When he is pinned to the ground, his detection range
+      increases.
+  primarySPMZType: {fileID: 11400000, guid: 5712efd7f144544b88832b8d3630b8b1, type: 2}
+  secondarySPMZType: {fileID: 11400000, guid: 656b66e7e8c514324826de4f46b83def, type: 2}
+  canUsePowerInHands: 1
+  canBeDroppedOnMap: 1
+  canBeTakenBackInHands: 1
+  canFollowPlayer: 1

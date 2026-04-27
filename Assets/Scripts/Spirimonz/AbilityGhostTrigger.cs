@@ -2,6 +2,10 @@ using System;
 using System.Collections;
 using UnityEngine;
 using UnityEngine.Events;
+
+[Serializable]
+public class GhostUnityEvent : UnityEvent<Ghost> { }
+
 public class AbilityGhostTrigger : GameBehaviour
 {
     public Spirimonz linkedSpirimonz;
@@ -9,20 +13,23 @@ public class AbilityGhostTrigger : GameBehaviour
     [Space]
     
     public float triggerCooldown = 3f;
+    public bool triggerOnlyIfGhostTouchesGround = false;
     public UnityEvent onGhostTriggered;
+    public GhostUnityEvent onGhostTriggeredWithGhost;
 
     private bool _canTriggerGhost = true;
     private void OnTriggerEnter(Collider other)
     {
         if (other.TryGetComponent(out Ghost ghost))
         {
-            TriggerGhost();
+            TriggerGhost(ghost);
         }
     }
 
-    protected virtual void TriggerGhost()
+    protected virtual void TriggerGhost(Ghost ghost = null)
     {
         if (_canTriggerGhost == false) return;
+        if (ghost != null && ghost.levitates && triggerOnlyIfGhostTouchesGround) return;
 
         if (linkedSpirimonz != null && linkedSpirimonz.isOnTheMap == false && linkedSpirimonz.powerActiveInHands == false) return;
         
@@ -33,5 +40,6 @@ public class AbilityGhostTrigger : GameBehaviour
         }
         
         onGhostTriggered?.Invoke();
+        onGhostTriggeredWithGhost?.Invoke(ghost);
     }
 }

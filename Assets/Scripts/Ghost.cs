@@ -80,6 +80,7 @@ public class Ghost : GameBehaviour
     public ParticleSystem fxApparition;
 
     public bool isBlinkingGhost;
+    public bool levitates;
 
     [Header("Sounds")]
     public float ghostPitch = 1f;
@@ -218,6 +219,8 @@ public class Ghost : GameBehaviour
     private readonly Dictionary<Room, float> _nonFavoriteOvercoolTimers = new Dictionary<Room, float>();
     private float _favoriteRoomColdestTemperatureReached = float.MaxValue;
     private bool _forceReturnToFavoriteRoom;
+    private float _externalHuntSlowPercent;
+    private float _externalHuntSlowEndTime;
 
     private void Start()
     {
@@ -451,7 +454,7 @@ public class Ghost : GameBehaviour
                 ActivateActivitySource(door.activitySource);
             }
         }
-        else if (ghostParameters.HasEvidence(GhostInvestigator.EvidenceType.SpiritPrints) && currentState == GhostState.hideState && other.TryGetComponent(out PrintTrigger printTrigger))
+        else if (!levitates && ghostParameters.HasEvidence(GhostInvestigator.EvidenceType.SpiritPrints) && currentState == GhostState.hideState && other.TryGetComponent(out PrintTrigger printTrigger))
         {
             float roll = Random.Range(0f, 100f);
             if (roll <= ghostParameters.chancesToPutPrintOnPrintTriggers)
@@ -668,6 +671,7 @@ public class Ghost : GameBehaviour
                 {
                     speed *= 1.5f;
                 }
+                speed *= GetExternalHuntSpeedMultiplier();
                 agent.speed = speed;
                 animator.SetBool("Walk", true);
                 animator.SetBool("Targeting", canSeePlayer);
@@ -963,6 +967,7 @@ public class Ghost : GameBehaviour
     public void CancelHuntCompletely()
     {
         _willHunt = false;
+        ResetExternalHuntSlow();
 
         CancelInvoke(nameof(StandingBeforeHunting));
         CancelInvoke(nameof(StartHunting));
@@ -987,6 +992,7 @@ public class Ghost : GameBehaviour
     private void StopHunting()
     {
         _willHunt = false;
+        ResetExternalHuntSlow();
         CancelInvoke(nameof(StandingBeforeHunting));
         
         if (huntingSound != null && _huntingSound != null)
@@ -2148,6 +2154,36 @@ public class Ghost : GameBehaviour
     public bool IsHunting(bool includeWillHunt = true)
     {
         return currentState == GhostState.huntingState || currentState == GhostState.standingState || (includeWillHunt && _willHunt);
+    }
+
+    public void ApplyExternalHuntSlow(float slowPercent, float duration)
+    {
+        if (duration <= 0f || !IsHunting(false))
+            return;
+
+        slowPercent = Mathf.Clamp01(slowPercent);
+        if (slowPercent <= 0f)
+            return;
+
+        _externalHuntSlowPercent = Mathf.Max(_externalHuntSlowPercent, slowPercent);
+        _externalHuntSlowEndTime = Mathf.Max(_externalHuntSlowEndTime, Time.time + duration);
+    }
+
+    private float GetExternalHuntSpeedMultiplier()
+    {
+        if (_externalHuntSlowEndTime <= Time.time)
+        {
+            ResetExternalHuntSlow();
+            return 1f;
+        }
+
+        return Mathf.Clamp(1f - _externalHuntSlowPercent, 0.05f, 1f);
+    }
+
+    private void ResetExternalHuntSlow()
+    {
+        _externalHuntSlowPercent = 0f;
+        _externalHuntSlowEndTime = 0f;
     }
 
     public void LockGhost()

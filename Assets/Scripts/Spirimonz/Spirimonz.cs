@@ -33,6 +33,9 @@ public class Spirimonz : GameBehaviour, IInteractable
     public bool canBeDroppedOnMap = true;
     public bool canBeTakenBackIntoHands = true;
     public bool powerActiveInHands = true;
+    public bool hideFromGhostHunt = true;
+    public bool switchToWaitDuringGhostHunt = false;
+    public bool stayInteractableDuringGhostHunt = false;
     public bool useSecondaryButton = false;
     public bool lookAtPlayerWhileWaiting = true;
     public bool lookAtPlayerOnInteract = false;
@@ -220,6 +223,9 @@ public class Spirimonz : GameBehaviour, IInteractable
     }
 
     private bool _shouldFeelAHunt;
+    private SpirimonzBehaviourState _behaviourBeforeGhostHunt;
+    private bool _restoreBehaviourAfterGhostHunt;
+
     private void StartDelayBeforeFeelingAHunt()
     {
         float timeBeforeDisappearing = _house.currentGhost.forecastTimeBeforeAHunt - forecastTimeBeforeAHunt;
@@ -242,7 +248,10 @@ public class Spirimonz : GameBehaviour, IInteractable
             return;
 
         if (!ShouldHideFromGhostHunt())
+        {
+            ApplyNonHidingGhostHuntState();
             return;
+        }
 
         _hidingFromAGhost = true;
         agent.speed = 0;
@@ -253,7 +262,7 @@ public class Spirimonz : GameBehaviour, IInteractable
 
     protected virtual bool ShouldHideFromGhostHunt()
     {
-        return true;
+        return hideFromGhostHunt;
     }
 
     private bool IsGhostHuntStillPending()
@@ -283,6 +292,14 @@ public class Spirimonz : GameBehaviour, IInteractable
 
             if (wasHidingFromGhost)
                 SetSpiritHideMode(false);
+            else if (isOnTheMap && collider != null)
+                collider.enabled = true;
+
+            if (_restoreBehaviourAfterGhostHunt)
+            {
+                ChangeBehaviour(_behaviourBeforeGhostHunt);
+                _restoreBehaviourAfterGhostHunt = false;
+            }
         }
     }
 
@@ -302,7 +319,11 @@ public class Spirimonz : GameBehaviour, IInteractable
 
         if (_house.currentGhost.IsHunting())
         {
-            collider.enabled = false;
+            bool stayInteractable = !ShouldHideFromGhostHunt() && stayInteractableDuringGhostHunt;
+            collider.enabled = stayInteractable;
+
+            if (!ShouldHideFromGhostHunt())
+                ApplyNonHidingGhostHuntState();
         }
 
         isOnTheMap = true;
@@ -592,6 +613,21 @@ public class Spirimonz : GameBehaviour, IInteractable
             default:
                 break;
         }
+    }
+
+    private void ApplyNonHidingGhostHuntState()
+    {
+        if (switchToWaitDuringGhostHunt && !_restoreBehaviourAfterGhostHunt)
+        {
+            _behaviourBeforeGhostHunt = _currentBehaviour;
+            _restoreBehaviourAfterGhostHunt = true;
+        }
+
+        if (switchToWaitDuringGhostHunt)
+            ChangeBehaviour(SpirimonzBehaviourState.Wait);
+
+        if (isOnTheMap && stayInteractableDuringGhostHunt && collider != null)
+            collider.enabled = true;
     }
 
     private void Wait()
