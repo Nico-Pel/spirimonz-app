@@ -18,8 +18,7 @@ public class House : GameBehaviour
     public HouseMap map;
 
     [ReadOnly] public GhostParameters selectedGhostParameter;
-       
-# if UNITY_EDITOR
+
     public bool useDebugs;
     public bool playerCantDie;
     public GhostParameters forcedGhostParameters;
@@ -29,7 +28,6 @@ public class House : GameBehaviour
     public bool tripleActivityDebug;
     public bool useHuntTimeMultiplierDebug;
     public float huntTimeMultiplierDebug = 10f;
-#endif
     
     [Space]
 

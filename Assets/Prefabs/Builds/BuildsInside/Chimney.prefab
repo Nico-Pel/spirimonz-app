@@ -165,6 +165,7 @@ GameObject:
   - component: {fileID: 7291381206982581146}
   - component: {fileID: 1760954201062347312}
   - component: {fileID: 5164923361537503964}
+  - component: {fileID: 3807912043905344275}
   m_Layer: 0
   m_Name: Chimney
   m_TagString: Untagged
@@ -285,7 +286,12 @@ MonoBehaviour:
   ghostVolume: 0.8
   ghostPitch: 0.35
   activeLoopSound: {fileID: 9100698960456235305}
+  linkedLight: {fileID: 0}
+  useLinkedLightBlend: 1
+  linkedLightBlendDuration: 0.35
+  blendLinkedLightOnInitialEnable: 0
   canBeTurnedOn: 1
+  debugPouetFire: 0
   heatRoom: 1
   heatPerSecond: 0.5
   maxRoomHeatDelta: 8
@@ -334,6 +340,9 @@ MonoBehaviour:
   onChangeFireState:
     m_PersistentCalls:
       m_Calls: []
+  onBecomeCursed:
+    m_PersistentCalls:
+      m_Calls: []
 --- !u!64 &5164923361537503964
 MeshCollider:
   m_ObjectHideFlags: 0
@@ -356,6 +365,27 @@ MeshCollider:
   m_Convex: 0
   m_CookingOptions: 30
   m_Mesh: {fileID: -7146933138878152754, guid: 25bb645ea70064daba3fe7b042f79378, type: 3}
+--- !u!114 &3807912043905344275
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6814211879289291366}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bbb32acf3b95949e6a7b2bd6d7727fe2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  linkedFlammableObject: {fileID: 1760954201062347312}
+  canGiveFire: 1
+  canCurseFlammables: 0
+  heldActivationDuration: 0.75
+  heldCandleScanRadiusMultiplier: 1.75
+  heldSpirimonzScanRadiusMultiplier: 3
+  heldSpirimonzForwardScanOffset: 1.25
+  heldSpirimonzNonCandleRange: 3
+  heldSpirimonzNonCandleMinDot: 0.15
 --- !u!1 &7632058415195664702
 GameObject:
   m_ObjectHideFlags: 0

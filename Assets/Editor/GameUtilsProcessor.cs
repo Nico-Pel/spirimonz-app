@@ -49,21 +49,9 @@ namespace YsoCorp {
                         throw new Exception(error);
                     }
                 }
-                if (ycConfig.FbAppId == "") {
-                    string error = "[GameUtils] Empty Fb App Id";
-                    if (this.IsBuildAndRun(report)) {
-                        Debug.LogWarning(error);
-                    } else {
-                        throw new Exception(error);
-                    }
-                }
-                if (ycConfig.FbClientToken == "") {
-                    string error = "[GameUtils] Empty Fb Client Token";
-                    if (this.IsBuildAndRun(report)) {
-                        Debug.LogWarning(error);
-                    } else {
-                        throw new Exception(error);
-                    }
+                bool hasFacebookConfig = ycConfig.FbAppId != "" && ycConfig.FbClientToken != "";
+                if (ycConfig.FbAppId == "" || ycConfig.FbClientToken == "") {
+                    Debug.LogWarning("[GameUtils] Facebook config is incomplete. Facebook initialization will be skipped for this build.");
                 }
 #if UNITY_IOS
                 if (this.IsAnyGoogleInstalled() && ycConfig.AdMobAndroidAppId == "") {
@@ -94,7 +82,9 @@ namespace YsoCorp {
                     }
                 }
 #endif
-                YCConfigEditor.InitFacebook(ycConfig);
+                if (hasFacebookConfig) {
+                    YCConfigEditor.InitFacebook(ycConfig);
+                }
                 YCConfigEditor.InitMax(ycConfig);
             }
 

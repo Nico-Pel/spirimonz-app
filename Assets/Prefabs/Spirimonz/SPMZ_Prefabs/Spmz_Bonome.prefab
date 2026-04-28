@@ -102,7 +102,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 64340cb689d89442ab60d4a29e7813a0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  linkedSpirimonz: {fileID: 0}
+  linkedSpirimonz: {fileID: 368480814045509084}
   OnDetectionStart:
     m_PersistentCalls:
       m_Calls: []
@@ -1130,6 +1130,9 @@ MonoBehaviour:
   canBeDroppedOnMap: 1
   canBeTakenBackIntoHands: 0
   powerActiveInHands: 0
+  hideFromGhostHunt: 1
+  switchToWaitDuringGhostHunt: 0
+  stayInteractableDuringGhostHunt: 0
   useSecondaryButton: 0
   lookAtPlayerWhileWaiting: 0
   lookAtPlayerOnInteract: 0
@@ -1232,6 +1235,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   linkedSpirimonz: {fileID: 368480814045509084}
   triggerCooldown: 3
+  triggerOnlyIfGhostTouchesGround: 0
   onGhostTriggered:
+    m_PersistentCalls:
+      m_Calls: []
+  onGhostTriggeredWithGhost:
     m_PersistentCalls:
       m_Calls: []

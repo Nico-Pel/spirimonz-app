@@ -39,15 +39,15 @@ public class FireTrigger : MonoBehaviour
     
     private void OnTriggerEnter(Collider other)
     {
-        TryAffectFlammable(other);
+        TryAffectFlammable(other, "OnTriggerEnter");
     }
 
     private void OnTriggerStay(Collider other)
     {
-        TryAffectFlammable(other);
+        TryAffectFlammable(other, "OnTriggerStay");
     }
 
-    private void TryAffectFlammable(Collider other)
+    private void TryAffectFlammable(Collider other, string sourceContext, Vector3? scanCenter = null, float scanRadius = -1f)
     {
         if (!CanTransmitFire())
             return;
@@ -65,7 +65,10 @@ public class FireTrigger : MonoBehaviour
             otherFire.TryActivateCursed();
 
         if (!otherFire.IsOnFire())
+        {
+            LogPouetFire(otherFire, sourceContext, scanCenter, scanRadius, "collider-trigger");
             otherFire.EnableFire(true);
+        }
     }
 
     private void ScanNearbyFlammables()
@@ -91,7 +94,7 @@ public class FireTrigger : MonoBehaviour
             if (hit == null || hit == _triggerCollider)
                 continue;
 
-            TryAffectFlammable(hit);
+            TryAffectFlammable(hit, "ScanNearbyFlammables.OverlapSphere", scanCenter, radius);
         }
 
         if (useHeldScanRadius)
@@ -191,18 +194,29 @@ public class FireTrigger : MonoBehaviour
 
             if (ShouldIgniteHeldSpirimonzNonCandle(flammable))
             {
-                IgniteFlammable(flammable);
+                IgniteFlammable(flammable, "ScanNearbyFlammableElements.HeldSpirimonzNonCandle", center, radius);
                 continue;
             }
 
-            if (!IsFlammableCloseEnough(flammable, center, radius))
+            // When a Spirimonz is held in hands, non-candle ignition should only use
+            // the dedicated short-range forward rule above, not the generic proximity scan.
+            if (_linkedSpirimonz != null && !_linkedSpirimonz.isOnTheMap && flammable.type != FlammableElement.FlammableType.Candle)
                 continue;
 
-            IgniteFlammable(flammable);
+            bool usedCollider;
+            int activeColliderCount;
+            float distanceToClosest;
+            if (!IsFlammableCloseEnough(flammable, center, radius, out usedCollider, out activeColliderCount, out distanceToClosest))
+                continue;
+
+            string detail = usedCollider
+                ? $"proximity-collider closest={distanceToClosest:F2} activeColliders={activeColliderCount}"
+                : $"proximity-transform fallbackDistance={distanceToClosest:F2} activeColliders={activeColliderCount}";
+            IgniteFlammable(flammable, "ScanNearbyFlammableElements.Proximity", center, radius, detail);
         }
     }
 
-    private void IgniteFlammable(FlammableElement flammable)
+    private void IgniteFlammable(FlammableElement flammable, string sourceContext, Vector3 center, float radius, string extraDetail = null)
     {
         if (flammable == null)
             return;
@@ -211,7 +225,10 @@ public class FireTrigger : MonoBehaviour
             flammable.TryActivateCursed();
 
         if (!flammable.IsOnFire())
+        {
+            LogPouetFire(flammable, sourceContext, center, radius, extraDetail);
             flammable.EnableFire(true);
+        }
     }
 
     private bool ShouldIgniteHeldSpirimonzNonCandle(FlammableElement flammable)
@@ -238,8 +255,12 @@ public class FireTrigger : MonoBehaviour
         return true;
     }
 
-    private static bool IsFlammableCloseEnough(FlammableElement flammable, Vector3 center, float radius)
+    private static bool IsFlammableCloseEnough(FlammableElement flammable, Vector3 center, float radius, out bool usedCollider, out int activeColliderCount, out float distanceToClosest)
     {
+        usedCollider = false;
+        activeColliderCount = 0;
+        distanceToClosest = float.MaxValue;
+
         Collider[] colliders = flammable.GetComponentsInChildren<Collider>(true);
         for (int i = 0; i < colliders.Length; i++)
         {
@@ -247,11 +268,41 @@ public class FireTrigger : MonoBehaviour
             if (col == null || !col.enabled)
                 continue;
 
+            activeColliderCount++;
             Vector3 closest = col.ClosestPoint(center);
-            if (Vector3.Distance(center, closest) <= radius)
+            float distance = Vector3.Distance(center, closest);
+            distanceToClosest = Mathf.Min(distanceToClosest, distance);
+            if (distance <= radius)
+            {
+                usedCollider = true;
                 return true;
+            }
         }
 
-        return Vector3.Distance(center, flammable.transform.position) <= radius;
+        distanceToClosest = Vector3.Distance(center, flammable.transform.position);
+        return distanceToClosest <= radius;
+    }
+
+    private void LogPouetFire(FlammableElement flammable, string sourceContext, Vector3? scanCenter, float scanRadius, string extraDetail)
+    {
+        if (flammable == null || !flammable.debugPouetFire)
+            return;
+
+        Vector3 sourcePos = transform.position;
+        Vector3 targetPos = flammable.transform.position;
+        float distance = Vector3.Distance(sourcePos, targetPos);
+        bool heldCatchable = _linkedCatchableObject != null && _linkedCatchableObject.isGrabbed;
+        bool heldSpirimonz = _linkedSpirimonz != null && !_linkedSpirimonz.isOnTheMap;
+        string linkedName = linkedFlammableObject != null ? linkedFlammableObject.name : "none";
+        string centerText = scanCenter.HasValue ? scanCenter.Value.ToString("F2") : "n/a";
+        string radiusText = scanRadius >= 0f ? scanRadius.ToString("F2") : "n/a";
+
+        Debug.Log(
+            $"[PouetFire] target={flammable.name} type={flammable.type} sourceTrigger={name} linkedFlammable={linkedName} " +
+            $"context={sourceContext} sourcePos={sourcePos:F2} targetPos={targetPos:F2} sourceToTarget={distance:F2} " +
+            $"scanCenter={centerText} scanRadius={radiusText} heldCatchable={heldCatchable} heldSpirimonz={heldSpirimonz} " +
+            $"triggerColliderEnabled={(_triggerCollider != null && _triggerCollider.enabled)} extra={extraDetail}",
+            flammable
+        );
     }
 }

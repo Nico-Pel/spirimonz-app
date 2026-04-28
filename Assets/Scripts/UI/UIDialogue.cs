@@ -7,8 +7,9 @@ using Random = UnityEngine.Random;
 
 public class UIDialogue : GameBehaviour
 {
-    [SerializeField] private float dialogueSpeed = 0.1f;
+    [SerializeField] private float dialogueSpeed = 0.05f;
     [SerializeField] private float dialogueSoundVolume = 0.075f;
+    [SerializeField] [Range(0f, 1f)] private float letterSoundRate = 1f;
     [SerializeField] private float inputIgnoreDuration = 0.15f;
 
     [SerializeField] private GameObject dialogueBox;
@@ -32,6 +33,7 @@ public class UIDialogue : GameBehaviour
     private AudioClip _letterBeepClip;
     private float _minPitch = 0.9f;
     private float _maxPitch = 1.1f;
+    private bool _suppressLetterSounds;
 
     private void Awake()
     {
@@ -89,8 +91,7 @@ public class UIDialogue : GameBehaviour
     public void StartDialogue(Dialogue dialogue)
     {
         if (_dialogueActive) return;
-    
-        UIGame.Instance.AddShowCursor();
+
         _currentLine = 0;
         dialogueBox.SetActive(true);
         _currentDialogue = dialogue;
@@ -128,8 +129,10 @@ public class UIDialogue : GameBehaviour
     private void SkipTexting()
     {
         if (_writingText == false) return;
-        
+
+        _suppressLetterSounds = true;
         boxText.DOKill(true);
+        _suppressLetterSounds = false;
         EnableNextButton();
     }
 
@@ -154,6 +157,7 @@ public class UIDialogue : GameBehaviour
         _writingText = true;
 
         int previousLength = 0;
+        float soundAccumulator = 0f;
 
         // DOTween DOText
         boxText.DOText(text, text.Length * dialogueSpeed, richTextEnabled: true)
@@ -163,15 +167,32 @@ public class UIDialogue : GameBehaviour
                 int currentLength = boxText.text.Length;
                 if (currentLength > previousLength)
                 {
-                    if(_player == null) _player = Player.Instance;
+                    if (_suppressLetterSounds)
+                    {
+                        previousLength = currentLength;
+                        return;
+                    }
+
+                    int addedChars = currentLength - previousLength;
+                    for (int i = 0; i < addedChars; i++)
+                    {
+                        soundAccumulator += Mathf.Clamp01(letterSoundRate);
+                        if (soundAccumulator < 1f)
+                            continue;
+
+                        soundAccumulator -= 1f;
+
+                        if(_player == null) _player = Player.Instance;
                     
-                    Vector3 pos = _player != null ? _player.characterController.transform.position : Camera.main.transform.position;
-                    PlayLetterSoundUI(pos);
+                        Vector3 pos = _player != null ? _player.characterController.transform.position : Camera.main.transform.position;
+                        PlayLetterSoundUI(pos);
+                    }
                 }
                 previousLength = currentLength;
             })
             .OnComplete(() =>
             {
+                _suppressLetterSounds = false;
                 EnableNextButton();
                 _writingText = false;
             });
@@ -229,8 +250,7 @@ public class UIDialogue : GameBehaviour
     {
         dialogueBox.SetActive(false);
         _dialogueActive = false;
-        
-        UIGame.Instance.RemoveShowCursor();
+
         Player.Instance.EndDialogue();
     }
 }

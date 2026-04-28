@@ -5,7 +5,6 @@ using System.Linq;
 using System.Text;
 using UnityEditor;
 using UnityEditor.SceneManagement;
-using UnityEngine;
 
 [InitializeOnLoad]
 public static class LoadSceneMenuGenerator
@@ -44,6 +43,9 @@ public static class LoadSceneMenuGenerator
                     parent = "Scenes";
                 return new { s.path, s.enabled, name, parent };
             })
+            .OrderBy(info => info.enabled ? 0 : 1)
+            .ThenBy(info => GetSceneGroupOrder(info.name))
+            .ThenBy(info => info.name, StringComparer.OrdinalIgnoreCase)
             .ToList();
 
         var nameCounts = sceneInfos
@@ -54,7 +56,6 @@ public static class LoadSceneMenuGenerator
         sb.AppendLine("#if UNITY_EDITOR");
         sb.AppendLine("using UnityEditor;");
         sb.AppendLine("using UnityEditor.SceneManagement;");
-        sb.AppendLine("using UnityEngine;");
         sb.AppendLine("public static class LoadSceneMenuItems");
         sb.AppendLine("{");
         sb.AppendLine("    private static void Open(string path)");
@@ -62,16 +63,35 @@ public static class LoadSceneMenuGenerator
         sb.AppendLine("        if (EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo())");
         sb.AppendLine("            EditorSceneManager.OpenScene(path);");
         sb.AppendLine("    }");
+        sb.AppendLine("    private static void OpenTitleScreenWithPolicies(string path)");
+        sb.AppendLine("    {");
+        sb.AppendLine("        if (!EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo())");
+        sb.AppendLine("            return;");
+        sb.AppendLine("        LoadScenePolicyPreview.RequestPoliciesOnNextTitleScreen();");
+        sb.AppendLine("        EditorSceneManager.OpenScene(path);");
+        sb.AppendLine("    }");
 
         int index = 0;
+        int priority = 0;
         foreach (var info in sceneInfos)
         {
             string label = nameCounts[info.name] > 1 ? $"{info.parent}/{info.name}" : info.name;
             string menuPath = info.enabled ? $"LoadScene/{label}" : $"LoadScene/Disabled/{label}";
             string methodName = $"Open_{SanitizeIdentifier(label)}_{index}";
-            sb.AppendLine($"    [MenuItem(\"{menuPath}\")]");
+            sb.AppendLine($"    [MenuItem(\"{menuPath}\", priority = {priority})]");
             sb.AppendLine($"    private static void {methodName}() => Open(\"{info.path}\");");
+
+            if (string.Equals(info.name, "TitleScreen", StringComparison.OrdinalIgnoreCase))
+            {
+                string policyLabel = info.enabled ? "LoadScene/TitleScreen[Policies]" : "LoadScene/Disabled/TitleScreen[Policies]";
+                string policyMethodName = $"Open_{SanitizeIdentifier("TitleScreenPolicies")}_{index}";
+                sb.AppendLine($"    [MenuItem(\"{policyLabel}\", priority = {priority + 1})]");
+                sb.AppendLine($"    private static void {policyMethodName}() => OpenTitleScreenWithPolicies(\"{info.path}\");");
+                priority++;
+            }
+
             index++;
+            priority += 10;
         }
 
         sb.AppendLine("}");
@@ -108,6 +128,21 @@ public static class LoadSceneMenuGenerator
             sb.Insert(0, '_');
 
         return sb.ToString();
+    }
+
+    private static int GetSceneGroupOrder(string sceneName)
+    {
+        if (string.Equals(sceneName, "TitleScreen", StringComparison.OrdinalIgnoreCase))
+            return 0;
+
+        if (sceneName.StartsWith("World", StringComparison.OrdinalIgnoreCase) ||
+            sceneName.StartsWith("WS", StringComparison.OrdinalIgnoreCase))
+            return 1;
+
+        if (sceneName.StartsWith("House", StringComparison.OrdinalIgnoreCase))
+            return 2;
+
+        return 3;
     }
 }
 #endif

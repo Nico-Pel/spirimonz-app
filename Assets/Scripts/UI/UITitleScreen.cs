@@ -24,6 +24,15 @@ public class UITitleScreen : GameBehaviour
     private void Start()
     {
         RefreshSlots();
+
+#if UNITY_EDITOR
+        if (LoadScenePolicyPreview.ConsumePendingPoliciesRequest())
+        {
+            UILegalOverlay.Instance.Show(requireAcceptance: true, LegalDocumentType.PrivacyPolicy);
+            return;
+        }
+#endif
+
         UILegalOverlay.Instance.ShowFirstLaunchGateIfNeeded();
     }
 

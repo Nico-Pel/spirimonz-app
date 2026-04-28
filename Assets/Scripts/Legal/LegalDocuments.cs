@@ -8,8 +8,8 @@ public enum LegalDocumentType
 
 public static class LegalDocuments
 {
-    public const string PrivacyPolicyVersion = "2026-04-23";
-    public const string TermsOfUseVersion = "2026-04-23";
+    public const string PrivacyPolicyVersion = "2026-04-28";
+    public const string TermsOfUseVersion = "2026-04-28";
 
     private const string PrivacyAcceptedVersionKey = "legal_privacy_accepted_version";
     private const string TermsAcceptedVersionKey = "legal_terms_accepted_version";
@@ -45,28 +45,23 @@ public static class LegalDocuments
         if (UseFrench())
         {
             return requireAcceptance
-                ? "Avant de continuer, merci de consulter notre Politique de confidentialité et nos Conditions d'utilisation. Tu pourras les relire à tout moment depuis le menu."
+                ? "Avant de continuer, merci de consulter notre Politique de confidentialité et nos Conditions d'utilisation, puis d'appuyer sur le bouton d'acceptation. Tu pourras les relire à tout moment depuis le menu."
                 : "Consulte ici la Politique de confidentialité et les Conditions d'utilisation du jeu.";
         }
 
         return requireAcceptance
-            ? "Before continuing, please review our Privacy Policy and Terms of Use. You will be able to read them again later from the menu."
+            ? "Before continuing, please review our Privacy Policy and Terms of Use, then confirm with the acceptance button. You will be able to read them again later from the menu."
             : "Review the game's Privacy Policy and Terms of Use here.";
     }
 
     public static string GetAcceptButtonLabel()
     {
-        return UseFrench() ? "J'ai lu et je continue" : "I Have Read and Continue";
+        return UseFrench() ? "J'accepte et je continue" : "Accept and Continue";
     }
 
     public static string GetCloseButtonLabel()
     {
         return UseFrench() ? "Fermer" : "Close";
-    }
-
-    public static string GetQuitButtonLabel()
-    {
-        return UseFrench() ? "Quitter" : "Quit";
     }
 
     public static string GetPrivacyButtonLabel()

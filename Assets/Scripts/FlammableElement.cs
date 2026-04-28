@@ -37,6 +37,7 @@ public class FlammableElement : GameBehaviour
     public bool blendLinkedLightOnInitialEnable = false;
 
     public bool canBeTurnedOn = true;
+    public bool debugPouetFire = false;
 
     [Header("Room Heating")]
     public bool heatRoom = false;
