@@ -20,6 +20,18 @@ public class MobileControlsRoot : MonoBehaviour
 
     private void Update()
     {
+        GameManager gameManager = GameManager.Instance;
+        if (gameManager != null && gameManager.IsTitleScreenActive())
+        {
+            if (_lastEnabled)
+            {
+                _lastEnabled = false;
+                ApplyState(false);
+            }
+
+            return;
+        }
+
         bool shouldHide = false;
         if (UIGame.Instance != null)
         {

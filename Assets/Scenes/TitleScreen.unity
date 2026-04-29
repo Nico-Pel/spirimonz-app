@@ -1041,14 +1041,14 @@ RectTransform:
   m_GameObject: {fileID: 586218281}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 0.7, y: 0.7, z: 0.7}
+  m_LocalScale: {x: 0.56, y: 0.56, z: 0.56}
   m_ConstrainProportionsScale: 1
   m_Children: []
   m_Father: {fileID: 1226221076}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 0, y: 87}
+  m_AnchoredPosition: {x: 0, y: 75}
   m_SizeDelta: {x: 0, y: 1080}
   m_Pivot: {x: 0.5, y: 1}
 --- !u!114 &586218283
@@ -1571,7 +1571,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 0}
-  m_AnchoredPosition: {x: 0, y: 540}
+  m_AnchoredPosition: {x: 0, y: 500}
   m_SizeDelta: {x: 0, y: 1080}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1429638657
@@ -1631,6 +1631,15 @@ MonoBehaviour:
   - {fileID: 1149834021}
   - {fileID: 466066574}
   houseTutoSceneName: HouseTuto
+  mobileTitleScalePortrait: 0.86
+  mobileTitleScaleLandscape: 0.56
+  mobileTitleTopPortrait: 72
+  mobileTitleTopLandscape: -18
+  mobileSavesCenterYPortrait: 500
+  mobileSavesCenterYLandscape: 500
+  mobileMinimumGap: 64
+  mobileExtraTopPadding: 24
+  mobileBottomPadding: 48
 --- !u!224 &1493358279 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 242050528784768288, guid: 5dd988b38136d49fa93429b37093856e, type: 3}

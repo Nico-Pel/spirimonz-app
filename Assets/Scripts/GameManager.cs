@@ -26,6 +26,7 @@ public class GameManager : GameBehaviour
 
     [Header("Mobile Controls")]
     public bool mobileControlsEnabled;
+    public bool autoEnableMobileControlsOnMobilePlatform = true;
 
     [Header("Mobile Light Optimization")]
     public bool mobileLightOptimizationEnabled = true;
@@ -81,7 +82,9 @@ public class GameManager : GameBehaviour
 
         Instance = this;
         DontDestroyOnLoad(gameObject);
-        MobileInput.SetEnabled(mobileControlsEnabled);
+
+        mobileControlsEnabled = ResolveMobileControlsEnabled();
+        ApplyRuntimeMobileState(SceneManager.GetActiveScene().name);
         MobileControlsBootstrap.EnsureExists();
         MobileLightOptimizerManager.EnsureExists();
         MobileCinemachineInputGate.EnsureExists();
@@ -90,7 +93,7 @@ public class GameManager : GameBehaviour
         if (mobileControlsEnabled)
             mobileLightOptimizationEnabled = true;
         MobileLightOptimizerManager.Instance.SetEnabled(mobileLightOptimizationEnabled);
-        MobilePerformanceManager.Instance.SetEnabled(mobileControlsEnabled);
+        MobilePerformanceManager.Instance.SetEnabled(ShouldEnableMobileControlsForScene(SceneManager.GetActiveScene().name));
 
         CheckUniqueSpirimonzIDs();
 
@@ -226,18 +229,27 @@ public class GameManager : GameBehaviour
     {
         if (Application.isPlaying)
         {
-            MobileInput.SetEnabled(mobileControlsEnabled);
+            mobileControlsEnabled = ResolveMobileControlsEnabled();
+            ApplyRuntimeMobileState(SceneManager.GetActiveScene().name);
             MobileLightOptimizerManager.EnsureExists();
             MobileLightOptimizerManager.Instance.SetEnabled(mobileLightOptimizationEnabled);
             MobilePerformanceManager.EnsureExists();
-            MobilePerformanceManager.Instance.SetEnabled(mobileControlsEnabled);
+            MobilePerformanceManager.Instance.SetEnabled(ShouldEnableMobileControlsForScene(SceneManager.GetActiveScene().name));
         }
+    }
+
+    private bool ResolveMobileControlsEnabled()
+    {
+        if (autoEnableMobileControlsOnMobilePlatform && Application.isMobilePlatform)
+            return true;
+
+        return mobileControlsEnabled;
     }
 
     public void SetMobileControlsEnabled(bool enable)
     {
         mobileControlsEnabled = enable;
-        MobileInput.SetEnabled(enable);
+        ApplyRuntimeMobileState(SceneManager.GetActiveScene().name);
 
         if (enable)
             mobileLightOptimizationEnabled = true;
@@ -246,7 +258,7 @@ public class GameManager : GameBehaviour
         MobileLightOptimizerManager.Instance.SetEnabled(mobileLightOptimizationEnabled);
 
         MobilePerformanceManager.EnsureExists();
-        MobilePerformanceManager.Instance.SetEnabled(enable);
+        MobilePerformanceManager.Instance.SetEnabled(ShouldEnableMobileControlsForScene(SceneManager.GetActiveScene().name));
     }
 
     public void SetMobileLightOptimizationEnabled(bool enable)
@@ -319,6 +331,9 @@ public class GameManager : GameBehaviour
                              scene.name == titleScreenSceneName;
         if (isTitleScreen)
         {
+            ApplyRuntimeMobileState(scene.name);
+            MobilePerformanceManager.EnsureExists();
+            MobilePerformanceManager.Instance.SetEnabled(false);
             SceneManager.sceneLoaded -= OnSceneLoaded;
             return;
         }
@@ -331,13 +346,13 @@ public class GameManager : GameBehaviour
             player = FindObjectOfType<Player>();
 
         // Re-apply mobile state after scene load (House / World).
-        MobileInput.SetEnabled(mobileControlsEnabled);
+        ApplyRuntimeMobileState(scene.name);
         MobileControlsBootstrap.EnsureExists();
         MobileCinemachineInputGate.EnsureExists();
         MobileLightOptimizerManager.EnsureExists();
         MobileLightOptimizerManager.Instance.SetEnabled(mobileLightOptimizationEnabled);
         MobilePerformanceManager.EnsureExists();
-        MobilePerformanceManager.Instance.SetEnabled(mobileControlsEnabled);
+        MobilePerformanceManager.Instance.SetEnabled(ShouldEnableMobileControlsForScene(scene.name));
         ApplySavedSettingsIfPossible();
 
         if (player == null)
@@ -628,6 +643,27 @@ public class GameManager : GameBehaviour
 
     public bool IsWorld() => _isWorld;
     public GameData GetGameData() => gameData;
+
+    public bool IsTitleScreenScene(string sceneName)
+    {
+        return !string.IsNullOrEmpty(titleScreenSceneName) &&
+               string.Equals(sceneName, titleScreenSceneName, StringComparison.Ordinal);
+    }
+
+    public bool IsTitleScreenActive()
+    {
+        return IsTitleScreenScene(SceneManager.GetActiveScene().name);
+    }
+
+    public bool ShouldEnableMobileControlsForScene(string sceneName)
+    {
+        return ResolveMobileControlsEnabled() && !IsTitleScreenScene(sceneName);
+    }
+
+    private void ApplyRuntimeMobileState(string sceneName)
+    {
+        MobileInput.SetEnabled(ShouldEnableMobileControlsForScene(sceneName));
+    }
 
     public void RegisterTemporaryWorldScene(string sceneName)
     {

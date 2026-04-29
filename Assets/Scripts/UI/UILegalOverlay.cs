@@ -11,6 +11,8 @@ public class UILegalOverlay : MonoBehaviour
     private GameObject _backdrop;
     private RectTransform _panelRect;
     private VerticalLayoutGroup _panelLayout;
+    private Image _panelImage;
+    private Image _scrollBackgroundImage;
     private Text _titleText;
     private Text _introText;
     private Text _eyebrowText;
@@ -30,6 +32,7 @@ public class UILegalOverlay : MonoBehaviour
     private LayoutElement _tabsRowLayout;
     private LayoutElement _scrollLayout;
     private LayoutElement _bottomRowLayout;
+    private RectTransform _viewportRect;
     private int _lastScreenWidth;
     private int _lastScreenHeight;
 
@@ -151,7 +154,9 @@ public class UILegalOverlay : MonoBehaviour
             _introText.text = LegalDocuments.GetIntroText(_requireAcceptance);
 
         if (_eyebrowText != null)
-            _eyebrowText.text = _requireAcceptance ? "REVIEW REQUIRED" : "LEGAL DOCUMENTS";
+            _eyebrowText.text = LegalDocuments.UseFrench()
+                ? (_requireAcceptance ? "LECTURE REQUISE" : "DOCUMENTS LÉGAUX")
+                : (_requireAcceptance ? "REVIEW REQUIRED" : "LEGAL DOCUMENTS");
 
         if (_documentTitleText != null)
             _documentTitleText.text = LegalDocuments.GetDocumentTitle(_currentDocumentType);
@@ -234,8 +239,8 @@ public class UILegalOverlay : MonoBehaviour
         backdropRect.offsetMax = Vector2.zero;
 
         GameObject panel = CreateUiObject("Panel", _backdrop.transform);
-        Image panelImage = panel.AddComponent<Image>();
-        panelImage.color = new Color(0.07f, 0.09f, 0.13f, 0.97f);
+        _panelImage = panel.AddComponent<Image>();
+        _panelImage.color = new Color(0.07f, 0.09f, 0.13f, 0.97f);
         _panelRect = panel.GetComponent<RectTransform>();
         _panelRect.anchorMin = new Vector2(0.1f, 0.08f);
         _panelRect.anchorMax = new Vector2(0.9f, 0.92f);
@@ -280,8 +285,8 @@ public class UILegalOverlay : MonoBehaviour
         _documentTitleLayout = AddPreferredHeight(_documentTitleText.gameObject, 34f);
 
         GameObject scrollView = CreateUiObject("ScrollView", panel.transform);
-        Image scrollBg = scrollView.AddComponent<Image>();
-        scrollBg.color = new Color(1f, 1f, 1f, 0.045f);
+        _scrollBackgroundImage = scrollView.AddComponent<Image>();
+        _scrollBackgroundImage.color = new Color(1f, 1f, 1f, 0.045f);
         _scrollRect = scrollView.AddComponent<ScrollRect>();
         _scrollRect.horizontal = false;
         _scrollRect.vertical = true;
@@ -296,11 +301,11 @@ public class UILegalOverlay : MonoBehaviour
         viewportImage.color = new Color(1f, 1f, 1f, 0.01f);
         Mask viewportMask = viewport.AddComponent<Mask>();
         viewportMask.showMaskGraphic = false;
-        RectTransform viewportRect = viewport.GetComponent<RectTransform>();
-        viewportRect.anchorMin = Vector2.zero;
-        viewportRect.anchorMax = Vector2.one;
-        viewportRect.offsetMin = new Vector2(18f, 18f);
-        viewportRect.offsetMax = new Vector2(-18f, -18f);
+        _viewportRect = viewport.GetComponent<RectTransform>();
+        _viewportRect.anchorMin = Vector2.zero;
+        _viewportRect.anchorMax = Vector2.one;
+        _viewportRect.offsetMin = new Vector2(18f, 18f);
+        _viewportRect.offsetMax = new Vector2(-18f, -18f);
 
         GameObject content = CreateUiObject("Content", viewport.transform);
         RectTransform contentRect = content.GetComponent<RectTransform>();
@@ -339,8 +344,9 @@ public class UILegalOverlay : MonoBehaviour
         bodyRect.offsetMax = Vector2.zero;
         LayoutElement bodyLayout = _documentBodyText.gameObject.AddComponent<LayoutElement>();
         bodyLayout.flexibleWidth = 1f;
+        bodyLayout.minWidth = 0f;
 
-        _scrollRect.viewport = viewportRect;
+        _scrollRect.viewport = _viewportRect;
         _scrollRect.content = contentRect;
 
         GameObject bottomRow = CreateUiObject("BottomRow", panel.transform);
@@ -428,6 +434,7 @@ public class UILegalOverlay : MonoBehaviour
         bool landscape = Screen.width > Screen.height;
         float shortSide = Mathf.Min(Screen.width, Screen.height);
         bool compact = shortSide <= 720f;
+        bool portraitPhone = !landscape && shortSide <= 1080f;
 
         if (_canvasScaler != null)
         {
@@ -437,71 +444,107 @@ public class UILegalOverlay : MonoBehaviour
 
         if (_panelRect != null)
         {
-            _panelRect.anchorMin = landscape ? new Vector2(0.06f, 0.06f) : new Vector2(0.04f, 0.04f);
-            _panelRect.anchorMax = landscape ? new Vector2(0.94f, 0.94f) : new Vector2(0.96f, 0.96f);
+            _panelRect.anchorMin = landscape ? new Vector2(0.1f, 0.06f) : new Vector2(0.05f, 0.03f);
+            _panelRect.anchorMax = landscape ? new Vector2(0.9f, 0.94f) : new Vector2(0.95f, 0.97f);
+        }
+
+        if (_panelImage != null)
+        {
+            _panelImage.color = portraitPhone
+                ? new Color(0.06f, 0.08f, 0.12f, 0.985f)
+                : new Color(0.07f, 0.09f, 0.13f, 0.97f);
+        }
+
+        if (_scrollBackgroundImage != null)
+        {
+            _scrollBackgroundImage.color = portraitPhone
+                ? new Color(0.95f, 0.98f, 1f, 0.06f)
+                : new Color(1f, 1f, 1f, 0.045f);
         }
 
         if (_panelLayout != null)
         {
-            int horizontalPadding = landscape ? 34 : 24;
-            int verticalPadding = landscape ? 24 : 24;
+            int horizontalPadding = landscape ? 34 : (compact ? 18 : 22);
+            int verticalPadding = landscape ? 24 : (compact ? 18 : 22);
             _panelLayout.padding = new RectOffset(horizontalPadding, horizontalPadding, verticalPadding, verticalPadding);
-            _panelLayout.spacing = landscape ? 14f : 16f;
+            _panelLayout.spacing = landscape ? 14f : (compact ? 12f : 16f);
         }
 
         if (_eyebrowText != null)
-            _eyebrowText.fontSize = compact ? 12 : 14;
+            _eyebrowText.fontSize = compact ? 11 : 14;
 
         if (_eyebrowLayout != null)
-            _eyebrowLayout.preferredHeight = compact ? 18f : 22f;
+            _eyebrowLayout.preferredHeight = compact ? 16f : 22f;
 
         if (_titleText != null)
-            _titleText.fontSize = compact ? 26 : (landscape ? 30 : 36);
+            _titleText.fontSize = compact ? 22 : (landscape ? 30 : 34);
 
         if (_titleLayout != null)
-            _titleLayout.preferredHeight = compact ? 34f : (landscape ? 42f : 48f);
+            _titleLayout.preferredHeight = compact ? 30f : (landscape ? 42f : 44f);
 
         if (_introText != null)
-            _introText.fontSize = compact ? 14 : (landscape ? 16 : 18);
+        {
+            _introText.fontSize = compact ? 13 : (landscape ? 16 : 17);
+            _introText.alignment = portraitPhone ? TextAnchor.MiddleCenter : TextAnchor.MiddleLeft;
+        }
 
         if (_introLayout != null)
-            _introLayout.preferredHeight = compact ? 54f : (landscape ? 50f : 64f);
+            _introLayout.preferredHeight = compact ? 66f : (landscape ? 50f : 58f);
 
         if (_tabsLayout != null)
-            _tabsLayout.spacing = landscape ? 10f : 12f;
+        {
+            _tabsLayout.spacing = compact ? 8f : 12f;
+            _tabsLayout.childForceExpandWidth = !landscape;
+        }
 
         if (_tabsRowLayout != null)
-            _tabsRowLayout.preferredHeight = compact ? 52f : (landscape ? 54f : 64f);
+            _tabsRowLayout.preferredHeight = compact ? 48f : (landscape ? 54f : 60f);
 
         if (_documentTitleText != null)
-            _documentTitleText.fontSize = compact ? 19 : (landscape ? 22 : 24);
+        {
+            _documentTitleText.fontSize = compact ? 17 : (landscape ? 22 : 22);
+            _documentTitleText.alignment = portraitPhone ? TextAnchor.MiddleCenter : TextAnchor.MiddleLeft;
+        }
 
         if (_documentTitleLayout != null)
-            _documentTitleLayout.preferredHeight = compact ? 28f : 34f;
+            _documentTitleLayout.preferredHeight = compact ? 26f : 34f;
 
         if (_documentBodyText != null)
-            _documentBodyText.fontSize = compact ? 14 : (landscape ? 16 : 17);
+        {
+            _documentBodyText.fontSize = compact ? 13 : (landscape ? 16 : 16);
+            _documentBodyText.lineSpacing = compact ? 1.08f : 1.12f;
+        }
 
         if (_scrollLayout != null)
         {
-            float scrollHeight = compact ? 250f : (landscape ? 320f : 520f);
+            float scrollHeight = compact ? 310f : (landscape ? 340f : 520f);
             _scrollLayout.minHeight = scrollHeight;
             _scrollLayout.preferredHeight = scrollHeight;
         }
 
+        if (_viewportRect != null)
+        {
+            float inset = compact ? 12f : 18f;
+            _viewportRect.offsetMin = new Vector2(inset, inset);
+            _viewportRect.offsetMax = new Vector2(-inset, -inset);
+        }
+
         if (_bottomLayout != null)
-            _bottomLayout.spacing = landscape ? 10f : 12f;
+        {
+            _bottomLayout.spacing = compact ? 8f : 12f;
+            _bottomLayout.childAlignment = _requireAcceptance || portraitPhone ? TextAnchor.MiddleCenter : TextAnchor.MiddleRight;
+        }
 
         if (_bottomRowLayout != null)
-            _bottomRowLayout.preferredHeight = compact ? 62f : (landscape ? 64f : 78f);
+            _bottomRowLayout.preferredHeight = compact ? 58f : (landscape ? 64f : 72f);
 
-        ApplyButtonStyle(_privacyButton, landscape, compact, false);
-        ApplyButtonStyle(_termsButton, landscape, compact, false);
-        ApplyButtonStyle(_closeButton, landscape, compact, false);
-        ApplyButtonStyle(_acceptButton, landscape, compact, true);
+        ApplyButtonStyle(_privacyButton, landscape, compact, false, portraitPhone, _requireAcceptance);
+        ApplyButtonStyle(_termsButton, landscape, compact, false, portraitPhone, _requireAcceptance);
+        ApplyButtonStyle(_closeButton, landscape, compact, false, portraitPhone, _requireAcceptance);
+        ApplyButtonStyle(_acceptButton, landscape, compact, true, portraitPhone, _requireAcceptance);
     }
 
-    private static void ApplyButtonStyle(Button button, bool landscape, bool compact, bool accent)
+    private static void ApplyButtonStyle(Button button, bool landscape, bool compact, bool accent, bool portraitPhone, bool requireAcceptance)
     {
         if (button == null)
             return;
@@ -509,22 +552,30 @@ public class UILegalOverlay : MonoBehaviour
         LayoutElement layout = button.GetComponent<LayoutElement>();
         if (layout != null)
         {
-            float height = compact ? 58f : (landscape ? 56f : 72f);
+            float height = compact ? 52f : (landscape ? 56f : 68f);
             layout.minHeight = height;
             layout.preferredHeight = height;
-            layout.preferredWidth = accent ? (landscape ? 360f : 0f) : (landscape ? 220f : 0f);
-            layout.flexibleWidth = landscape ? 0f : 1f;
+            if (accent)
+            {
+                layout.preferredWidth = landscape ? 360f : 0f;
+                layout.flexibleWidth = landscape ? 0f : 1f;
+            }
+            else
+            {
+                layout.preferredWidth = landscape ? 220f : 0f;
+                layout.flexibleWidth = portraitPhone && !requireAcceptance ? 1f : (landscape ? 0f : 1f);
+            }
         }
 
         Image image = button.GetComponent<Image>();
         if (image != null)
             image.color = accent
                 ? new Color(0.17f, 0.65f, 0.39f, 0.98f)
-                : new Color(1f, 1f, 1f, 0.08f);
+                : new Color(1f, 1f, 1f, 0.07f);
 
         Text label = button.GetComponentInChildren<Text>();
         if (label != null)
-            label.fontSize = compact ? 16 : (landscape ? 18 : 20);
+            label.fontSize = compact ? 15 : (landscape ? 18 : 19);
     }
 
     private static LayoutElement AddPreferredHeight(GameObject target, float preferredHeight)

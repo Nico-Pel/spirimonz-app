@@ -129,7 +129,6 @@ public class QuestData
 
 public static class SaveManager
 {
-    private const string LegacyFileName = "savefile.json";
     private const string SaveFilePrefix = "savefile_";
     private const int DefaultSlot = 1;
     private const int MaxSlot = 4;
@@ -139,7 +138,6 @@ public static class SaveManager
     private static int _currentSlot = DefaultSlot;
     private static bool _isTemporarySlot;
 
-    private static string LegacyFilePath => Path.Combine(Application.persistentDataPath, LegacyFileName);
     private static string GetFilePath(int slot) => Path.Combine(Application.persistentDataPath, $"{SaveFilePrefix}{slot}.json");
 
     public static int CurrentSlot => _currentSlot;
@@ -174,10 +172,7 @@ public static class SaveManager
     public static bool SaveExists(int slot)
     {
         string path = GetFilePath(slot);
-        if (File.Exists(path))
-            return true;
-
-        return slot == DefaultSlot && File.Exists(LegacyFilePath);
+        return File.Exists(path);
     }
 
     // Gère la liste de tous tes prefabs Spirimonz
@@ -209,14 +204,6 @@ public static class SaveManager
     public static GameData Load(int slot, bool createIfMissing)
     {
         string path = GetFilePath(slot);
-
-        if (!File.Exists(path))
-        {
-            if (slot == DefaultSlot && File.Exists(LegacyFilePath))
-            {
-                File.Copy(LegacyFilePath, path, overwrite: true);
-            }
-        }
 
         if (!File.Exists(path))
         {
@@ -255,8 +242,6 @@ public static class SaveManager
         string path = GetFilePath(slot);
         if (File.Exists(path))
             File.Delete(path);
-        if (slot == DefaultSlot && File.Exists(LegacyFilePath))
-            File.Delete(LegacyFilePath);
     }
 
     public static void SaveInputBindings(GameData data, InputManager input)

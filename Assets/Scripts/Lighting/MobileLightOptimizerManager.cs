@@ -233,6 +233,15 @@ public class MobileLightOptimizerManager : MonoBehaviour
         return _budgetAllowed.Contains(light);
     }
 
+    public bool IsHouseScene()
+    {
+        Scene scene = SceneManager.GetActiveScene();
+        if (!scene.IsValid())
+            return false;
+
+        return scene.name.StartsWith("House");
+    }
+
     private void RestoreAll()
     {
         for (int i = 0; i < _lights.Count; i++)

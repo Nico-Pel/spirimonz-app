@@ -146,7 +146,7 @@ public class MobileLightOptimizedLight : MonoBehaviour
         _isOverriding = true;
 
         if (distSqr > shadowSqr)
-            targetLight.shadows = LightShadows.None;
+            targetLight.shadows = GetOptimizedShadowMode(manager);
         else
             targetLight.shadows = _baseShadows;
 
@@ -181,5 +181,16 @@ public class MobileLightOptimizedLight : MonoBehaviour
             targetLight.enabled = _baseEnabled;
             _disabledByOptimizer = false;
         }
+    }
+
+    private LightShadows GetOptimizedShadowMode(MobileLightOptimizerManager manager)
+    {
+        if (_baseShadows == LightShadows.None)
+            return LightShadows.None;
+
+        if (manager != null && manager.IsHouseScene())
+            return LightShadows.Hard;
+
+        return LightShadows.None;
     }
 }

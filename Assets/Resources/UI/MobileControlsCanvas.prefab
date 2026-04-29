@@ -724,7 +724,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &6520994319892124230
 RectTransform:
   m_ObjectHideFlags: 0
@@ -891,6 +891,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9c3768babd98f4b0caf4945a54b08317, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  settingsButton: {fileID: 9201387194893098679}
+  journalButton: {fileID: 6814222445439830337}
   prevButton: {fileID: 900943635629098807}
   nextButton: {fileID: 4511909041928328474}
   yButton: {fileID: 1391861762442305105}
@@ -904,6 +906,7 @@ GameObject:
   m_Component:
   - component: {fileID: 7603465869069118140}
   - component: {fileID: 6092743657408493165}
+  - component: {fileID: 6197363529019611746}
   m_Layer: 0
   m_Name: FooterButtons
   m_TagString: Untagged
@@ -970,6 +973,18 @@ MonoBehaviour:
   - {fileID: 5506823637472469238}
   emptySlotColor: {r: 1, g: 1, b: 1, a: 0.15}
   filledSlotColor: {r: 1, g: 1, b: 1, a: 1}
+--- !u!225 &6197363529019611746
+CanvasGroup:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1561899029340618501}
+  m_Enabled: 1
+  m_Alpha: 1
+  m_Interactable: 1
+  m_BlocksRaycasts: 1
+  m_IgnoreParentGroups: 0
 --- !u!1 &2367147606869172389
 GameObject:
   m_ObjectHideFlags: 0
