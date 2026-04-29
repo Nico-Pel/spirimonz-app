@@ -32,6 +32,7 @@ public class FPSControllerNoPhysics : Controller
     public float mobileLookSensitivityX = 2.0f;
     public float mobileLookSensitivityY = 0.8f;
     public float mobileLookSensitivityMultiplier = 0.25f;
+    [Range(0f, 1f)] public float mobileLookDeadZone = 0.25f;
     public float mobileLookBoostThreshold = 0.7f;
     public float mobileLookBoostMultiplier = 1.6f;
     public float mobileIdleLookMultiplier = 4f;
@@ -262,6 +263,9 @@ public class FPSControllerNoPhysics : Controller
         }
 
         Vector2 mobileLook = MobileInput.GetLookDelta();
+        if (MobileInput.Enabled && mobileLook.magnitude < mobileLookDeadZone)
+            mobileLook = Vector2.zero;
+
         float lookBoost = 1f;
         if (MobileInput.Enabled)
         {

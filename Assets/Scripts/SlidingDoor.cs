@@ -110,6 +110,7 @@ public class SlidingDoor : Door
 
     public override void GhostDoorInteraction(float openPercentage, float moveSpeed, bool slam = false, bool openedBySpirimonz = false)
     {
+        CancelPendingTapCloseSound();
         _ghostJustInteracted = true;
         _askedForGhostSlam = slam;
         Invoke(nameof(ResetGhostInteraction), 0.75f);
@@ -136,6 +137,7 @@ public class SlidingDoor : Door
 
     public override void CloseDoor(float closeSpeed, bool forcedSlam = false, bool ignoreAudioOcclusions = false)
     {
+        CancelPendingTapCloseSound();
         isOpen = false;
         EnableAudioOcclusions(true);
 
@@ -148,6 +150,12 @@ public class SlidingDoor : Door
 
     protected override void UpdateDoor()
     {
+        if (_pendingTapCloseSound && IsNearClosed())
+        {
+            FinalizePendingTapCloseSound();
+            return;
+        }
+
         if (_isGrabbed)
             return;
 
@@ -223,6 +231,39 @@ public class SlidingDoor : Door
     {
         float current = GetAxisValue(transform.localPosition);
         return Mathf.InverseLerp(closedPosition, openPosition, current);
+    }
+
+    public override void OpenDoorFully()
+    {
+        if (InteractionLocked)
+            return;
+
+        CancelPendingTapCloseSound();
+        _ghostJustInteracted = true;
+        CancelInvoke(nameof(ResetGhostInteraction));
+        Invoke(nameof(ResetGhostInteraction), clickOpenProtectionDuration);
+
+        if (!isOpen)
+            isOpen = true;
+
+        EnableAudioOcclusions(false);
+        _slideTarget = openPosition;
+        _slideSpeed = Mathf.Abs(fullOpenSpeed * clickOpenSpeedMultiplier);
+        _hasSlideTarget = true;
+    }
+
+    protected override void BeginTapClose()
+    {
+        CancelPendingTapCloseSound();
+
+        isOpen = false;
+        EnableAudioOcclusions(true);
+        _slideTarget = closedPosition;
+        _slideSpeed = Mathf.Abs(autoCloseSpeed * clickCloseSpeedMultiplier);
+        _hasSlideTarget = true;
+        _pendingTapCloseSound = true;
+        _pendingTapCloseIgnoreOcclusion = true;
+        _pendingTapCloseForcedSlam = false;
     }
 
     public override float GetOpenVelocity()

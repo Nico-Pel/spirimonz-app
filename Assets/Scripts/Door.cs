@@ -19,6 +19,13 @@ public class Door : GameBehaviour, IInteractable
 
     [Header("Door Settings")]
     public float autoCloseSpeed = 10f;
+    public float fullOpenSpeed = 35f;
+    [Range(0f, 1f)] public float clickCloseThreshold = 0.1f;
+    public float clickOpenProtectionDuration = 0.2f;
+    public float clickOpenAngle = 105f;
+    public float clickOpenSpeedMultiplier = 1.875f;
+    public float clickCloseSpeedMultiplier = 6.25f;
+    public float clickCloseForceMultiplier = 4f;
     public float checkDelay = 0.2f;
     public float slamAngleDetected = 20;
     public float slamDetectionDuration = 0.2f;
@@ -58,6 +65,9 @@ public class Door : GameBehaviour, IInteractable
     private bool _wasConsideredOpen;
     private float _lastOpenSoundTime = -999f;
     protected float _lastSpirimonzOpenRequestTime = -999f;
+    protected bool _pendingTapCloseSound;
+    protected bool _pendingTapCloseIgnoreOcclusion;
+    protected bool _pendingTapCloseForcedSlam;
 
     public UnityEvent<Door> onGhostInteracted;
 
@@ -103,6 +113,7 @@ public class Door : GameBehaviour, IInteractable
 
     public virtual void Grab()
     {
+        CancelPendingTapCloseSound();
         _lastAngle = hingeJoint.angle;
         _isGrabbed = true;
         InvokeRepeating(nameof(CheckAngle), checkDelay, checkDelay);
@@ -160,6 +171,7 @@ public class Door : GameBehaviour, IInteractable
 
     public virtual void GhostDoorInteraction(float openPercentage, float moveSpeed, bool slam = false, bool openedBySpirimonz = false)
     {
+        CancelPendingTapCloseSound();
         rb.freezeRotation = false;
 
         _ghostJustInteracted = true;
@@ -199,6 +211,10 @@ public class Door : GameBehaviour, IInteractable
 
     public virtual void CloseDoor(float closeSpeed, bool forcedSlam = false, bool ignoreAudioOcclusions = false)
     {
+        CancelPendingTapCloseSound();
+        if (rb != null)
+            rb.freezeRotation = false;
+
         isOpen = false;
         EnableAudioOcclusions(true);
         HingeClose(closeSpeed);
@@ -228,10 +244,10 @@ public class Door : GameBehaviour, IInteractable
         hingeJoint.useMotor = true;
     }
 
-    private void HingeClose(float closeSpeed)
+    private void HingeClose(float closeSpeed, float forceMultiplier = 1f)
     {
         JointMotor motor = hingeJoint.motor;
-        motor.force = 100f;
+        motor.force = 100f * Mathf.Max(0.01f, forceMultiplier);
 
         float delta = closeAngle - hingeJoint.angle;
         motor.targetVelocity = Mathf.Sign(delta) * Mathf.Abs(closeSpeed);
@@ -270,6 +286,12 @@ public class Door : GameBehaviour, IInteractable
     {
         if (hingeJoint == null)
             return;
+
+        if (_pendingTapCloseSound && Mathf.Abs(hingeJoint.angle) < _almostCloseAngle)
+        {
+            FinalizePendingTapCloseSound();
+            return;
+        }
 
         if (isOpen && !_ghostJustInteracted && Mathf.Abs(hingeJoint.angle) < _almostCloseAngle)
             CloseDoor(autoCloseSpeed, _askedForGhostSlam, ignoreAudioOcclusions:false);
@@ -453,6 +475,14 @@ public class Door : GameBehaviour, IInteractable
 
     public bool InteractionLocked { get; set; }
 
+    public virtual Vector3 GetGrabAnchorPosition()
+    {
+        if (rb != null)
+            return rb.position;
+
+        return transform.position;
+    }
+
     public void SetCursor(Sprite sprite, float size = 1)
     {
         SpecialCursor = sprite;
@@ -467,6 +497,87 @@ public class Door : GameBehaviour, IInteractable
             Mathf.Abs(openFullAngle),
             angle
         );
+    }
+
+    public virtual void ToggleOpenClosed()
+    {
+        if (InteractionLocked)
+            return;
+
+        if (IsClosingFromTap())
+        {
+            OpenDoorFully();
+            return;
+        }
+
+        float ratio = GetOpenRatio();
+        if (ratio >= clickCloseThreshold)
+            BeginTapClose();
+        else
+            OpenDoorFully();
+    }
+
+    public virtual void OpenDoorFully()
+    {
+        if (InteractionLocked)
+            return;
+
+        CancelPendingTapCloseSound();
+        rb.freezeRotation = false;
+        _ghostJustInteracted = true;
+        CancelInvoke(nameof(ResetGhostInteraction));
+        Invoke(nameof(ResetGhostInteraction), clickOpenProtectionDuration);
+
+        float targetAngle = GetClickOpenTargetAngle();
+        JointLimits limits = hingeJoint.limits;
+        targetAngle = Mathf.Clamp(targetAngle, limits.min, limits.max);
+
+        if (!isOpen)
+            isOpen = true;
+
+        EnableAudioOcclusions(false);
+        ForcedHinge(targetAngle, fullOpenSpeed * clickOpenSpeedMultiplier);
+    }
+
+    protected virtual void BeginTapClose()
+    {
+        CancelPendingTapCloseSound();
+
+        if (rb != null)
+            rb.freezeRotation = false;
+
+        isOpen = false;
+        EnableAudioOcclusions(true);
+        HingeClose(autoCloseSpeed * clickCloseSpeedMultiplier, clickCloseForceMultiplier);
+        _pendingTapCloseSound = true;
+        _pendingTapCloseIgnoreOcclusion = true;
+        _pendingTapCloseForcedSlam = false;
+    }
+
+    protected virtual bool IsClosingFromTap()
+    {
+        return _pendingTapCloseSound || (!_isGrabbed && !isOpen && GetOpenVelocity() < -0.01f);
+    }
+
+    protected virtual float GetClickOpenTargetAngle()
+    {
+        float maxOpenDelta = Mathf.Abs(openFullAngle - closeAngle);
+        float targetDelta = Mathf.Min(clickOpenAngle, maxOpenDelta);
+        return closeAngle + Mathf.Sign(openFullAngle - closeAngle) * targetDelta;
+    }
+
+    protected void CancelPendingTapCloseSound()
+    {
+        _pendingTapCloseSound = false;
+        _pendingTapCloseIgnoreOcclusion = false;
+        _pendingTapCloseForcedSlam = false;
+    }
+
+    protected void FinalizePendingTapCloseSound()
+    {
+        PlaySound(_pendingTapCloseForcedSlam ? slamSound : closeSound, _pendingTapCloseIgnoreOcclusion);
+        CancelPendingTapCloseSound();
+        StopDoor();
     }
 
     protected void EnableAudioOcclusions(bool enable)

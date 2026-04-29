@@ -27,6 +27,8 @@ public class InteractionController : GameBehaviour
 
     [Header("Doors Settings")]
     [SerializeField] LayerMask doorLayer;
+    [SerializeField] private float doorTapThreshold = 0.2f;
+    [SerializeField] private float doorGrabVelocityMultiplier = 12f;
 
 #if UNITY_EDITOR
     [Header("Debug")]
@@ -36,7 +38,10 @@ public class InteractionController : GameBehaviour
 
     private Door _targetedDoor;
     private Door _grabbedDoor;
+    private Door _pendingDoor;
     private float _grabDistance;
+    private float _doorPressStartTime;
+    private Vector3 _doorGrabOffset;
 
     private IInteractable _currentTarget;
     private IInteractable _lastTarget;
@@ -95,19 +100,8 @@ public class InteractionController : GameBehaviour
     // =========================
     void DetectInteractable()
     {
-        Vector3 rayOrigin;
-        Ray ray;
-        if (MobileInput.Enabled && MobileInput.HasPrimaryScreenPos && _cam != null)
-        {
-            ray = _cam.ScreenPointToRay(MobileInput.PrimaryScreenPos);
-            rayOrigin = ray.origin + ray.direction * rayOffset;
-            ray.origin = rayOrigin;
-        }
-        else
-        {
-            rayOrigin = _cam.transform.position + _cam.transform.forward * rayOffset;
-            ray = new Ray(rayOrigin, _cam.transform.forward);
-        }
+        Vector3 rayOrigin = _cam.transform.position + _cam.transform.forward * rayOffset;
+        Ray ray = new Ray(rayOrigin, _cam.transform.forward);
 
         IInteractable newTarget = null;
         CatchableObject newCatchable = null;
@@ -336,6 +330,8 @@ public class InteractionController : GameBehaviour
             _grabbedDoor = null;
         }
 
+        _doorGrabOffset = Vector3.zero;
+        _pendingDoor = null;
         _targetedDoor = null;
         _currentTarget = null;
         _currentCatchable = null;
@@ -433,6 +429,7 @@ public class InteractionController : GameBehaviour
                 _grabbedDoor.EndGrab();
                 _grabbedDoor = null;
             }
+            _pendingDoor = null;
             _targetedDoor = null;
             return;
         }
@@ -443,22 +440,14 @@ public class InteractionController : GameBehaviour
         if (_grabbedDoor == null && _currentTarget != null && !(_currentTarget is Door))
         {
             if (!primaryHeld)
+            {
+                _pendingDoor = null;
                 _targetedDoor = null;
+            }
             return;
         }
 
-        if (primaryUp && _grabbedDoor == null)
-        {
-            if (_targetedDoor != null)
-            {
-                _targetedDoor.Release();
-                _targetedDoor = null;
-            }
-        }
-
-        Ray ray = (MobileInput.Enabled && MobileInput.HasPrimaryScreenPos)
-            ? _cam.ScreenPointToRay(MobileInput.PrimaryScreenPos)
-            : new Ray(_cam.transform.position, _cam.transform.forward);
+        Ray ray = new Ray(_cam.transform.position, _cam.transform.forward);
 
         if (_grabbedDoor == null)
         {
@@ -468,18 +457,42 @@ public class InteractionController : GameBehaviour
                 if (door != null && door.InteractionLocked == false)
                     _targetedDoor = door;
                 else if (!primaryHeld)
+                {
+                    _pendingDoor = null;
                     _targetedDoor = null;
+                }
 
                 if (primaryDown && _targetedDoor != null && _targetedDoor.CanBeGrabbed())
                 {
-                    _grabbedDoor = _targetedDoor;
+                    _pendingDoor = _targetedDoor;
                     _grabDistance = hit.distance;
-                    _grabbedDoor.StartGrab();
+                    _doorPressStartTime = Time.time;
+                    _doorGrabOffset = hit.point - _targetedDoor.GetGrabAnchorPosition();
                 }
             }
             else if (!primaryHeld && _targetedDoor != null)
             {
+                _doorGrabOffset = Vector3.zero;
+                _pendingDoor = null;
                 _targetedDoor = null;
+            }
+
+            if (_pendingDoor != null && primaryHeld && Time.time - _doorPressStartTime >= doorTapThreshold)
+            {
+                _grabbedDoor = _pendingDoor;
+                _targetedDoor = _grabbedDoor;
+                _pendingDoor = null;
+                _grabbedDoor.StartGrab();
+            }
+
+            if (primaryUp && _pendingDoor != null)
+            {
+                Door tappedDoor = _pendingDoor;
+                _doorGrabOffset = Vector3.zero;
+                _pendingDoor = null;
+                tappedDoor.ToggleOpenClosed();
+                if (_targetedDoor == tappedDoor)
+                    _targetedDoor = null;
             }
         }
         else
@@ -492,13 +505,15 @@ public class InteractionController : GameBehaviour
             Ray dragRay = (MobileInput.Enabled && MobileInput.HasPrimaryScreenPos)
                 ? _cam.ScreenPointToRay(MobileInput.PrimaryScreenPos)
                 : new Ray(_cam.transform.position, _cam.transform.forward);
-            Vector3 targetPos = dragRay.origin + dragRay.direction * _grabDistance;
-            _grabbedDoor.ApplyGrabMovement(targetPos, 30f);
+            Vector3 grabPoint = dragRay.origin + dragRay.direction * _grabDistance;
+            Vector3 targetPos = grabPoint - _doorGrabOffset;
+            _grabbedDoor.ApplyGrabMovement(targetPos, doorGrabVelocityMultiplier);
 
             if (primaryUp)
             {
                 _grabbedDoor.EndGrab();
                 _grabbedDoor = null;
+                _doorGrabOffset = Vector3.zero;
                 _targetedDoor = null;
             }
         }

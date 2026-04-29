@@ -14,6 +14,7 @@ public class MobileJoystickInputRouter : MonoBehaviour
     [Header("Tap For Primary")]
     public bool enablePrimaryTouch = true;
     public float joystickActivationThreshold = 12f;
+    public float doorHoldActivationTime = 0.2f;
 
     [Header("Mouse Simulation")]
     public bool enableMouseSimulation = true;
@@ -28,6 +29,8 @@ public class MobileJoystickInputRouter : MonoBehaviour
         public int id;
         public Vector2 startPos;
         public Vector2 lastPos;
+        public float startTime;
+        public bool doorCandidate;
         public bool active;
     }
 
@@ -96,31 +99,7 @@ public class MobileJoystickInputRouter : MonoBehaviour
                 if (IsOverUI(id))
                     continue;
 
-                if (allowPrimary && enablePrimaryTouch && IsDoorUnderScreenPoint(touch.position) && !IsTouchOnJoystick(touch.position))
-                {
-                    _primaryId = id;
-                    MobileInput.SetPrimaryHeld(true);
-                    MobileInput.SetPrimaryScreenPos(touch.position);
-                    continue;
-                }
-
                 bool isLeftHalf = touch.position.x < halfWidth;
-
-                if (IsTouchOnJoystick(touch.position))
-                {
-                    if (allowMove && isLeftHalf && _leftId == int.MinValue)
-                    {
-                        _leftId = id;
-                        moveJoystick.ProcessPointerDown(touch.position, null, joystickRoot, !doorGrabbed);
-                    }
-                    else if (allowLook && !isLeftHalf && _rightId == int.MinValue)
-                    {
-                        _rightId = id;
-                        lookJoystick.ProcessPointerDown(touch.position, null, joystickRoot, !doorGrabbed);
-                    }
-
-                    continue;
-                }
 
                 if ((isLeftHalf && allowMove) || (!isLeftHalf && allowLook))
                     StartPending(isLeftHalf, id, touch.position);
@@ -176,7 +155,12 @@ public class MobileJoystickInputRouter : MonoBehaviour
                 if (touch.phase == TouchPhase.Moved || touch.phase == TouchPhase.Stationary)
                 {
                     UpdatePending(ref _pendingLeft, touch.position);
-                    if (_leftId == int.MinValue && (_pendingLeft.lastPos - _pendingLeft.startPos).sqrMagnitude >= thresholdSqr)
+                    if (TryPromotePendingDoorHold(ref _pendingLeft, id, allowPrimary))
+                        continue;
+
+                    if (!IsPendingDoorCandidate(_pendingLeft) &&
+                        _leftId == int.MinValue &&
+                        (_pendingLeft.lastPos - _pendingLeft.startPos).sqrMagnitude >= thresholdSqr)
                     {
                         _leftId = id;
                         moveJoystick.ProcessPointerDown(_pendingLeft.startPos, null, joystickRoot, !doorGrabbed);
@@ -205,7 +189,12 @@ public class MobileJoystickInputRouter : MonoBehaviour
                 if (touch.phase == TouchPhase.Moved || touch.phase == TouchPhase.Stationary)
                 {
                     UpdatePending(ref _pendingRight, touch.position);
-                    if (_rightId == int.MinValue && (_pendingRight.lastPos - _pendingRight.startPos).sqrMagnitude >= thresholdSqr)
+                    if (TryPromotePendingDoorHold(ref _pendingRight, id, allowPrimary))
+                        continue;
+
+                    if (!IsPendingDoorCandidate(_pendingRight) &&
+                        _rightId == int.MinValue &&
+                        (_pendingRight.lastPos - _pendingRight.startPos).sqrMagnitude >= thresholdSqr)
                     {
                         _rightId = id;
                         lookJoystick.ProcessPointerDown(_pendingRight.startPos, null, joystickRoot, !doorGrabbed);
@@ -237,31 +226,7 @@ public class MobileJoystickInputRouter : MonoBehaviour
             if (IsOverUI(-1))
                 return;
 
-            if (allowPrimary && enablePrimaryTouch && IsDoorUnderScreenPoint(mousePos) && !IsTouchOnJoystick(mousePos))
-            {
-                _primaryId = -1;
-                MobileInput.SetPrimaryHeld(true);
-                MobileInput.SetPrimaryScreenPos(mousePos);
-                return;
-            }
-
             bool isLeftHalf = mousePos.x < halfWidth;
-
-            if (IsTouchOnJoystick(mousePos))
-            {
-                if (allowMove && isLeftHalf && _leftId == int.MinValue)
-                {
-                    _leftId = -1;
-                    moveJoystick.ProcessPointerDown(mousePos, null, joystickRoot, !doorGrabbed);
-                }
-                else if (allowLook && !isLeftHalf && _rightId == int.MinValue)
-                {
-                    _rightId = -1;
-                    lookJoystick.ProcessPointerDown(mousePos, null, joystickRoot, !doorGrabbed);
-                }
-
-                return;
-            }
 
             if ((isLeftHalf && allowMove) || (!isLeftHalf && allowLook))
                 StartPending(isLeftHalf, -1, mousePos);
@@ -296,7 +261,12 @@ public class MobileJoystickInputRouter : MonoBehaviour
                 }
 
                 UpdatePending(ref _pendingLeft, mousePos);
-                if (_leftId == int.MinValue && (_pendingLeft.lastPos - _pendingLeft.startPos).sqrMagnitude >= thresholdSqr)
+                if (TryPromotePendingDoorHold(ref _pendingLeft, -1, allowPrimary))
+                    return;
+
+                if (!IsPendingDoorCandidate(_pendingLeft) &&
+                    _leftId == int.MinValue &&
+                    (_pendingLeft.lastPos - _pendingLeft.startPos).sqrMagnitude >= thresholdSqr)
                 {
                     _leftId = -1;
                     moveJoystick.ProcessPointerDown(_pendingLeft.startPos, null, joystickRoot, !doorGrabbed);
@@ -313,7 +283,12 @@ public class MobileJoystickInputRouter : MonoBehaviour
                 }
 
                 UpdatePending(ref _pendingRight, mousePos);
-                if (_rightId == int.MinValue && (_pendingRight.lastPos - _pendingRight.startPos).sqrMagnitude >= thresholdSqr)
+                if (TryPromotePendingDoorHold(ref _pendingRight, -1, allowPrimary))
+                    return;
+
+                if (!IsPendingDoorCandidate(_pendingRight) &&
+                    _rightId == int.MinValue &&
+                    (_pendingRight.lastPos - _pendingRight.startPos).sqrMagnitude >= thresholdSqr)
                 {
                     _rightId = -1;
                     lookJoystick.ProcessPointerDown(_pendingRight.startPos, null, joystickRoot, !doorGrabbed);
@@ -523,6 +498,8 @@ public class MobileJoystickInputRouter : MonoBehaviour
 
     private void StartPending(bool isLeftHalf, int id, Vector2 position)
     {
+        bool doorCandidate = isLeftHalf && enablePrimaryTouch && IsCenteredDoorTargeted();
+
         if (isLeftHalf)
         {
             if (!_pendingLeft.active)
@@ -531,6 +508,8 @@ public class MobileJoystickInputRouter : MonoBehaviour
                 _pendingLeft.id = id;
                 _pendingLeft.startPos = position;
                 _pendingLeft.lastPos = position;
+                _pendingLeft.startTime = Time.time;
+                _pendingLeft.doorCandidate = doorCandidate;
             }
         }
         else
@@ -541,6 +520,8 @@ public class MobileJoystickInputRouter : MonoBehaviour
                 _pendingRight.id = id;
                 _pendingRight.startPos = position;
                 _pendingRight.lastPos = position;
+                _pendingRight.startTime = Time.time;
+                _pendingRight.doorCandidate = doorCandidate;
             }
         }
     }
@@ -558,6 +539,8 @@ public class MobileJoystickInputRouter : MonoBehaviour
         pending.id = int.MinValue;
         pending.startPos = Vector2.zero;
         pending.lastPos = Vector2.zero;
+        pending.startTime = 0f;
+        pending.doorCandidate = false;
     }
 
     private bool IsPendingLeft(int id)
@@ -578,5 +561,46 @@ public class MobileJoystickInputRouter : MonoBehaviour
         MobileInput.SetPrimaryScreenPos(screenPos);
         MobileInput.PressPrimary();
         _clearPrimaryScreenFrame = Time.frameCount + 1;
+    }
+
+    private bool TryPromotePendingDoorHold(ref PendingTouch pending, int id, bool allowPrimary)
+    {
+        if (!pending.active || pending.id != id || !allowPrimary || !enablePrimaryTouch)
+            return false;
+
+        if (!pending.doorCandidate)
+            return false;
+
+        if (_primaryId != int.MinValue)
+            return false;
+
+        if (Time.time - pending.startTime < doorHoldActivationTime)
+            return false;
+
+        if (!IsCenteredDoorTargeted())
+            return false;
+
+        _primaryId = id;
+        MobileInput.SetPrimaryHeld(true);
+        MobileInput.SetPrimaryScreenPos(pending.lastPos);
+        ClearPending(ref pending);
+        return true;
+    }
+
+    private static bool IsPendingDoorCandidate(PendingTouch pending)
+    {
+        return pending.active && pending.doorCandidate;
+    }
+
+    private bool IsCenteredDoorTargeted()
+    {
+        if (_interaction == null)
+        {
+            GamePlayer gp = Player.Instance as GamePlayer;
+            if (gp != null)
+                _interaction = gp.interactionController;
+        }
+
+        return _interaction != null && _interaction.IsDoorTargeted();
     }
 }
