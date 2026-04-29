@@ -26,6 +26,12 @@ public class Door : GameBehaviour, IInteractable
     public float clickOpenSpeedMultiplier = 1.875f;
     public float clickCloseSpeedMultiplier = 6.25f;
     public float clickCloseForceMultiplier = 4f;
+    [Range(0.05f, 1f)] public float holdScreenTravelFraction = 0.2f;
+    public float holdDeadZonePixels = 24f;
+    public float holdMoveSpeed = 45f;
+    public float holdSpringForce = 900f;
+    public float holdSpringDamper = 120f;
+    public bool invertHoldHorizontalDirection = false;
     public float checkDelay = 0.2f;
     public float slamAngleDetected = 20;
     public float slamDetectionDuration = 0.2f;
@@ -68,6 +74,9 @@ public class Door : GameBehaviour, IInteractable
     protected bool _pendingTapCloseSound;
     protected bool _pendingTapCloseIgnoreOcclusion;
     protected bool _pendingTapCloseForcedSlam;
+    protected float _holdStartAngle;
+    protected float _holdDragDirectionSign = 1f;
+    protected bool _holdMovedDuringGrab;
 
     public UnityEvent<Door> onGhostInteracted;
 
@@ -81,7 +90,6 @@ public class Door : GameBehaviour, IInteractable
     {
         _basePosition = transform.position;
         _baseRotation = transform.rotation;
-        _doorColliders = GetComponentsInChildren<Collider>(true);
         
         if (UsesHinge && hingeJoint == null)
         {
@@ -127,10 +135,23 @@ public class Door : GameBehaviour, IInteractable
         _isGrabbed = false;
         CancelInvoke(nameof(CheckAngle));
 
+        if (_holdMovedDuringGrab && IsNearClosedForManualRelease())
+        {
+            isOpen = false;
+            EnableAudioOcclusions(true);
+            StopDoor();
+            PlaySound(closeSound, ignoreOcclusion: true);
+            _holdMovedDuringGrab = false;
+            SetCursor(cursorHand, cursorHandSize);
+            return;
+        }
+
         if (isOpen && Mathf.Abs(hingeJoint.angle) < _almostCloseAngle)
             CloseDoor(autoCloseSpeed, ignoreAudioOcclusions:true);
         else
             StopDoor();
+
+        _holdMovedDuringGrab = false;
         
         SetCursor(cursorHand, cursorHandSize);
     }
@@ -143,16 +164,32 @@ public class Door : GameBehaviour, IInteractable
     public virtual void StartGrab()
     {
         Grab();
+        _holdStartAngle = hingeJoint != null ? hingeJoint.angle : closeAngle;
+        _holdDragDirectionSign = GetHoldDragDirectionSign();
+        _holdMovedDuringGrab = false;
         if (rb != null)
         {
             rb.useGravity = false;
             rb.freezeRotation = false;
+        }
+
+        if (hingeJoint != null)
+        {
+            hingeJoint.useMotor = false;
+            JointSpring spring = hingeJoint.spring;
+            spring.spring = holdSpringForce;
+            spring.damper = holdSpringDamper;
+            spring.targetPosition = _holdStartAngle;
+            hingeJoint.spring = spring;
+            hingeJoint.useSpring = true;
         }
     }
 
     public virtual void EndGrab()
     {
         Release();
+        if (hingeJoint != null)
+            hingeJoint.useSpring = false;
         if (rb != null)
             rb.useGravity = true;
     }
@@ -163,6 +200,48 @@ public class Door : GameBehaviour, IInteractable
             return;
 
         rb.velocity = (targetPosition - rb.position) * velocityMultiplier;
+    }
+
+    public virtual void ApplyGrabHorizontalDelta(float totalScreenDeltaX, float screenWidth)
+    {
+        if (hingeJoint == null || screenWidth <= 0.001f)
+            return;
+
+        float effectiveDelta = ApplyHoldDeadZone(totalScreenDeltaX);
+        float travelPixels = Mathf.Max(1f, screenWidth * holdScreenTravelFraction);
+        float normalized = Mathf.Clamp(effectiveDelta / travelPixels, -1f, 1f);
+        if (Mathf.Abs(normalized) <= 0.00001f)
+            return;
+
+        _holdMovedDuringGrab = true;
+
+        rb.freezeRotation = false;
+        CancelPendingTapCloseSound();
+
+        float openRange = Mathf.Abs(openFullAngle - closeAngle);
+        float targetAngle = _holdStartAngle + (normalized * openRange * Mathf.Sign(openFullAngle - closeAngle) * _holdDragDirectionSign);
+        JointLimits limits = hingeJoint.limits;
+        targetAngle = Mathf.Clamp(targetAngle, limits.min, limits.max);
+        float targetRatio = GetOpenRatioFromAngle(targetAngle);
+
+        if (targetRatio > 0.001f)
+        {
+            isOpen = true;
+            EnableAudioOcclusions(false);
+        }
+        else
+        {
+            isOpen = false;
+            EnableAudioOcclusions(true);
+        }
+
+        JointSpring spring = hingeJoint.spring;
+        spring.spring = holdSpringForce;
+        spring.damper = holdSpringDamper;
+        spring.targetPosition = targetAngle;
+        hingeJoint.spring = spring;
+        hingeJoint.useMotor = false;
+        hingeJoint.useSpring = true;
     }
 
     #endregion
@@ -330,7 +409,7 @@ public class Door : GameBehaviour, IInteractable
         _lastAngle = currentAngle;
     }
 
-    protected bool IsSlamDetected() => IsInvoking(nameof(ResetSlam)) == false;
+    protected bool IsSlamDetected() => IsInvoking(nameof(ResetSlam));
 
     protected void ResetSlam() { }
 
@@ -488,7 +567,7 @@ public class Door : GameBehaviour, IInteractable
         SpecialCursor = sprite;
         CursorSize = size;
     }
-    
+
     public virtual float GetOpenRatio()
     {
         float angle = Mathf.Abs(hingeJoint.angle);
@@ -542,6 +621,7 @@ public class Door : GameBehaviour, IInteractable
     protected virtual void BeginTapClose()
     {
         CancelPendingTapCloseSound();
+        _askedForGhostSlam = false;
 
         if (rb != null)
             rb.freezeRotation = false;
@@ -564,6 +644,107 @@ public class Door : GameBehaviour, IInteractable
         float maxOpenDelta = Mathf.Abs(openFullAngle - closeAngle);
         float targetDelta = Mathf.Min(clickOpenAngle, maxOpenDelta);
         return closeAngle + Mathf.Sign(openFullAngle - closeAngle) * targetDelta;
+    }
+
+    protected float GetOpenRatioFromAngle(float angle)
+    {
+        float min = Mathf.Abs(closeAngle);
+        float max = Mathf.Abs(openFullAngle);
+        return Mathf.InverseLerp(min, max, Mathf.Abs(angle));
+    }
+
+    protected float ApplyHoldDeadZone(float totalScreenDeltaX)
+    {
+        float abs = Mathf.Abs(totalScreenDeltaX);
+        if (abs <= holdDeadZonePixels)
+            return 0f;
+
+        return Mathf.Sign(totalScreenDeltaX) * (abs - holdDeadZonePixels);
+    }
+
+    protected virtual float GetHoldDragDirectionSign()
+    {
+        Vector3 referenceWorldPos;
+        Camera cam = Camera.main;
+        if (cam != null)
+        {
+            referenceWorldPos = cam.transform.position;
+        }
+        else if (Player.Instance != null)
+        {
+            referenceWorldPos = Player.Instance.transform.position;
+        }
+        else
+        {
+            return invertHoldHorizontalDirection ? -1f : 1f;
+        }
+
+        Vector3 localReferencePos = Quaternion.Inverse(_baseRotation) * (referenceWorldPos - _basePosition);
+        float sign = localReferencePos.z >= 0f ? -1f : 1f;
+        return invertHoldHorizontalDirection ? -sign : sign;
+    }
+
+    protected virtual bool TryGetHoldReferencePoint(out Vector3 localPoint)
+    {
+        localPoint = Vector3.zero;
+        EnsureDoorColliders();
+        if (_doorColliders == null || _doorColliders.Length == 0)
+            return false;
+
+        bool hasBounds = false;
+        Bounds localBounds = default;
+        Matrix4x4 worldToLocal = transform.worldToLocalMatrix;
+
+        foreach (Collider col in _doorColliders)
+        {
+            if (col == null)
+                continue;
+
+            Bounds worldBounds = col.bounds;
+            Vector3 min = worldBounds.min;
+            Vector3 max = worldBounds.max;
+
+            Vector3[] corners =
+            {
+                new Vector3(min.x, min.y, min.z),
+                new Vector3(min.x, min.y, max.z),
+                new Vector3(min.x, max.y, min.z),
+                new Vector3(min.x, max.y, max.z),
+                new Vector3(max.x, min.y, min.z),
+                new Vector3(max.x, min.y, max.z),
+                new Vector3(max.x, max.y, min.z),
+                new Vector3(max.x, max.y, max.z),
+            };
+
+            foreach (Vector3 corner in corners)
+            {
+                Vector3 localCorner = worldToLocal.MultiplyPoint3x4(corner);
+                if (!hasBounds)
+                {
+                    localBounds = new Bounds(localCorner, Vector3.zero);
+                    hasBounds = true;
+                }
+                else
+                {
+                    localBounds.Encapsulate(localCorner);
+                }
+            }
+        }
+
+        if (!hasBounds)
+            return false;
+
+        float distanceToMinX = Mathf.Abs(hingeJoint.anchor.x - localBounds.min.x);
+        float distanceToMaxX = Mathf.Abs(hingeJoint.anchor.x - localBounds.max.x);
+        float freeEdgeX = distanceToMinX < distanceToMaxX ? localBounds.max.x : localBounds.min.x;
+        localPoint = new Vector3(freeEdgeX, localBounds.center.y, localBounds.center.z);
+        return true;
+    }
+
+    protected static Vector3 RotatePointAroundAxis(Vector3 point, Vector3 pivot, Vector3 axis, float angle)
+    {
+        Quaternion rotation = Quaternion.AngleAxis(angle, axis);
+        return pivot + rotation * (point - pivot);
     }
 
     protected void CancelPendingTapCloseSound()
@@ -632,6 +813,11 @@ public class Door : GameBehaviour, IInteractable
 
         float angleFromClose = Mathf.Abs(hingeJoint.angle - closeAngle);
         return angleFromClose > closeAnglePermissiveness;
+    }
+
+    protected virtual bool IsNearClosedForManualRelease()
+    {
+        return !IsDoorConsideredOpen();
     }
 
     private static bool IsDoorConsideredOpen(Door door)
@@ -707,6 +893,7 @@ public class Door : GameBehaviour, IInteractable
 
     protected void RefreshSpirimonzCollisionIgnores()
     {
+        EnsureDoorColliders();
         if (_spirimonzColliders.Count == 0 || _doorColliders == null || _doorColliders.Length == 0)
             return;
 
@@ -727,6 +914,7 @@ public class Door : GameBehaviour, IInteractable
 
     private void SetIgnoreForSpirimonz(Collider spirimonzCollider, bool ignore)
     {
+        EnsureDoorColliders();
         if (spirimonzCollider == null || _doorColliders == null)
             return;
 
@@ -737,5 +925,13 @@ public class Door : GameBehaviour, IInteractable
 
             Physics.IgnoreCollision(spirimonzCollider, doorCollider, ignore);
         }
+    }
+
+    private void EnsureDoorColliders()
+    {
+        if (_doorColliders != null && _doorColliders.Length > 0)
+            return;
+
+        _doorColliders = GetComponentsInChildren<Collider>(true);
     }
 }

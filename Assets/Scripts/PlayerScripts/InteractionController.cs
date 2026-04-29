@@ -28,7 +28,7 @@ public class InteractionController : GameBehaviour
     [Header("Doors Settings")]
     [SerializeField] LayerMask doorLayer;
     [SerializeField] private float doorTapThreshold = 0.2f;
-    [SerializeField] private float doorGrabVelocityMultiplier = 12f;
+    [SerializeField] private float pcDoorHoldPixelsPerMouseUnit = 160f;
 
 #if UNITY_EDITOR
     [Header("Debug")]
@@ -39,9 +39,9 @@ public class InteractionController : GameBehaviour
     private Door _targetedDoor;
     private Door _grabbedDoor;
     private Door _pendingDoor;
-    private float _grabDistance;
     private float _doorPressStartTime;
-    private Vector3 _doorGrabOffset;
+    private Vector2 _doorHoldStartScreenPos;
+    private float _doorHoldAccumulatedDeltaX;
 
     private IInteractable _currentTarget;
     private IInteractable _lastTarget;
@@ -330,7 +330,7 @@ public class InteractionController : GameBehaviour
             _grabbedDoor = null;
         }
 
-        _doorGrabOffset = Vector3.zero;
+        _doorHoldStartScreenPos = Vector2.zero;
         _pendingDoor = null;
         _targetedDoor = null;
         _currentTarget = null;
@@ -465,14 +465,15 @@ public class InteractionController : GameBehaviour
                 if (primaryDown && _targetedDoor != null && _targetedDoor.CanBeGrabbed())
                 {
                     _pendingDoor = _targetedDoor;
-                    _grabDistance = hit.distance;
                     _doorPressStartTime = Time.time;
-                    _doorGrabOffset = hit.point - _targetedDoor.GetGrabAnchorPosition();
+                    _doorHoldStartScreenPos = GetCurrentPrimaryScreenPos();
+                    _doorHoldAccumulatedDeltaX = 0f;
                 }
             }
             else if (!primaryHeld && _targetedDoor != null)
             {
-                _doorGrabOffset = Vector3.zero;
+                _doorHoldStartScreenPos = Vector2.zero;
+                _doorHoldAccumulatedDeltaX = 0f;
                 _pendingDoor = null;
                 _targetedDoor = null;
             }
@@ -482,13 +483,16 @@ public class InteractionController : GameBehaviour
                 _grabbedDoor = _pendingDoor;
                 _targetedDoor = _grabbedDoor;
                 _pendingDoor = null;
+                _doorHoldStartScreenPos = GetCurrentPrimaryScreenPos();
+                _doorHoldAccumulatedDeltaX = 0f;
                 _grabbedDoor.StartGrab();
             }
 
             if (primaryUp && _pendingDoor != null)
             {
                 Door tappedDoor = _pendingDoor;
-                _doorGrabOffset = Vector3.zero;
+                _doorHoldStartScreenPos = Vector2.zero;
+                _doorHoldAccumulatedDeltaX = 0f;
                 _pendingDoor = null;
                 tappedDoor.ToggleOpenClosed();
                 if (_targetedDoor == tappedDoor)
@@ -502,21 +506,37 @@ public class InteractionController : GameBehaviour
 
         if (_grabbedDoor != null)
         {
-            Ray dragRay = (MobileInput.Enabled && MobileInput.HasPrimaryScreenPos)
-                ? _cam.ScreenPointToRay(MobileInput.PrimaryScreenPos)
-                : new Ray(_cam.transform.position, _cam.transform.forward);
-            Vector3 grabPoint = dragRay.origin + dragRay.direction * _grabDistance;
-            Vector3 targetPos = grabPoint - _doorGrabOffset;
-            _grabbedDoor.ApplyGrabMovement(targetPos, doorGrabVelocityMultiplier);
+            float totalDeltaX;
+            if (MobileInput.Enabled)
+            {
+                Vector2 currentScreenPos = GetCurrentPrimaryScreenPos();
+                totalDeltaX = currentScreenPos.x - _doorHoldStartScreenPos.x;
+            }
+            else
+            {
+                _doorHoldAccumulatedDeltaX += Input.GetAxisRaw("Mouse X") * pcDoorHoldPixelsPerMouseUnit;
+                totalDeltaX = _doorHoldAccumulatedDeltaX;
+            }
+
+            _grabbedDoor.ApplyGrabHorizontalDelta(totalDeltaX, Screen.width);
 
             if (primaryUp)
             {
                 _grabbedDoor.EndGrab();
                 _grabbedDoor = null;
-                _doorGrabOffset = Vector3.zero;
+                _doorHoldStartScreenPos = Vector2.zero;
+                _doorHoldAccumulatedDeltaX = 0f;
                 _targetedDoor = null;
             }
         }
+    }
+
+    private Vector2 GetCurrentPrimaryScreenPos()
+    {
+        if (MobileInput.Enabled && MobileInput.HasPrimaryScreenPos)
+            return MobileInput.PrimaryScreenPos;
+
+        return Input.mousePosition;
     }
     
     private void DropObject()

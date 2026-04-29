@@ -26,6 +26,7 @@ public class SlidingDoor : Door
     private float _slideTarget;
     private float _slideSpeed;
     private bool _defaultUseGravity;
+    private float _holdStartRatio;
 
     protected override bool UsesHinge => false;
 
@@ -54,6 +55,8 @@ public class SlidingDoor : Door
     public override void StartGrab()
     {
         Grab();
+        _holdStartRatio = GetOpenRatio();
+        _holdMovedDuringGrab = false;
         if (rb != null)
         {
             rb.useGravity = false;
@@ -85,6 +88,47 @@ public class SlidingDoor : Door
         }
     }
 
+    public override void ApplyGrabHorizontalDelta(float totalScreenDeltaX, float screenWidth)
+    {
+        if (screenWidth <= 0.001f)
+            return;
+
+        float effectiveDelta = ApplyHoldDeadZone(totalScreenDeltaX);
+        float travelPixels = Mathf.Max(1f, screenWidth * holdScreenTravelFraction);
+        float normalized = Mathf.Clamp(effectiveDelta / travelPixels, -1f, 1f);
+        if (Mathf.Abs(normalized) <= 0.00001f)
+            return;
+
+        _holdMovedDuringGrab = true;
+
+        CancelPendingTapCloseSound();
+
+        float targetRatio = Mathf.Clamp01(_holdStartRatio + normalized);
+        float targetAxis = Mathf.Lerp(closedPosition, openPosition, targetRatio);
+        _slideTarget = targetAxis;
+        _slideSpeed = Mathf.Abs(holdMoveSpeed);
+        _hasSlideTarget = false;
+
+        Vector3 newLocal = SetAxisValue(_baseLocalPosition, targetAxis);
+        Vector3 newWorld = ParentLocalToWorld(newLocal);
+
+        if (rb != null)
+            rb.MovePosition(newWorld);
+        else
+            transform.localPosition = newLocal;
+
+        if (targetRatio > 0.001f)
+        {
+            isOpen = true;
+            EnableAudioOcclusions(false);
+        }
+        else
+        {
+            isOpen = false;
+            EnableAudioOcclusions(true);
+        }
+    }
+
     public override void Grab()
     {
         _lastAngle = GetAxisValue(transform.localPosition);
@@ -100,10 +144,23 @@ public class SlidingDoor : Door
         _isGrabbed = false;
         CancelInvoke(nameof(CheckAngle));
 
+        if (_holdMovedDuringGrab && IsNearClosedForManualRelease())
+        {
+            isOpen = false;
+            EnableAudioOcclusions(true);
+            StopDoor();
+            PlaySound(closeSound, ignoreOcclusion: true);
+            _holdMovedDuringGrab = false;
+            SetCursor(cursorHand, cursorHandSize);
+            return;
+        }
+
         if (isOpen && IsNearClosed())
             CloseDoor(autoCloseSpeed, ignoreAudioOcclusions: true);
         else
             StopDoor();
+
+        _holdMovedDuringGrab = false;
 
         SetCursor(cursorHand, cursorHandSize);
     }

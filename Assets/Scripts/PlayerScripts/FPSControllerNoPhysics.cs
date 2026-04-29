@@ -706,4 +706,5 @@ public class FPSControllerNoPhysics : Controller
         if (!pauseStatus && ignoreLookFramesOnFocus > 0)
             _ignoreLookFrames = Mathf.Max(_ignoreLookFrames, ignoreLookFramesOnFocus);
     }
+
 }

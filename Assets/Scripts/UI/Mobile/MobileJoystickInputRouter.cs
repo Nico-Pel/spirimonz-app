@@ -15,6 +15,8 @@ public class MobileJoystickInputRouter : MonoBehaviour
     public bool enablePrimaryTouch = true;
     public float joystickActivationThreshold = 12f;
     public float doorHoldActivationTime = 0.2f;
+    [Range(0.05f, 1f)] public float doorHoldCenterWidth = 0.3f;
+    [Range(0.05f, 1f)] public float doorHoldCenterHeight = 0.35f;
 
     [Header("Mouse Simulation")]
     public bool enableMouseSimulation = true;
@@ -498,7 +500,9 @@ public class MobileJoystickInputRouter : MonoBehaviour
 
     private void StartPending(bool isLeftHalf, int id, Vector2 position)
     {
-        bool doorCandidate = isLeftHalf && enablePrimaryTouch && IsCenteredDoorTargeted();
+        bool doorCandidate = enablePrimaryTouch &&
+                             IsCenteredDoorTargeted() &&
+                             IsInDoorHoldCenterZone(position);
 
         if (isLeftHalf)
         {
@@ -602,5 +606,19 @@ public class MobileJoystickInputRouter : MonoBehaviour
         }
 
         return _interaction != null && _interaction.IsDoorTargeted();
+    }
+
+    private bool IsInDoorHoldCenterZone(Vector2 screenPos)
+    {
+        if (Screen.width <= 0 || Screen.height <= 0)
+            return false;
+
+        float halfZoneWidth = Screen.width * doorHoldCenterWidth * 0.5f;
+        float halfZoneHeight = Screen.height * doorHoldCenterHeight * 0.5f;
+        Vector2 center = new Vector2(Screen.width * 0.5f, Screen.height * 0.5f);
+        Vector2 delta = screenPos - center;
+
+        return Mathf.Abs(delta.x) <= halfZoneWidth &&
+               Mathf.Abs(delta.y) <= halfZoneHeight;
     }
 }

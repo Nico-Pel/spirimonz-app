@@ -37,6 +37,7 @@ public class SoundManager : GameBehaviour
         {
             PlayAmbient(ambientSound, ambientSoundVolume, true);
         }
+
     }
     
     public SoundInstance PlaySound(
@@ -217,7 +218,7 @@ public class SoundManager : GameBehaviour
 
         _ambientFadeCoroutine = StartCoroutine(FadeOutAmbient(fadeDuration));
     }
-    
+
     private IEnumerator FadeOutAmbient(float duration)
     {
         float startVolume = _ambientSource.volume;
