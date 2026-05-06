@@ -47,6 +47,7 @@ public class UISpirimonzInformationsSetter : GameBehaviour
     
     private SpirimonzSettings _lastSpirimonzSettings;
     private bool _lastUpdateIncludedBody = true;
+    private bool _lastUseSkin;
     private Color _nameBaseColor;
     private Color[] _abilityBaseColors;
     private Color _primaryTypeBaseColor = Color.white;
@@ -78,15 +79,20 @@ public class UISpirimonzInformationsSetter : GameBehaviour
 
     public void SetSpirimonz(SpirimonzSettings spmz)
     {
-        ApplySpirimonzInfo(spmz, updateBody: true);
+        ApplySpirimonzInfo(spmz, updateBody: true, ResolveSavedSkinUsage(spmz));
+    }
+
+    public void SetSpirimonz(SpirimonzSettings spmz, bool useSkin)
+    {
+        ApplySpirimonzInfo(spmz, updateBody: true, useSkin);
     }
 
     public void SetSpirimonzInfoOnly(SpirimonzSettings spmz)
     {
-        ApplySpirimonzInfo(spmz, updateBody: false);
+        ApplySpirimonzInfo(spmz, updateBody: false, ResolveSavedSkinUsage(spmz));
     }
 
-    private void ApplySpirimonzInfo(SpirimonzSettings spmz, bool updateBody)
+    private void ApplySpirimonzInfo(SpirimonzSettings spmz, bool updateBody, bool useSkin)
     {
         if (spmz == null)
             return;
@@ -120,7 +126,7 @@ public class UISpirimonzInformationsSetter : GameBehaviour
 
         if (updateBody && spmzBodyPos != null)
         {
-            SetSpirimonzBody(spmz);
+            SetSpirimonzBody(spmz, useSkin);
         }
 
         if (booleanFeedbacks.Length > 0)
@@ -130,6 +136,7 @@ public class UISpirimonzInformationsSetter : GameBehaviour
         
         _lastSpirimonzSettings = spmz;
         _lastUpdateIncludedBody = updateBody;
+        _lastUseSkin = useSkin;
         onInfoChanges?.Invoke();
     }
 
@@ -139,6 +146,7 @@ public class UISpirimonzInformationsSetter : GameBehaviour
             ClearSpirimonzBody();
 
         _lastSpirimonzSettings = null;
+        _lastUseSkin = false;
 
         if (tSpirimonzName != null)
         {
@@ -226,7 +234,7 @@ public class UISpirimonzInformationsSetter : GameBehaviour
         }
     }
 
-    private void SetSpirimonzBody(SpirimonzSettings spmz)
+    private void SetSpirimonzBody(SpirimonzSettings spmz, bool useSkin)
     {
         ClearSpirimonzBody();
 
@@ -234,6 +242,7 @@ public class UISpirimonzInformationsSetter : GameBehaviour
         spmzBodyPos.localPosition = Vector3.zero + spmz.bodyPresentationOffset;
         currentSpirimonzBody.transform.localScale *= spmz.bodyPresentationScale;
         ChangeLayer(currentSpirimonzBody, 5);
+        SkinRenderer.ApplySkin(currentSpirimonzBody, spmz.skinMat, useSkin);
     }
 
     private void SetSpirimonzBooleanFeedbacks(SpirimonzSettings spmz)
@@ -258,7 +267,7 @@ public class UISpirimonzInformationsSetter : GameBehaviour
     private void OnEnable()
     {
         if(_lastSpirimonzSettings != null)
-            ApplySpirimonzInfo(_lastSpirimonzSettings, _lastUpdateIncludedBody);
+            ApplySpirimonzInfo(_lastSpirimonzSettings, _lastUpdateIncludedBody, _lastUseSkin);
     }
 
     private void OnDisable()
@@ -270,6 +279,11 @@ public class UISpirimonzInformationsSetter : GameBehaviour
     public SpirimonzSettings GetLastSpirimonzSettings()
     {
         return _lastSpirimonzSettings;
+    }
+
+    public bool GetLastUseSkin()
+    {
+        return _lastUseSkin;
     }
 
     public void SetTypeIconsVisible(bool visible)
@@ -302,5 +316,18 @@ public class UISpirimonzInformationsSetter : GameBehaviour
     {
         color.a = Mathf.Clamp01(alpha);
         return color;
+    }
+
+    private bool ResolveSavedSkinUsage(SpirimonzSettings spmz)
+    {
+        if (spmz == null || !spmz.HasSkin)
+            return false;
+
+        GameManager gameManager = GameManager.Instance;
+        if (gameManager == null)
+            return false;
+
+        return gameManager.IsSpirimonzSkinUnlocked(spmz.spirimonzID) &&
+               gameManager.IsUsingSpirimonzSkin(spmz.spirimonzID);
     }
 }

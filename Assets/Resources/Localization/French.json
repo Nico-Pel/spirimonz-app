@@ -46,6 +46,10 @@
         {
           "key": "ui.team_builder.remove",
           "value": "Retirer"
+        },
+        {
+          "key": "ui.team_builder.use_skin",
+          "value": "Utiliser le skin"
         }
       ]
     },
@@ -170,6 +174,14 @@
         {
           "key": "ui.settings.fps_sensitivity",
           "value": "Sensibilité caméra FPS"
+        },
+        {
+          "key": "ui.settings.fps_horizontal_sensitivity",
+          "value": "Sensibilité horizontale caméra FPS"
+        },
+        {
+          "key": "ui.settings.fps_vertical_sensitivity",
+          "value": "Sensibilité verticale caméra FPS"
         },
         {
           "key": "ui.settings.header",
@@ -1547,7 +1559,19 @@
       "entries": [
         {
           "key": "tutorial.TutoCandleDrop.objective_title",
-          "value": "Coche la preuve \\\"Température glaciale\\\" dans le Journal."
+          "value": "Place une bougie droite sur la table à côté de Vaness, en utilisant [Drop]."
+        },
+        {
+          "key": "tutorial.TutoSpmzDrop.objective_title",
+          "value": "Dépose ton premier Spirimonz dans la maison en utilisant [Inventory2] et [DropSpmz]."
+        },
+        {
+          "key": "tutorial.TutoCandleLightON.objective_title",
+          "value": "Allume 2 bougies en utilisant la flamme de ton Spirimonz. Attrape une bougie avec [Grab] et utilise [Secondary] pour l'allumer."
+        },
+        {
+          "key": "tutorial.TutoValidateBlowup.objective_title",
+          "value": "Coche la preuve \"Extinction des inflammables\" dans le Journal."
         },
         {
           "key": "tutorial.TutoCandles.objective_title",
@@ -1567,7 +1591,7 @@
         },
         {
           "key": "tutorial.TutoHunt.objective_title",
-          "value": "Il est temps de quitter la maison."
+          "value": "Survis à une chasse d'esprit. Eteins ta lampe avec [Light], accroupis-toi avec [Crouch] et cache-toi."
         },
         {
           "key": "tutorial.TutoLights.objective_title",
@@ -1583,15 +1607,39 @@
         },
         {
           "key": "tutorial.TutoUseWatch.objective_title",
-          "value": "Coche la preuve \"Orbes spirituels\" dans le Journal."
+          "value": "Observe des Orbs spirituelles en appuyant sur [Inventory1] et en gardant [Secondary] enfoncé."
+        },
+        {
+          "key": "tutorial.TutoValidateFreezing.objective_title",
+          "value": "Coche la preuve \"Température glaciale\" dans le Journal."
+        },
+        {
+          "key": "tutorial.TutoValidatePrints.objective_title",
+          "value": "Coche la preuve \"Empreintes spirituelles\" dans le Journal."
         },
         {
           "key": "tutorial.TutoValidateFruit.objective_title",
           "value": "Coche la preuve \"Mange des fruits\" dans le Journal."
         },
         {
+          "key": "tutorial.TutoValidateSpiritOrbs.objective_title",
+          "value": "Coche la preuve \"Orbes spirituels\" dans le Journal."
+        },
+        {
+          "key": "tutorial.TutoRadiations.objective_title",
+          "value": "Trouve la pièce avec de la radioactivité en utilisant [Inventory5] et en gardant [Secondary] enfoncé."
+        },
+        {
+          "key": "tutorial.TutoValidateRadiations.objective_title",
+          "value": "Coche la preuve \"Radioactivité\" dans le Journal."
+        },
+        {
           "key": "tutorial.TutoWait.objective_title",
           "value": "Demande à ton Spirimonz d'attendre en appuyant sur lui avec [InteractSpmz]."
+        },
+        {
+          "key": "tutorial.TutoLeave.objective_title",
+          "value": "Il est temps de quitter la maison."
         }
       ]
     }

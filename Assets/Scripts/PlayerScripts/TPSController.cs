@@ -19,6 +19,9 @@ public class TPSController : Controller
     public float mobileLookSensitivityX = 2.0f;
     public float mobileLookSensitivityY = 1.2f;
     public float mobileLookSensitivityMultiplier = 0.055f;
+    public float mobilePanYawPerScreenWidth = 240f;
+    public float mobilePanPitchPerScreenHeight = 150f;
+    public float mobilePanSensitivity = 1f;
     public float mobileMinPitch = -35f;
     public float mobileMaxPitch = 60f;
     public float mobileIdleLookMultiplier = 4f;
@@ -179,8 +182,10 @@ public class TPSController : Controller
             _mobileAnglesInitialized = true;
         }
 
-        Vector2 look = MobileInput.GetLookDelta();
-        bool usingLook = look.sqrMagnitude >= 0.00001f;
+        Vector2 panDelta = MobileInput.GetLookPanDelta();
+        bool usingPan = panDelta.sqrMagnitude >= 0.00001f;
+        Vector2 look = usingPan ? Vector2.zero : MobileInput.GetLookDelta();
+        bool usingLook = usingPan || look.sqrMagnitude >= 0.00001f;
 
         float targetMultiplier = mobileIdleLookMultiplier;
         if (_isMoving && usingLook)
@@ -191,9 +196,19 @@ public class TPSController : Controller
         if (!usingLook)
             return;
 
-        float sensitivity = mobileLookSensitivityMultiplier * _mobileIdleMultiplier;
-        _mobileYaw += look.x * mobileLookSensitivityX * sensitivity * 100f * Time.deltaTime;
-        _mobilePitch -= look.y * mobileLookSensitivityY * sensitivity * 100f * Time.deltaTime;
+        if (usingPan)
+        {
+            float width = Mathf.Max(1f, Screen.width);
+            float height = Mathf.Max(1f, Screen.height);
+            _mobileYaw += (panDelta.x / width) * mobilePanYawPerScreenWidth * mobilePanSensitivity;
+            _mobilePitch -= (panDelta.y / height) * mobilePanPitchPerScreenHeight * mobilePanSensitivity;
+        }
+        else
+        {
+            float sensitivity = mobileLookSensitivityMultiplier * _mobileIdleMultiplier;
+            _mobileYaw += look.x * mobileLookSensitivityX * sensitivity * 100f * Time.deltaTime;
+            _mobilePitch -= look.y * mobileLookSensitivityY * sensitivity * 100f * Time.deltaTime;
+        }
         _mobilePitch = Mathf.Clamp(_mobilePitch, mobileMinPitch, mobileMaxPitch);
 
         camTransform.localRotation = Quaternion.Euler(_mobilePitch, _mobileYaw, 0f);

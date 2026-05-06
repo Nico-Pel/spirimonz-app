@@ -33,6 +33,9 @@ public class FPSControllerNoPhysics : Controller
     public float mobileLookSensitivityY = 0.8f;
     public float mobileLookSensitivityMultiplier = 0.25f;
     [Range(0f, 1f)] public float mobileLookDeadZone = 0.25f;
+    public float mobilePanYawPerScreenWidth = 220f;
+    public float mobilePanPitchPerScreenHeight = 140f;
+    public float mobilePanSensitivity = 1f;
     public float mobileLookBoostThreshold = 0.7f;
     public float mobileLookBoostMultiplier = 1.6f;
     public float mobileIdleLookMultiplier = 4f;
@@ -40,6 +43,7 @@ public class FPSControllerNoPhysics : Controller
 
     [Header("Mobile Sprint")]
     [Range(0.1f, 1f)] public float mobileSprintThreshold = 0.75f;
+    [Range(0.1f, 1f)] public float mobileMovementSpeedMultiplier = 0.75f;
 
     [Header("Debug / Testing")]
     public bool allowKeyboardMovementWhenMobile = true;
@@ -85,6 +89,8 @@ public class FPSControllerNoPhysics : Controller
     public float swayAmountX = 1.5f;
     public float swayAmountY = 2.5f;
     public float swaySmooth = 8f;
+    public float mobileArmSwayMultiplier = 0.15f;
+    public float mobileArmSwayClamp = 0.6f;
 
     [Header("Audio")] 
     public AudioClip torchSoundOn;
@@ -223,8 +229,11 @@ public class FPSControllerNoPhysics : Controller
         float mouseX = 0f;
         float mouseY = 0f;
         _lastMouseInputRaw = Vector2.zero;
-        float fpsSensitivityMultiplier = (_player != null && _player.inputManager != null)
+        float fpsSensitivityMultiplierX = (_player != null && _player.inputManager != null)
             ? _player.inputManager.fpsLookSensitivityMultiplier
+            : 1f;
+        float fpsSensitivityMultiplierY = (_player != null && _player.inputManager != null)
+            ? _player.inputManager.fpsLookVerticalSensitivityMultiplier
             : 1f;
         if (!MobileInput.Enabled)
         {
@@ -237,8 +246,8 @@ public class FPSControllerNoPhysics : Controller
             {
                 const float legacyFps = 60f;
                 float legacyScale = (pcSensitivityScale * 100f) / legacyFps;
-                mouseX = rawX * mouseSensitivityX * fpsSensitivityMultiplier * legacyScale;
-                mouseY = rawY * mouseSensitivityY * fpsSensitivityMultiplier * legacyScale;
+                mouseX = rawX * mouseSensitivityX * fpsSensitivityMultiplierX * legacyScale;
+                mouseY = rawY * mouseSensitivityY * fpsSensitivityMultiplierY * legacyScale;
             }
             else
             {
@@ -246,8 +255,8 @@ public class FPSControllerNoPhysics : Controller
                 if (maxLookDeltaTime > 0f)
                     lookDeltaTime = Mathf.Min(lookDeltaTime, maxLookDeltaTime);
 
-                mouseX = rawX * mouseSensitivityX * fpsSensitivityMultiplier * pcSensitivityScale * 100f * lookDeltaTime;
-                mouseY = rawY * mouseSensitivityY * fpsSensitivityMultiplier * pcSensitivityScale * 100f * lookDeltaTime;
+                mouseX = rawX * mouseSensitivityX * fpsSensitivityMultiplierX * pcSensitivityScale * 100f * lookDeltaTime;
+                mouseY = rawY * mouseSensitivityY * fpsSensitivityMultiplierY * pcSensitivityScale * 100f * lookDeltaTime;
             }
         }
         float idleMultiplier = 1f;
@@ -262,8 +271,10 @@ public class FPSControllerNoPhysics : Controller
             _mobileIdleMultiplier = 1f;
         }
 
-        Vector2 mobileLook = MobileInput.GetLookDelta();
-        if (MobileInput.Enabled && mobileLook.magnitude < mobileLookDeadZone)
+        Vector2 mobilePanDelta = MobileInput.Enabled ? MobileInput.GetLookPanDelta() : Vector2.zero;
+        bool hasMobilePan = mobilePanDelta.sqrMagnitude > 0.00001f;
+        Vector2 mobileLook = hasMobilePan ? Vector2.zero : MobileInput.GetLookDelta();
+        if (MobileInput.Enabled && !hasMobilePan && mobileLook.magnitude < mobileLookDeadZone)
             mobileLook = Vector2.zero;
 
         float lookBoost = 1f;
@@ -277,12 +288,23 @@ public class FPSControllerNoPhysics : Controller
             }
         }
 
-        float mobileLookSensitivity = mobileLookSensitivityX * fpsSensitivityMultiplier;
-        float mobileDeltaTime = useSmoothDeltaTimeForLook ? Time.smoothDeltaTime : Time.deltaTime;
-        _lastMobileLookScaled = new Vector2(
-            mobileLook.x * mobileLookSensitivity * mobileLookSensitivityMultiplier * idleMultiplier * lookBoost * 100f * mobileDeltaTime,
-            mobileLook.y * mobileLookSensitivity * mobileLookSensitivityMultiplier * idleMultiplier * lookBoost * 100f * mobileDeltaTime
-        );
+        if (hasMobilePan)
+        {
+            float width = Mathf.Max(1f, Screen.width);
+            float height = Mathf.Max(1f, Screen.height);
+            _lastMobileLookScaled = new Vector2(
+                (mobilePanDelta.x / width) * mobilePanYawPerScreenWidth * mobilePanSensitivity * fpsSensitivityMultiplierX,
+                (mobilePanDelta.y / height) * mobilePanPitchPerScreenHeight * mobilePanSensitivity * fpsSensitivityMultiplierY
+            );
+        }
+        else
+        {
+            float mobileDeltaTime = useSmoothDeltaTimeForLook ? Time.smoothDeltaTime : Time.deltaTime;
+            _lastMobileLookScaled = new Vector2(
+                mobileLook.x * mobileLookSensitivityX * fpsSensitivityMultiplierX * mobileLookSensitivityMultiplier * idleMultiplier * lookBoost * 100f * mobileDeltaTime,
+                mobileLook.y * mobileLookSensitivityY * fpsSensitivityMultiplierY * mobileLookSensitivityMultiplier * idleMultiplier * lookBoost * 100f * mobileDeltaTime
+            );
+        }
 
         mouseX += _lastMobileLookScaled.x;
         mouseY += _lastMobileLookScaled.y;
@@ -400,6 +422,8 @@ public class FPSControllerNoPhysics : Controller
 
         float speed = canSprint ? sprintSpeed : walkSpeed;
         if (isCrouching) speed = crouchSpeed;
+        if (MobileInput.Enabled)
+            speed *= mobileMovementSpeedMultiplier;
 
         Vector3 targetMove = transform.TransformDirection(input) * speed;
         currentMove = Vector3.Lerp(currentMove, targetMove, acceleration * Time.deltaTime);
@@ -596,6 +620,11 @@ public class FPSControllerNoPhysics : Controller
         {
             mouseX += _lastMouseInputRaw.x;
             mouseY += _lastMouseInputRaw.y;
+        }
+        else
+        {
+            mouseX = Mathf.Clamp(mouseX * mobileArmSwayMultiplier, -mobileArmSwayClamp, mobileArmSwayClamp);
+            mouseY = Mathf.Clamp(mouseY * mobileArmSwayMultiplier, -mobileArmSwayClamp, mobileArmSwayClamp);
         }
 
         // Rotation cible basée sur la rotation de départ + sway

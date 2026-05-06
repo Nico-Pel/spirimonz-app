@@ -132,6 +132,8 @@ public class UITeamPanel : GameBehaviour
         if (teamID >= _inventoryManager.spirimonzTeamSettings.Count) return;
         SpirimonzSettings spmz = _inventoryManager.spirimonzTeamSettings[teamID];
         if (spmz == null && !allowEmptySelection) return;
+
+        _currentSelectionID = teamID;
         
         if (spmz != null)
         {
@@ -148,8 +150,6 @@ public class UITeamPanel : GameBehaviour
             switchButtons[i].image.color = isSelected ? selectColor : _baseColor;
             tSwitchNbs[i].color = isSelected ? selectIconColor : _baseIconColor;
         }
-
-        _currentSelectionID = teamID;
 
         if (playSound && selectSlotSound != null)
             selectSlotSound.PlaySound();

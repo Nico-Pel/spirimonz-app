@@ -268,7 +268,12 @@ public class InteractionController : GameBehaviour
 
             bool interactionKeyDown = !MobileInput.Enabled &&
                                       (_player.inputManager.GetGrabDown() || _player.inputManager.GetWorldInteractionDownRaw());
-            if (allowCurrentInteract && interactionKeyDown && !(_currentTarget is CatchableObject) && !IsClickableTarget(_currentTarget))
+            bool mobileClickableDown = MobileInput.Enabled &&
+                                      IsClickableTarget(_currentTarget) &&
+                                      (MobileInput.GrabDown || MobileInput.ConsumeGrabDown());
+            if (allowCurrentInteract &&
+                ((interactionKeyDown && !(_currentTarget is CatchableObject) && !IsClickableTarget(_currentTarget)) ||
+                 mobileClickableDown))
                 _currentTarget.OnInteractStart();
         }
 
@@ -290,7 +295,8 @@ public class InteractionController : GameBehaviour
         }
         else if (_currentCatchable != null)
         {
-            if (allowGrab && ((!MobileInput.Enabled && _player.inputManager.GetGrabDown()) || MobileInput.GrabDown))
+            bool mobileGrabDown = MobileInput.Enabled && !IsClickableTarget(_currentTarget) && MobileInput.GrabDown;
+            if (allowGrab && ((!MobileInput.Enabled && _player.inputManager.GetGrabDown()) || mobileGrabDown))
             {
                 if (_currentCatchable.canBeGrabByPlayer && !_currentCatchable.isGrabbed)
                 {
@@ -318,6 +324,9 @@ public class InteractionController : GameBehaviour
     {
         if (_uiGame == null)
             return false;
+
+        if (_uiGame.settingsMenu != null && _uiGame.settingsMenu.IsOpen)
+            return true;
 
         return _uiGame.tablet != null && _uiGame.tablet.gameObject.activeSelf;
     }

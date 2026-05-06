@@ -53,7 +53,7 @@ public class UITitleSaveSlot : GameBehaviour
         ClearPreview();
 
         GameData data = SaveManager.Load(slotIndex, createIfMissing: false);
-        hasSave = data != null;
+        hasSave = data != null && SaveManager.HasMeaningfulProgress(data);
 
         if (savePanel != null) savePanel.SetActive(hasSave);
         if (newGamePanel != null) newGamePanel.SetActive(!hasSave);

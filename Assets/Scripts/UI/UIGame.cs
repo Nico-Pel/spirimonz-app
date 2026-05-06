@@ -5,6 +5,7 @@ using UnityEngine.Serialization;
 using UnityEngine.UI;
 using DG.Tweening;
 using UnityEngine.Events;
+using UnityEngine.SceneManagement;
 
 public class UIGame : UIManager
 {
@@ -33,6 +34,15 @@ public class UIGame : UIManager
     public UISettingsMenu settingsMenu;
     public UnityEvent onJournalOpened;
 
+    [Space]
+
+    [Header("House Loading")]
+    public float houseLoadingFadeOutDuration = 0.35f;
+    public float houseLoadingBlinkDuration = 0.45f;
+    public Vector2 houseLoadingIconSize = new Vector2(84f, 84f);
+    public Vector2 houseLoadingIconMargin = new Vector2(52f, 52f);
+    public float mobileGrabTextScale = 3f;
+
     private Sprite _baseBigPointer;
     private GameManager _gameManager;
     private RectTransform _moneyRect;
@@ -43,6 +53,17 @@ public class UIGame : UIManager
     private Canvas _canvas;
     private bool _lastMoneyVisibility;
     private bool _moneyVisibilityCached;
+    private Image _houseLoadingIcon;
+    private Tween _houseLoadingBlinkTween;
+    private bool _houseLoadingScreenActive;
+    private RectTransform _grabRect;
+    private Vector2 _grabBaseSize;
+    private float _grabBaseFontSize;
+    private bool _grabLayoutCached;
+    private bool _captureUiHidden;
+
+    public bool IsBlockingHouseLoadingScreenActive => _houseLoadingScreenActive;
+    public bool IsCaptureUiHidden => _captureUiHidden;
 
     private void Awake()
     {
@@ -59,6 +80,8 @@ public class UIGame : UIManager
 
         if(pointerON != null)
             _baseBigPointer = pointerON.sprite;
+
+        CacheGrabLayout();
     }
 
 #if UNITY_EDITOR
@@ -91,13 +114,23 @@ public class UIGame : UIManager
         RefreshMoneyVisibility();
         ApplyMoneySafeArea();
         UpdateGold();
+        ApplyGrabTextLayout();
 
         if (settingsMenu == null)
             settingsMenu = UISettingsMenu.EnsureExists(this);
         UISoundDefaults.MarkHierarchyAsUiSounds(gameObject);
         
         EnableOverlay(true, 0);
-        EnableOverlay(false, openSceneFadeDuration);
+
+        if (_gameManager != null &&
+            _gameManager.TryConsumePendingHouseLoadingScreen(SceneManager.GetActiveScene().name, out float loadingDuration))
+        {
+            PlayHouseLoadingScreen(loadingDuration);
+        }
+        else
+        {
+            EnableOverlay(false, openSceneFadeDuration);
+        }
         
         this.Invoke(0.1f, () =>
         {
@@ -114,6 +147,8 @@ public class UIGame : UIManager
             ApplyMoneySafeArea();
             UpdateGold();
         }
+
+        ApplyGrabTextLayout();
     }
 
     public void UpdateGold()
@@ -136,6 +171,9 @@ public class UIGame : UIManager
 
     private bool ShouldShowMoney()
     {
+        if (_captureUiHidden)
+            return false;
+
         if (TutorialManager.Instance != null &&
             (TutorialManager.Instance.IsControlsTutorial || TutorialManager.Instance.IsTraining))
             return false;
@@ -144,11 +182,7 @@ public class UIGame : UIManager
         if (isWorld)
             return true;
 
-        bool tabletOpen = tablet != null && tablet.gameObject.activeSelf;
-        if (tabletOpen)
-            return true;
-
-        return forceShowMoney && MobileInput.Enabled;
+        return false;
     }
 
     private void RefreshMoneyVisibility()
@@ -253,6 +287,8 @@ public class UIGame : UIManager
 
             if (settingsMenu != null)
             {
+                if (MobileInput.Enabled)
+                    GameManager.Instance?.RegisterDebugMoneySettingsPress();
                 settingsMenu.Toggle();
                 return;
             }
@@ -264,11 +300,14 @@ public class UIGame : UIManager
     public void InitControlTexts(InputManager controller)
     {
         tGrab.text = LocalizationManager.Format("ui.grab_item", controller.GetGrabDisplay());
+        ApplyGrabTextLayout();
     }
 
     public void EnablePointer(bool enable)
     {
         if (Player.Instance != null && Player.Instance.IsDead()) enable = false;
+        if (_captureUiHidden)
+            enable = false;
         
         pointerBase.SetActive(enable);
     }
@@ -290,6 +329,9 @@ public class UIGame : UIManager
 
     public void EnableGrabText(bool enable)
     {
+        ApplyGrabTextLayout();
+        if (_captureUiHidden)
+            enable = false;
         tGrab.gameObject.SetActive(enable);
     }
 
@@ -317,6 +359,9 @@ public class UIGame : UIManager
     {
         if (tablet == null)
             return;
+
+        if (settingsMenu != null && settingsMenu.IsOpen)
+            settingsMenu.SetVisible(false);
 
         tablet.gameObject.SetActive(true);
         tablet.OpenTab(1, true);
@@ -384,11 +429,159 @@ public class UIGame : UIManager
             settingsMenu.SetVisible(false);
     }
 
+    public void SetCaptureUiHidden(bool hidden)
+    {
+        if (_captureUiHidden == hidden)
+            return;
+
+        _captureUiHidden = hidden;
+
+        if (hidden)
+        {
+            CloseAllWindows();
+            EnablePointer(false);
+            EnableBigPointer(false);
+            EnableGrabText(false);
+            if (uiDialogue != null)
+                uiDialogue.gameObject.SetActive(false);
+        }
+
+        RefreshMoneyVisibility();
+    }
+
     public void OpenEndGame(UIEndGame.EndTypes endType, House house)
     {
+        SetCaptureUiHidden(false);
         EnableOverlay(false, 0.5f);
         tablet.gameObject.SetActive(true);
         tablet.OpenEndGame(endType, house);
         OnEndGameOpened?.Invoke(endType);
+    }
+
+    private void PlayHouseLoadingScreen(float duration)
+    {
+        _houseLoadingScreenActive = true;
+        _player?.LockControls(true);
+        ForceHouseLoadingOverlayFront();
+        EnableOverlay(true, 0f);
+
+        Image loadingIcon = EnsureHouseLoadingIcon();
+        if (loadingIcon != null)
+        {
+            loadingIcon.gameObject.SetActive(true);
+            Color color = loadingIcon.color;
+            color.a = 0.2f;
+            loadingIcon.color = color;
+
+            _houseLoadingBlinkTween?.Kill();
+            _houseLoadingBlinkTween = loadingIcon
+                .DOFade(1f, Mathf.Max(0.1f, houseLoadingBlinkDuration))
+                .SetLoops(-1, LoopType.Yoyo)
+                .SetEase(Ease.InOutSine)
+                .SetUpdate(true);
+        }
+
+        this.Invoke(nameof(FinishHouseLoadingScreen), Mathf.Max(0f, duration), FinishHouseLoadingScreen);
+    }
+
+    private void FinishHouseLoadingScreen()
+    {
+        _houseLoadingBlinkTween?.Kill();
+        _houseLoadingBlinkTween = null;
+
+        if (_houseLoadingIcon != null)
+            _houseLoadingIcon.gameObject.SetActive(false);
+
+        EnableOverlay(false, houseLoadingFadeOutDuration);
+        _player?.LockControls(false);
+        _houseLoadingScreenActive = false;
+    }
+
+    private Image EnsureHouseLoadingIcon()
+    {
+        if (_houseLoadingIcon != null)
+            return _houseLoadingIcon;
+
+        Sprite loadingSprite = FindISpmzSprite();
+        if (loadingSprite == null || overlay == null)
+            return null;
+
+        GameObject iconObject = new GameObject("HouseLoading_iSpmz", typeof(RectTransform), typeof(CanvasRenderer), typeof(Image));
+        RectTransform iconRect = iconObject.GetComponent<RectTransform>();
+        iconRect.SetParent(overlay.transform, false);
+        iconRect.anchorMin = new Vector2(1f, 0f);
+        iconRect.anchorMax = new Vector2(1f, 0f);
+        iconRect.pivot = new Vector2(1f, 0f);
+        iconRect.anchoredPosition = new Vector2(-houseLoadingIconMargin.x, houseLoadingIconMargin.y);
+        iconRect.sizeDelta = houseLoadingIconSize;
+
+        _houseLoadingIcon = iconObject.GetComponent<Image>();
+        _houseLoadingIcon.sprite = loadingSprite;
+        _houseLoadingIcon.preserveAspect = true;
+        _houseLoadingIcon.raycastTarget = false;
+        _houseLoadingIcon.gameObject.SetActive(false);
+        _houseLoadingIcon.transform.SetAsLastSibling();
+        return _houseLoadingIcon;
+    }
+
+    private void CacheGrabLayout()
+    {
+        if (_grabLayoutCached || tGrab == null)
+            return;
+
+        _grabRect = tGrab.rectTransform;
+        if (_grabRect != null)
+            _grabBaseSize = _grabRect.sizeDelta;
+
+        _grabBaseFontSize = tGrab.fontSize;
+        _grabLayoutCached = true;
+    }
+
+    private void ApplyGrabTextLayout()
+    {
+        CacheGrabLayout();
+        if (!_grabLayoutCached || tGrab == null)
+            return;
+
+        float scale = MobileInput.Enabled ? Mathf.Max(1f, mobileGrabTextScale) : 1f;
+
+        if (_grabRect != null)
+            _grabRect.sizeDelta = _grabBaseSize * scale;
+
+        tGrab.fontSize = _grabBaseFontSize * scale;
+    }
+
+    private void ForceHouseLoadingOverlayFront()
+    {
+        if (overlay == null)
+            return;
+
+        overlay.gameObject.SetActive(true);
+        overlay.transform.SetAsLastSibling();
+        Color color = overlay.color;
+        color.a = 1f;
+        overlay.color = color;
+
+        if (_houseLoadingIcon != null)
+            _houseLoadingIcon.transform.SetAsLastSibling();
+    }
+
+    private Sprite FindISpmzSprite()
+    {
+        Image[] images = GetComponentsInChildren<Image>(true);
+        for (int i = 0; i < images.Length; i++)
+        {
+            Image image = images[i];
+            if (image == null || image.sprite == null)
+                continue;
+
+            if (string.Equals(image.sprite.name, "iSpmz", StringComparison.Ordinal))
+                return image.sprite;
+
+            if (string.Equals(image.gameObject.name, "iSpmz", StringComparison.Ordinal))
+                return image.sprite;
+        }
+
+        return null;
     }
 }

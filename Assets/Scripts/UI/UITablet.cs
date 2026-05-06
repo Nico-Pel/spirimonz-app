@@ -31,12 +31,16 @@ public class UITablet : MonoBehaviour
     public float openDuration = 0.4f;
     public Ease openEase = Ease.OutCubic;
 
+    [Header("Tutorial Layout")]
+    [Range(0.7f, 1f)] public float controlsTutorialScale = 0.88f;
+
     [Header("Sounds")]
     public SoundParameters openTabletSound;
     public SoundParameters closeTabletSound;
     public SoundParameters tabSelectSound;
     
     private float _targetWidth;
+    private Vector3 _basePanelScale = Vector3.one;
 
     private void Awake()
     {
@@ -44,8 +48,18 @@ public class UITablet : MonoBehaviour
         _baseIconColor = tabIcons[0].color;
         
         _targetWidth = tabletPanel.sizeDelta.x;
+        _basePanelScale = tabletPanel != null ? tabletPanel.localScale : Vector3.one;
         
         bClose.onClick.AddListener(TurnOffTablet);
+    }
+
+    public void ApplyControlsTutorialLayout(bool enabled)
+    {
+        if (tabletPanel == null)
+            return;
+
+        float scale = enabled ? controlsTutorialScale : 1f;
+        tabletPanel.localScale = _basePanelScale * scale;
     }
 
     private void Start()
@@ -141,6 +155,9 @@ public class UITablet : MonoBehaviour
 
     public void OpenPrivateWindow(int windowID)
     {
+        if (privateWindows == null || windowID < 0 || windowID >= privateWindows.Length)
+            return;
+
         CloseAllTabs();
         CloseAllPrivateWindows();
         

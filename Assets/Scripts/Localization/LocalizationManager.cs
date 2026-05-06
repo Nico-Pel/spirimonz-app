@@ -190,6 +190,8 @@ public static class LocalizationManager
         value = value.Replace("\\n", "\n");
         value = value.Replace("\\r", "\n");
         value = value.Replace("\\t", "\t");
+        value = value.Replace("\\\"", "\"");
+        value = value.Replace("\\/", "/");
 
         value = Regex.Replace(value, "\\\\x([0-9A-Fa-f]{2})", match =>
         {

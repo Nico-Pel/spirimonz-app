@@ -18,6 +18,11 @@ public class MobileJoystickInputRouter : MonoBehaviour
     [Range(0.05f, 1f)] public float doorHoldCenterWidth = 0.3f;
     [Range(0.05f, 1f)] public float doorHoldCenterHeight = 0.35f;
 
+    [Header("Look Pan")]
+    public bool useLookPan = true;
+    public float lookPanSensitivity = 7f;
+    public bool invertLookPanY = true;
+
     [Header("Mouse Simulation")]
     public bool enableMouseSimulation = true;
 
@@ -40,6 +45,7 @@ public class MobileJoystickInputRouter : MonoBehaviour
     private PendingTouch _pendingRight;
 
     private InteractionController _interaction;
+    private Vector2 _lastLookPanScreenPos;
 
     private void Update()
     {
@@ -120,10 +126,15 @@ public class MobileJoystickInputRouter : MonoBehaviour
             else if (id == _rightId)
             {
                 if (touch.phase == TouchPhase.Moved || touch.phase == TouchPhase.Stationary)
-                    lookJoystick.ProcessDrag(touch.position, null);
+                {
+                    if (useLookPan)
+                        ProcessLookPanDrag(touch.position);
+                    else
+                        lookJoystick.ProcessDrag(touch.position, null);
+                }
                 else if (touch.phase == TouchPhase.Ended || touch.phase == TouchPhase.Canceled)
                 {
-                    lookJoystick.ProcessPointerUp(true);
+                    ReleaseRightLookControl();
                     _rightId = int.MinValue;
                 }
             }
@@ -199,8 +210,7 @@ public class MobileJoystickInputRouter : MonoBehaviour
                         (_pendingRight.lastPos - _pendingRight.startPos).sqrMagnitude >= thresholdSqr)
                     {
                         _rightId = id;
-                        lookJoystick.ProcessPointerDown(_pendingRight.startPos, null, joystickRoot, !doorGrabbed);
-                        lookJoystick.ProcessDrag(touch.position, null);
+                        BeginRightLookControl(_pendingRight.startPos, touch.position, doorGrabbed);
                         ClearPending(ref _pendingRight);
                     }
                 }
@@ -242,7 +252,10 @@ public class MobileJoystickInputRouter : MonoBehaviour
             }
             else if (_rightId == -1)
             {
-                lookJoystick.ProcessDrag(mousePos, null);
+                if (useLookPan)
+                    ProcessLookPanDrag(mousePos);
+                else
+                    lookJoystick.ProcessDrag(mousePos, null);
             }
             else if (_primaryId == -1)
             {
@@ -293,8 +306,7 @@ public class MobileJoystickInputRouter : MonoBehaviour
                     (_pendingRight.lastPos - _pendingRight.startPos).sqrMagnitude >= thresholdSqr)
                 {
                     _rightId = -1;
-                    lookJoystick.ProcessPointerDown(_pendingRight.startPos, null, joystickRoot, !doorGrabbed);
-                    lookJoystick.ProcessDrag(mousePos, null);
+                    BeginRightLookControl(_pendingRight.startPos, mousePos, doorGrabbed);
                     ClearPending(ref _pendingRight);
                 }
             }
@@ -309,7 +321,7 @@ public class MobileJoystickInputRouter : MonoBehaviour
             }
             else if (_rightId == -1)
             {
-                lookJoystick.ProcessPointerUp(true);
+                ReleaseRightLookControl();
                 _rightId = int.MinValue;
             }
 
@@ -389,7 +401,7 @@ public class MobileJoystickInputRouter : MonoBehaviour
 
         if (_rightId != int.MinValue)
         {
-            lookJoystick.ProcessPointerUp(true);
+            ReleaseRightLookControl();
             _rightId = int.MinValue;
         }
 
@@ -463,13 +475,13 @@ public class MobileJoystickInputRouter : MonoBehaviour
             ClearPending(ref _pendingRight);
             if (_rightId != int.MinValue)
             {
-                lookJoystick.ProcessPointerUp(true);
+                ReleaseRightLookControl();
                 _rightId = int.MinValue;
             }
         }
 
         SetJoystickActive(moveJoystick, moveVisible);
-        SetJoystickActive(lookJoystick, lookVisible);
+        SetJoystickActive(lookJoystick, lookVisible && !useLookPan);
     }
 
     private void SetJoystickActive(MobileJoystick joystick, bool active)
@@ -496,6 +508,44 @@ public class MobileJoystickInputRouter : MonoBehaviour
             joystick.ProcessPointerUp(true);
 
         joystick.gameObject.SetActive(active);
+    }
+
+    private void BeginRightLookControl(Vector2 startPos, Vector2 currentPos, bool doorGrabbed)
+    {
+        if (useLookPan)
+        {
+            _lastLookPanScreenPos = startPos;
+            ProcessLookPanDrag(currentPos);
+            return;
+        }
+
+        if (lookJoystick == null)
+            return;
+
+        lookJoystick.ProcessPointerDown(startPos, null, joystickRoot, !doorGrabbed);
+        lookJoystick.ProcessDrag(currentPos, null);
+    }
+
+    private void ReleaseRightLookControl()
+    {
+        _lastLookPanScreenPos = Vector2.zero;
+        MobileInput.SetLookAxis(Vector2.zero);
+
+        if (!useLookPan && lookJoystick != null)
+            lookJoystick.ProcessPointerUp(true);
+    }
+
+    private void ProcessLookPanDrag(Vector2 currentScreenPos)
+    {
+        Vector2 delta = currentScreenPos - _lastLookPanScreenPos;
+        _lastLookPanScreenPos = currentScreenPos;
+
+        if (invertLookPanY)
+            delta.y = -delta.y;
+
+        Vector2 panDelta = delta * lookPanSensitivity;
+        MobileInput.SetLookAxis(Vector2.zero);
+        MobileInput.AddLookPanDelta(panDelta);
     }
 
     private void StartPending(bool isLeftHalf, int id, Vector2 position)

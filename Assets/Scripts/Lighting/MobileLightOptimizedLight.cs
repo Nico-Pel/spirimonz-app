@@ -22,6 +22,10 @@ public class MobileLightOptimizedLight : MonoBehaviour
     private bool _isOverriding;
     private bool _gameplayLight;
     private bool _disabledByOptimizer;
+    private float _budgetDisallowSince = -1f;
+    private float _distanceDisableSince = -1f;
+    private float _shadowDowngradeSince = -1f;
+    private float _renderDowngradeSince = -1f;
 
     public bool IsGameplayLight => _gameplayLight;
 
@@ -86,6 +90,7 @@ public class MobileLightOptimizedLight : MonoBehaviour
 
         _isOverriding = false;
         _disabledByOptimizer = false;
+        ResetTransitionTimers();
     }
 
     public void Apply(MobileLightOptimizerManager manager, Vector3 targetPos, Vector3 targetForward)
@@ -111,10 +116,10 @@ public class MobileLightOptimizedLight : MonoBehaviour
             return;
         }
 
-        float near = useCustomDistances ? nearDistance : manager.nearDistance;
-        float shadowDist = useCustomDistances ? shadowDisableDistance : manager.shadowDisableDistance;
-        float far = useCustomDistances ? farDistance : manager.farDistance;
-        float disable = useCustomDistances ? disableDistance : manager.disableDistance;
+        float near = useCustomDistances ? nearDistance : manager.GetNearDistance();
+        float shadowDist = useCustomDistances ? shadowDisableDistance : manager.GetShadowDisableDistance();
+        float far = useCustomDistances ? farDistance : manager.GetFarDistance();
+        float disable = useCustomDistances ? disableDistance : manager.GetDisableDistance();
 
         Vector3 toLight = targetLight.transform.position - targetPos;
         float distSqr = toLight.sqrMagnitude;
@@ -124,16 +129,29 @@ public class MobileLightOptimizedLight : MonoBehaviour
         float disableSqr = disable * disable;
 
         bool isNear = distSqr <= nearSqr;
+        float downgradeDelay = manager != null ? manager.GetDowngradeDelay() : 0f;
+        float disableDelay = manager != null ? manager.GetDisableOutOfViewDelay() : 0f;
 
         if (manager != null && !_gameplayLight && manager.useLightBudget)
         {
-            bool budgetApplies = manager.budgetAffectsNearLights || !isNear;
+            bool budgetApplies = manager.GetBudgetAffectsNearLights() || !isNear;
             if (budgetApplies && !manager.IsLightBudgetAllowed(this))
             {
-                targetLight.enabled = false;
-                _disabledByOptimizer = true;
-                return;
+                if (HasConditionPersisted(ref _budgetDisallowSince, downgradeDelay))
+                {
+                    targetLight.enabled = false;
+                    _disabledByOptimizer = true;
+                    return;
+                }
             }
+            else
+            {
+                _budgetDisallowSince = -1f;
+            }
+        }
+        else
+        {
+            _budgetDisallowSince = -1f;
         }
 
         if (isNear)
@@ -146,16 +164,35 @@ public class MobileLightOptimizedLight : MonoBehaviour
         _isOverriding = true;
 
         if (distSqr > shadowSqr)
-            targetLight.shadows = GetOptimizedShadowMode(manager);
+        {
+            if (HasConditionPersisted(ref _shadowDowngradeSince, downgradeDelay))
+                targetLight.shadows = GetOptimizedShadowMode(manager);
+            else
+                targetLight.shadows = _baseShadows;
+        }
         else
+        {
             targetLight.shadows = _baseShadows;
+            _shadowDowngradeSince = -1f;
+        }
 
-        if (distSqr > farSqr)
-            targetLight.renderMode = LightRenderMode.Auto;
+        bool keepBaseRenderMode = manager != null && manager.GetKeepBaseRenderMode();
+        if (!keepBaseRenderMode && distSqr > farSqr)
+        {
+            if (HasConditionPersisted(ref _renderDowngradeSince, downgradeDelay))
+                targetLight.renderMode = LightRenderMode.Auto;
+            else
+                targetLight.renderMode = _baseRenderMode;
+        }
         else
+        {
             targetLight.renderMode = _baseRenderMode;
+            _renderDowngradeSince = -1f;
+        }
 
-        bool canDisable = allowDisableWhenFar && !_gameplayLight;
+        targetLight.range = GetTargetRange(manager, farSqr, disableSqr, distSqr);
+
+        bool canDisable = allowDisableWhenFar && !_gameplayLight && (manager == null || manager.ShouldDisableFarLights());
         if (canDisable)
         {
             float dist = Mathf.Sqrt(distSqr);
@@ -163,14 +200,21 @@ public class MobileLightOptimizedLight : MonoBehaviour
             if (dist > 0.001f)
             {
                 Vector3 dir = toLight / dist;
-                inViewCone = Vector3.Dot(targetForward, dir) >= manager.viewDotThreshold;
+                inViewCone = Vector3.Dot(targetForward, dir) >= manager.GetViewDotThreshold();
             }
 
             if (distSqr > disableSqr && !inViewCone)
             {
-                targetLight.enabled = false;
-                _disabledByOptimizer = true;
-                return;
+                if (HasConditionPersisted(ref _distanceDisableSince, disableDelay))
+                {
+                    targetLight.enabled = false;
+                    _disabledByOptimizer = true;
+                    return;
+                }
+            }
+            else
+            {
+                _distanceDisableSince = -1f;
             }
 
             targetLight.enabled = _baseEnabled;
@@ -189,8 +233,48 @@ public class MobileLightOptimizedLight : MonoBehaviour
             return LightShadows.None;
 
         if (manager != null && manager.IsHouseScene())
-            return LightShadows.Hard;
+            return _baseShadows;
 
         return LightShadows.None;
+    }
+
+    private float GetTargetRange(MobileLightOptimizerManager manager, float farSqr, float disableSqr, float distSqr)
+    {
+        if (_baseRange <= 0f)
+            return targetLight.range;
+        if (manager != null && !manager.ShouldReduceRange())
+            return _baseRange;
+
+        if (distSqr <= farSqr || disableSqr <= farSqr || manager == null)
+            return _baseRange;
+
+        float dist = Mathf.Sqrt(distSqr);
+        float far = Mathf.Sqrt(farSqr);
+        float disable = Mathf.Sqrt(disableSqr);
+        float t = Mathf.InverseLerp(far, disable, dist);
+        float multiplier = manager.GetFarRangeMultiplier();
+        return Mathf.Lerp(_baseRange, _baseRange * multiplier, t);
+    }
+
+    private bool HasConditionPersisted(ref float sinceTime, float delay)
+    {
+        if (delay <= 0f)
+            return true;
+
+        if (sinceTime < 0f)
+        {
+            sinceTime = Time.unscaledTime;
+            return false;
+        }
+
+        return Time.unscaledTime - sinceTime >= delay;
+    }
+
+    private void ResetTransitionTimers()
+    {
+        _budgetDisallowSince = -1f;
+        _distanceDisableSince = -1f;
+        _shadowDowngradeSince = -1f;
+        _renderDowngradeSince = -1f;
     }
 }

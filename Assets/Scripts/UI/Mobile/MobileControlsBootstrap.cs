@@ -137,14 +137,18 @@ public class MobileControlsBootstrap : MonoBehaviour
         joystickVisibility.hideWhenTablet = true;
         joystickVisibility.hideWhenDialogue = true;
         joystickVisibility.hideWhenEndGame = true;
+        joystickVisibility.hideWhenSettings = true;
         joystickVisibility.alwaysVisibleWhenMobile = false;
+        joystickVisibility.showOnTitleScreen = false;
 
         CanvasGroup keysGroup = keysRoot.gameObject.AddComponent<CanvasGroup>();
         MobileControlsRoot keysVisibility = keysRoot.gameObject.AddComponent<MobileControlsRoot>();
         keysVisibility.hideWhenTablet = false;
         keysVisibility.hideWhenDialogue = false;
         keysVisibility.hideWhenEndGame = false;
+        keysVisibility.hideWhenSettings = false;
         keysVisibility.alwaysVisibleWhenMobile = true;
+        keysVisibility.showOnTitleScreen = true;
 
         SafeAreaFitter keysSafeArea = keysRoot.gameObject.AddComponent<SafeAreaFitter>();
         keysSafeArea.extraPaddingMin = keyButtonsSafePaddingMin;

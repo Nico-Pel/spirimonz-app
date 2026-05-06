@@ -44,10 +44,12 @@ public class MobileButton : MonoBehaviour, IPointerDownHandler, IPointerUpHandle
                 MobileInput.SetSprintHeld(true);
                 break;
             case Action.Grab:
+                GameManager.Instance?.RegisterDebugMoneyAPress();
                 if (!TryInteractWithNpc())
                     MobileInput.PressGrab();
                 break;
             case Action.Drop:
+                GameManager.Instance?.RegisterDebugMoneyAPress();
                 MobileInput.PressDrop();
                 break;
             case Action.Throw:
@@ -69,6 +71,8 @@ public class MobileButton : MonoBehaviour, IPointerDownHandler, IPointerUpHandle
                 MobileInput.PressOpenTeamMenu();
                 break;
             case Action.ExitMenus:
+                if (TryToggleTitleSettings())
+                    break;
                 MobileInput.PressExitMenus();
                 break;
             case Action.Next:
@@ -150,6 +154,20 @@ public class MobileButton : MonoBehaviour, IPointerDownHandler, IPointerUpHandle
 
         player.LockControls(true);
         npc.Interact(player);
+        return true;
+    }
+
+    private static bool TryToggleTitleSettings()
+    {
+        GameManager gameManager = GameManager.Instance;
+        if (gameManager == null || !gameManager.IsTitleScreenActive())
+            return false;
+
+        UITitleScreen titleScreen = Object.FindObjectOfType<UITitleScreen>(true);
+        if (titleScreen == null)
+            return false;
+
+        titleScreen.ToggleSettingsMenu();
         return true;
     }
 }

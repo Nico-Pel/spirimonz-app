@@ -18,6 +18,12 @@ public class TutorialStepSO : ScriptableObject
         string fallback = LanguageManager.CurrentLanguage == Language.French && !string.IsNullOrWhiteSpace(objective.titleFrench)
             ? objective.titleFrench
             : objective.titleEnglish;
-        return LocalizationManager.Get(LocalizationKeys.TutorialObjectiveTitle(this), fallback);
+
+        string text = LocalizationManager.Get(LocalizationKeys.TutorialObjectiveTitle(this), fallback);
+        InputManager input = InputManager.Instance;
+        if (input != null)
+            text = input.ReplaceInputTokens(text);
+
+        return text;
     }
 }

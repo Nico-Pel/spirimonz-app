@@ -249,6 +249,20 @@ public class InventoryManager : GameBehaviour
             newSpirimonz.transform.localPosition = Vector3.zero;
             newSpirimonz.transform.localEulerAngles = Vector3.zero;
             newSpirimonz.ChangeLayer(fpsMask, 0);
+            newSpirimonz.ApplySavedSkin();
+        }
+    }
+
+    public void RefreshSpirimonzSkin(SpirimonzSettings settings)
+    {
+        if (settings == null || spirimonzTeam == null)
+            return;
+
+        for (int i = 0; i < spirimonzTeam.Count; i++)
+        {
+            Spirimonz spmz = spirimonzTeam[i];
+            if (spmz != null && spmz.settings == settings)
+                spmz.ApplySavedSkin();
         }
     }
 

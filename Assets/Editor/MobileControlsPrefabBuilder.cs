@@ -452,6 +452,7 @@ public static class MobileControlsPrefabBuilder
         root.hideWhenTablet = hideWhenTablet;
         root.hideWhenDialogue = hideWhenDialogue;
         root.hideWhenEndGame = hideWhenEndGame;
+        root.hideWhenSettings = hideWhenTablet;
         root.alwaysVisibleWhenMobile = alwaysVisibleWhenMobile;
     }
 

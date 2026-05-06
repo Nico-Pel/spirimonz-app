@@ -39,6 +39,9 @@ public class FlammableElement : GameBehaviour
     public bool canBeTurnedOn = true;
     public bool debugPouetFire = false;
 
+    [Header("Relight Cooldown")]
+    [Min(0f)] public float relightCooldownAfterExtinguish = 5f;
+
     [Header("Room Heating")]
     public bool heatRoom = false;
     [Min(0f)] public float heatPerSecond = 0.5f;
@@ -76,6 +79,7 @@ public class FlammableElement : GameBehaviour
     private bool _linkedLightInitialized;
     private MobileLightOptimizedLight _linkedOptimizedLight;
     private Spirimonz _parentSpirimonz;
+    private float _relightBlockedUntil;
 
     public UnityEvent<bool> onChangeFireState;
     public UnityEvent onBecomeCursed;
@@ -119,8 +123,15 @@ public class FlammableElement : GameBehaviour
     public void EnableFire(bool enable, bool useParticlesOff = true, bool useGhostSoundClip = false, bool forced = false)
     {
         if (enable == true && (canBeTurnedOn == false && forced == false)) return;
+        if (enable && !forced && Time.time < _relightBlockedUntil)
+            return;
+
+        bool wasOnFire = _isOnFire;
         
         _isOnFire = enable;
+
+        if (!enable && wasOnFire && type == FlammableType.Candle && relightCooldownAfterExtinguish > 0f)
+            _relightBlockedUntil = Time.time + relightCooldownAfterExtinguish;
 
         if (enable)
             PrepareLinkedLightForActivation();

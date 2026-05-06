@@ -38,6 +38,12 @@ public class UITeamBuilder : GameBehaviour
 
     public UISpirimonzInformationsSetter selectedSpirimonzInfoSetter;
 
+    [Header("Skin UI")]
+    public GameObject skinCheckBox;
+    public Button bUseSkin;
+    public GameObject skinUsedFeedback;
+    public TextMeshProUGUI skinToggleLabel;
+
     [Header("Footer")]
     public GameObject selectionFooter;
     public Button bChooseSpirimonz;
@@ -58,6 +64,7 @@ public class UITeamBuilder : GameBehaviour
     [Header("Remove UI")]
     public Color removeLabelColor = new Color(1f, 0.3f, 0.3f, 1f);
     private const string RemoveKey = "ui.team_builder.remove";
+    private const string UseSkinKey = "ui.team_builder.use_skin";
     
     private UISpirimonzPanelSelector _currentSelected;
     private Player _player;
@@ -78,6 +85,8 @@ public class UITeamBuilder : GameBehaviour
         bInfoLeft.onClick.AddListener(SwitchLeftInfoState);
         
         bChooseSpirimonz.onClick.AddListener(ChooseSpirimonz);
+        if (bUseSkin != null)
+            bUseSkin.onClick.AddListener(OnUseSkinButtonPressed);
 
         foreach (UIFilterButton filter in bFilterEvidences)
         {
@@ -109,8 +118,13 @@ public class UITeamBuilder : GameBehaviour
         RefreshTeamEvidenceIndicators();
         
         UISpirimonzInformationsSetter infoSetter = teamPanel.spmzInfoSetter;
-        teamPanel.spmzInfoSetter.onInfoChanges.AddListener(() => SetLeftTitleText(infoSetter));
+        teamPanel.spmzInfoSetter.onInfoChanges.AddListener(() =>
+        {
+            SetLeftTitleText(infoSetter);
+            RefreshSkinToggle();
+        });
         SetLeftTitleText(infoSetter);
+        RefreshSkinToggle();
     }
 
     private void InitializeSelectors()
@@ -181,6 +195,8 @@ public class UITeamBuilder : GameBehaviour
             teamPanel.allowEmptySelection = true;
             teamPanel.RefreshFromTeam();
         }
+
+        RefreshSkinToggle();
     }
 
     private void OnDisable()
@@ -253,6 +269,8 @@ public class UITeamBuilder : GameBehaviour
 
         if (selectSpmzSound != null)
             selectSpmzSound.PlaySound();
+
+        RefreshSkinToggle();
     }
 
     public void UnselectSpirimonzInPanel()
@@ -260,6 +278,7 @@ public class UITeamBuilder : GameBehaviour
         selectionFooter.SetActive(false);
         _currentSelected = null;
         ApplyNormalSelectionState();
+        RefreshSkinToggle();
     }
 
     private void ChooseSpirimonz()
@@ -292,6 +311,7 @@ public class UITeamBuilder : GameBehaviour
             addToTeamSound.PlaySound();
         
         teamPanel.spmzInfoSetter.SetSpirimonz(_currentSelected.spirimonzSettings);
+        RefreshSkinToggle();
     }
 
     private UISpirimonzPanelSelector GetSelectedSpirimonzPanelSelector(SpirimonzSettings spmzSettings)
@@ -338,6 +358,8 @@ public class UITeamBuilder : GameBehaviour
             bInfoLeft.interactable = true;
         if (bInfoRight != null)
             bInfoRight.interactable = true;
+        if (secondaryTitleText != null)
+            secondaryTitleText.color = _secondaryTitleBaseColor;
     }
 
     private void UpdateSpirimonzPanel()
@@ -444,6 +466,93 @@ public class UITeamBuilder : GameBehaviour
             return false;
 
         return _player.inventoryManager.spirimonzTeamSettings[slotIndex] != null;
+    }
+
+    private void RefreshSkinToggle()
+    {
+        if (skinToggleLabel != null)
+            skinToggleLabel.text = LocalizationManager.Get(UseSkinKey, "Use Skin");
+
+        if (skinCheckBox == null)
+            return;
+
+        SpirimonzSettings spmz = GetSkinTargetSpirimonz();
+
+        bool shouldShow = spmz != null &&
+                          spmz.HasSkin &&
+                          _gameManager != null &&
+                          _gameManager.IsSpirimonzSkinUnlocked(spmz.spirimonzID);
+
+        skinCheckBox.SetActive(shouldShow);
+        if (!shouldShow)
+            return;
+
+        bool useSkin = _gameManager.IsUsingSpirimonzSkin(spmz.spirimonzID);
+
+        if (skinUsedFeedback != null)
+            skinUsedFeedback.SetActive(useSkin);
+
+        if (bUseSkin != null)
+            bUseSkin.interactable = true;
+    }
+
+    private void OnUseSkinButtonPressed()
+    {
+        SpirimonzSettings spmz = GetSkinTargetSpirimonz();
+        if (spmz == null || _gameManager == null)
+            return;
+
+        bool useSkin = !_gameManager.IsUsingSpirimonzSkin(spmz.spirimonzID);
+        ApplyUseSkinState(spmz, useSkin);
+    }
+
+    private void ApplyUseSkinState(SpirimonzSettings spmz, bool useSkin)
+    {
+        if (spmz == null || _gameManager == null)
+            return;
+
+        _gameManager.SetUseSpirimonzSkin(spmz.spirimonzID, useSkin);
+
+        if (selectedSpirimonzInfoSetter != null)
+            selectedSpirimonzInfoSetter.SetSpirimonz(spmz, useSkin);
+
+        if (teamPanel != null && teamPanel.spmzInfoSetter != null)
+        {
+            int teamSelectionId = teamPanel.GetCurrentSelectionID();
+            SpirimonzSettings selectedTeamSpmz = null;
+            if (_player != null &&
+                _player.inventoryManager != null &&
+                teamSelectionId >= 0 &&
+                teamSelectionId < _player.inventoryManager.spirimonzTeamSettings.Count)
+            {
+                selectedTeamSpmz = _player.inventoryManager.spirimonzTeamSettings[teamSelectionId];
+            }
+
+            if (selectedTeamSpmz == spmz)
+                teamPanel.spmzInfoSetter.SetSpirimonz(spmz, useSkin);
+        }
+
+        if (_player != null && _player.inventoryManager != null)
+            _player.inventoryManager.RefreshSpirimonzSkin(spmz);
+
+        if (skinUsedFeedback != null)
+            skinUsedFeedback.SetActive(useSkin);
+    }
+
+    private SpirimonzSettings GetSkinTargetSpirimonz()
+    {
+        if (teamPanel == null || _player == null || _player.inventoryManager == null)
+            return null;
+
+        int selectedTeamSlot = teamPanel.GetCurrentSelectionID();
+        if (selectedTeamSlot < 0 || selectedTeamSlot >= _player.inventoryManager.spirimonzTeamSettings.Count)
+            return null;
+
+        SpirimonzSettings teamSpmz = _player.inventoryManager.spirimonzTeamSettings[selectedTeamSlot];
+        if (teamSpmz != null)
+            return teamSpmz;
+
+        return null;
     }
 
 #if UNITY_EDITOR

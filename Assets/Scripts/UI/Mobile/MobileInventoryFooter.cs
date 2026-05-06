@@ -136,6 +136,14 @@ public class MobileInventoryFooter : MonoBehaviour
             _inventoryManager = InventoryManager.Instance;
 
         bool isWorld = GameManager.Instance != null && GameManager.Instance.IsWorld();
+        bool isTitleScreen = GameManager.Instance != null && GameManager.Instance.IsTitleScreenActive();
+        bool settingsOpen = UIGame.Instance != null &&
+                            UIGame.Instance.settingsMenu != null &&
+                            UIGame.Instance.settingsMenu.IsOpen;
+        bool tabletOpen = UIGame.Instance != null &&
+                          UIGame.Instance.tablet != null &&
+                          UIGame.Instance.tablet.gameObject.activeSelf;
+        bool houseLoadingActive = UIGame.Instance != null && UIGame.Instance.IsBlockingHouseLoadingScreenActive;
         bool[] slotAllowed = new bool[6];
         int unlockedSlots = 0;
 
@@ -146,7 +154,13 @@ public class MobileInventoryFooter : MonoBehaviour
                 unlockedSlots++;
         }
 
-        bool showFooter = MobileInput.Enabled && !isWorld && unlockedSlots > 0;
+        bool showFooter = MobileInput.Enabled &&
+                          !isWorld &&
+                          !isTitleScreen &&
+                          !settingsOpen &&
+                          !tabletOpen &&
+                          !houseLoadingActive &&
+                          unlockedSlots > 0;
         ApplyVisibility(showFooter);
 
         SetActive(lampButton, showFooter && slotAllowed[0]);

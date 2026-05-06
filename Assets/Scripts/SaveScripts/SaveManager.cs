@@ -15,6 +15,7 @@ public static class SaveKeys
     public const string UI_VOLUME_MULTIPLIER = "ui_volume_multiplier";
     public const string TPS_SENSITIVITY_MULTIPLIER = "tps_sensitivity_multiplier";
     public const string FPS_SENSITIVITY_MULTIPLIER = "fps_sensitivity_multiplier";
+    public const string FPS_VERTICAL_SENSITIVITY_MULTIPLIER = "fps_vertical_sensitivity_multiplier";
     public const string LANGUAGE = "language";
     public const string TUTORIAL_DOOR_UNLOCKED = "tutorial_door_unlocked";
     public const string SECRET_WORLD_INDEX = "secret_world_index";
@@ -31,6 +32,7 @@ public static class SaveKeys
     public const string SECRET_WORLD_ROTATION_HOUR = "secret_world_rotation_hour";
     public const string SECRET_WORLD_ROTATION_MINUTE = "secret_world_rotation_minute";
     public const string SECRET_WORLD_RETURN_TO_TAXI = "secret_world_return_to_taxi";
+    public const string MOBILE_STORE_STARTER_CONTENT_GRANTED = "mobile_store_starter_content_granted";
 }
 
 [Serializable]
@@ -96,7 +98,9 @@ public class SpirimonzData
     [FormerlySerializedAs("captured")] public bool unlocked;      
     public bool inTeam;        
     public int teamPosition;   
-    public int level;          
+    public int level;
+    public bool skinUnlocked;
+    public bool useSkin;
 
     public SpirimonzData(string id)
     {
@@ -105,6 +109,8 @@ public class SpirimonzData
         inTeam = false;
         teamPosition = 0;
         level = 1;
+        skinUnlocked = false;
+        useSkin = false;
     }
 }
 
@@ -242,6 +248,43 @@ public static class SaveManager
         string path = GetFilePath(slot);
         if (File.Exists(path))
             File.Delete(path);
+    }
+
+    public static bool HasMeaningfulProgress(GameData data)
+    {
+        if (data == null)
+            return false;
+
+        if (!string.IsNullOrEmpty(data.lastWorldSceneName))
+            return true;
+
+        if (data.currentHouseID >= 0)
+            return true;
+
+        if (data.questProgression != null && data.questProgression.Count > 0)
+            return true;
+
+        if (data.ints != null)
+        {
+            for (int i = 0; i < data.ints.Count; i++)
+            {
+                SaveVariableInt entry = data.ints[i];
+                if (entry != null && entry.id == SaveKeys.GOLD && entry.value > 0)
+                    return true;
+            }
+        }
+
+        if (data.spirimonzCollection != null)
+        {
+            for (int i = 0; i < data.spirimonzCollection.Length; i++)
+            {
+                SpirimonzData spirimonz = data.spirimonzCollection[i];
+                if (spirimonz != null && (spirimonz.inTeam || spirimonz.unlocked || spirimonz.level > 1))
+                    return true;
+            }
+        }
+
+        return false;
     }
 
     public static void SaveInputBindings(GameData data, InputManager input)

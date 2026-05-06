@@ -28,6 +28,7 @@ public class SpirimonzSettings : ScriptableObject
     public GameObject spirimonzBodyPrefab;
     public Vector3 bodyPresentationOffset;
     public float bodyPresentationScale = 7f;
+    public Material skinMat;
 
     [Space] 
     
@@ -53,6 +54,8 @@ public class SpirimonzSettings : ScriptableObject
     public bool canBeDroppedOnMap;
     public bool canBeTakenBackInHands;
     public bool canFollowPlayer;
+
+    public bool HasSkin => skinMat != null;
 
     private void OnValidate()
     {

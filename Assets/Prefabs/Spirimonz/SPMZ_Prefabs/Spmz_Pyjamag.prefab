@@ -44,6 +44,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 40b88c04d7940466da713f4000ddccc8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  playerOnEnabled: 0
+  usePlayerPos: 0
+  isUISound: 0
   possibleClips:
   - {fileID: 8300000, guid: a5ee26a5035924986aa42ce0d2d2229e, type: 3}
   - {fileID: 8300000, guid: 5d4393359dafc4c018cd956d6727e6f5, type: 3}
@@ -297,7 +300,14 @@ MonoBehaviour:
   canBeDroppedOnMap: 1
   canBeTakenBackIntoHands: 1
   powerActiveInHands: 0
+  hideFromGhostHunt: 1
+  switchToWaitDuringGhostHunt: 0
+  stayInteractableDuringGhostHunt: 0
+  useSecondaryButton: 0
   lookAtPlayerWhileWaiting: 1
+  lookAtPlayerOnInteract: 0
+  lookAtPlayerOnInteractDuration: 0.25
+  interactionCooldown: 0
   openDoorsOnItsWay: 0
   lookForwardOnDropOnMap: 0
   lookAtDistanceFromPlayer: 10
@@ -309,13 +319,41 @@ MonoBehaviour:
   speed: 2
   followingDistance: 5
   lookAtSpeed: 5
+  canChangeRoamRoom: 0
+  minTimeToChangeRoamRoom: 0
+  maxTimeToChangeRoamRoom: 0
+  chancesToChangeRoamRoom: 0
+  minTimeToChangeRoamWaypoint: 0
+  maxTimeToChangeRoamWaypoint: 0
+  minDistToReachRoamWaypoint: 0
+  maxDistToReachRoamWaypoint: 0
+  roamPauseOnInteractDuration: 3
   targetedEscapeDistance: 1
   escapingSpeed: 5
   nbOfWayPointsToConsider: 3
+  enableRoomValidation: 1
+  roomValidationInterval: 0.5
+  roomDetectionRadius: 0.2
+  roomProbeRadius: 0.05
+  roomLayerMask:
+    serializedVersion: 2
+    m_Bits: 0
   agent: {fileID: 1550272012376756555}
   collider: {fileID: 4838630129231533695}
   animator: {fileID: 2786587093153004379}
+  onInteract:
+    m_PersistentCalls:
+      m_Calls: []
+  onSecondaryButtonUsed:
+    m_PersistentCalls:
+      m_Calls: []
   onDisable:
+    m_PersistentCalls:
+      m_Calls: []
+  onDroppedOnMap:
+    m_PersistentCalls:
+      m_Calls: []
+  onGoingBackToHands:
     m_PersistentCalls:
       m_Calls: []
   onSetRoom:
@@ -325,6 +363,7 @@ MonoBehaviour:
   stopAskingRange: 8
   timeBeforeIgnoringDroppedObject: 1
   ignoreFruits: 1
+  ignoreCandles: 1
   eatPos: {fileID: 4274004115069415793}
   sphereCollider: {fileID: 92552930443995213}
   eatSoundParameters: {fileID: 2505510750402305001}
@@ -334,7 +373,9 @@ MonoBehaviour:
   giveFruitForceUp: 1
   percentageChancesToGiveFruit: 10
   percentageChancesUpOnFail: 15
-  delayBeforeGivingFruit: 0.25
+  delayBeforeGivingFruit: 0.5
+  maxDrops: 20
+  lockRotationToYAxis: 1
 --- !u!135 &92552930443995213
 SphereCollider:
   m_ObjectHideFlags: 0

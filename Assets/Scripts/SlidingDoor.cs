@@ -15,6 +15,7 @@ public class SlidingDoor : Door
     public float closedPosition = 0f;
     public float openPosition = 1f;
     public float closePositionPermissiveness = 0.02f;
+    public float tapSlideSpeed = 3f;
 
     [Header("Collision Overrides")]
     public bool ignoreWallCollisions = false;
@@ -27,6 +28,8 @@ public class SlidingDoor : Door
     private float _slideSpeed;
     private bool _defaultUseGravity;
     private float _holdStartRatio;
+    private bool _hasHeldAxisTarget;
+    private float _heldAxisTarget;
 
     protected override bool UsesHinge => false;
 
@@ -56,7 +59,9 @@ public class SlidingDoor : Door
     {
         Grab();
         _holdStartRatio = GetOpenRatio();
+        _holdDragDirectionSign = GetHoldDragDirectionSign();
         _holdMovedDuringGrab = false;
+        _hasHeldAxisTarget = false;
         if (rb != null)
         {
             rb.useGravity = false;
@@ -67,6 +72,7 @@ public class SlidingDoor : Door
     public override void EndGrab()
     {
         Release();
+        _hasHeldAxisTarget = false;
         if (rb != null)
             rb.useGravity = _defaultUseGravity;
     }
@@ -103,17 +109,20 @@ public class SlidingDoor : Door
 
         CancelPendingTapCloseSound();
 
-        float targetRatio = Mathf.Clamp01(_holdStartRatio + normalized);
+        float targetRatio = Mathf.Clamp01(_holdStartRatio + (normalized * _holdDragDirectionSign));
         float targetAxis = Mathf.Lerp(closedPosition, openPosition, targetRatio);
-        _slideTarget = targetAxis;
-        _slideSpeed = Mathf.Abs(holdMoveSpeed);
+        _heldAxisTarget = targetAxis;
+        _hasHeldAxisTarget = true;
         _hasSlideTarget = false;
 
         Vector3 newLocal = SetAxisValue(_baseLocalPosition, targetAxis);
         Vector3 newWorld = ParentLocalToWorld(newLocal);
 
         if (rb != null)
-            rb.MovePosition(newWorld);
+        {
+            rb.velocity = Vector3.zero;
+            rb.position = newWorld;
+        }
         else
             transform.localPosition = newLocal;
 
@@ -230,6 +239,9 @@ public class SlidingDoor : Door
     {
         float currentAxis = GetAxisValue(transform.localPosition);
 
+        if (_isGrabbed && _hasHeldAxisTarget)
+            currentAxis = _heldAxisTarget;
+
         if (!_isGrabbed && _hasSlideTarget)
         {
             currentAxis = Mathf.MoveTowards(currentAxis, _slideTarget, _slideSpeed * Time.fixedDeltaTime);
@@ -290,12 +302,28 @@ public class SlidingDoor : Door
         return Mathf.InverseLerp(closedPosition, openPosition, current);
     }
 
+    public override void ToggleOpenClosed()
+    {
+        if (InteractionLocked)
+            return;
+
+        CancelPendingTapCloseSound();
+        StopDoor();
+
+        float ratio = GetOpenRatio();
+        if (ratio >= clickCloseThreshold)
+            BeginTapClose();
+        else
+            OpenDoorFully();
+    }
+
     public override void OpenDoorFully()
     {
         if (InteractionLocked)
             return;
 
         CancelPendingTapCloseSound();
+        _hasHeldAxisTarget = false;
         _ghostJustInteracted = true;
         CancelInvoke(nameof(ResetGhostInteraction));
         Invoke(nameof(ResetGhostInteraction), clickOpenProtectionDuration);
@@ -305,18 +333,19 @@ public class SlidingDoor : Door
 
         EnableAudioOcclusions(false);
         _slideTarget = openPosition;
-        _slideSpeed = Mathf.Abs(fullOpenSpeed * clickOpenSpeedMultiplier);
+        _slideSpeed = Mathf.Abs(tapSlideSpeed);
         _hasSlideTarget = true;
     }
 
     protected override void BeginTapClose()
     {
         CancelPendingTapCloseSound();
+        _hasHeldAxisTarget = false;
 
         isOpen = false;
         EnableAudioOcclusions(true);
         _slideTarget = closedPosition;
-        _slideSpeed = Mathf.Abs(autoCloseSpeed * clickCloseSpeedMultiplier);
+        _slideSpeed = Mathf.Abs(tapSlideSpeed);
         _hasSlideTarget = true;
         _pendingTapCloseSound = true;
         _pendingTapCloseIgnoreOcclusion = true;
@@ -335,6 +364,7 @@ public class SlidingDoor : Door
     protected override void StopDoor()
     {
         _hasSlideTarget = false;
+        _hasHeldAxisTarget = false;
         if (rb != null)
             rb.velocity = Vector3.zero;
     }
@@ -404,6 +434,27 @@ public class SlidingDoor : Door
         return transform.parent != null
             ? transform.parent.InverseTransformDirection(worldDirection)
             : worldDirection;
+    }
+
+    protected override float GetHoldDragDirectionSign()
+    {
+        Camera cam = Camera.main;
+        if (cam == null)
+            return openPosition >= closedPosition ? 1f : -1f;
+
+        Vector3 closedLocal = SetAxisValue(_baseLocalPosition, closedPosition);
+        Vector3 openLocal = SetAxisValue(_baseLocalPosition, openPosition);
+        Vector3 closedWorld = ParentLocalToWorld(closedLocal);
+        Vector3 openWorld = ParentLocalToWorld(openLocal);
+
+        Vector3 closedScreen = cam.WorldToScreenPoint(closedWorld);
+        Vector3 openScreen = cam.WorldToScreenPoint(openWorld);
+        float screenDeltaX = openScreen.x - closedScreen.x;
+
+        if (Mathf.Abs(screenDeltaX) <= 0.001f)
+            return openPosition >= closedPosition ? 1f : -1f;
+
+        return Mathf.Sign(screenDeltaX);
     }
 
     private void IgnoreWallCollisions()

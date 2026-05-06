@@ -11,6 +11,7 @@ using UnityEditor.Build;
 using UnityEditor.Build.Reporting;
 using System.Linq;
 using UnityEngine;
+using System.Xml.Linq;
 
 namespace YsoCorp {
 
@@ -107,14 +108,188 @@ namespace YsoCorp {
                 } catch { }
             }
 
+            private void RemoveLinesContaining(string filePath, params string[] markers)
+            {
+                try
+                {
+                    if (!File.Exists(filePath))
+                        return;
+
+                    string[] lines = File.ReadAllLines(filePath);
+                    string[] filtered = lines
+                        .Where(line => markers.All(marker => line.Contains(marker) == false))
+                        .ToArray();
+
+                    if (filtered.Length != lines.Length)
+                        File.WriteAllLines(filePath, filtered);
+                }
+                catch { }
+            }
+
+            private void RemoveMavenRepositoryBlocksContaining(string filePath, params string[] markers)
+            {
+                try
+                {
+                    if (!File.Exists(filePath))
+                        return;
+
+                    string content = File.ReadAllText(filePath);
+                    foreach (string marker in markers)
+                    {
+                        if (string.IsNullOrEmpty(marker))
+                            continue;
+
+                        while (true)
+                        {
+                            int markerIndex = content.IndexOf(marker, StringComparison.Ordinal);
+                            if (markerIndex < 0)
+                                break;
+
+                            int blockStart = content.LastIndexOf("maven {", markerIndex, StringComparison.Ordinal);
+                            if (blockStart < 0)
+                                break;
+
+                            int blockEnd = content.IndexOf("\n        }", markerIndex, StringComparison.Ordinal);
+                            if (blockEnd < 0)
+                                break;
+
+                            blockEnd += "\n        }".Length;
+                            content = content.Remove(blockStart, blockEnd - blockStart);
+                        }
+                    }
+
+                    File.WriteAllText(filePath, content);
+                }
+                catch { }
+            }
+
+            private void RemoveFacebookManifestEntries(string manifestPath)
+            {
+                try
+                {
+                    if (!File.Exists(manifestPath))
+                        return;
+
+                    XDocument document = XDocument.Load(manifestPath);
+                    XNamespace androidNs = "http://schemas.android.com/apk/res/android";
+                    XElement application = document.Root?.Element("application");
+                    if (application == null)
+                        return;
+
+                    string[] facebookActivities =
+                    {
+                        "com.facebook.unity.FBUnityLoginActivity",
+                        "com.facebook.unity.FBUnityDialogsActivity",
+                        "com.facebook.unity.FBUnityGamingServicesFriendFinderActivity",
+                        "com.facebook.unity.FBUnityAppLinkActivity",
+                        "com.facebook.unity.FBUnityDeepLinkingActivity",
+                        "com.facebook.unity.FBUnityGameRequestActivity",
+                        "com.facebook.unity.FBUnityCreateGameGroupActivity",
+                        "com.facebook.unity.FBUnityJoinGameGroupActivity"
+                    };
+
+                    string[] facebookMetaNames =
+                    {
+                        "com.facebook.sdk.ApplicationId",
+                        "com.facebook.sdk.AutoLogAppEventsEnabled",
+                        "com.facebook.sdk.AdvertiserIDCollectionEnabled",
+                        "com.facebook.sdk.ClientToken"
+                    };
+
+                    var toRemove = application.Elements()
+                        .Where(element =>
+                        {
+                            string androidName = element.Attribute(androidNs + "name")?.Value;
+                            string authorities = element.Attribute(androidNs + "authorities")?.Value;
+
+                            if (element.Name.LocalName == "activity" && facebookActivities.Contains(androidName))
+                                return true;
+
+                            if (element.Name.LocalName == "meta-data" && facebookMetaNames.Contains(androidName))
+                                return true;
+
+                            if (element.Name.LocalName == "provider" &&
+                                element.Attribute(androidNs + "name")?.Value == "com.facebook.FacebookContentProvider")
+                                return true;
+
+                            if (!string.IsNullOrEmpty(authorities) &&
+                                authorities.StartsWith("com.facebook.app.FacebookContentProvider", StringComparison.Ordinal))
+                                return true;
+
+                            return false;
+                        })
+                        .ToList();
+
+                    if (toRemove.Count == 0)
+                        return;
+
+                    foreach (XElement element in toRemove)
+                        element.Remove();
+
+                    document.Save(manifestPath);
+                }
+                catch { }
+            }
+
             public void OnPostGenerateGradleAndroidProject(string path) {
 #if UNITY_ANDROID
+                YCConfig ycConfig = YCConfig.Create();
+                bool hasFacebookConfig = ycConfig.FbAppId != "" && ycConfig.FbClientToken != "";
+
                 this.GradleReplaces(path, "../build.gradle", new List<KeyValuePair<string, string>> {
                     new KeyValuePair<string, string>("com.android.tools.build:gradle:3.4.0", "com.android.tools.build:gradle:3.4.+")
                 });
                 this.GradleReplaces(path, "../unityLibrary/Tenjin/build.gradle", new List<KeyValuePair<string, string>> {
                     new KeyValuePair<string, string>("implementation fileTree(dir: 'libs', include: ['*.jar'])", "implementation fileTree(dir: 'libs', include: ['*.jar', '*.aar'])")
                 });
+                this.GradleReplaces(path, "../gradle.properties", new List<KeyValuePair<string, string>> {
+                    new KeyValuePair<string, string>("android.enableJetifier=true", "android.enableJetifier=true\nandroid.suppressUnsupportedCompileSdk=35")
+                });
+
+                string rootPath = Path.GetFullPath(Path.Combine(path, ".."));
+                string settingsGradlePath = Path.Combine(rootPath, "settings.gradle");
+                string unityLibraryGradlePath = Path.Combine(rootPath, "unityLibrary", "build.gradle");
+                string manifestPath = Path.Combine(rootPath, "unityLibrary", "src", "main", "AndroidManifest.xml");
+
+                // These adapters are known to introduce sync or dexing failures on some Unity/Gradle exports.
+                RemoveLinesContaining(
+                    unityLibraryGradlePath,
+                    "com.applovin.mediation:adjoeads-adapter",
+                    "com.applovin.mediation:bidmachine-adapter",
+                    "com.applovin.mediation:bigoads-adapter",
+                    "com.applovin.mediation:bytedance-adapter",
+                    "com.applovin.mediation:fyber-adapter",
+                    "com.applovin.mediation:inmobi-adapter",
+                    "com.applovin.mediation:line-adapter",
+                    "com.applovin.mediation:mobilefuse-adapter",
+                    "com.applovin.mediation:ogury-presage-adapter",
+                    "com.applovin.mediation:verve-adapter",
+                    "com.applovin.mediation:vungle-adapter",
+                    "com.applovin.mediation:yandex-adapter",
+                    "com.applovin.mediation:yso-network-adapter",
+                    "io.adn:adn-applovin-adapter",
+                    "com.facebook.android:facebook-",
+                    "com.google.android.gms:play-services-ads-identifier",
+                    "com.parse.bolts:bolts-android",
+                    "com.squareup.picasso:picasso",
+                    "com.tenjin:android-sdk"
+                );
+                RemoveMavenRepositoryBlocksContaining(
+                    settingsGradlePath,
+                    "https://releases.adjoe.io/maven",
+                    "https://artifactory.bidmachine.io/bidmachine",
+                    "https://artifact.bytedance.com/repository/pangle",
+                    "https://maven.ogury.co",
+                    "https://ysonetwork.s3.eu-west-3.amazonaws.com/sdk/android",
+                    "https://framework.voodoo-adn.com/android/release/gaming",
+                    "https://verve.jfrog.io/artifactory/verve-gradle-release"
+                );
+                RemoveLinesContaining(
+                    unityLibraryGradlePath,
+                    "com.applovin.mediation:facebook-adapter",
+                    "facebook-android-wrapper"
+                );
+                RemoveFacebookManifestEntries(manifestPath);
 #endif
             }
 

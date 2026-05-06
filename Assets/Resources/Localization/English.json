@@ -46,6 +46,10 @@
         {
           "key": "ui.team_builder.remove",
           "value": "Remove"
+        },
+        {
+          "key": "ui.team_builder.use_skin",
+          "value": "Use Skin"
         }
       ]
     },
@@ -170,6 +174,14 @@
         {
           "key": "ui.settings.fps_sensitivity",
           "value": "FPS Camera Sensitivity"
+        },
+        {
+          "key": "ui.settings.fps_horizontal_sensitivity",
+          "value": "FPS Horizontal Camera Sensitivity"
+        },
+        {
+          "key": "ui.settings.fps_vertical_sensitivity",
+          "value": "FPS Vertical Camera Sensitivity"
         },
         {
           "key": "ui.settings.header",
@@ -1547,7 +1559,19 @@
       "entries": [
         {
           "key": "tutorial.TutoCandleDrop.objective_title",
-          "value": "Check the \"Freezing Temperature\" evidence in the Journal."
+          "value": "Place a candle upright on the table next to Vaness, using [Drop]."
+        },
+        {
+          "key": "tutorial.TutoSpmzDrop.objective_title",
+          "value": "Place your first Spirimonz in the house using [Inventory2] and [DropSpmz]."
+        },
+        {
+          "key": "tutorial.TutoCandleLightON.objective_title",
+          "value": "Light 2 candles using the flame from your Spirimonz. Pick up a candle with [Grab] and use [Secondary] to light it."
+        },
+        {
+          "key": "tutorial.TutoValidateBlowup.objective_title",
+          "value": "Check the \"Extinguished candles\" evidence in the Journal."
         },
         {
           "key": "tutorial.TutoCandles.objective_title",
@@ -1567,7 +1591,7 @@
         },
         {
           "key": "tutorial.TutoHunt.objective_title",
-          "value": "It's time to leave the house."
+          "value": "Survive a spirit hunt. Turn off your light with [Light], crouch with [Crouch] and hide."
         },
         {
           "key": "tutorial.TutoLights.objective_title",
@@ -1583,15 +1607,39 @@
         },
         {
           "key": "tutorial.TutoUseWatch.objective_title",
-          "value": "Check the \"Spirit Orbs\" evidence in the Journal."
+          "value": "View Spirit Orbs by pressing [Inventory1] and holding down [Secondary]."
+        },
+        {
+          "key": "tutorial.TutoValidateFreezing.objective_title",
+          "value": "Check the \"Freezing Temperature\" evidence in the Journal."
+        },
+        {
+          "key": "tutorial.TutoValidatePrints.objective_title",
+          "value": "Check the \"Spirit Imprint\" evidence in the Journal."
         },
         {
           "key": "tutorial.TutoValidateFruit.objective_title",
           "value": "Check the \"Eat fruits\" evidence in the Journal."
         },
         {
+          "key": "tutorial.TutoValidateSpiritOrbs.objective_title",
+          "value": "Check the \"Spirit Orbs\" evidence in the Journal."
+        },
+        {
+          "key": "tutorial.TutoRadiations.objective_title",
+          "value": "Find a room with Radioactivity, using [Inventory5] and holding down [Secondary]."
+        },
+        {
+          "key": "tutorial.TutoValidateRadiations.objective_title",
+          "value": "Check the \"Radioactivity\" evidence in the Journal."
+        },
+        {
           "key": "tutorial.TutoWait.objective_title",
           "value": "Ask your Spirimonz to wait by tapping on it with [InteractSpmz]."
+        },
+        {
+          "key": "tutorial.TutoLeave.objective_title",
+          "value": "It's time to leave the house."
         }
       ]
     }

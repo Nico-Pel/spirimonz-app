@@ -23,7 +23,7 @@ public class Door : GameBehaviour, IInteractable
     [Range(0f, 1f)] public float clickCloseThreshold = 0.1f;
     public float clickOpenProtectionDuration = 0.2f;
     public float clickOpenAngle = 105f;
-    public float clickOpenSpeedMultiplier = 1.875f;
+    public float clickOpenSpeedMultiplier = 2.34375f;
     public float clickCloseSpeedMultiplier = 6.25f;
     public float clickCloseForceMultiplier = 4f;
     [Range(0.05f, 1f)] public float holdScreenTravelFraction = 0.2f;

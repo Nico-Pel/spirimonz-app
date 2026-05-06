@@ -24,6 +24,11 @@ public class MobileControlsView : MonoBehaviour
     public MobileKeyButtonsVisibility keyButtonsVisibility;
     public MobileInventoryFooter inventoryFooter;
 
+    [Header("Mobile Look Pan Defaults")]
+    public bool defaultUseLookPan = true;
+    public float defaultLookPanSensitivity = 9f;
+    public bool defaultInvertLookPanY = false;
+
     [Header("Joystick Visuals")]
     public Image moveJoystickBaseImage;
     public Image moveJoystickHandleImage;
@@ -145,6 +150,10 @@ public class MobileControlsView : MonoBehaviour
                 inputRouter.moveJoystick = moveJoystick;
             if (inputRouter.lookJoystick == null)
                 inputRouter.lookJoystick = lookJoystick;
+
+            inputRouter.useLookPan = defaultUseLookPan;
+            inputRouter.lookPanSensitivity = defaultLookPanSensitivity;
+            inputRouter.invertLookPanY = defaultInvertLookPanY;
         }
     }
 

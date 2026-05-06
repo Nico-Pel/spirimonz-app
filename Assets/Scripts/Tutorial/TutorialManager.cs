@@ -338,6 +338,8 @@ public class TutorialManager : GameBehaviour
         _uiGame = UIGame.Instance;
         _ghost = House.Instance != null ? House.Instance.currentGhost : null;
 
+        ApplyTutorialUiLayout();
+
         if (_isControlsTutorial)
         {
             if (applyForcedTeamOnStart)
@@ -393,8 +395,19 @@ public class TutorialManager : GameBehaviour
         this.Invoke(0.1f, ApplyModeDoorLocks);
     }
 
+    private void OnEnable()
+    {
+        LanguageManager.OnLanguageChanged += HandleLanguageChanged;
+    }
+
     private void OnDisable()
     {
+        LanguageManager.OnLanguageChanged -= HandleLanguageChanged;
+
+        if (_uiGame != null)
+            _uiGame.tablet?.ApplyControlsTutorialLayout(false);
+        objectiveUI?.ApplyControlsTutorialLayout(false);
+
         if (!_initialized)
             return;
 
@@ -426,6 +439,17 @@ public class TutorialManager : GameBehaviour
 
         if (_inventory != null && forcedTeam != null && forcedTeam.Count > 0)
             _inventory.ApplyTemporaryTeam(forcedTeam);
+    }
+
+    private void ApplyTutorialUiLayout()
+    {
+        bool enableCompactTutorialLayout = _isControlsTutorial;
+
+        if (_uiGame != null && _uiGame.tablet != null)
+            _uiGame.tablet.ApplyControlsTutorialLayout(enableCompactTutorialLayout);
+
+        if (objectiveUI != null)
+            objectiveUI.ApplyControlsTutorialLayout(enableCompactTutorialLayout);
     }
 
     private void OnNpcDialogueEnd()
@@ -857,6 +881,8 @@ public class TutorialManager : GameBehaviour
 
     private void SetupCatchableObjective(TutorialObjective objective)
     {
+        SetupCatchableDropGate(objective);
+
         List<CatchableObject> catchables = new List<CatchableObject>();
         if (objective.catchables != null && objective.catchables.Length > 0)
         {
@@ -886,6 +912,43 @@ public class TutorialManager : GameBehaviour
             catchable.onGrab.AddListener(action);
             _unsubscribers.Add(() => catchable.onGrab.RemoveListener(action));
         }
+    }
+
+    private void SetupCatchableDropGate(TutorialObjective objective)
+    {
+        if (!enableInputGate || objective == null || !objective.requireCatchableFireObject)
+            return;
+
+        InteractionController interaction = FindObjectOfType<InteractionController>();
+
+        if (interaction == null)
+            return;
+
+        UnityAction<CatchableObject> refreshOnGrab = _ => RefreshCatchableDropGate(interaction);
+        UnityAction<CatchableObject> refreshOnDrop = _ => RefreshCatchableDropGate(interaction);
+        interaction.OnGrabItem.AddListener(refreshOnGrab);
+        interaction.OnDropItem.AddListener(refreshOnDrop);
+        _unsubscribers.Add(() => interaction.OnGrabItem.RemoveListener(refreshOnGrab));
+        _unsubscribers.Add(() => interaction.OnDropItem.RemoveListener(refreshOnDrop));
+
+        RefreshCatchableDropGate(interaction);
+    }
+
+    private void RefreshCatchableDropGate(InteractionController interaction)
+    {
+        if (!enableInputGate || interaction == null || _state != StepState.InProgress || _currentStep == null || _currentStep.objective == null)
+            return;
+
+        TutorialObjective objective = _currentStep.objective;
+        if (objective.type != TutorialObjectiveType.GrabCatchable || !objective.requireCatchableFireObject)
+            return;
+
+        CatchableObject heldObject = interaction.objectInHands;
+        bool isHoldingFlammable = heldObject is CatchableFireObject fireObject && fireObject.linkedFlammableElement != null;
+
+        // During the candle pickup step, allow dropping only when the player grabbed
+        // the wrong non-flammable object, so they cannot get stuck with it in hands.
+        TutorialInputGate.AllowDrop = !isHoldingFlammable;
     }
 
     private void OnCatchableGrabbed(CatchableObject catchable)
@@ -1398,8 +1461,12 @@ public class TutorialManager : GameBehaviour
 
     private void RefreshObjectiveUI()
     {
-        if (objectiveUI == null)
+        if (objectiveUI == null || _currentStep == null || _currentStep.objective == null)
             return;
+
+        string title = _currentStep.GetLocalizedObjectiveTitle();
+        if (objectiveUI.tTitle != null && objectiveUI.tTitle.text != title)
+            objectiveUI.tTitle.text = title;
 
         objectiveUI.SetProgress(_progress, GetGoal());
     }
@@ -1450,6 +1517,31 @@ public class TutorialManager : GameBehaviour
     private string GetLocalizedTrainingObjective()
     {
         return GetLocalizedText(trainingObjectiveKey, trainingObjectiveEnglish, trainingObjectiveFrench);
+    }
+
+    private void HandleLanguageChanged(Language language)
+    {
+        if (objectiveUI == null)
+            return;
+
+        if (_isTraining && showTrainingObjective && _state == StepState.None)
+        {
+            objectiveUI.ShowMessage(GetLocalizedTrainingObjective(), false);
+            return;
+        }
+
+        switch (_state)
+        {
+            case StepState.InProgress:
+                InitObjectiveUI();
+                break;
+            case StepState.WaitingReturn:
+                ShowCompletionCTA(GetLocalizedReturnToNpc(), true);
+                break;
+            case StepState.AutoAdvance:
+                ShowCompletionCTA(GetLocalizedObjectiveComplete(), true);
+                break;
+        }
     }
 
     private string GetLocalizedText(string key, string english, string french)

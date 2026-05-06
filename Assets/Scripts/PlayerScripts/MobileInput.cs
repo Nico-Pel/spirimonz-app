@@ -8,6 +8,8 @@ public static class MobileInput
     private static Vector2 _lookDelta;
     private static int _lookFrame = -1;
     private static Vector2 _lookAxis;
+    private static Vector2 _lookPanDelta;
+    private static int _lookPanFrame = -1;
 
     private static int _primaryDownFrame = -1;
     private static int _primaryUpFrame = -1;
@@ -51,6 +53,8 @@ public static class MobileInput
         _lookDelta = Vector2.zero;
         _lookFrame = -1;
         _lookAxis = Vector2.zero;
+        _lookPanDelta = Vector2.zero;
+        _lookPanFrame = -1;
 
         _primaryDownFrame = -1;
         _primaryUpFrame = -1;
@@ -109,6 +113,19 @@ public static class MobileInput
         _lookAxis = Vector2.ClampMagnitude(value, 1f);
     }
 
+    public static void AddLookPanDelta(Vector2 delta)
+    {
+        if (!Enabled) return;
+
+        if (_lookPanFrame != Time.frameCount)
+        {
+            _lookPanDelta = Vector2.zero;
+            _lookPanFrame = Time.frameCount;
+        }
+
+        _lookPanDelta += delta;
+    }
+
     public static Vector2 GetLookDelta()
     {
         if (!Enabled)
@@ -116,6 +133,14 @@ public static class MobileInput
 
         Vector2 delta = _lookFrame == Time.frameCount ? _lookDelta : Vector2.zero;
         return delta + _lookAxis;
+    }
+
+    public static Vector2 GetLookPanDelta()
+    {
+        if (!Enabled)
+            return Vector2.zero;
+
+        return _lookPanFrame == Time.frameCount ? _lookPanDelta : Vector2.zero;
     }
 
     // Primary action (equivalent to mouse left)

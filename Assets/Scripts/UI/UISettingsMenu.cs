@@ -15,12 +15,18 @@ public class UISettingsMenu : GameBehaviour
     private const float DefaultSensitivityMultiplier = 1f;
     private const int DefaultFpsSetting = 0;
     private const Language DefaultLanguage = Language.English;
-    private const int AllTextSize = 54;
-    private const float BindingButtonMinWidth = 220f;
-    private const float BindingButtonHeight = 90f;
-    private const float LanguageDropdownMinWidth = 620f;
-    private const float LanguageDropdownTemplateHeight = 460f;
-    private const float LanguageDropdownItemHeight = 104f;
+    private const int TitleTextSize = 54;
+    private const int SectionHeaderTextSize = 38;
+    private const int BodyTextSize = 34;
+    private const int ValueTextSize = 34;
+    private const int ButtonTextSize = 36;
+    private const int BindingTextSize = 30;
+    private const float BindingButtonMinWidth = 170f;
+    private const float BindingButtonHeight = 66f;
+    private const float SettingsRowHeight = 66f;
+    private const float LanguageDropdownMinWidth = 460f;
+    private const float LanguageDropdownTemplateHeight = 340f;
+    private const float LanguageDropdownItemHeight = 70f;
 
     public CanvasGroup canvasGroup;
     public RectTransform panelRoot;
@@ -29,11 +35,13 @@ public class UISettingsMenu : GameBehaviour
     public Slider uiSlider;
     public Slider tpsSensitivitySlider;
     public Slider fpsSensitivitySlider;
+    public Slider fpsVerticalSensitivitySlider;
     public Text ambientValue;
     public Text sfxValue;
     public Text uiValue;
     public Text tpsValue;
     public Text fpsValue;
+    public Text fpsVerticalValue;
     public Dropdown fpsLimitDropdown;
     public Dropdown languageDropdown;
     public GameObject keybindingsRoot;
@@ -109,7 +117,8 @@ public class UISettingsMenu : GameBehaviour
     private const string UiVolumeKey = "ui.settings.ui_volume";
     private const string CameraHeaderKey = "ui.settings.camera";
     private const string TpsSensitivityKey = "ui.settings.tps_sensitivity";
-    private const string FpsSensitivityKey = "ui.settings.fps_sensitivity";
+    private const string FpsHorizontalSensitivityKey = "ui.settings.fps_horizontal_sensitivity";
+    private const string FpsVerticalSensitivityKey = "ui.settings.fps_vertical_sensitivity";
     private const string FpsLimitKey = "ui.settings.fps_limit";
     private const string LanguageHeaderKey = "ui.settings.language";
     private const string KeyBindingsHeaderKey = "ui.settings.key_bindings";
@@ -200,7 +209,7 @@ public class UISettingsMenu : GameBehaviour
         if (!_isOpen)
             return;
 
-        bool showBindings = !Application.isMobilePlatform && !MobileInput.Enabled;
+        bool showBindings = !ShouldHideKeyBindingsForMobile();
         if (keybindingsContainer != null)
             keybindingsContainer.SetActive(showBindings);
         if (keybindingsRoot != null)
@@ -210,6 +219,13 @@ public class UISettingsMenu : GameBehaviour
 
         if (_waitingForKey)
             CaptureKey();
+    }
+
+    private bool ShouldHideKeyBindingsForMobile()
+    {
+        return Application.isMobilePlatform
+               || MobileInput.Enabled
+               || (GameManager.Instance != null && GameManager.Instance.mobileControlsEnabled);
     }
 
     public void Toggle()
@@ -280,6 +296,7 @@ public class UISettingsMenu : GameBehaviour
         {
             SetSliderValue(tpsSensitivitySlider, MultiplierToSensitivitySlider(_input.tpsLookSensitivityMultiplier));
             SetSliderValue(fpsSensitivitySlider, MultiplierToSensitivitySlider(_input.fpsLookSensitivityMultiplier));
+            SetSliderValue(fpsVerticalSensitivitySlider, MultiplierToSensitivitySlider(_input.fpsLookVerticalSensitivityMultiplier));
         }
 
         UpdateValueTexts();
@@ -469,7 +486,7 @@ public class UISettingsMenu : GameBehaviour
         textGO.transform.SetParent(panel.transform, false);
         Text text = textGO.AddComponent<Text>();
         text.font = font;
-        text.fontSize = AllTextSize;
+        text.fontSize = BodyTextSize;
         text.color = Color.white;
         text.alignment = TextAnchor.MiddleCenter;
         text.horizontalOverflow = HorizontalWrapMode.Wrap;
@@ -511,7 +528,7 @@ public class UISettingsMenu : GameBehaviour
         Text text = textGO.AddComponent<Text>();
         text.text = localizationKey != null ? LocalizationManager.Get(localizationKey, labelText) : labelText;
         text.font = font;
-        text.fontSize = AllTextSize;
+        text.fontSize = ButtonTextSize;
         text.color = Color.white;
         text.alignment = TextAnchor.MiddleCenter;
         RectTransform textRect = textGO.GetComponent<RectTransform>();
@@ -538,6 +555,8 @@ public class UISettingsMenu : GameBehaviour
             tpsValue.text = $"{_input.tpsLookSensitivityMultiplier:0.00}x";
         if (fpsValue != null && _input != null)
             fpsValue.text = $"{_input.fpsLookSensitivityMultiplier:0.00}x";
+        if (fpsVerticalValue != null && _input != null)
+            fpsVerticalValue.text = $"{_input.fpsLookVerticalSensitivityMultiplier:0.00}x";
     }
 
     private void RefreshBindingTexts()
@@ -633,8 +652,8 @@ public class UISettingsMenu : GameBehaviour
         panelRoot = root.GetComponent<RectTransform>();
         if (panelRoot == null)
             panelRoot = root.AddComponent<RectTransform>();
-        panelRoot.anchorMin = new Vector2(0.12f, 0.08f);
-        panelRoot.anchorMax = new Vector2(0.88f, 0.92f);
+        panelRoot.anchorMin = new Vector2(0.13f, 0.08f);
+        panelRoot.anchorMax = new Vector2(0.87f, 0.92f);
         panelRoot.pivot = new Vector2(0.5f, 0.5f);
         panelRoot.offsetMin = Vector2.zero;
         panelRoot.offsetMax = Vector2.zero;
@@ -642,7 +661,7 @@ public class UISettingsMenu : GameBehaviour
         Image bg = root.GetComponent<Image>();
         if (bg == null)
             bg = root.AddComponent<Image>();
-        bg.color = new Color(0.06f, 0.09f, 0.14f, 0.96f);
+        bg.color = new Color(0.035f, 0.055f, 0.085f, 0.985f);
 
         canvasGroup = root.GetComponent<CanvasGroup>();
         if (canvasGroup == null)
@@ -658,10 +677,10 @@ public class UISettingsMenu : GameBehaviour
         layout.childControlWidth = true;
         layout.childForceExpandHeight = false;
         layout.childForceExpandWidth = true;
-        layout.spacing = 20f;
-        layout.padding = new RectOffset(32, 32, 28, 28);
+        layout.spacing = 14f;
+        layout.padding = new RectOffset(30, 30, 24, 24);
 
-        CreateHeader(root.transform, "Settings", _font, AllTextSize, SettingsHeaderKey);
+        CreateHeader(root.transform, "Settings", _font, TitleTextSize, SettingsHeaderKey);
 
         GameObject accentBar = new GameObject("AccentBar", typeof(RectTransform), typeof(Image));
         accentBar.transform.SetParent(root.transform, false);
@@ -677,7 +696,7 @@ public class UISettingsMenu : GameBehaviour
         scrollLayout.flexibleHeight = 1f;
         scrollLayout.minHeight = 0f;
         Image scrollBg = scrollGO.GetComponent<Image>();
-        scrollBg.color = new Color(1f, 1f, 1f, 0.04f);
+        scrollBg.color = new Color(1f, 1f, 1f, 0.025f);
 
         scrollRect = scrollGO.GetComponent<ScrollRect>();
         scrollRect.horizontal = false;
@@ -695,8 +714,8 @@ public class UISettingsMenu : GameBehaviour
         RectTransform viewportRect = viewportGO.GetComponent<RectTransform>();
         viewportRect.anchorMin = new Vector2(0f, 0f);
         viewportRect.anchorMax = new Vector2(1f, 1f);
-        viewportRect.offsetMin = new Vector2(10f, 10f);
-        viewportRect.offsetMax = new Vector2(-32f, -10f);
+        viewportRect.offsetMin = new Vector2(18f, 12f);
+        viewportRect.offsetMax = new Vector2(-34f, -12f);
 
         GameObject contentGO = new GameObject("Content", typeof(RectTransform));
         contentGO.transform.SetParent(viewportGO.transform, false);
@@ -713,8 +732,8 @@ public class UISettingsMenu : GameBehaviour
         contentLayout.childControlWidth = true;
         contentLayout.childForceExpandHeight = false;
         contentLayout.childForceExpandWidth = true;
-        contentLayout.spacing = 16f;
-        contentLayout.padding = new RectOffset(12, 12, 14, 18);
+        contentLayout.spacing = 10f;
+        contentLayout.padding = new RectOffset(10, 10, 10, 16);
 
         ContentSizeFitter contentFitter = contentGO.AddComponent<ContentSizeFitter>();
         contentFitter.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
@@ -726,10 +745,10 @@ public class UISettingsMenu : GameBehaviour
         sbRect.anchorMin = new Vector2(1f, 0f);
         sbRect.anchorMax = new Vector2(1f, 1f);
         sbRect.pivot = new Vector2(1f, 1f);
-        sbRect.sizeDelta = new Vector2(20f, 0f);
+        sbRect.sizeDelta = new Vector2(12f, 0f);
         sbRect.anchoredPosition = new Vector2(-6f, 0f);
         Image sbBg = scrollbarGO.GetComponent<Image>();
-        sbBg.color = new Color(1f, 1f, 1f, 0.32f);
+        sbBg.color = new Color(1f, 1f, 1f, 0.18f);
         Scrollbar scrollbar = scrollbarGO.GetComponent<Scrollbar>();
         scrollbar.direction = Scrollbar.Direction.BottomToTop;
 
@@ -761,20 +780,21 @@ public class UISettingsMenu : GameBehaviour
             returnToTitleButton.onClick.AddListener(ReturnToTitleScreen);
         }
 
-        CreateHeader(contentGO.transform, "Audio", _font, AllTextSize, AudioHeaderKey);
+        CreateHeader(contentGO.transform, "Audio", _font, SectionHeaderTextSize, AudioHeaderKey);
         ambientSlider = CreateSliderRow(contentGO.transform, "Ambient Volume", _font, out ambientValue, AmbientVolumeKey);
         sfxSlider = CreateSliderRow(contentGO.transform, "SFX Volume", _font, out sfxValue, SfxVolumeKey);
         uiSlider = CreateSliderRow(contentGO.transform, "UI Volume", _font, out uiValue, UiVolumeKey);
 
-        CreateHeader(contentGO.transform, "Camera", _font, AllTextSize, CameraHeaderKey);
+        CreateHeader(contentGO.transform, "Camera", _font, SectionHeaderTextSize, CameraHeaderKey);
         tpsSensitivitySlider = CreateSliderRow(contentGO.transform, "TPS Camera Sensitivity", _font, out tpsValue, TpsSensitivityKey);
-        fpsSensitivitySlider = CreateSliderRow(contentGO.transform, "FPS Camera Sensitivity", _font, out fpsValue, FpsSensitivityKey);
+        fpsSensitivitySlider = CreateSliderRow(contentGO.transform, "FPS Horizontal Camera Sensitivity", _font, out fpsValue, FpsHorizontalSensitivityKey);
+        fpsVerticalSensitivitySlider = CreateSliderRow(contentGO.transform, "FPS Vertical Camera Sensitivity", _font, out fpsVerticalValue, FpsVerticalSensitivityKey);
         fpsLimitDropdown = CreateDropdownRow(contentGO.transform, "FPS Limit", _font, FpsLimitKey);
 
-        CreateHeader(contentGO.transform, "Language", _font, AllTextSize, LanguageHeaderKey);
+        CreateHeader(contentGO.transform, "Language", _font, SectionHeaderTextSize, LanguageHeaderKey);
         languageDropdown = CreateLanguageDropdownRow(contentGO.transform, "Language", _font, LanguageHeaderKey);
 
-        GameObject legalHeader = CreateHeader(contentGO.transform, LegalDocuments.GetSectionHeaderLabel(), _font, AllTextSize);
+        GameObject legalHeader = CreateHeader(contentGO.transform, LegalDocuments.GetSectionHeaderLabel(), _font, SectionHeaderTextSize);
         if (legalHeader != null)
             _legalHeaderLabel = legalHeader.GetComponent<Text>();
         _privacyPolicyButton = CreateActionButton(contentGO.transform, LegalDocuments.GetPrivacyButtonLabel(), _font);
@@ -791,7 +811,7 @@ public class UISettingsMenu : GameBehaviour
             _termsOfUseButton.onClick.AddListener(() => UILegalOverlay.Instance.ShowDocument(LegalDocumentType.TermsOfUse));
         }
 
-        keybindingsHeader = CreateHeader(contentGO.transform, "Key Bindings", _font, AllTextSize, KeyBindingsHeaderKey);
+        keybindingsHeader = CreateHeader(contentGO.transform, "Key Bindings", _font, SectionHeaderTextSize, KeyBindingsHeaderKey);
         GameObject keyRoot = new GameObject("KeybindingsRoot", typeof(RectTransform));
         keyRoot.transform.SetParent(contentGO.transform, false);
         keybindingsContainer = keyRoot;
@@ -863,7 +883,7 @@ public class UISettingsMenu : GameBehaviour
         text.color = _accentColor;
         text.alignment = TextAnchor.MiddleCenter;
         LayoutElement layout = header.AddComponent<LayoutElement>();
-        layout.preferredHeight = size + 14f;
+        layout.preferredHeight = size + 10f;
         layout.flexibleHeight = 0f;
 
         if (!string.IsNullOrWhiteSpace(localizationKey))
@@ -884,7 +904,7 @@ public class UISettingsMenu : GameBehaviour
         layout.childForceExpandWidth = true;
         layout.spacing = 16f;
 
-        float rowHeight = Mathf.Max(AllTextSize + 20f, 80f);
+        float rowHeight = SettingsRowHeight;
         LayoutElement rowLayout = row.AddComponent<LayoutElement>();
         rowLayout.preferredHeight = rowHeight;
         rowLayout.flexibleHeight = 0f;
@@ -894,15 +914,15 @@ public class UISettingsMenu : GameBehaviour
         Text labelText = labelGO.AddComponent<Text>();
         labelText.text = localizationKey != null ? LocalizationManager.Get(localizationKey, label) : label;
         labelText.font = font;
-        labelText.fontSize = AllTextSize;
-        labelText.color = Color.white;
+        labelText.fontSize = BodyTextSize;
+        labelText.color = new Color(0.9f, 0.94f, 1f, 0.96f);
         labelText.alignment = TextAnchor.MiddleLeft;
         labelText.horizontalOverflow = HorizontalWrapMode.Wrap;
         labelText.verticalOverflow = VerticalWrapMode.Overflow;
 
         LayoutElement labelLayout = labelGO.AddComponent<LayoutElement>();
-        labelLayout.minWidth = 320f;
-        labelLayout.preferredWidth = 420f;
+        labelLayout.minWidth = 260f;
+        labelLayout.preferredWidth = 360f;
         labelLayout.flexibleWidth = 1f;
 
         if (!string.IsNullOrWhiteSpace(localizationKey))
@@ -917,23 +937,23 @@ public class UISettingsMenu : GameBehaviour
         slider.transition = Selectable.Transition.ColorTint;
 
         RectTransform sliderRect = sliderGO.GetComponent<RectTransform>();
-        sliderRect.sizeDelta = new Vector2(0f, 60f);
+        sliderRect.sizeDelta = new Vector2(0f, 46f);
         LayoutElement sliderLayout = sliderGO.AddComponent<LayoutElement>();
         sliderLayout.minWidth = 280f;
         sliderLayout.preferredWidth = 360f;
         sliderLayout.flexibleWidth = 1f;
-        sliderLayout.minHeight = 60f;
-        sliderLayout.preferredHeight = 60f;
+        sliderLayout.minHeight = 46f;
+        sliderLayout.preferredHeight = 46f;
 
         GameObject background = new GameObject("Background", typeof(RectTransform), typeof(Image));
         background.transform.SetParent(sliderGO.transform, false);
         Image bgImage = background.GetComponent<Image>();
-        bgImage.color = new Color(1f, 1f, 1f, 0.32f);
+        bgImage.color = new Color(1f, 1f, 1f, 0.18f);
         RectTransform bgRect = background.GetComponent<RectTransform>();
-        bgRect.anchorMin = Vector2.zero;
-        bgRect.anchorMax = Vector2.one;
-        bgRect.offsetMin = Vector2.zero;
-        bgRect.offsetMax = Vector2.zero;
+        bgRect.anchorMin = new Vector2(0f, 0.42f);
+        bgRect.anchorMax = new Vector2(1f, 0.58f);
+        bgRect.offsetMin = new Vector2(12f, 0f);
+        bgRect.offsetMax = new Vector2(-12f, 0f);
 
         GameObject fillArea = new GameObject("Fill Area", typeof(RectTransform));
         fillArea.transform.SetParent(sliderGO.transform, false);
@@ -968,7 +988,7 @@ public class UISettingsMenu : GameBehaviour
         Image handleImage = handleGO.GetComponent<Image>();
         handleImage.color = new Color(1f, 1f, 1f, 0.95f);
         RectTransform handleRect = handleGO.GetComponent<RectTransform>();
-        handleRect.sizeDelta = new Vector2(36f, 36f);
+        handleRect.sizeDelta = new Vector2(24f, 42f);
         slider.handleRect = handleRect;
         slider.targetGraphic = handleImage;
         slider.direction = Slider.Direction.LeftToRight;
@@ -978,12 +998,12 @@ public class UISettingsMenu : GameBehaviour
         valueText = valueGO.AddComponent<Text>();
         valueText.text = "1.00x";
         valueText.font = font;
-        valueText.fontSize = AllTextSize;
-        valueText.color = Color.white;
+        valueText.fontSize = ValueTextSize;
+        valueText.color = new Color(0.92f, 0.96f, 1f, 0.98f);
         valueText.alignment = TextAnchor.MiddleCenter;
         LayoutElement valueLayout = valueGO.AddComponent<LayoutElement>();
-        valueLayout.preferredWidth = 200f;
-        valueLayout.minWidth = 160f;
+        valueLayout.preferredWidth = 140f;
+        valueLayout.minWidth = 120f;
 
         return slider;
     }
@@ -1000,7 +1020,7 @@ public class UISettingsMenu : GameBehaviour
         layout.childForceExpandWidth = true;
         layout.spacing = 16f;
 
-        float rowHeight = Mathf.Max(AllTextSize + 20f, 80f);
+        float rowHeight = SettingsRowHeight;
         LayoutElement rowLayout = row.AddComponent<LayoutElement>();
         rowLayout.preferredHeight = rowHeight;
         rowLayout.flexibleHeight = 0f;
@@ -1010,14 +1030,14 @@ public class UISettingsMenu : GameBehaviour
         Text labelText = labelGO.AddComponent<Text>();
         labelText.text = localizationKey != null ? LocalizationManager.Get(localizationKey, label) : label;
         labelText.font = font;
-        labelText.fontSize = AllTextSize;
-        labelText.color = Color.white;
+        labelText.fontSize = BodyTextSize;
+        labelText.color = new Color(0.9f, 0.94f, 1f, 0.96f);
         labelText.alignment = TextAnchor.MiddleLeft;
         labelText.horizontalOverflow = HorizontalWrapMode.Wrap;
         labelText.verticalOverflow = VerticalWrapMode.Overflow;
         LayoutElement labelLayout = labelGO.AddComponent<LayoutElement>();
-        labelLayout.minWidth = 320f;
-        labelLayout.preferredWidth = 420f;
+        labelLayout.minWidth = 260f;
+        labelLayout.preferredWidth = 360f;
         labelLayout.flexibleWidth = 1f;
 
         if (!string.IsNullOrWhiteSpace(localizationKey))
@@ -1041,10 +1061,10 @@ public class UISettingsMenu : GameBehaviour
             dropdown.template.sizeDelta = new Vector2(dropdown.template.sizeDelta.x, LanguageDropdownTemplateHeight);
 
         if (dropdown.captionText != null)
-            dropdown.captionText.fontSize = AllTextSize + 4;
+            dropdown.captionText.fontSize = BodyTextSize;
 
         if (dropdown.itemText != null)
-            dropdown.itemText.fontSize = AllTextSize + 2;
+            dropdown.itemText.fontSize = BodyTextSize;
 
         RectTransform itemRect = dropdown.itemText != null ? dropdown.itemText.transform.parent as RectTransform : null;
         if (itemRect != null)
@@ -1065,7 +1085,7 @@ public class UISettingsMenu : GameBehaviour
         GameObject dropdownGO = new GameObject("Dropdown", typeof(RectTransform), typeof(Image), typeof(Dropdown));
         dropdownGO.transform.SetParent(parent, false);
         Image bg = dropdownGO.GetComponent<Image>();
-        bg.color = new Color(1f, 1f, 1f, 0.15f);
+        bg.color = new Color(1f, 1f, 1f, 0.12f);
 
         RectTransform dropdownRect = dropdownGO.GetComponent<RectTransform>();
         dropdownRect.sizeDelta = new Vector2(0f, BindingButtonHeight);
@@ -1083,7 +1103,7 @@ public class UISettingsMenu : GameBehaviour
         labelGO.transform.SetParent(dropdownGO.transform, false);
         Text label = labelGO.AddComponent<Text>();
         label.font = font;
-        label.fontSize = AllTextSize;
+        label.fontSize = BodyTextSize;
         label.color = Color.white;
         label.alignment = TextAnchor.MiddleLeft;
         RectTransform labelRect = labelGO.GetComponent<RectTransform>();
@@ -1164,10 +1184,10 @@ public class UISettingsMenu : GameBehaviour
         Toggle itemToggle = itemGO.GetComponent<Toggle>();
         itemToggle.isOn = true;
         RectTransform itemRect = itemGO.GetComponent<RectTransform>();
-        itemRect.sizeDelta = new Vector2(0f, BindingButtonHeight);
+        itemRect.sizeDelta = new Vector2(0f, LanguageDropdownItemHeight);
         LayoutElement itemLayout = itemGO.AddComponent<LayoutElement>();
-        itemLayout.minHeight = BindingButtonHeight;
-        itemLayout.preferredHeight = BindingButtonHeight;
+        itemLayout.minHeight = LanguageDropdownItemHeight;
+        itemLayout.preferredHeight = LanguageDropdownItemHeight;
         itemLayout.flexibleWidth = 1f;
 
         GameObject itemBgGO = new GameObject("Item Background", typeof(RectTransform), typeof(Image));
@@ -1194,7 +1214,7 @@ public class UISettingsMenu : GameBehaviour
         itemLabelGO.transform.SetParent(itemGO.transform, false);
         Text itemLabel = itemLabelGO.AddComponent<Text>();
         itemLabel.font = font;
-        itemLabel.fontSize = AllTextSize;
+        itemLabel.fontSize = BodyTextSize;
         itemLabel.color = Color.white;
         itemLabel.alignment = TextAnchor.MiddleLeft;
         RectTransform itemLabelRect = itemLabelGO.GetComponent<RectTransform>();
@@ -1261,7 +1281,7 @@ public class UISettingsMenu : GameBehaviour
         layout.childForceExpandWidth = true;
         layout.spacing = 14f;
         LayoutElement rowLayout = row.AddComponent<LayoutElement>();
-        rowLayout.preferredHeight = Mathf.Max(BindingButtonHeight + 12f, AllTextSize + 20f);
+        rowLayout.preferredHeight = BindingButtonHeight + 8f;
         rowLayout.flexibleHeight = 0f;
 
         GameObject labelGO = new GameObject("Label", typeof(RectTransform));
@@ -1271,14 +1291,14 @@ public class UISettingsMenu : GameBehaviour
             ? label
             : LocalizationManager.Get(labelKey, label);
         labelText.font = font;
-        labelText.fontSize = AllTextSize;
-        labelText.color = Color.white;
+        labelText.fontSize = BindingTextSize;
+        labelText.color = new Color(0.9f, 0.94f, 1f, 0.96f);
         labelText.alignment = TextAnchor.MiddleLeft;
         labelText.horizontalOverflow = HorizontalWrapMode.Wrap;
         labelText.verticalOverflow = VerticalWrapMode.Overflow;
         LayoutElement labelLayout = labelGO.AddComponent<LayoutElement>();
-        labelLayout.minWidth = 300f;
-        labelLayout.preferredWidth = 320f;
+        labelLayout.minWidth = 260f;
+        labelLayout.preferredWidth = 300f;
         labelLayout.flexibleWidth = 0f;
 
         Button primaryButton = CreateKeyButton(row.transform, font, out Text primaryText, out Image primaryImage);
@@ -1325,7 +1345,7 @@ public class UISettingsMenu : GameBehaviour
         textGO.transform.SetParent(buttonGO.transform, false);
         label = textGO.AddComponent<Text>();
         label.font = font;
-        label.fontSize = AllTextSize;
+        label.fontSize = BindingTextSize;
         label.color = Color.white;
         label.alignment = TextAnchor.MiddleCenter;
         RectTransform textRect = textGO.GetComponent<RectTransform>();
@@ -1346,8 +1366,8 @@ public class UISettingsMenu : GameBehaviour
         image.color = new Color(1f, 1f, 1f, 0.18f);
 
         LayoutElement layout = buttonGO.AddComponent<LayoutElement>();
-        layout.minHeight = BindingButtonHeight + 8f;
-        layout.preferredHeight = BindingButtonHeight + 8f;
+        layout.minHeight = BindingButtonHeight;
+        layout.preferredHeight = BindingButtonHeight;
         layout.flexibleWidth = 1f;
 
         GameObject textGO = new GameObject("Label", typeof(RectTransform));
@@ -1355,7 +1375,7 @@ public class UISettingsMenu : GameBehaviour
         Text text = textGO.AddComponent<Text>();
         text.text = localizationKey != null ? LocalizationManager.Get(localizationKey, labelText) : labelText;
         text.font = font;
-        text.fontSize = AllTextSize;
+        text.fontSize = ButtonTextSize;
         text.color = Color.white;
         text.alignment = TextAnchor.MiddleCenter;
         RectTransform textRect = textGO.GetComponent<RectTransform>();
@@ -1468,6 +1488,17 @@ public class UISettingsMenu : GameBehaviour
                 SaveSettingFloat(SaveKeys.FPS_SENSITIVITY_MULTIPLIER, multiplier);
                 UpdateValueTexts();
             });
+
+        if (fpsVerticalSensitivitySlider != null)
+            fpsVerticalSensitivitySlider.onValueChanged.AddListener(value =>
+            {
+                if (_input == null) _input = InputManager.Instance;
+                float multiplier = SliderToSensitivityMultiplier(value);
+                if (_input != null)
+                    _input.fpsLookVerticalSensitivityMultiplier = multiplier;
+                SaveSettingFloat(SaveKeys.FPS_VERTICAL_SENSITIVITY_MULTIPLIER, multiplier);
+                UpdateValueTexts();
+            });
     }
 
     private void HookFpsDropdown()
@@ -1527,6 +1558,7 @@ public class UISettingsMenu : GameBehaviour
         float ui = DefaultVolumeMultiplier;
         float tps = DefaultSensitivityMultiplier;
         float fps = DefaultSensitivityMultiplier;
+        float fpsVertical = DefaultSensitivityMultiplier;
 
         if (_sound != null)
         {
@@ -1538,7 +1570,10 @@ public class UISettingsMenu : GameBehaviour
         if (_input != null)
         {
             _input.tpsLookSensitivityMultiplier = tps;
+            fps = _input.GetDefaultFpsLookHorizontalSensitivityMultiplier();
             _input.fpsLookSensitivityMultiplier = fps;
+            fpsVertical = _input.GetDefaultFpsLookVerticalSensitivityMultiplier();
+            _input.fpsLookVerticalSensitivityMultiplier = fpsVertical;
         }
 
         LanguageManager.CurrentLanguage = DefaultLanguage;
@@ -1551,6 +1586,7 @@ public class UISettingsMenu : GameBehaviour
         SaveSettingFloat(SaveKeys.UI_VOLUME_MULTIPLIER, ui);
         SaveSettingFloat(SaveKeys.TPS_SENSITIVITY_MULTIPLIER, tps);
         SaveSettingFloat(SaveKeys.FPS_SENSITIVITY_MULTIPLIER, fps);
+        SaveSettingFloat(SaveKeys.FPS_VERTICAL_SENSITIVITY_MULTIPLIER, fpsVertical);
         SaveSettingInt(SaveKeys.LANGUAGE, (int)DefaultLanguage);
 
         SetSliderValue(ambientSlider, MultiplierToVolumeSlider(ambient));
@@ -1558,6 +1594,7 @@ public class UISettingsMenu : GameBehaviour
         SetSliderValue(uiSlider, MultiplierToVolumeSlider(ui));
         SetSliderValue(tpsSensitivitySlider, MultiplierToSensitivitySlider(tps));
         SetSliderValue(fpsSensitivitySlider, MultiplierToSensitivitySlider(fps));
+        SetSliderValue(fpsVerticalSensitivitySlider, MultiplierToSensitivitySlider(fpsVertical));
         UpdateValueTexts();
         RefreshFpsDropdown();
         RefreshLanguageDropdown();

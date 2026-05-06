@@ -6,9 +6,11 @@ public class MobileActionButtons : MonoBehaviour
     public GameObject primaryButton;
     public GameObject secondaryButton;
     public GameObject torchButton;
+    public GameObject crouchButton;
     public Image primaryButtonImage;
     public Image secondaryButtonImage;
     public Image torchButtonImage;
+    public Image crouchButtonImage;
     public Image torchIconImage;
     public Sprite torchIconEnabledSprite;
     public Sprite torchIconDisabledSprite;
@@ -17,6 +19,7 @@ public class MobileActionButtons : MonoBehaviour
     private InteractionController _interaction;
     private MobileButton _primaryMobileButton;
     private MobileButton _secondaryMobileButton;
+    private MobileButton _crouchMobileButton;
 
     private void Awake()
     {
@@ -51,6 +54,7 @@ public class MobileActionButtons : MonoBehaviour
             SetActive(primaryButton, true);
             SetActive(secondaryButton, false);
             SetActive(torchButton, false);
+            SetActive(crouchButton, false);
             SetButtonAction(ref _primaryMobileButton, primaryButton, MobileButton.Action.Grab);
             return;
         }
@@ -72,13 +76,16 @@ public class MobileActionButtons : MonoBehaviour
         bool canUseSecondaryButton = (canThrow && TutorialInputGate.IsAllowed(TutorialInputGate.AllowThrow))
             || (canUseSecondary && TutorialInputGate.IsAllowed(TutorialInputGate.AllowSecondary));
         bool canUseTorch = TutorialInputGate.IsAllowed(TutorialInputGate.AllowSecondary);
+        bool canUseCrouch = TutorialInputGate.IsAllowed(TutorialInputGate.AllowMovement);
 
         SetActive(primaryButton, canUsePrimary);
         SetActive(secondaryButton, canUseSecondaryButton);
         SetActive(torchButton, canUseTorch);
+        SetActive(crouchButton, canUseCrouch);
 
         SetButtonAction(ref _primaryMobileButton, primaryButton, hasObject ? MobileButton.Action.Drop : MobileButton.Action.Grab);
         SetButtonAction(ref _secondaryMobileButton, secondaryButton, canThrow ? MobileButton.Action.Throw : MobileButton.Action.Secondary);
+        SetButtonAction(ref _crouchMobileButton, crouchButton, MobileButton.Action.Crouch);
         UpdateTorchVisual();
     }
 
@@ -87,6 +94,7 @@ public class MobileActionButtons : MonoBehaviour
         SetActive(primaryButton, enabled);
         SetActive(secondaryButton, enabled && false);
         SetActive(torchButton, enabled && false);
+        SetActive(crouchButton, enabled && false);
     }
 
     private void EnsureReferences()
@@ -100,6 +108,9 @@ public class MobileActionButtons : MonoBehaviour
         if (torchButton == null)
             torchButton = FindOptional("Action_Torch");
 
+        if (crouchButton == null)
+            crouchButton = FindOptional("Action_Crouch");
+
         if (primaryButtonImage == null && primaryButton != null)
             primaryButtonImage = primaryButton.GetComponent<Image>();
 
@@ -108,6 +119,9 @@ public class MobileActionButtons : MonoBehaviour
 
         if (torchButtonImage == null && torchButton != null)
             torchButtonImage = torchButton.GetComponent<Image>();
+
+        if (crouchButtonImage == null && crouchButton != null)
+            crouchButtonImage = crouchButton.GetComponent<Image>();
 
         if (torchIconImage == null && torchButton != null)
         {
@@ -119,6 +133,7 @@ public class MobileActionButtons : MonoBehaviour
         _primaryMobileButton = GetOrAddMobileButton(primaryButton);
         _secondaryMobileButton = GetOrAddMobileButton(secondaryButton);
         GetOrAddMobileButton(torchButton);
+        _crouchMobileButton = GetOrAddMobileButton(crouchButton);
     }
 
     private void CacheSprites()

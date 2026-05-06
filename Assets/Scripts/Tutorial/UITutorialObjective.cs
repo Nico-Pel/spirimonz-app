@@ -22,12 +22,19 @@ public class UITutorialObjective : GameBehaviour
     public float loopDuration = 0.6f;
     public float loopIntervalMultiplier = 3f;
 
+    [Header("Tutorial Layout")]
+    [Range(0.7f, 1f)] public float controlsTutorialScale = 0.9f;
+    [Range(0.7f, 1f)] public float controlsTutorialTitleFontScale = 0.9f;
+
     private Vector3 _baseScale = Vector3.one;
+    private Vector3 _defaultBaseScale = Vector3.one;
     private Tween _attentionTween;
     private Color _baseTitleColor;
     private Color _baseProgressColor;
     private Color _baseProgressBoxColor;
     private bool _colorsCached;
+    private float _baseTitleFontSize;
+    private bool _titleFontCached;
 
     private void Awake()
     {
@@ -38,10 +45,31 @@ public class UITutorialObjective : GameBehaviour
             bounceTarget = transform as RectTransform;
 
         if (bounceTarget != null)
+        {
             _baseScale = bounceTarget.localScale;
+            _defaultBaseScale = _baseScale;
+        }
 
         ResolveProgressBox();
         CacheBaseColors();
+        CacheBaseFontSizes();
+    }
+
+    public void ApplyControlsTutorialLayout(bool enabled)
+    {
+        if (bounceTarget != null)
+        {
+            float scale = enabled ? controlsTutorialScale : 1f;
+            _baseScale = _defaultBaseScale * scale;
+            bounceTarget.localScale = _baseScale;
+        }
+
+        CacheBaseFontSizes();
+        if (tTitle != null && _titleFontCached)
+        {
+            float fontScale = enabled ? controlsTutorialTitleFontScale : 1f;
+            tTitle.fontSize = _baseTitleFontSize * fontScale;
+        }
     }
 
     public void ShowObjective(string title, int current, int goal)
@@ -185,6 +213,17 @@ public class UITutorialObjective : GameBehaviour
             _baseProgressBoxColor = progressBox.color;
 
         _colorsCached = true;
+    }
+
+    private void CacheBaseFontSizes()
+    {
+        if (_titleFontCached)
+            return;
+
+        if (tTitle != null)
+            _baseTitleFontSize = tTitle.fontSize;
+
+        _titleFontCached = true;
     }
 
     private void ResolveProgressBox()

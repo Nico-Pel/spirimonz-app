@@ -17,6 +17,14 @@ public class MobileLightOptimizerManager : MonoBehaviour
     public float disableDistance = 30f;
     public float viewDotThreshold = 0.2f;
 
+    [Header("House Overrides")]
+    public bool useHouseOverrides = true;
+    public float houseNearDistance = 14f;
+    public float houseShadowDisableDistance = 24f;
+    public float houseFarDistance = 34f;
+    public float houseDisableDistance = 42f;
+    public float houseViewDotThreshold = -0.1f;
+
     [Header("Performance")]
     public int lightsPerFrame = 25;
     public bool includeInactiveLights = true;
@@ -30,6 +38,21 @@ public class MobileLightOptimizerManager : MonoBehaviour
     public float budgetRefreshInterval = 0.25f;
     public float outOfViewPenalty = 5f;
     public bool budgetAffectsNearLights = false;
+    public int houseMaxNonGameplayLights = 18;
+    public float houseOutOfViewPenalty = 2f;
+    public bool houseBudgetAffectsNearLights = false;
+    public bool disableHouseLightBudget = true;
+
+    [Header("Stability")]
+    public float downgradeDelay = 0.45f;
+    public float disableOutOfViewDelay = 0.75f;
+    [Range(0.1f, 1f)] public float farRangeMultiplier = 0.88f;
+    public float houseDowngradeDelay = 1.5f;
+    public float houseDisableOutOfViewDelay = 2.5f;
+    [Range(0.1f, 1f)] public float houseFarRangeMultiplier = 1f;
+    public bool houseKeepBaseRenderMode = true;
+    public bool disableHouseFarLightDisable = true;
+    public bool disableHouseRangeReduction = true;
 
     private readonly List<MobileLightOptimizedLight> _lights = new List<MobileLightOptimizedLight>();
     private readonly HashSet<MobileLightOptimizedLight> _budgetAllowed = new HashSet<MobileLightOptimizedLight>();
@@ -229,6 +252,8 @@ public class MobileLightOptimizerManager : MonoBehaviour
             return true;
         if (light.IsGameplayLight)
             return true;
+        if (disableHouseLightBudget && UseHouseOverrideValues())
+            return true;
 
         return _budgetAllowed.Contains(light);
     }
@@ -241,6 +266,21 @@ public class MobileLightOptimizerManager : MonoBehaviour
 
         return scene.name.StartsWith("House");
     }
+
+    public float GetNearDistance() => UseHouseOverrideValues() ? houseNearDistance : nearDistance;
+    public float GetShadowDisableDistance() => UseHouseOverrideValues() ? houseShadowDisableDistance : shadowDisableDistance;
+    public float GetFarDistance() => UseHouseOverrideValues() ? houseFarDistance : farDistance;
+    public float GetDisableDistance() => UseHouseOverrideValues() ? houseDisableDistance : disableDistance;
+    public float GetViewDotThreshold() => UseHouseOverrideValues() ? houseViewDotThreshold : viewDotThreshold;
+    public int GetMaxNonGameplayLights() => UseHouseOverrideValues() ? houseMaxNonGameplayLights : maxNonGameplayLights;
+    public float GetOutOfViewPenalty() => UseHouseOverrideValues() ? houseOutOfViewPenalty : outOfViewPenalty;
+    public bool GetBudgetAffectsNearLights() => disableHouseLightBudget && UseHouseOverrideValues() ? false : (UseHouseOverrideValues() ? houseBudgetAffectsNearLights : budgetAffectsNearLights);
+    public float GetDowngradeDelay() => UseHouseOverrideValues() ? houseDowngradeDelay : downgradeDelay;
+    public float GetDisableOutOfViewDelay() => UseHouseOverrideValues() ? houseDisableOutOfViewDelay : disableOutOfViewDelay;
+    public float GetFarRangeMultiplier() => UseHouseOverrideValues() ? houseFarRangeMultiplier : farRangeMultiplier;
+    public bool GetKeepBaseRenderMode() => UseHouseOverrideValues() && houseKeepBaseRenderMode;
+    public bool ShouldDisableFarLights() => !UseHouseOverrideValues() || !disableHouseFarLightDisable;
+    public bool ShouldReduceRange() => !UseHouseOverrideValues() || !disableHouseRangeReduction;
 
     private void RestoreAll()
     {
@@ -267,7 +307,8 @@ public class MobileLightOptimizerManager : MonoBehaviour
 
     private void UpdateBudget(Vector3 targetPos, Vector3 targetForward)
     {
-        if (!useLightBudget || maxNonGameplayLights <= 0)
+        int lightBudget = GetMaxNonGameplayLights();
+        if (!useLightBudget || lightBudget <= 0 || (disableHouseLightBudget && UseHouseOverrideValues()))
         {
             _budgetAllowed.Clear();
             return;
@@ -292,15 +333,16 @@ public class MobileLightOptimizerManager : MonoBehaviour
 
             Vector3 toLight = light.targetLight.transform.position - targetPos;
             float dist = toLight.magnitude;
-            if (disableDistance > 0f && dist > disableDistance)
+            float maxDistance = GetDisableDistance();
+            if (maxDistance > 0f && dist > maxDistance)
                 continue;
 
             float score = dist;
             if (dist > 0.001f)
             {
                 float dot = Vector3.Dot(targetForward, toLight / dist);
-                if (dot < viewDotThreshold)
-                    score += outOfViewPenalty;
+                if (dot < GetViewDotThreshold())
+                    score += GetOutOfViewPenalty();
             }
 
             scores.Add(new LightScore(light, score));
@@ -308,9 +350,14 @@ public class MobileLightOptimizerManager : MonoBehaviour
 
         scores.Sort((a, b) => a.Score.CompareTo(b.Score));
 
-        int count = Mathf.Min(maxNonGameplayLights, scores.Count);
+        int count = Mathf.Min(lightBudget, scores.Count);
         for (int i = 0; i < count; i++)
             _budgetAllowed.Add(scores[i].Light);
+    }
+
+    private bool UseHouseOverrideValues()
+    {
+        return useHouseOverrides && IsHouseScene();
     }
 
     private readonly struct LightScore

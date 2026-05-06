@@ -9,6 +9,9 @@ using UnityEngine.Serialization;
 public class GameManager : GameBehaviour
 {
     public static GameManager Instance;
+    private const float DebugMoneyCheatWindowSeconds = 5f;
+    private const int DebugMoneySettingsPressTarget = 6;
+    private const int DebugMoneyAPressTarget = 5;
 
     public enum HouseSceneMode
     {
@@ -42,6 +45,9 @@ public class GameManager : GameBehaviour
     [Header("Title Screen")]
     public string titleScreenSceneName = "TitleScreen";
     public string defaultWorldSceneName = "World01";
+
+    [Header("House Loading Screen")]
+    public float houseLoadingScreenDuration = 5f;
     
     [Space]
 
@@ -58,15 +64,26 @@ public class GameManager : GameBehaviour
     private bool _firstLoad = true;
     private bool _isSavingGame;
     private readonly HashSet<string> _temporaryWorldSceneNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+    private bool _debugMoneyButtonRevealed;
+    private int _debugMoneySettingsPressCount;
+    private int _debugMoneyAPressCount;
+    private float _debugMoneyCheatStartTime = -1f;
 
     private InventoryManager _inventoryManager;
     private bool _isDead;
+    private bool _showHouseLoadingScreenOnNextScene;
 
     public UnityEvent onMoneyUpdated;
 
     private void Update()
     {
-        if (enableDebugMoneyButton && ((!MobileInput.Enabled && Input.GetKeyDown(KeyCode.Y)) || MobileInput.ConsumeYDown()))
+        if (IsDebugMoneyCheatExpired())
+            ResetDebugMoneyCheatSequence();
+
+        bool mobileDebugMoneyDown = MobileInput.Enabled &&
+                                    IsDebugMoneyButtonVisibleOnMobile() &&
+                                    MobileInput.ConsumeYDown();
+        if (enableDebugMoneyButton && ((!MobileInput.Enabled && Input.GetKeyDown(KeyCode.Y)) || mobileDebugMoneyDown))
         {
             AddMoney(100);
         }
@@ -211,9 +228,20 @@ public class GameManager : GameBehaviour
             if (!float.IsNaN(tps))
                 input.tpsLookSensitivityMultiplier = tps;
 
-            float fps = GetFloat(SaveKeys.FPS_SENSITIVITY_MULTIPLIER, float.NaN);
-            if (!float.IsNaN(fps))
-                input.fpsLookSensitivityMultiplier = fps;
+            float defaultFpsHorizontal = input.GetDefaultFpsLookHorizontalSensitivityMultiplier();
+            float defaultFpsVertical = input.GetDefaultFpsLookVerticalSensitivityMultiplier();
+            float savedFpsHorizontal = GetFloat(SaveKeys.FPS_SENSITIVITY_MULTIPLIER, float.NaN);
+            float savedFpsVertical = GetFloat(SaveKeys.FPS_VERTICAL_SENSITIVITY_MULTIPLIER, float.NaN);
+
+            float resolvedFpsHorizontal = !float.IsNaN(savedFpsHorizontal)
+                ? savedFpsHorizontal
+                : defaultFpsHorizontal;
+            float resolvedFpsVertical = !float.IsNaN(savedFpsVertical)
+                ? savedFpsVertical
+                : (!float.IsNaN(savedFpsHorizontal) ? savedFpsHorizontal * defaultFpsVertical : defaultFpsVertical);
+
+            input.fpsLookSensitivityMultiplier = resolvedFpsHorizontal;
+            input.fpsLookVerticalSensitivityMultiplier = resolvedFpsVertical;
         }
 
         int langIndex = GetInt(SaveKeys.LANGUAGE, -1);
@@ -222,7 +250,12 @@ public class GameManager : GameBehaviour
             Language[] languages = (Language[])Enum.GetValues(typeof(Language));
             if (langIndex < languages.Length)
                 LanguageManager.CurrentLanguage = languages[langIndex];
+            return;
         }
+
+        Language detectedLanguage = LanguageManager.GetBestAvailableLanguageForSystem(Application.systemLanguage);
+        LanguageManager.CurrentLanguage = detectedLanguage;
+        SetInt(SaveKeys.LANGUAGE, (int)detectedLanguage);
     }
 
     private void OnValidate()
@@ -471,6 +504,13 @@ public class GameManager : GameBehaviour
     public void LoadScene(string sceneName, bool exitHouse = false)
     {
         isLoadingFromHouse = exitHouse;
+        _showHouseLoadingScreenOnNextScene = IsHouseSceneName(sceneName);
+
+        if (_showHouseLoadingScreenOnNextScene)
+        {
+            player?.LockControls(true);
+            UIGame.Instance?.EnableOverlay(true, 0f);
+        }
 
         SceneManager.sceneLoaded -= OnSceneLoaded;
         SceneManager.sceneLoaded += OnSceneLoaded;
@@ -500,6 +540,18 @@ public class GameManager : GameBehaviour
         nextHouseSceneMode = HouseSceneMode.NormalMap;
         return mode;
     }
+
+    public bool TryConsumePendingHouseLoadingScreen(string sceneName, out float duration)
+    {
+        duration = 0f;
+
+        if (!_showHouseLoadingScreenOnNextScene || !IsHouseSceneName(sceneName))
+            return false;
+
+        _showHouseLoadingScreenOnNextScene = false;
+        duration = Mathf.Max(0f, houseLoadingScreenDuration);
+        return true;
+    }
     
     /// <summary>Met à jour l'état d'un Spirimonz dans la team</summary>
     public void SetSpirimonzInTeam(string spirimonzID, int position, bool inTeam)
@@ -521,6 +573,42 @@ public class GameManager : GameBehaviour
             spData.unlocked = true;
             SaveGame();
         }
+    }
+
+    public void UnlockSpirimonzSkin(string spirimonzID)
+    {
+        SpirimonzData spData = Array.Find(gameData.spirimonzCollection, s => s.id == spirimonzID);
+        if (spData == null)
+            return;
+
+        spData.skinUnlocked = true;
+        spData.useSkin = true;
+        SaveGame();
+    }
+
+    public bool IsSpirimonzSkinUnlocked(string spirimonzID)
+    {
+        SpirimonzData spData = Array.Find(gameData.spirimonzCollection, s => s.id == spirimonzID);
+        return spData != null && spData.skinUnlocked;
+    }
+
+    public bool IsUsingSpirimonzSkin(string spirimonzID)
+    {
+        SpirimonzData spData = Array.Find(gameData.spirimonzCollection, s => s.id == spirimonzID);
+        return spData != null && spData.useSkin;
+    }
+
+    public void SetUseSpirimonzSkin(string spirimonzID, bool useSkin)
+    {
+        SpirimonzData spData = Array.Find(gameData.spirimonzCollection, s => s.id == spirimonzID);
+        if (spData == null)
+            return;
+
+        if (!spData.skinUnlocked)
+            useSkin = false;
+
+        spData.useSkin = useSkin;
+        SaveGame();
     }
 
     public bool IsSpirimonzCaptured(string spirimonzID)
@@ -643,6 +731,12 @@ public class GameManager : GameBehaviour
 
     public bool IsWorld() => _isWorld;
     public GameData GetGameData() => gameData;
+
+    public bool IsHouseSceneName(string sceneName)
+    {
+        return !string.IsNullOrEmpty(sceneName) &&
+               sceneName.StartsWith("House", StringComparison.OrdinalIgnoreCase);
+    }
 
     public bool IsTitleScreenScene(string sceneName)
     {
@@ -1107,5 +1201,65 @@ public class GameManager : GameBehaviour
 
         SetInt(SaveKeys.GOLD, GetInt(SaveKeys.GOLD) + value);
         onMoneyUpdated?.Invoke();
+    }
+
+    public bool IsDebugMoneyButtonVisibleOnMobile()
+    {
+        return enableDebugMoneyButton && _debugMoneyButtonRevealed;
+    }
+
+    public void RegisterDebugMoneySettingsPress()
+    {
+        if (!MobileInput.Enabled)
+            return;
+
+        if (IsDebugMoneyCheatExpired())
+            ResetDebugMoneyCheatSequence();
+
+        if (_debugMoneySettingsPressCount <= 0 || _debugMoneySettingsPressCount >= DebugMoneySettingsPressTarget)
+        {
+            _debugMoneyCheatStartTime = Time.unscaledTime;
+            _debugMoneySettingsPressCount = 0;
+            _debugMoneyAPressCount = 0;
+        }
+
+        _debugMoneySettingsPressCount = Mathf.Min(DebugMoneySettingsPressTarget, _debugMoneySettingsPressCount + 1);
+        if (_debugMoneySettingsPressCount < DebugMoneySettingsPressTarget)
+            _debugMoneyAPressCount = 0;
+    }
+
+    public void RegisterDebugMoneyAPress()
+    {
+        if (!MobileInput.Enabled)
+            return;
+
+        if (IsDebugMoneyCheatExpired())
+        {
+            ResetDebugMoneyCheatSequence();
+            return;
+        }
+
+        if (_debugMoneySettingsPressCount < DebugMoneySettingsPressTarget)
+            return;
+
+        _debugMoneyAPressCount++;
+        if (_debugMoneyAPressCount < DebugMoneyAPressTarget)
+            return;
+
+        _debugMoneyButtonRevealed = true;
+        ResetDebugMoneyCheatSequence();
+    }
+
+    private bool IsDebugMoneyCheatExpired()
+    {
+        return _debugMoneyCheatStartTime >= 0f &&
+               Time.unscaledTime - _debugMoneyCheatStartTime > DebugMoneyCheatWindowSeconds;
+    }
+
+    private void ResetDebugMoneyCheatSequence()
+    {
+        _debugMoneySettingsPressCount = 0;
+        _debugMoneyAPressCount = 0;
+        _debugMoneyCheatStartTime = -1f;
     }
 }

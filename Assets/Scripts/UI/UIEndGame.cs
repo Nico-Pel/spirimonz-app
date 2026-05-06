@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using TMPro;
 using UnityEngine.UI;
+using YsoCorp.GameUtils;
 
 public class UIEndGame : GameBehaviour
 {
@@ -42,6 +43,12 @@ public class UIEndGame : GameBehaviour
     public Transform uiLootPos;
     public UILootRecap uiLootPrefab;
     
+    [Header("Rewarded Bonus")]
+    public Button bRewardedBonus;
+    public TextMeshProUGUI tRewardedBonus;
+    [Min(0)] public int minimumRewardedPayout = 50;
+    [Min(0.1f)] public float rewardedButtonRefreshInterval = 0.5f;
+
     public Button bContinue;
     public float uninteractableTime = 3f;
 
@@ -53,9 +60,17 @@ public class UIEndGame : GameBehaviour
     public SoundParameters retrySound;
 
     private bool _soundHooksDone;
-
+    private Button _runtimeRewardedBonusButton;
+    private TextMeshProUGUI _runtimeRewardedBonusText;
+    private int _basePayout;
+    private int _selectedPayout;
+    private int _rewardedPayout;
+    private bool _rewardApplied;
     public void SetTexts(EndTypes endType, House house)
     {
+        _rewardApplied = false;
+        CancelInvoke(nameof(RefreshRewardedButtonState));
+
         tHouseName.text = house.map.GetLocalizedName();
         
         string victoryText = null;
@@ -87,6 +102,9 @@ public class UIEndGame : GameBehaviour
             rewardMultiplier = 3;
 
         List<Article> articlesFound = house.currentPlayer.inventoryManager.articlesFoundInGame;
+
+        for (int i = uiLootPos.childCount - 1; i >= 0; i--)
+            Destroy(uiLootPos.GetChild(i).gameObject);
 
 // 1️⃣ Regroup article
         Dictionary<Article, int> groupedArticles = new Dictionary<Article, int>();
@@ -131,23 +149,42 @@ public class UIEndGame : GameBehaviour
         }
 
         tTotal.text = totalValue + "$";
-        GameManager.Instance.AddMoney(totalValue);
+        _basePayout = totalValue;
+        _rewardedPayout = Mathf.Max(_basePayout * 2, minimumRewardedPayout);
+        _selectedPayout = _basePayout;
+
+        EnsureRewardedBonusButton();
+        RefreshRewardedButtonLabel();
+        RefreshRewardedButtonState();
+        if (ShouldShowRewardedBonus())
+            InvokeRepeating(nameof(RefreshRewardedButtonState), 0f, rewardedButtonRefreshInterval);
 
         bContinue.interactable = false;
         this.Invoke(uninteractableTime, () => bContinue.interactable = true);
+        bContinue.onClick.RemoveAllListeners();
         bContinue.onClick.AddListener(() =>
         {
             if (continueSound != null)
                 continueSound.PlaySound();
+
+            CommitSelectedPayout();
 
             bool useDeadAnimation = endType == EndTypes.Lose;
             if (TutorialManager.Instance != null &&
                 (TutorialManager.Instance.IsTraining || TutorialManager.Instance.IsControlsTutorial))
                 useDeadAnimation = false;
 
-            house.houseEntry.Entry(house.currentPlayer, useDeadAnimation);
-            house.currentPlayer.inventoryManager.articlesFoundInGame.Clear();
-            UIGame.Instance.CloseAllWindows();
+            Action exitAction = () =>
+            {
+                house.houseEntry.Entry(house.currentPlayer, useDeadAnimation);
+                house.currentPlayer.inventoryManager.articlesFoundInGame.Clear();
+                UIGame.Instance.CloseAllWindows();
+            };
+
+            if (ShouldUseMobileMonetization() && YCManager.instance != null && YCManager.instance.adsManager != null)
+                YCManager.instance.adsManager.ShowInterstitial(exitAction);
+            else
+                exitAction();
         });
     }
 
@@ -175,7 +212,116 @@ public class UIEndGame : GameBehaviour
     
     private void OnDisable()
     {
+        CancelInvoke(nameof(RefreshRewardedButtonState));
         UIGame.Instance.tablet.bClose.gameObject.SetActive(true);
+    }
+
+    private void EnsureRewardedBonusButton()
+    {
+        if (bContinue == null)
+            return;
+
+        if (bRewardedBonus == null)
+        {
+            if (_runtimeRewardedBonusButton == null)
+            {
+                GameObject clone = Instantiate(bContinue.gameObject, bContinue.transform.parent);
+                clone.name = "bRewardedBonus";
+                clone.transform.SetSiblingIndex(Mathf.Max(0, bContinue.transform.GetSiblingIndex()));
+
+                _runtimeRewardedBonusButton = clone.GetComponent<Button>();
+                _runtimeRewardedBonusButton.onClick.RemoveAllListeners();
+
+                TextMeshProUGUI text = clone.GetComponentInChildren<TextMeshProUGUI>(true);
+                _runtimeRewardedBonusText = text;
+                if (_runtimeRewardedBonusText != null)
+                    _runtimeRewardedBonusText.text = "x2 0$";
+            }
+
+            bRewardedBonus = _runtimeRewardedBonusButton;
+            tRewardedBonus = _runtimeRewardedBonusText;
+        }
+
+        if (bRewardedBonus != null)
+        {
+            bRewardedBonus.onClick.RemoveAllListeners();
+            bRewardedBonus.onClick.AddListener(OnRewardedBonusPressed);
+        }
+    }
+
+    private void OnRewardedBonusPressed()
+    {
+        if (!ShouldShowRewardedBonus() || _rewardApplied)
+            return;
+
+        bRewardedBonus.interactable = false;
+        MobileMonetizationManager store = MobileMonetizationManager.Instance;
+        store.ShowRewardedOrConsumeTicket(rewardGranted =>
+        {
+            if (rewardGranted)
+            {
+                _rewardApplied = true;
+                _selectedPayout = _rewardedPayout;
+                tTotal.text = _selectedPayout + "$";
+                RefreshRewardedButtonLabel();
+                RefreshRewardedButtonState();
+            }
+            else
+            {
+                RefreshRewardedButtonState();
+            }
+        });
+    }
+
+    private void RefreshRewardedButtonLabel()
+    {
+        if (tRewardedBonus == null)
+            return;
+
+        int displayAmount = _rewardApplied ? _selectedPayout : _rewardedPayout;
+        tRewardedBonus.text = $"{displayAmount}$";
+    }
+
+    private void RefreshRewardedButtonState()
+    {
+        if (bRewardedBonus == null)
+            return;
+
+        bool shouldShow = ShouldShowRewardedBonus();
+        bRewardedBonus.gameObject.SetActive(shouldShow);
+
+        if (!shouldShow)
+            return;
+
+        if (_rewardApplied)
+        {
+            bRewardedBonus.interactable = false;
+            return;
+        }
+
+        bool rewardedReady = YCManager.instance != null &&
+                            YCManager.instance.adsManager != null &&
+                            YCManager.instance.adsManager.IsRewardedAdReady();
+        bRewardedBonus.interactable = rewardedReady;
+    }
+
+    private bool ShouldShowRewardedBonus()
+    {
+        return ShouldUseMobileMonetization() && _basePayout > 0;
+    }
+
+    private bool ShouldUseMobileMonetization()
+    {
+        return MobileInput.Enabled || Application.isMobilePlatform;
+    }
+
+    private void CommitSelectedPayout()
+    {
+        if (_selectedPayout <= 0)
+            return;
+
+        GameManager.Instance.AddMoney(_selectedPayout);
+        _selectedPayout = 0;
     }
 
 #if UNITY_EDITOR

@@ -34,6 +34,10 @@ public class SpmzPyjamag : SpmzPropEater
         if (!lockRotationToYAxis)
             return;
 
+        // In hands, the hand anchor owns the pose. Do not flatten world rotation there.
+        if (!isOnTheMap)
+            return;
+
         Vector3 euler = transform.rotation.eulerAngles;
         if (Mathf.Abs(euler.x) > 0.01f || Mathf.Abs(euler.z) > 0.01f)
         {

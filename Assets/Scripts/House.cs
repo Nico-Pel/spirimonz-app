@@ -136,8 +136,11 @@ public class House : GameBehaviour
     private void Start()
     {
         houseStartTime = Time.time;
-        UIGame.Instance.EnableOverlay(true, 0);
-        UIGame.Instance.EnableOverlay(false, 3);
+        if (UIGame.Instance != null && !UIGame.Instance.IsBlockingHouseLoadingScreenActive)
+        {
+            UIGame.Instance.EnableOverlay(true, 0);
+            UIGame.Instance.EnableOverlay(false, 3);
+        }
     }
 
     public float GetElapsedMinutes()

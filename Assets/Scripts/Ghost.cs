@@ -38,6 +38,7 @@ public class Ghost : GameBehaviour
     public GhostActivities tutorialForcedActivity = GhostActivities.Nothing;
     public bool tutorialAllowHunt = true;
     public bool tutorialAllowRoomChange = true;
+    [Range(0.1f, 1f)] public float mobileMovementSpeedMultiplier = 0.75f;
 
     public enum GhostState
     {
@@ -671,6 +672,7 @@ public class Ghost : GameBehaviour
                 {
                     speed *= 1.5f;
                 }
+                speed *= GetMobileMovementSpeedMultiplier();
                 speed *= GetExternalHuntSpeedMultiplier();
                 agent.speed = speed;
                 animator.SetBool("Walk", true);
@@ -872,7 +874,7 @@ public class Ghost : GameBehaviour
         }
 
         float baseSpeed = ghostParameters != null ? ghostParameters.targetingSpeedBase : 1f;
-        float moveSpeed = Mathf.Max(0.1f, baseSpeed * phaseMoveSpeedMultiplier);
+        float moveSpeed = Mathf.Max(0.1f, baseSpeed * phaseMoveSpeedMultiplier * GetMobileMovementSpeedMultiplier());
 
         Vector3 targetPos = house.currentPlayer.transform.position;
         targetPos.y = transform.position.y;
@@ -953,6 +955,7 @@ public class Ghost : GameBehaviour
                 if (currentState != GhostState.huntingState || currentState != GhostState.standingState)
                 {
                     agent.speed = ghostParameters.hidingSpeedBase;
+                    agent.speed *= GetMobileMovementSpeedMultiplier();
                 }
             
                 SelectNewHidingWaypoint();
@@ -1004,7 +1007,7 @@ public class Ghost : GameBehaviour
         ghostModel.SetActive(false);
 
         //Ghost go back to its room
-        agent.speed = ghostParameters.normalSpeedBase;
+        agent.speed = ghostParameters.normalSpeedBase * GetMobileMovementSpeedMultiplier();
         
         float nextActivityTime = Random.Range(averageActivityTime - activityTimeVariation, averageActivityTime + activityTimeVariation);
         
@@ -2178,6 +2181,11 @@ public class Ghost : GameBehaviour
         }
 
         return Mathf.Clamp(1f - _externalHuntSlowPercent, 0.05f, 1f);
+    }
+
+    private float GetMobileMovementSpeedMultiplier()
+    {
+        return MobileInput.Enabled ? Mathf.Clamp(mobileMovementSpeedMultiplier, 0.1f, 1f) : 1f;
     }
 
     private void ResetExternalHuntSlow()

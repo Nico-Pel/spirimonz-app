@@ -34,4 +34,29 @@ public static class LanguageManager
             OnLanguageChanged?.Invoke(_currentLanguage);
         }
     }
+
+    public static Language GetBestAvailableLanguageForSystem(SystemLanguage systemLanguage)
+    {
+        switch (systemLanguage)
+        {
+            case SystemLanguage.French:
+                return Language.French;
+            case SystemLanguage.Spanish:
+                return Language.Spanish;
+            case SystemLanguage.Portuguese:
+                return Language.Portuguese;
+            case SystemLanguage.Italian:
+                return Language.Italian;
+            case SystemLanguage.German:
+                return Language.German;
+            case SystemLanguage.Polish:
+                return Language.Polish;
+            case SystemLanguage.Turkish:
+                return Language.Turkish;
+            case SystemLanguage.Indonesian:
+                return Language.Indonesian;
+            default:
+                return Language.English;
+        }
+    }
 }

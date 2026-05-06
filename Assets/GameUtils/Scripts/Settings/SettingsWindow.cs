@@ -58,7 +58,7 @@ namespace YsoCorp {
 #if !IN_APP_PURCHASING || UNITY_ANDROID && !UNITY_EDITOR 
                 this.bRestorePurchase.gameObject.SetActive(false);
 #else
-                this.bRestorePurchase.gameObject.SetActive(this.ycManager.ycConfig.HasInApps());
+                this.bRestorePurchase.gameObject.SetActive(this.ycManager.ycConfig.HasInApps() && Application.isMobilePlatform);
 #endif
                 this.bRestorePurchase.onClick.AddListener(() => {
                     this.ycManager.inAppManager.RestorePurchases();

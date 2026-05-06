@@ -64,6 +64,13 @@ public class Player : GameBehaviour
 
     protected virtual void Update()
     {
+        if (UIGame.Instance != null &&
+            UIGame.Instance.settingsMenu != null &&
+            UIGame.Instance.settingsMenu.IsOpen)
+        {
+            return;
+        }
+
         if (_canStartDialogue && detectNPC && IsLocked() == false)
         {
             DetectNPC();
@@ -71,7 +78,7 @@ public class Player : GameBehaviour
             bool allowInteract = TutorialInputGate.IsAllowed(TutorialInputGate.AllowInteract);
             bool mobileNpcInteractDown = false;
             if (MobileInput.Enabled && currentNPC != null)
-                mobileNpcInteractDown = MobileInput.GrabDown || MobileInput.PrimaryDown || MobileInput.ConsumeGrabDown() || MobileInput.ConsumePrimaryDown();
+                mobileNpcInteractDown = MobileInput.GrabDown || MobileInput.ConsumeGrabDown();
 
             if (allowInteract && currentNPC != null && ((!MobileInput.Enabled && inputManager.GetWorldInteractionDown()) || mobileNpcInteractDown))
             {

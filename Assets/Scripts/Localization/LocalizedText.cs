@@ -30,7 +30,12 @@ public class LocalizedText : MonoBehaviour
         if (_text == null)
             return;
 
-        _text.text = LocalizationManager.Get(key, fallback);
+        string value = LocalizationManager.Get(key, fallback);
+        InputManager input = InputManager.Instance;
+        if (input != null)
+            value = input.ReplaceInputTokens(value);
+
+        _text.text = value;
     }
 
     private void HandleLanguageChanged(Language lang)

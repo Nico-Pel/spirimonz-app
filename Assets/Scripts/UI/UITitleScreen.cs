@@ -24,6 +24,7 @@ public class UITitleScreen : GameBehaviour
     private bool _layoutCached;
     private Rect _lastSafeArea;
     private Vector2Int _lastScreenSize;
+    private UISettingsMenu _settingsMenu;
 
     private void Awake()
     {
@@ -44,6 +45,7 @@ public class UITitleScreen : GameBehaviour
     {
         RefreshSlots();
         ApplyResponsiveLayout();
+        EnsureSettingsMenu();
 
 #if UNITY_EDITOR
         if (LoadScenePolicyPreview.ConsumePendingPoliciesRequest())
@@ -135,6 +137,43 @@ public class UITitleScreen : GameBehaviour
         {
             ApplyResponsiveLayout();
         }
+
+        HandleSettingsToggle();
+    }
+
+    private void HandleSettingsToggle()
+    {
+        bool mobileMode = Application.isMobilePlatform || (_gameManager != null && _gameManager.mobileControlsEnabled);
+        bool toggleDown = (!mobileMode && Input.GetKeyDown(KeyCode.Escape)) || MobileInput.ExitMenusDown;
+        if (!toggleDown)
+            return;
+
+        ToggleSettingsMenu();
+    }
+
+    public void ToggleSettingsMenu()
+    {
+        UISettingsMenu settingsMenu = EnsureSettingsMenu();
+        if (settingsMenu == null)
+            return;
+
+        settingsMenu.Toggle();
+    }
+
+    private UISettingsMenu EnsureSettingsMenu()
+    {
+        if (_settingsMenu != null)
+            return _settingsMenu;
+
+        Transform root = transform.parent != null ? transform.parent : transform;
+        _settingsMenu = root.GetComponentInChildren<UISettingsMenu>(true);
+        if (_settingsMenu != null)
+            return _settingsMenu;
+
+        GameObject go = new GameObject("UISettingsMenu", typeof(RectTransform));
+        go.transform.SetParent(root, false);
+        _settingsMenu = go.AddComponent<UISettingsMenu>();
+        return _settingsMenu;
     }
 
     private void ApplyResponsiveLayout()

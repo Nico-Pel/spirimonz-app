@@ -130,6 +130,7 @@ public class Spirimonz : GameBehaviour, IInteractable
         _baseHidingOrbPos = hidingGameObject.transform.localPosition;
         _house = House.Instance;
         InitSpirimonz();
+        ApplySavedSkin();
     }
 
     public virtual void InitSpirimonz()
@@ -147,6 +148,20 @@ public class Spirimonz : GameBehaviour, IInteractable
         
         EnableSpirimonz(false);
         _initialized = true;
+    }
+
+    public void ApplySavedSkin()
+    {
+        if (settings == null)
+            return;
+
+        bool useSkin = false;
+        GameManager gameManager = GameManager.Instance;
+        if (gameManager != null)
+            useSkin = gameManager.IsUsingSpirimonzSkin(settings.spirimonzID) &&
+                      gameManager.IsSpirimonzSkinUnlocked(settings.spirimonzID);
+
+        SkinRenderer.ApplySkin(gameObject, settings.skinMat, useSkin);
     }
 
     protected virtual void OnEnable()

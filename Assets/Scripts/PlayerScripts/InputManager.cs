@@ -52,6 +52,26 @@ public class InputManager : GameBehaviour
     [Header("Sensitivity Multipliers")]
     [Range(0.2f, 3f)] public float tpsLookSensitivityMultiplier = 1f;
     [Range(0.2f, 3f)] public float fpsLookSensitivityMultiplier = 1f;
+    [Range(0.2f, 3f)] public float fpsLookVerticalSensitivityMultiplier = 1f;
+
+    public const float DefaultLookSensitivityMultiplier = 1f;
+    public const float DefaultMobileFpsLookHorizontalSensitivityMultiplier = 0.5f;
+    public const float DefaultMobileFpsLookVerticalSensitivityMultiplier = 0.2f;
+
+    public float GetDefaultFpsLookHorizontalSensitivityMultiplier()
+    {
+        if (MobileInput.Enabled || Application.isMobilePlatform)
+            return DefaultMobileFpsLookHorizontalSensitivityMultiplier;
+
+        return DefaultLookSensitivityMultiplier;
+    }
+
+    public float GetDefaultFpsLookVerticalSensitivityMultiplier()
+    {
+        return (MobileInput.Enabled || Application.isMobilePlatform)
+            ? DefaultMobileFpsLookVerticalSensitivityMultiplier
+            : DefaultLookSensitivityMultiplier;
+    }
 
     public struct BindingDefinition
     {
@@ -377,6 +397,9 @@ public class InputManager : GameBehaviour
 
     private string GetMobileSlotDisplay(int index)
     {
+        if (index == 0)
+            return GetMobileLabel("input.mobile.lamp", "Lamp");
+
         return LocalizationManager.Format("input.mobile.slot", index + 1);
     }
 

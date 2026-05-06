@@ -144,6 +144,7 @@ public class GhostInvestigator : GameBehaviour
         House.Instance.currentGhost.LockGhost();
 
         UIGame uiGame = UIGame.Instance;
+        uiGame.SetCaptureUiHidden(true);
         uiGame.EnablePointer(false);
         uiGame.EnableOverlay(true, fadeDuration);
         

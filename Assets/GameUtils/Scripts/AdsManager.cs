@@ -2,6 +2,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace YsoCorp {
     namespace GameUtils {
@@ -54,6 +55,12 @@ namespace YsoCorp {
             private float _onDisplayTimeScale;
 
             private Dictionary<string, double> _tooSmallRevenuesRR;
+            private static readonly HashSet<string> ReducedInterstitialDelayCountries = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+            {
+                "IN", "ID", "BR", "TH"
+            };
+            private const float DefaultInterstitialDelaySeconds = 600f;
+            private const float ReducedInterstitialDelaySeconds = 300f;
 
             private void Awake() {
                 this.ycManager.adsManager = this;
@@ -109,6 +116,12 @@ namespace YsoCorp {
             private void OnSdkInitializedEvent(MaxSdkBase.SdkConfiguration sdkConfiguration) {
                 this._sdkConfiguration = sdkConfiguration;
                 this.ycManager.mmpManager.Init();
+                if (!ShouldUseMobileMonetization()) {
+                    this.iBanner.gameObject.SetActive(false);
+                    this.iInterstitial.gameObject.SetActive(false);
+                    this.bRemoveAds.gameObject.SetActive(false);
+                    return;
+                }
                 this.InitAds();
             }
 
@@ -120,6 +133,7 @@ namespace YsoCorp {
 
             private void Update() {
                 this.bRemoveAds.gameObject.SetActive(
+                    this.ShouldUseMobileMonetization() &&
                     this.ycManager.ycConfig.InAppRemoveAdsCanRemoveInBanner &&
                     this.ycManager.ycConfig.InAppRemoveAds != "" &&
                     this.ycManager.dataManager.GetAdsShow()
@@ -163,6 +177,9 @@ namespace YsoCorp {
             }
 
             public void DisplayGDPR() {
+                if (!ShouldUseMobileMonetization()) {
+                    return;
+                }
                 if (MaxSdk.GetSdkConfiguration().ConsentFlowUserGeography == MaxSdkBase.ConsentFlowUserGeography.Gdpr) {
                     MaxSdk.CmpService.ShowCmpForExistingUser(error => {
                         if (error != null) {
@@ -285,6 +302,10 @@ namespace YsoCorp {
             /// <param name="action">The action to be called when the ad closes</param>
             /// <returns>Returns true if an ad was successfully displayed.</returns>
             public bool ShowRewarded(Action<bool> action) {
+                if (!this.ShouldUseMobileMonetization()) {
+                    action?.Invoke(false);
+                    return false;
+                }
                 this._aRewarded = action;
                 if (this.IsRewardedAdReady()) {
                     this._finishRewarded = false;
@@ -304,7 +325,7 @@ namespace YsoCorp {
                 } else if (this.delayInterstitialOverride >= 0) {
                     return this.delayInterstitialOverride;
                 } else {
-                    return this.ycManager.ycConfig.InterstitialInterval;
+                    return this.GetCountryBasedInterstitialDelay();
                 }
             }
 
@@ -395,6 +416,10 @@ namespace YsoCorp {
             /// <param name="force">Set to true to ignore the global interstitial delay</param>
             /// <returns>Returns true if an ad was successfully displayed.</returns>
             public bool ShowInterstitial(Action action = null, float delay = -1f, bool force = false) {
+                if (!this.ShouldUseMobileMonetization()) {
+                    action?.Invoke();
+                    return false;
+                }
                 if (this.IsInterstitial(force)) {
                     this.iInterstitial.gameObject.SetActive(delay >= 0f);
                     this._aInterstitial = action;
@@ -444,6 +469,23 @@ namespace YsoCorp {
                     }
                     MaxSdkCallbacks.Banner.OnAdRevenuePaidEvent += this.OnAdRevenuePaidEventFirebase;
                 }
+            }
+
+            private float GetCountryBasedInterstitialDelay() {
+                string countryCode = "";
+                if (this._sdkConfiguration != null && string.IsNullOrWhiteSpace(this._sdkConfiguration.CountryCode) == false) {
+                    countryCode = this._sdkConfiguration.CountryCode.Trim().ToUpperInvariant();
+                }
+
+                if (ReducedInterstitialDelayCountries.Contains(countryCode)) {
+                    return ReducedInterstitialDelaySeconds;
+                }
+
+                return DefaultInterstitialDelaySeconds;
+            }
+
+            private bool ShouldUseMobileMonetization() {
+                return Application.isMobilePlatform;
             }
 
             private void CreateMaxBanner() {
