@@ -252,7 +252,7 @@ public class InteractionController : GameBehaviour
         bool allowDrop = TutorialInputGate.IsAllowed(TutorialInputGate.AllowDrop);
         bool allowThrow = TutorialInputGate.IsAllowed(TutorialInputGate.AllowThrow);
 
-        if (TryHandleMobileDirectClickableTap(allowInteract))
+        if (TryHandleMobileDirectTap(allowInteract))
             return;
 
         if (_currentTarget != null)
@@ -327,7 +327,7 @@ public class InteractionController : GameBehaviour
         }
     }
 
-    private bool TryHandleMobileDirectClickableTap(bool allowInteract)
+    private bool TryHandleMobileDirectTap(bool allowInteract)
     {
         if (!MobileInput.Enabled || !allowInteract || !MobileInput.PrimaryDown || !MobileInput.HasPrimaryScreenPos)
             return false;
@@ -337,6 +337,12 @@ public class InteractionController : GameBehaviour
                                   (_targetedDoor != null && !_targetedDoor.InteractionLocked);
         if (cursorActiveOnCenterTarget || cursorActiveOnDoor)
             return false;
+
+        if (TryGetDoorUnderScreenPoint(MobileInput.PrimaryScreenPos, out Door tappedDoor))
+        {
+            tappedDoor.ToggleOpenClosed();
+            return true;
+        }
 
         if (!TryGetClickableUnderScreenPoint(MobileInput.PrimaryScreenPos, out ClickableObject clickable))
             return false;

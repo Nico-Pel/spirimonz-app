@@ -321,6 +321,35 @@ public sealed class MobileMonetizationManager : MonoBehaviour
         return result;
     }
 
+    public bool CanRestorePurchases()
+    {
+        if (!ShouldUseMobileStore())
+            return false;
+
+        YCManager ycManager = YCManager.instance;
+        return ycManager != null &&
+               ycManager.ycConfig != null &&
+               ycManager.ycConfig.HasInApps() &&
+               ycManager.inAppManager != null;
+    }
+
+    public bool RestorePurchases()
+    {
+        if (!CanRestorePurchases())
+            return false;
+
+        InAppManager inAppManager = YCManager.instance != null ? YCManager.instance.inAppManager : null;
+        if (inAppManager == null)
+            return false;
+
+        MethodInfo restoreMethod = inAppManager.GetType().GetMethod("RestorePurchases", Type.EmptyTypes);
+        if (restoreMethod == null)
+            return false;
+
+        restoreMethod.Invoke(inAppManager, null);
+        return true;
+    }
+
     public bool ShowRewardedOrConsumeTicket(Action<bool> callback)
     {
         if (!ShouldUseMobileStore())

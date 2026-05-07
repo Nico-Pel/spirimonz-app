@@ -37,8 +37,9 @@ public class MobileKeyButtonsVisibility : MonoBehaviour
         bool tabletOpen = UIGame.Instance != null &&
                           UIGame.Instance.tablet != null &&
                           UIGame.Instance.tablet.gameObject.activeSelf;
+        bool captureUiHidden = UIGame.Instance != null && UIGame.Instance.IsCaptureUiHidden;
         bool showDebugMoney = GameManager.Instance != null && GameManager.Instance.IsDebugMoneyButtonVisibleOnMobile();
-        bool showOtherTopButtons = !settingsOpen && !tabletOpen;
+        bool showOtherTopButtons = !settingsOpen && !tabletOpen && !captureUiHidden;
         bool useMobileUi = MobileInput.Enabled ||
                            Application.isMobilePlatform ||
                            (GameManager.Instance != null && GameManager.Instance.mobileControlsEnabled);
@@ -47,7 +48,7 @@ public class MobileKeyButtonsVisibility : MonoBehaviour
 
         if (isTitleScreen)
         {
-            SetActive(settingsButton, useMobileUi);
+            SetActive(settingsButton, useMobileUi && !captureUiHidden);
             SetActive(journalButton, false);
             SetActive(shopButton, false);
             SetActive(prevButton, false);

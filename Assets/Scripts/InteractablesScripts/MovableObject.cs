@@ -38,6 +38,7 @@ public class MovableObject : ClickableObject
     private bool _isActivated;
     private bool _canBeClickedByPlayer = true;
     private bool _suppressLinkedMobileSync;
+    private bool _suppressLinkedMobileSound;
     
     private Vector3 _startPosition;
     private Vector3 _startRotation;
@@ -123,6 +124,9 @@ public class MovableObject : ClickableObject
 
     private void PlaySound()
     {
+        if (_suppressLinkedMobileSound)
+            return;
+
         if (moveSound == null) return;
         
         AudioClip clip = _isActivated && moveSoundBack != null ? moveSoundBack : moveSound;
@@ -145,9 +149,12 @@ public class MovableObject : ClickableObject
     private void SyncLinkedMobileActivatedState(bool active)
     {
         bool previousSuppress = _suppressLinkedMobileSync;
+        bool previousSuppressSound = _suppressLinkedMobileSound;
         _suppressLinkedMobileSync = true;
+        _suppressLinkedMobileSound = true;
         SetActivatedState(active);
         _suppressLinkedMobileSync = previousSuppress;
+        _suppressLinkedMobileSound = previousSuppressSound;
     }
     
     protected override void GhostClickedDuringAHunt()

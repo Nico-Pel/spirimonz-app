@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using UnityEngine;
 using UnityEngine.Events;
+using UnityEngine.Rendering;
 using DG.Tweening;
 using Random = UnityEngine.Random;
 
@@ -48,6 +49,9 @@ public class CatchableObject : GameBehaviour, IInteractable
     [Min(0f)] public float autoSleepVelocity = 0.02f;
     [Min(0f)] public float autoSleepAngularVelocity = 0.02f;
 
+    [Header("Mobile Rendering Optimization")]
+    public bool disableShadowCastingOnMobile = true;
+
     protected bool _canCallCollisionSound = false;
     protected float _collisionSoundsMinDelay = 0.5f;
     protected float _collisionStartDelay = 1f;
@@ -79,6 +83,8 @@ public class CatchableObject : GameBehaviour, IInteractable
 
         if (autoSleepWhenIdle)
             StartAutoSleep();
+
+        ApplyMobileShadowOptimization();
     }
 
     // =========================
@@ -244,6 +250,25 @@ public class CatchableObject : GameBehaviour, IInteractable
     public virtual void OnThrow()
     {
         ApplyThrowTorque();
+    }
+
+    private void ApplyMobileShadowOptimization()
+    {
+        if (!disableShadowCastingOnMobile)
+            return;
+
+        if (!Application.isMobilePlatform && (GameManager.Instance == null || !GameManager.Instance.mobileControlsEnabled))
+            return;
+
+        Renderer[] renderers = GetComponentsInChildren<Renderer>(true);
+        for (int i = 0; i < renderers.Length; i++)
+        {
+            Renderer renderer = renderers[i];
+            if (renderer == null)
+                continue;
+
+            renderer.shadowCastingMode = ShadowCastingMode.Off;
+        }
     }
     
     public void ApplyForce(Vector3 force, Vector3 torque = default)

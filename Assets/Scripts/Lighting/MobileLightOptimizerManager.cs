@@ -41,7 +41,7 @@ public class MobileLightOptimizerManager : MonoBehaviour
     public int houseMaxNonGameplayLights = 18;
     public float houseOutOfViewPenalty = 2f;
     public bool houseBudgetAffectsNearLights = false;
-    public bool disableHouseLightBudget = true;
+    public bool disableHouseLightBudget = false;
 
     [Header("Stability")]
     public float downgradeDelay = 0.45f;
@@ -145,7 +145,6 @@ public class MobileLightOptimizerManager : MonoBehaviour
         if (!IsOptimizedScene())
             return;
 
-        HashSet<Light> gameplayLights = CollectGameplayLights();
         Light[] allLights = Resources.FindObjectsOfTypeAll<Light>();
 
         for (int i = 0; i < allLights.Length; i++)
@@ -174,17 +173,7 @@ public class MobileLightOptimizerManager : MonoBehaviour
             if (opt == null)
                 opt = l.gameObject.AddComponent<MobileLightOptimizedLight>();
 
-            bool gameplay = gameplayLights.Contains(l);
-            if (!gameplay)
-            {
-                if (l.GetComponentInParent<ActivableObject>() != null)
-                    gameplay = true;
-                else if (l.GetComponentInParent<BlinkingLight>() != null)
-                    gameplay = true;
-                else if (l.GetComponentInParent<ElectricLight>() != null)
-                    gameplay = true;
-            }
-            opt.Initialize(gameplay);
+            opt.Initialize(GetPriority(l));
             Register(opt);
         }
     }
@@ -250,7 +239,7 @@ public class MobileLightOptimizerManager : MonoBehaviour
     {
         if (!useLightBudget || light == null)
             return true;
-        if (light.IsGameplayLight)
+        if (light.IsBudgetCritical)
             return true;
         if (disableHouseLightBudget && UseHouseOverrideValues())
             return true;
@@ -328,7 +317,7 @@ public class MobileLightOptimizerManager : MonoBehaviour
                 continue;
             if (!light.targetLight.gameObject.activeInHierarchy)
                 continue;
-            if (light.ignoreOptimization || light.IsGameplayLight)
+            if (light.ignoreOptimization || light.IsBudgetCritical)
                 continue;
 
             Vector3 toLight = light.targetLight.transform.position - targetPos;
@@ -337,7 +326,7 @@ public class MobileLightOptimizerManager : MonoBehaviour
             if (maxDistance > 0f && dist > maxDistance)
                 continue;
 
-            float score = dist;
+            float score = dist + (GetPriorityWeight(light.Priority) * 1000f);
             if (dist > 0.001f)
             {
                 float dot = Vector3.Dot(targetForward, toLight / dist);
@@ -372,48 +361,41 @@ public class MobileLightOptimizerManager : MonoBehaviour
         }
     }
 
-    private HashSet<Light> CollectGameplayLights()
+    private MobileLightOptimizedLight.LightPriority GetPriority(Light light)
     {
-        HashSet<Light> result = new HashSet<Light>();
+        if (light == null)
+            return MobileLightOptimizedLight.LightPriority.OtherMedium;
 
-        ElectricLight[] electricLights = Resources.FindObjectsOfTypeAll<ElectricLight>();
-        for (int i = 0; i < electricLights.Length; i++)
+        if (Player.Instance != null && light.transform.IsChildOf(Player.Instance.transform))
+            return MobileLightOptimizedLight.LightPriority.PlayerCritical;
+
+        if (light.GetComponentInParent<Spirimonz>() != null)
+            return MobileLightOptimizedLight.LightPriority.SpirimonzLow;
+
+        if (light.GetComponentInParent<FlammableElement>() != null || light.GetComponentInParent<CatchableFireObject>() != null)
+            return MobileLightOptimizedLight.LightPriority.FlammableLow;
+
+        if (light.GetComponentInParent<ClickableObject>() != null ||
+            light.GetComponentInParent<ActivableObject>() != null ||
+            light.GetComponentInParent<BlinkingLight>() != null ||
+            light.GetComponentInParent<ElectricLight>() != null)
         {
-            ElectricLight el = electricLights[i];
-            if (el == null || !el.gameObject.scene.IsValid())
-                continue;
-
-            foreach (GameObject go in el.objectsToEnable)
-            {
-                if (go == null)
-                    continue;
-
-                Light[] lights = go.GetComponentsInChildren<Light>(true);
-                for (int j = 0; j < lights.Length; j++)
-                    result.Add(lights[j]);
-            }
+            return MobileLightOptimizedLight.LightPriority.ClickableHigh;
         }
 
-        BlinkingLight[] blinking = Resources.FindObjectsOfTypeAll<BlinkingLight>();
-        for (int i = 0; i < blinking.Length; i++)
+        return MobileLightOptimizedLight.LightPriority.OtherMedium;
+    }
+
+    private static float GetPriorityWeight(MobileLightOptimizedLight.LightPriority priority)
+    {
+        return priority switch
         {
-            BlinkingLight bl = blinking[i];
-            if (bl == null || !bl.gameObject.scene.IsValid())
-                continue;
-
-            Light l = bl.GetComponentInChildren<Light>(true);
-            if (l != null)
-                result.Add(l);
-        }
-
-        if (Player.Instance != null)
-        {
-            Transform playerRoot = Player.Instance.transform;
-            Light[] playerLights = playerRoot.GetComponentsInChildren<Light>(true);
-            for (int i = 0; i < playerLights.Length; i++)
-                result.Add(playerLights[i]);
-        }
-
-        return result;
+            MobileLightOptimizedLight.LightPriority.PlayerCritical => 0f,
+            MobileLightOptimizedLight.LightPriority.ClickableHigh => 1f,
+            MobileLightOptimizedLight.LightPriority.OtherMedium => 2f,
+            MobileLightOptimizedLight.LightPriority.SpirimonzLow => 3f,
+            MobileLightOptimizedLight.LightPriority.FlammableLow => 4f,
+            _ => 2f
+        };
     }
 }

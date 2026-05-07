@@ -174,7 +174,10 @@ public class MobileButton : MonoBehaviour, IPointerDownHandler, IPointerUpHandle
         Vector2 delta = pointerPos - _lastSecondaryPointerPos;
         _lastSecondaryPointerPos = pointerPos;
 
-        if (invertSecondaryLookPanY)
+        // Force the same Y convention as the regular mobile look-pan path,
+        // even if an older prefab kept a serialized inverted value.
+        bool shouldInvertY = action != Action.Secondary && invertSecondaryLookPanY;
+        if (shouldInvertY)
             delta.y = -delta.y;
 
         MobileInput.SetLookAxis(Vector2.zero);

@@ -326,10 +326,8 @@ public class InventoryManager : GameBehaviour
                 if (i == 0)
                 {
                     currentSelectedIndex = i;
-                    if (allowUseWatch)
-                        UseWatchObject();
-                    else
-                        continue;
+                    UseWatchObject();
+                    continue;
                 }
                 else
                 {
@@ -360,6 +358,7 @@ public class InventoryManager : GameBehaviour
                 int delta = MobileInput.NextDown ? 1 : -1;
                 int newIndex = baseIndex;
                 int attempts = 0;
+                bool foundSelection = false;
                 while (attempts < slotCount)
                 {
                     newIndex += delta;
@@ -381,24 +380,39 @@ public class InventoryManager : GameBehaviour
                     }
 
                     if (newIndex == 0)
+                    {
+                        foundSelection = true;
                         break;
+                    }
 
                     int teamIndex = newIndex - 1;
                     Spirimonz candidate = (teamIndex >= 0 && teamIndex < spirimonzTeam.Count) ? spirimonzTeam[teamIndex] : null;
-                    if (candidate == null || !candidate.isOnTheMap)
+                    if (candidate == null)
+                    {
+                        attempts++;
+                        continue;
+                    }
+
+                    if (!candidate.isOnTheMap)
+                    {
+                        foundSelection = true;
                         break;
+                    }
 
                     attempts++;
                 }
 
-                currentSelectedIndex = newIndex;
-                if (newIndex == 0)
+                if (foundSelection)
                 {
-                    UseWatchObject();
-                }
-                else
-                {
-                    EquipSpirimonz(newIndex - 1);
+                    currentSelectedIndex = newIndex;
+                    if (newIndex == 0)
+                    {
+                        UseWatchObject();
+                    }
+                    else
+                    {
+                        EquipSpirimonz(newIndex - 1);
+                    }
                 }
             }
         }

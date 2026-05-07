@@ -14,8 +14,7 @@ public class SpmzRadiationDetector : Spirimonz
         
         radiationDetector.OnDetectionStart.AddListener(OnRadiationChanged);
         radiationDetector.OnDetectionEnd.AddListener(OnRadiationChanged);
-
-        radiationDetector.useSound = powerActiveInHands;
+        RefreshSoundUsage();
 
         _eventsInitialized = true;
     }
@@ -34,22 +33,29 @@ public class SpmzRadiationDetector : Spirimonz
 
     private void TurnOnRadiationFeedback()
     {
+        if (radiationFeedback == null)
+            return;
+
         if (radiationFeedback.activeSelf) return;
 
         radiationFeedback.SetActive(true);
-        animator.SetBool("Radiations", true);
-        animator.SetTrigger("RadiationsDetection");
+        if (animator != null)
+        {
+            animator.SetBool("Radiations", true);
+            animator.SetTrigger("RadiationsDetection");
+        }
     }
 
     private void TurnOffRadiationFeedback()
     {
-        if (!radiationFeedback.activeInHierarchy) return;
+        if (radiationFeedback != null && radiationFeedback.activeSelf)
+            radiationFeedback.SetActive(false);
 
-        radiationFeedback.SetActive(false);
-        animator.SetBool("Radiations", false);
+        if (animator != null)
+            animator.SetBool("Radiations", false);
 
         if (radiationDetector != null)
-            radiationDetector.StopUsingSound(); // stop le son ici
+            radiationDetector.StopUsingSound();
     }
 
     protected override void OnDisable()
@@ -66,11 +72,7 @@ public class SpmzRadiationDetector : Spirimonz
         if (radiationDetector != null)
             radiationDetector.SetCurrentRoom(room);
 
-        // Mettre à jour immédiatement le feedback si la radiation est déjà active
-        if (isOnTheMap && radiationDetector.IsDetectingRadiation())
-        {
-            TurnOnRadiationFeedback();
-        }
+        SyncRadiationState();
     }
 
     public override void DroppedOnMap()
@@ -79,29 +81,22 @@ public class SpmzRadiationDetector : Spirimonz
 
         isOnTheMap = true;
 
-        if (powerActiveInHands == false && radiationDetector != null)
+        if (radiationDetector != null)
         {
-            // Activer le son avant de connecter la room
-            radiationDetector.useSound = true;
+            RefreshSoundUsage();
             radiationDetector.SetCurrentRoom(currentRoom);
-
-            // Forcer feedback visuel
-            if (radiationDetector.IsDetectingRadiation())
-            {
-                TurnOnRadiationFeedback();
-
-                // Jouer le son manuellement si nécessaire
-                radiationDetector.PlaySoundManuallyIfNeeded();
-            }
+            SyncRadiationState();
         }
     }
 
     public override bool GoBackToHands(Transform handPos)
     {
         bool success = base.GoBackToHands(handPos);
-
-        /*if (success && powerActiveInHands == false && radiationDetector != null)
-            radiationDetector.StopUsingSound();*/
+        if (success)
+        {
+            RefreshSoundUsage();
+            SyncRadiationState();
+        }
 
         return success;
     }
@@ -129,6 +124,9 @@ public class SpmzRadiationDetector : Spirimonz
 
         if (radiationDetector != null)
             radiationDetector.SetCurrentRoom(currentRoom);
+
+        RefreshSoundUsage();
+        SyncRadiationState();
     }
 
     protected override void UpdateMovementBehaviour()
@@ -137,11 +135,32 @@ public class SpmzRadiationDetector : Spirimonz
         
         if (radiationDetector == null) return;
 
-        bool isDetecting = radiationDetector.IsDetectingRadiation();
+        SyncRadiationState();
+    }
 
-        if (isDetecting && !radiationFeedback.activeSelf)
+    private void RefreshSoundUsage()
+    {
+        if (radiationDetector == null)
+            return;
+
+        bool shouldUseSound = powerActiveInHands || isOnTheMap;
+        radiationDetector.SetUseSound(shouldUseSound);
+    }
+
+    private void SyncRadiationState()
+    {
+        if (radiationDetector == null)
+            return;
+
+        bool isDetecting = radiationDetector.IsDetectingRadiation();
+        if (isDetecting)
+        {
             TurnOnRadiationFeedback();
-        else if (!isDetecting && radiationFeedback.activeSelf)
-            TurnOffRadiationFeedback(); // ici on stop aussi le son
+            radiationDetector.PlaySoundManuallyIfNeeded();
+        }
+        else
+        {
+            TurnOffRadiationFeedback();
+        }
     }
 }

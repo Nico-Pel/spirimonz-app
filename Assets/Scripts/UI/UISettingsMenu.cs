@@ -71,10 +71,13 @@ public class UISettingsMenu : GameBehaviour
     public Button returnToTitleButton;
     [TextArea] public string returnToTitleEnglish = "Back to Title Screen";
     [TextArea] public string returnToTitleFrench = "Retour à l'écran titre";
+    [TextArea] public string restorePurchaseEnglish = "Restore Purchase";
+    [TextArea] public string restorePurchaseFrench = "Restaurer les achats";
 
     private Button _resetButton;
     private Button _privacyPolicyButton;
     private Button _termsOfUseButton;
+    private Button _restorePurchaseButton;
     private bool _built;
     private bool _bindingsBuilt;
     private Font _font;
@@ -86,6 +89,7 @@ public class UISettingsMenu : GameBehaviour
     private Text _legalHeaderLabel;
     private Text _privacyPolicyLabel;
     private Text _termsOfUseLabel;
+    private Text _restorePurchaseLabel;
     private bool _localizationSubscribed;
 
     private bool _isOpen;
@@ -126,6 +130,7 @@ public class UISettingsMenu : GameBehaviour
     private const string ReturnToTitleKey = "ui.settings.return_to_title";
     private const string DeleteSaveKey = "ui.settings.delete_save";
     private const string DeleteConfirmKey = "ui.settings.delete_confirm";
+    private const string RestorePurchaseKey = "ui.settings.restore_purchase";
 
     private struct LocalizedTextBinding
     {
@@ -304,6 +309,7 @@ public class UISettingsMenu : GameBehaviour
         RefreshBindingTexts();
         RefreshLanguageDropdown();
         RefreshLocalizedTexts();
+        RefreshRestorePurchaseButton();
 
         UpdateDeleteConfirmText();
 
@@ -848,6 +854,13 @@ public class UISettingsMenu : GameBehaviour
             if (deleteImage != null)
                 deleteImage.color = new Color(0.8f, 0.2f, 0.2f, 0.28f);
             _deleteSaveLabel = deleteSaveButton.GetComponentInChildren<Text>();
+        }
+
+        _restorePurchaseButton = CreateActionButton(contentGO.transform, restorePurchaseEnglish, _font, RestorePurchaseKey);
+        if (_restorePurchaseButton != null)
+        {
+            _restorePurchaseLabel = _restorePurchaseButton.GetComponentInChildren<Text>();
+            _restorePurchaseButton.onClick.AddListener(OnRestorePurchasePressed);
         }
 
         deleteConfirmPanel = CreateDeleteConfirmPanel(root.transform, _font);
@@ -1400,6 +1413,29 @@ public class UISettingsMenu : GameBehaviour
             RegisterLocalizedText(text, localizationKey);
 
         return buttonGO.GetComponent<Button>();
+    }
+
+    private void RefreshRestorePurchaseButton()
+    {
+        if (_restorePurchaseButton == null)
+            return;
+
+        MobileMonetizationManager store = MobileMonetizationManager.InstanceOrNull ?? MobileMonetizationManager.Instance;
+        bool canRestore = store != null && store.CanRestorePurchases();
+        _restorePurchaseButton.gameObject.SetActive(canRestore);
+    }
+
+    private void OnRestorePurchasePressed()
+    {
+        MobileMonetizationManager store = MobileMonetizationManager.InstanceOrNull ?? MobileMonetizationManager.Instance;
+        if (store == null)
+            return;
+
+        if (!store.RestorePurchases())
+            return;
+
+        if (resetSound != null)
+            resetSound.PlaySound();
     }
 
     private void StartCapture(BindingEntry entry, bool secondary)

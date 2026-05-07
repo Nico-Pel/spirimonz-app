@@ -3,6 +3,15 @@ using UnityEngine;
 [DisallowMultipleComponent]
 public class MobileLightOptimizedLight : MonoBehaviour
 {
+    public enum LightPriority
+    {
+        PlayerCritical = 0,
+        ClickableHigh = 1,
+        OtherMedium = 2,
+        SpirimonzLow = 3,
+        FlammableLow = 4
+    }
+
     public Light targetLight;
 
     [Header("Overrides")]
@@ -20,14 +29,15 @@ public class MobileLightOptimizedLight : MonoBehaviour
     private bool _baseEnabled;
     private bool _initialized;
     private bool _isOverriding;
-    private bool _gameplayLight;
+    private LightPriority _priority = LightPriority.OtherMedium;
     private bool _disabledByOptimizer;
     private float _budgetDisallowSince = -1f;
     private float _distanceDisableSince = -1f;
     private float _shadowDowngradeSince = -1f;
     private float _renderDowngradeSince = -1f;
 
-    public bool IsGameplayLight => _gameplayLight;
+    public LightPriority Priority => _priority;
+    public bool IsBudgetCritical => _priority == LightPriority.PlayerCritical;
 
     private void Awake()
     {
@@ -47,9 +57,9 @@ public class MobileLightOptimizedLight : MonoBehaviour
             MobileLightOptimizerManager.Instance.Unregister(this);
     }
 
-    public void Initialize(bool gameplayLight)
+    public void Initialize(LightPriority priority)
     {
-        _gameplayLight = gameplayLight;
+        _priority = priority;
         CacheBase();
         _initialized = true;
     }
@@ -85,7 +95,7 @@ public class MobileLightOptimizedLight : MonoBehaviour
         targetLight.renderMode = _baseRenderMode;
         targetLight.range = _baseRange;
 
-        if (_disabledByOptimizer || (allowDisableWhenFar && !_gameplayLight))
+        if (_disabledByOptimizer || allowDisableWhenFar)
             targetLight.enabled = _baseEnabled;
 
         _isOverriding = false;
@@ -102,7 +112,7 @@ public class MobileLightOptimizedLight : MonoBehaviour
 
         if (!_initialized)
         {
-            Initialize(gameplayLight: false);
+            Initialize(LightPriority.OtherMedium);
         }
         else if (_baseRange <= 0f && targetLight.range > 0f)
         {
@@ -132,7 +142,7 @@ public class MobileLightOptimizedLight : MonoBehaviour
         float downgradeDelay = manager != null ? manager.GetDowngradeDelay() : 0f;
         float disableDelay = manager != null ? manager.GetDisableOutOfViewDelay() : 0f;
 
-        if (manager != null && !_gameplayLight && manager.useLightBudget)
+        if (manager != null && !IsBudgetCritical && manager.useLightBudget)
         {
             bool budgetApplies = manager.GetBudgetAffectsNearLights() || !isNear;
             if (budgetApplies && !manager.IsLightBudgetAllowed(this))
@@ -192,7 +202,7 @@ public class MobileLightOptimizedLight : MonoBehaviour
 
         targetLight.range = GetTargetRange(manager, farSqr, disableSqr, distSqr);
 
-        bool canDisable = allowDisableWhenFar && !_gameplayLight && (manager == null || manager.ShouldDisableFarLights());
+        bool canDisable = allowDisableWhenFar && !IsBudgetCritical && (manager == null || manager.ShouldDisableFarLights());
         if (canDisable)
         {
             float dist = Mathf.Sqrt(distSqr);
