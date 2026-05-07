@@ -76,6 +76,22 @@ public class MobilePerformanceManager : MonoBehaviour
     public bool lowRealtimeReflectionProbes = false;
     public bool lowSoftParticles = false;
 
+    [Header("House Lighting Override")]
+    public bool useHouseLightingOverride = true;
+    public int houseHighPixelLightCount = 6;
+    public int houseMedPixelLightCount = 5;
+    public int houseLowPixelLightCount = 4;
+    public float houseHighShadowDistance = 45f;
+    public float houseMedShadowDistance = 38f;
+    public float houseLowShadowDistance = 30f;
+    public ShadowResolution houseHighShadowResolution = ShadowResolution.High;
+    public ShadowResolution houseMedShadowResolution = ShadowResolution.Medium;
+    public ShadowResolution houseLowShadowResolution = ShadowResolution.Medium;
+    public int houseHighShadowCascades = 2;
+    public int houseMedShadowCascades = 2;
+    public int houseLowShadowCascades = 1;
+    public bool houseRealtimeReflectionProbes = false;
+
     private struct Baseline
     {
         public int vSyncCount;
@@ -236,6 +252,8 @@ public class MobilePerformanceManager : MonoBehaviour
                     lowAniso, lowRealtimeReflectionProbes, lowSoftParticles);
                 break;
         }
+
+        ApplyHouseLightingOverride(level);
     }
 
     private void ApplyQuality(int targetFps, int pixelLights, int aa, int textureLimit,
@@ -251,11 +269,39 @@ public class MobilePerformanceManager : MonoBehaviour
 
         if (affectLightingSettings)
         {
-            QualitySettings.pixelLightCount = Mathf.Max(0, pixelLights);
-            QualitySettings.shadowDistance = Mathf.Max(0f, shadowDistance);
-            QualitySettings.shadowResolution = shadowResolution;
-            QualitySettings.shadowCascades = Mathf.Clamp(shadowCascades, 0, 4);
-            QualitySettings.realtimeReflectionProbes = realtimeReflections;
+            ApplyLightingQuality(pixelLights, shadowDistance, shadowResolution, shadowCascades, realtimeReflections);
+        }
+    }
+
+    private void ApplyLightingQuality(int pixelLights, float shadowDistance, ShadowResolution shadowResolution,
+        int shadowCascades, bool realtimeReflections)
+    {
+        QualitySettings.pixelLightCount = Mathf.Max(0, pixelLights);
+        QualitySettings.shadowDistance = Mathf.Max(0f, shadowDistance);
+        QualitySettings.shadowResolution = shadowResolution;
+        QualitySettings.shadowCascades = Mathf.Clamp(shadowCascades, 0, 4);
+        QualitySettings.realtimeReflectionProbes = realtimeReflections;
+    }
+
+    private void ApplyHouseLightingOverride(PerfLevel level)
+    {
+        if (!useHouseLightingOverride || !IsHouseScene())
+            return;
+
+        switch (level)
+        {
+            case PerfLevel.High:
+                ApplyLightingQuality(houseHighPixelLightCount, houseHighShadowDistance, houseHighShadowResolution,
+                    houseHighShadowCascades, houseRealtimeReflectionProbes);
+                break;
+            case PerfLevel.Medium:
+                ApplyLightingQuality(houseMedPixelLightCount, houseMedShadowDistance, houseMedShadowResolution,
+                    houseMedShadowCascades, houseRealtimeReflectionProbes);
+                break;
+            case PerfLevel.Low:
+                ApplyLightingQuality(houseLowPixelLightCount, houseLowShadowDistance, houseLowShadowResolution,
+                    houseLowShadowCascades, houseRealtimeReflectionProbes);
+                break;
         }
     }
 
@@ -305,6 +351,9 @@ public class MobilePerformanceManager : MonoBehaviour
     private void HandleSceneLoaded(Scene scene, LoadSceneMode mode)
     {
         _cachedPlayerCameraId = -1;
+        if (_enabled)
+            ApplyLevel(_currentLevel);
+
         ApplyPlayerPostProcessingForLevel();
     }
 
@@ -385,5 +434,11 @@ public class MobilePerformanceManager : MonoBehaviour
             case PerfLevel.Medium: return upThresholdMed;
             default: return upThresholdLow;
         }
+    }
+
+    private bool IsHouseScene()
+    {
+        Scene scene = SceneManager.GetActiveScene();
+        return scene.IsValid() && scene.name.StartsWith("House");
     }
 }

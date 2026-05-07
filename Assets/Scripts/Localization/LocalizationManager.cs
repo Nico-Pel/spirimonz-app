@@ -180,6 +180,12 @@ public static class LocalizationManager
         return Get(key, type.ToString());
     }
 
+    public static string GetEvidenceTitle(GhostInvestigator.EvidenceType type)
+    {
+        string key = $"evidence.{type.ToString().ToLowerInvariant()}.title";
+        return Get(key, GetEvidenceTypeName(type));
+    }
+
     private static string DecodeEscapes(string value)
     {
         if (string.IsNullOrEmpty(value))

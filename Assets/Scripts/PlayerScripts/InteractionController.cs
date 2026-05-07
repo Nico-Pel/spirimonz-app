@@ -252,29 +252,36 @@ public class InteractionController : GameBehaviour
         bool allowDrop = TutorialInputGate.IsAllowed(TutorialInputGate.AllowDrop);
         bool allowThrow = TutorialInputGate.IsAllowed(TutorialInputGate.AllowThrow);
 
+        if (TryHandleMobileDirectClickableTap(allowInteract))
+            return;
+
         if (_currentTarget != null)
         {
             bool isSpmzTarget = _currentTarget is Spirimonz spmzTarget && spmzTarget.isOnTheMap;
             bool allowCurrentInteract = isSpmzTarget ? allowInteractSpmz : allowInteract;
+            bool isCatchableClickableHybrid = MobileInput.Enabled &&
+                                              _currentCatchable != null &&
+                                              IsClickableTarget(_currentTarget);
 
             if (allowCurrentInteract && ((!MobileInput.Enabled && Input.GetMouseButtonDown(0)) || MobileInput.PrimaryDown))
-                _currentTarget.OnInteractStart();
+                HandleTargetInteractStart(_currentTarget);
 
             if (allowCurrentInteract && ((!MobileInput.Enabled && Input.GetMouseButton(0)) || MobileInput.PrimaryHeld))
-                _currentTarget.OnInteractHold();
+                HandleTargetInteractHold(_currentTarget);
 
             if (allowCurrentInteract && ((!MobileInput.Enabled && Input.GetMouseButtonUp(0)) || MobileInput.PrimaryUp))
-                _currentTarget.OnInteractEnd();
+                HandleTargetInteractEnd(_currentTarget);
 
             bool interactionKeyDown = !MobileInput.Enabled &&
                                       (_player.inputManager.GetGrabDown() || _player.inputManager.GetWorldInteractionDownRaw());
             bool mobileClickableDown = MobileInput.Enabled &&
                                       IsClickableTarget(_currentTarget) &&
+                                      !isCatchableClickableHybrid &&
                                       (MobileInput.GrabDown || MobileInput.ConsumeGrabDown());
             if (allowCurrentInteract &&
                 ((interactionKeyDown && !(_currentTarget is CatchableObject) && !IsClickableTarget(_currentTarget)) ||
                  mobileClickableDown))
-                _currentTarget.OnInteractStart();
+                HandleTargetInteractStart(_currentTarget);
         }
 
         if (objectInHands != null)
@@ -295,7 +302,7 @@ public class InteractionController : GameBehaviour
         }
         else if (_currentCatchable != null)
         {
-            bool mobileGrabDown = MobileInput.Enabled && !IsClickableTarget(_currentTarget) && MobileInput.GrabDown;
+            bool mobileGrabDown = MobileInput.Enabled && MobileInput.GrabDown;
             if (allowGrab && ((!MobileInput.Enabled && _player.inputManager.GetGrabDown()) || mobileGrabDown))
             {
                 if (_currentCatchable.canBeGrabByPlayer && !_currentCatchable.isGrabbed)
@@ -318,6 +325,24 @@ public class InteractionController : GameBehaviour
             if (allowPickupSpmz && ((!MobileInput.Enabled && _player.inputManager.GetGrabDown()) || MobileInput.GrabDown))
                 _player.inventoryManager.SpirimonzGoBackToHands(spirimonz);
         }
+    }
+
+    private bool TryHandleMobileDirectClickableTap(bool allowInteract)
+    {
+        if (!MobileInput.Enabled || !allowInteract || !MobileInput.PrimaryDown || !MobileInput.HasPrimaryScreenPos)
+            return false;
+
+        bool cursorActiveOnCenterTarget = _currentTarget != null && !_currentTarget.InteractionLocked;
+        bool cursorActiveOnDoor = (_grabbedDoor != null && !_grabbedDoor.InteractionLocked) ||
+                                  (_targetedDoor != null && !_targetedDoor.InteractionLocked);
+        if (cursorActiveOnCenterTarget || cursorActiveOnDoor)
+            return false;
+
+        if (!TryGetClickableUnderScreenPoint(MobileInput.PrimaryScreenPos, out ClickableObject clickable))
+            return false;
+
+        HandleTargetInteractStart(clickable);
+        return true;
     }
 
     private bool IsInteractionBlockedByUI()
@@ -346,6 +371,39 @@ public class InteractionController : GameBehaviour
         _currentCatchable = null;
         ClearNpcCTA();
         RefreshCursorUI();
+    }
+
+    private void HandleTargetInteractStart(IInteractable target)
+    {
+        if (target is ClickableObject clickableTarget)
+        {
+            clickableTarget.HandlePlayerInteractStart(MobileInput.Enabled);
+            return;
+        }
+
+        target.OnInteractStart();
+    }
+
+    private void HandleTargetInteractHold(IInteractable target)
+    {
+        if (target is ClickableObject clickableTarget)
+        {
+            clickableTarget.HandlePlayerInteractHold(MobileInput.Enabled);
+            return;
+        }
+
+        target.OnInteractHold();
+    }
+
+    private void HandleTargetInteractEnd(IInteractable target)
+    {
+        if (target is ClickableObject clickableTarget)
+        {
+            clickableTarget.HandlePlayerInteractEnd(MobileInput.Enabled);
+            return;
+        }
+
+        target.OnInteractEnd();
     }
 
     private void UpdateNpcCTA(IInteractable lastTarget, IInteractable newTarget)
@@ -442,9 +500,12 @@ public class InteractionController : GameBehaviour
             _targetedDoor = null;
             return;
         }
-        bool primaryDown = (!MobileInput.Enabled && Input.GetMouseButtonDown(0)) || MobileInput.PrimaryDown;
-        bool primaryHeld = (!MobileInput.Enabled && Input.GetMouseButton(0)) || MobileInput.PrimaryHeld;
-        bool primaryUp = (!MobileInput.Enabled && Input.GetMouseButtonUp(0)) || MobileInput.PrimaryUp;
+        bool mobileDoorDown = MobileInput.Enabled && MobileInput.GrabDown;
+        bool mobileDoorHeld = MobileInput.Enabled && MobileInput.GrabHeld;
+        bool mobileDoorUp = MobileInput.Enabled && MobileInput.GrabUp;
+        bool primaryDown = (!MobileInput.Enabled && Input.GetMouseButtonDown(0)) || MobileInput.PrimaryDown || mobileDoorDown;
+        bool primaryHeld = (!MobileInput.Enabled && Input.GetMouseButton(0)) || MobileInput.PrimaryHeld || mobileDoorHeld;
+        bool primaryUp = (!MobileInput.Enabled && Input.GetMouseButtonUp(0)) || MobileInput.PrimaryUp || mobileDoorUp;
 
         if (_grabbedDoor == null && _currentTarget != null && !(_currentTarget is Door))
         {
@@ -835,5 +896,37 @@ public class InteractionController : GameBehaviour
         }
 
         return false;
+    }
+
+    private bool TryGetClickableUnderScreenPoint(Vector2 screenPos, out ClickableObject clickable)
+    {
+        clickable = null;
+        if (_cam == null)
+            return false;
+
+        Ray ray = _cam.ScreenPointToRay(screenPos);
+        RaycastHit[] hits = Physics.RaycastAll(ray, interactionDistance, interactableLayer, QueryTriggerInteraction.Ignore);
+        if (hits == null || hits.Length == 0)
+            return false;
+
+        float bestDistance = Mathf.Infinity;
+        for (int i = 0; i < hits.Length; i++)
+        {
+            RaycastHit hit = hits[i];
+            ClickableObject candidate = hit.collider.GetComponent<ClickableObject>();
+            if (candidate == null)
+                candidate = hit.collider.GetComponentInParent<ClickableObject>();
+
+            if (candidate == null || candidate.InteractionLocked)
+                continue;
+
+            if (hit.distance < bestDistance)
+            {
+                bestDistance = hit.distance;
+                clickable = candidate;
+            }
+        }
+
+        return clickable != null;
     }
 }

@@ -23,6 +23,8 @@ public static class MobileInput
     private static bool _sprintHeld;
 
     private static int _grabDownFrame = -1;
+    private static int _grabUpFrame = -1;
+    private static bool _grabHeld;
     private static bool _grabDownPending;
     private static int _dropDownFrame = -1;
     private static int _throwDownFrame = -1;
@@ -68,6 +70,8 @@ public static class MobileInput
         _sprintHeld = false;
 
         _grabDownFrame = -1;
+        _grabUpFrame = -1;
+        _grabHeld = false;
         _grabDownPending = false;
         _dropDownFrame = -1;
         _throwDownFrame = -1;
@@ -205,7 +209,24 @@ public static class MobileInput
         _grabDownFrame = Time.frameCount;
         _grabDownPending = true;
     }
+
+    public static void SetGrabHeld(bool held)
+    {
+        if (!Enabled) return;
+        if (held && !_grabHeld)
+        {
+            _grabDownFrame = Time.frameCount;
+            _grabDownPending = true;
+        }
+        if (!held && _grabHeld)
+            _grabUpFrame = Time.frameCount;
+
+        _grabHeld = held;
+    }
+
     public static bool GrabDown => Enabled && _grabDownFrame == Time.frameCount;
+    public static bool GrabHeld => Enabled && _grabHeld;
+    public static bool GrabUp => Enabled && _grabUpFrame == Time.frameCount;
 
     public static bool ConsumeGrabDown()
     {

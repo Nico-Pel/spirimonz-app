@@ -11,6 +11,7 @@ public class UIDialogue : GameBehaviour
     [SerializeField] private float dialogueSoundVolume = 0.075f;
     [SerializeField] [Range(0f, 1f)] private float letterSoundRate = 1f;
     [SerializeField] private float inputIgnoreDuration = 0.15f;
+    [SerializeField] private int dialogueSortingOrder = 1200;
 
     [SerializeField] private GameObject dialogueBox;
     [SerializeField] private TextMeshProUGUI titleText;
@@ -38,6 +39,7 @@ public class UIDialogue : GameBehaviour
     private void Awake()
     {
         _letterBeepClip = GenerateBeep(440f, 0.05f);
+        EnsureDialogueCanvasPriority();
     }
 
     private void Start()
@@ -92,8 +94,10 @@ public class UIDialogue : GameBehaviour
     {
         if (_dialogueActive) return;
 
+        EnsureDialogueCanvasPriority();
         _currentLine = 0;
         dialogueBox.SetActive(true);
+        dialogueBox.transform.SetAsLastSibling();
         _currentDialogue = dialogue;
         _dialogueActive = true;
         _inputIgnoreUntil = Time.unscaledTime + Mathf.Max(0.01f, inputIgnoreDuration);
@@ -244,6 +248,22 @@ public class UIDialogue : GameBehaviour
         AudioClip clip = AudioClip.Create("LetterBeep", sampleLength, 1, sampleRate, false);
         clip.SetData(samples, 0);
         return clip;
+    }
+
+    private void EnsureDialogueCanvasPriority()
+    {
+        if (dialogueBox == null)
+            return;
+
+        Canvas dialogueCanvas = dialogueBox.GetComponent<Canvas>();
+        if (dialogueCanvas == null)
+            dialogueCanvas = dialogueBox.AddComponent<Canvas>();
+
+        dialogueCanvas.overrideSorting = true;
+        dialogueCanvas.sortingOrder = dialogueSortingOrder;
+
+        if (dialogueBox.GetComponent<GraphicRaycaster>() == null)
+            dialogueBox.AddComponent<GraphicRaycaster>();
     }
 
     private void EndDialogue()

@@ -65,17 +65,18 @@ public class MobileActionButtons : MonoBehaviour
         bool hasSpirimonzInHands = _gamePlayer.inventoryManager != null
             && _gamePlayer.inventoryManager.selectedSpirimonz != null
             && !_gamePlayer.inventoryManager.selectedSpirimonz.isOnTheMap;
+        bool canTalkToNpc = HasNpcInteractionTarget();
         bool hasSecondaryButtonSpirimonz = hasSpirimonzInHands && _gamePlayer.inventoryManager.selectedSpirimonz.useSecondaryButton;
         bool canUseSecondary = (!hasObject && !hasSpirimonzInHands) || hasCandleInHands || hasBookInHands || hasSecondaryButtonSpirimonz;
         bool canThrow = hasObject && !hasCandleInHands;
         bool canUsePrimary = hasObject
-            ? TutorialInputGate.IsAllowed(TutorialInputGate.AllowDrop)
+            ? TutorialInputGate.IsAllowed(TutorialInputGate.AllowDrop) || canTalkToNpc
             : TutorialInputGate.IsAllowed(TutorialInputGate.AllowGrab)
               || TutorialInputGate.IsAllowed(TutorialInputGate.AllowInteract)
               || TutorialInputGate.IsAllowed(TutorialInputGate.AllowPickupSpmz);
         bool canUseSecondaryButton = (canThrow && TutorialInputGate.IsAllowed(TutorialInputGate.AllowThrow))
             || (canUseSecondary && TutorialInputGate.IsAllowed(TutorialInputGate.AllowSecondary));
-        bool canUseTorch = TutorialInputGate.IsAllowed(TutorialInputGate.AllowSecondary);
+        bool canUseTorch = TutorialInputGate.IsAllowed(TutorialInputGate.AllowLight);
         bool canUseCrouch = TutorialInputGate.IsAllowed(TutorialInputGate.AllowMovement);
 
         SetActive(primaryButton, canUsePrimary);
@@ -87,6 +88,22 @@ public class MobileActionButtons : MonoBehaviour
         SetButtonAction(ref _secondaryMobileButton, secondaryButton, canThrow ? MobileButton.Action.Throw : MobileButton.Action.Secondary);
         SetButtonAction(ref _crouchMobileButton, crouchButton, MobileButton.Action.Crouch);
         UpdateTorchVisual();
+    }
+
+    private bool HasNpcInteractionTarget()
+    {
+        if (!TutorialInputGate.IsAllowed(TutorialInputGate.AllowInteract))
+            return false;
+
+        Player player = Player.Instance;
+        if (player == null || player.IsLocked())
+            return false;
+
+        NPC npc = player.currentNPC;
+        if (npc == null && _interaction != null)
+            npc = _interaction.CurrentNpcTarget;
+
+        return npc != null && npc.CanInteract(player);
     }
 
     private void SetAll(bool enabled)

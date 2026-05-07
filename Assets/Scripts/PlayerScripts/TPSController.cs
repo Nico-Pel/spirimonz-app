@@ -25,6 +25,8 @@ public class TPSController : Controller
     public float mobileMinPitch = -35f;
     public float mobileMaxPitch = 60f;
     public float mobileIdleLookMultiplier = 4f;
+    public float mobileWalkLookMultiplier = 1.5f;
+    public float mobileRunLookDivisor = 3f;
     public float mobileIdleLookLerpSpeed = 6f;
 
     [Header("Mobile Sprint")]
@@ -42,6 +44,7 @@ public class TPSController : Controller
     private float _mobilePitch;
     private Player _player;
     private bool _isMoving;
+    private bool _isSprinting;
     private float _mobileIdleMultiplier = 1f;
 
     private void Start()
@@ -103,6 +106,7 @@ public class TPSController : Controller
         float speed = runSpeed;
         bool mobileSprint = MobileInput.Enabled && mobileMove.sqrMagnitude >= (mobileSprintThreshold * mobileSprintThreshold);
         bool wantsToSprint = (!MobileInput.Enabled && _player.inputManager.GetSprint()) || MobileInput.SprintHeld || mobileSprint;
+        _isSprinting = wantsToMove && wantsToSprint;
         if (wantsToSprint) // sprint
         {
             speed = sprintSpeed;
@@ -187,9 +191,9 @@ public class TPSController : Controller
         Vector2 look = usingPan ? Vector2.zero : MobileInput.GetLookDelta();
         bool usingLook = usingPan || look.sqrMagnitude >= 0.00001f;
 
-        float targetMultiplier = mobileIdleLookMultiplier;
-        if (_isMoving && usingLook)
-            targetMultiplier = mobileIdleLookMultiplier / 3f;
+        float runLookMultiplier = mobileIdleLookMultiplier / Mathf.Max(0.01f, mobileRunLookDivisor);
+        float walkLookMultiplier = runLookMultiplier * Mathf.Max(1f, mobileWalkLookMultiplier);
+        float targetMultiplier = _isSprinting && usingLook ? runLookMultiplier : walkLookMultiplier;
 
         _mobileIdleMultiplier = Mathf.Lerp(_mobileIdleMultiplier, targetMultiplier, mobileIdleLookLerpSpeed * Time.deltaTime);
 

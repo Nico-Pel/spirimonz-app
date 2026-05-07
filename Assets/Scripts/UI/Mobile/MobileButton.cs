@@ -1,7 +1,7 @@
 using UnityEngine;
 using UnityEngine.EventSystems;
 
-public class MobileButton : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, IPointerExitHandler
+public class MobileButton : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, IPointerExitHandler, IDragHandler
 {
     public enum Action
     {
@@ -29,6 +29,12 @@ public class MobileButton : MonoBehaviour, IPointerDownHandler, IPointerUpHandle
     }
 
     public Action action = Action.Primary;
+    [Header("Secondary Look")]
+    [SerializeField] private float secondaryLookPanSensitivity = 7f;
+    [SerializeField] private bool invertSecondaryLookPanY = false;
+
+    private bool _secondaryPointerActive;
+    private Vector2 _lastSecondaryPointerPos;
 
     public void OnPointerDown(PointerEventData eventData)
     {
@@ -39,6 +45,8 @@ public class MobileButton : MonoBehaviour, IPointerDownHandler, IPointerUpHandle
                 break;
             case Action.Secondary:
                 MobileInput.SetSecondaryHeld(true);
+                _secondaryPointerActive = true;
+                _lastSecondaryPointerPos = eventData.position;
                 break;
             case Action.Sprint:
                 MobileInput.SetSprintHeld(true);
@@ -46,11 +54,15 @@ public class MobileButton : MonoBehaviour, IPointerDownHandler, IPointerUpHandle
             case Action.Grab:
                 GameManager.Instance?.RegisterDebugMoneyAPress();
                 if (!TryInteractWithNpc())
-                    MobileInput.PressGrab();
+                {
+                    MobileInput.SetGrabHeld(true);
+                    MobileInput.SetPrimaryScreenPos(eventData.position);
+                }
                 break;
             case Action.Drop:
                 GameManager.Instance?.RegisterDebugMoneyAPress();
-                MobileInput.PressDrop();
+                if (!TryInteractWithNpc())
+                    MobileInput.PressDrop();
                 break;
             case Action.Throw:
                 MobileInput.PressThrow();
@@ -107,12 +119,29 @@ public class MobileButton : MonoBehaviour, IPointerDownHandler, IPointerUpHandle
 
     public void OnPointerUp(PointerEventData eventData)
     {
+        if (action == Action.Grab)
+            MobileInput.SetPrimaryScreenPos(eventData.position);
+
+        if (action == Action.Secondary)
+            ProcessSecondaryLookDrag(eventData.position);
+
         ReleaseHoldActions();
     }
 
     public void OnPointerExit(PointerEventData eventData)
     {
+        if (action == Action.Grab || action == Action.Secondary)
+            return;
+
         ReleaseHoldActions();
+    }
+
+    public void OnDrag(PointerEventData eventData)
+    {
+        if (action == Action.Grab)
+            MobileInput.SetPrimaryScreenPos(eventData.position);
+        else if (action == Action.Secondary)
+            ProcessSecondaryLookDrag(eventData.position);
     }
 
     private void OnDisable()
@@ -125,9 +154,31 @@ public class MobileButton : MonoBehaviour, IPointerDownHandler, IPointerUpHandle
         if (action == Action.Primary)
             MobileInput.SetPrimaryHeld(false);
         else if (action == Action.Secondary)
+        {
             MobileInput.SetSecondaryHeld(false);
+            _secondaryPointerActive = false;
+        }
         else if (action == Action.Sprint)
             MobileInput.SetSprintHeld(false);
+        else if (action == Action.Grab)
+        {
+            MobileInput.SetGrabHeld(false);
+        }
+    }
+
+    private void ProcessSecondaryLookDrag(Vector2 pointerPos)
+    {
+        if (!_secondaryPointerActive || !MobileInput.Enabled)
+            return;
+
+        Vector2 delta = pointerPos - _lastSecondaryPointerPos;
+        _lastSecondaryPointerPos = pointerPos;
+
+        if (invertSecondaryLookPanY)
+            delta.y = -delta.y;
+
+        MobileInput.SetLookAxis(Vector2.zero);
+        MobileInput.AddLookPanDelta(delta * secondaryLookPanSensitivity);
     }
 
     private static bool TryInteractWithNpc()

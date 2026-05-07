@@ -1,4 +1,5 @@
 using UnityEngine;
+using System.Text.RegularExpressions;
 
 [CreateAssetMenu(fileName = "TutorialStep", menuName = "Tutorial/Step")]
 public class TutorialStepSO : ScriptableObject
@@ -20,9 +21,31 @@ public class TutorialStepSO : ScriptableObject
             : objective.titleEnglish;
 
         string text = LocalizationManager.Get(LocalizationKeys.TutorialObjectiveTitle(this), fallback);
+        text = ReplaceEvidenceTitleIfNeeded(text);
+
         InputManager input = InputManager.Instance;
         if (input != null)
             text = input.ReplaceInputTokens(text);
+
+        return text;
+    }
+
+    private string ReplaceEvidenceTitleIfNeeded(string text)
+    {
+        if (objective == null || objective.type != TutorialObjectiveType.CheckEvidence || string.IsNullOrEmpty(text))
+            return text;
+
+        string evidenceTitle = LocalizationManager.GetEvidenceTitle(objective.evidenceType);
+        if (string.IsNullOrWhiteSpace(evidenceTitle))
+            return text;
+
+        string quotedPattern = "([\"“”«])([^\"“”»]+)([\"“”»])";
+        Match match = Regex.Match(text, quotedPattern);
+        if (match.Success)
+        {
+            string replacement = $"{match.Groups[1].Value}{evidenceTitle}{match.Groups[3].Value}";
+            return text.Substring(0, match.Index) + replacement + text.Substring(match.Index + match.Length);
+        }
 
         return text;
     }

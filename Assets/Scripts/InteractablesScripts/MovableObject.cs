@@ -37,6 +37,7 @@ public class MovableObject : ClickableObject
     
     private bool _isActivated;
     private bool _canBeClickedByPlayer = true;
+    private bool _suppressLinkedMobileSync;
     
     private Vector3 _startPosition;
     private Vector3 _startRotation;
@@ -106,6 +107,20 @@ public class MovableObject : ClickableObject
         _isActivated = !_isActivated;
     }
 
+    public override void HandlePlayerInteractStart(bool isMobileInteraction)
+    {
+        bool wasActivated = _isActivated;
+        base.HandlePlayerInteractStart(isMobileInteraction);
+
+        if (!isMobileInteraction || _suppressLinkedMobileSync || _isActivated == wasActivated)
+            return;
+
+        if (linkedClickableOnMobile is not MovableObject linkedMovable)
+            return;
+
+        linkedMovable.SyncLinkedMobileActivatedState(_isActivated);
+    }
+
     private void PlaySound()
     {
         if (moveSound == null) return;
@@ -125,6 +140,14 @@ public class MovableObject : ClickableObject
             return;
 
         OnClick();
+    }
+
+    private void SyncLinkedMobileActivatedState(bool active)
+    {
+        bool previousSuppress = _suppressLinkedMobileSync;
+        _suppressLinkedMobileSync = true;
+        SetActivatedState(active);
+        _suppressLinkedMobileSync = previousSuppress;
     }
     
     protected override void GhostClickedDuringAHunt()

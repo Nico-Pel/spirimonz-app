@@ -16,6 +16,10 @@ public class ClickableObject : GameBehaviour, IInteractable
     public bool canRelease = false;
     public bool canBeClickedOnTriggerByGhostDuringHunt;
     public bool ignoreActivitySource;
+    
+    [Header("Mobile")]
+    [Tooltip("Optional linked clickable used by player mobile interactions.")]
+    public ClickableObject linkedClickableOnMobile;
 
     public House house { get; set; }
 
@@ -68,6 +72,11 @@ public class ClickableObject : GameBehaviour, IInteractable
         }
     }
 
+    public virtual void HandlePlayerInteractStart(bool isMobileInteraction)
+    {
+        OnInteractStart();
+    }
+
     public void OnInteractHold()
     {
         if (canHold)
@@ -78,10 +87,20 @@ public class ClickableObject : GameBehaviour, IInteractable
         }
     }
 
+    public virtual void HandlePlayerInteractHold(bool isMobileInteraction)
+    {
+        OnInteractHold();
+    }
+
     public void OnInteractEnd()
     {
         if (canRelease)
             OnRelease();
+    }
+
+    public virtual void HandlePlayerInteractEnd(bool isMobileInteraction)
+    {
+        OnInteractEnd();
     }
 
     public bool InteractionLocked { get; set; }

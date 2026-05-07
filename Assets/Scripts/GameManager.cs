@@ -210,8 +210,8 @@ public class GameManager : GameBehaviour
 
         SoundManager sound = SoundManager.Instance;
         float ambient = GetFloat(SaveKeys.AMBIENT_VOLUME_MULTIPLIER, float.NaN);
-        if (!float.IsNaN(ambient) && sound != null)
-            sound.SetAmbientVolumeMultiplier(ambient);
+        if (sound != null)
+            sound.SetAmbientVolumeMultiplier(!float.IsNaN(ambient) ? ambient : sound.GetDefaultAmbientVolumeMultiplier());
 
         float sfx = GetFloat(SaveKeys.SFX_VOLUME_MULTIPLIER, float.NaN);
         if (!float.IsNaN(sfx) && sound != null)
@@ -225,8 +225,9 @@ public class GameManager : GameBehaviour
         if (input != null)
         {
             float tps = GetFloat(SaveKeys.TPS_SENSITIVITY_MULTIPLIER, float.NaN);
-            if (!float.IsNaN(tps))
-                input.tpsLookSensitivityMultiplier = tps;
+            input.tpsLookSensitivityMultiplier = !float.IsNaN(tps)
+                ? tps
+                : input.GetDefaultTpsLookSensitivityMultiplier();
 
             float defaultFpsHorizontal = input.GetDefaultFpsLookHorizontalSensitivityMultiplier();
             float defaultFpsVertical = input.GetDefaultFpsLookVerticalSensitivityMultiplier();
@@ -418,18 +419,19 @@ public class GameManager : GameBehaviour
                 }
             }
 
-            if (!didSpawn && !isTemporaryWorld && useTutorialWorldSpawn && world != null && world.startPosTuto != null)
-            {
-                player.SetPosition(world.startPosTuto.position);
-                player.SetRotation(world.startPosTuto.rotation);
-                useTutorialWorldSpawn = false;
-                didSpawn = true;
-            }
-            else if (!didSpawn && !isTemporaryWorld && isLoadingFromHouse && currentHouseID >= 0 && currentHouseID < world.spawnPoints.Length)
+            if (!didSpawn && !isTemporaryWorld && isLoadingFromHouse && currentHouseID >= 0 && currentHouseID < world.spawnPoints.Length)
             {
                 // Spawn devant la maison
                 player.SetPosition(world.spawnPoints[currentHouseID].position);
                 player.SetRotation(world.spawnPoints[currentHouseID].rotation);
+                useTutorialWorldSpawn = false;
+                didSpawn = true;
+            }
+            else if (!didSpawn && !isTemporaryWorld && useTutorialWorldSpawn && world != null && world.startPosTuto != null)
+            {
+                player.SetPosition(world.startPosTuto.position);
+                player.SetRotation(world.startPosTuto.rotation);
+                useTutorialWorldSpawn = false;
                 didSpawn = true;
             }
             else if (!didSpawn && !isTemporaryWorld)

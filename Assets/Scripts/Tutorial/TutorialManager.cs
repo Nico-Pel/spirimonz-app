@@ -657,6 +657,7 @@ public class TutorialManager : GameBehaviour
         TutorialInputGate.AllowUseWatch = mask.allowUseWatch;
         TutorialInputGate.AllowGrab = mask.allowGrab;
         TutorialInputGate.AllowPickupSpmz = mask.allowPickupSpmz;
+        TutorialInputGate.AllowLight = true;
         TutorialInputGate.AllowSecondary = mask.allowSecondary;
         TutorialInputGate.AllowJournal = mask.allowJournal;
         TutorialInputGate.AllowTeamMenu = mask.allowTeamMenu;
@@ -1261,6 +1262,7 @@ public class TutorialManager : GameBehaviour
         _radiationListeners.Clear();
         _nextRadiationRefreshTime = 0f;
 
+        EnsureTutorialRadiationForObjective(objective);
         RefreshRadiationCandidates(objective);
     }
 
@@ -1906,7 +1908,7 @@ public class TutorialManager : GameBehaviour
         if (objective == null)
             return;
 
-        if (!IsNightVisionHeld())
+        if (!IsNightVisionActive())
         {
             ResetOrbsHold();
             return;
@@ -1946,22 +1948,17 @@ public class TutorialManager : GameBehaviour
         _currentOrbsTarget = null;
     }
 
-    private bool IsNightVisionHeld()
+    private bool IsNightVisionActive()
     {
         if (!TutorialInputGate.IsAllowed(TutorialInputGate.AllowSecondary) ||
             !TutorialInputGate.IsAllowed(TutorialInputGate.AllowUseWatch))
             return false;
 
-        GamePlayer gamePlayer = Player.Instance as GamePlayer;
-        if (gamePlayer == null || gamePlayer.handAnimator == null)
+        InventoryManager inventory = InventoryManager.Instance;
+        if (inventory == null)
             return false;
 
-        bool held = (!MobileInput.Enabled && Input.GetMouseButton(1)) || MobileInput.SecondaryHeld;
-        if (!held)
-            return false;
-
-        int handPos = gamePlayer.handAnimator.GetInteger("HandPos");
-        return handPos == (int)InventoryManager.HandPoses.CameraAim;
+        return inventory.IsNightVisionOn();
     }
 
     private void RefreshOrbsCandidates(TutorialObjective objective)
@@ -2740,6 +2737,8 @@ public class TutorialManager : GameBehaviour
         if (objective == null)
             return;
 
+        EnsureTutorialRadiationForObjective(objective);
+
         if (Time.time >= _nextRadiationRefreshTime)
         {
             RefreshRadiationCandidates(objective);
@@ -2814,6 +2813,56 @@ public class TutorialManager : GameBehaviour
 
         _counted.Add(detector);
         AddProgress(1);
+    }
+
+    private void EnsureTutorialRadiationForObjective(TutorialObjective objective)
+    {
+        if (!IsTutorialActive || objective == null || objective.type != TutorialObjectiveType.DetectRadiation)
+            return;
+
+        if (!string.Equals(UnityEngine.SceneManagement.SceneManager.GetActiveScene().name, "HouseTuto", StringComparison.OrdinalIgnoreCase))
+            return;
+
+        Room targetRoom = _tutorialRadiationRoom != null ? _tutorialRadiationRoom : GetHouseTutoKitchenRoom();
+        if (targetRoom == null)
+            return;
+
+        bool needsRestart = !_tutorialRadiationActive ||
+                            _tutorialRadiationRoom != targetRoom ||
+                            !targetRoom.radiationInTheRoom ||
+                            targetRoom.radiationDuration <= 0.1f;
+
+        if (needsRestart)
+            StartRadiationUntilNextStepComplete(targetRoom, tutorialRadiationDuration);
+    }
+
+    private Room GetHouseTutoKitchenRoom()
+    {
+        House house = House.Instance;
+        if (house == null || house.rooms == null)
+            return null;
+
+        for (int i = 0; i < house.rooms.Length; i++)
+        {
+            Room room = house.rooms[i];
+            if (room == null)
+                continue;
+
+            if (room.roomType == Room.RoomType.kitchen)
+                return room;
+        }
+
+        for (int i = 0; i < house.rooms.Length; i++)
+        {
+            Room room = house.rooms[i];
+            if (room == null)
+                continue;
+
+            if (string.Equals(room.name, "Kitchen", StringComparison.OrdinalIgnoreCase))
+                return room;
+        }
+
+        return null;
     }
 
     private static bool IsUpright(CatchableObject candidate, float maxAngle)

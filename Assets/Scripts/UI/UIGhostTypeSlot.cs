@@ -28,10 +28,13 @@ public class UIGhostTypeSlot : GameBehaviour
     public Image backgroundImage;
     public Button forcedStateButton;
     public ButtonPointerHandler bInfo;
+    public float mobileInfoButtonScale = 2f;
 
     private Color _baseTitleColor;
     private Color _baseBackgroundColor;
     private Color _baseIconColor;
+    private Vector3 _baseInfoButtonScale = Vector3.one;
+    private bool _hasBaseInfoButtonScale;
     
     public UnityEvent OnChangeForcedState;
     
@@ -42,6 +45,8 @@ public class UIGhostTypeSlot : GameBehaviour
         _baseTitleColor = titleText.color;
         _baseBackgroundColor = backgroundImage.color;
         _baseIconColor = ghostIcon.color;
+        CacheInfoButtonScale();
+        ApplyMobileInfoButtonScale();
         
         GhostInvestigator.Instance?.OnInvestigationDatasChange.AddListener(ChangeStateDependingOnInvestigation);
         
@@ -49,6 +54,12 @@ public class UIGhostTypeSlot : GameBehaviour
 
         bInfo.onPointerDown.AddListener(OpenGhostInfo);
         bInfo.onPointerUp.AddListener(CloseGhostInfo);
+    }
+
+    private void OnEnable()
+    {
+        CacheInfoButtonScale();
+        ApplyMobileInfoButtonScale();
     }
 
     public void SetJournal(UIJournal j)
@@ -72,6 +83,26 @@ public class UIGhostTypeSlot : GameBehaviour
             ghostIcon.sprite = ghostParameters.ghostTypeData.ghostSprite;
             RefreshLocalization();
         }
+    }
+
+    private void CacheInfoButtonScale()
+    {
+        if (_hasBaseInfoButtonScale || bInfo == null)
+            return;
+
+        _baseInfoButtonScale = bInfo.transform.localScale;
+        _hasBaseInfoButtonScale = true;
+    }
+
+    private void ApplyMobileInfoButtonScale()
+    {
+        if (bInfo == null)
+            return;
+
+        float scale = MobileInput.Enabled || Application.isMobilePlatform
+            ? Mathf.Max(0.01f, mobileInfoButtonScale)
+            : 1f;
+        bInfo.transform.localScale = _baseInfoButtonScale * scale;
     }
 
     private void OpenGhostInfo()

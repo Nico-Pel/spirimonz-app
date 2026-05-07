@@ -6,6 +6,7 @@ using UnityEngine;
 using UnityEngine.AI;
 using UnityEngine.Events;
 using UnityEngine.Serialization;
+using UnityEngine.SceneManagement;
 using Random = UnityEngine.Random;
 
 public class Ghost : GameBehaviour
@@ -107,6 +108,7 @@ public class Ghost : GameBehaviour
     [Header("Ghost Stats : Hunting")]
     public float forecastTimeBeforeAHunt = 5f;
     public float startHuntingStandingTime = 4;
+    [Min(0f)] public float mobileExtraStartHuntingStandingTime = 1f;
     public float delayBeforeLosingPlayerTargeting = 4f;
     public float huntTimeVariation = 5f;
 
@@ -158,6 +160,17 @@ public class Ghost : GameBehaviour
     public float averageActivityTime = 60f;
     public float activityTimeVariation = 10f;
     public float chancesToRoamInAnotherRoom = 25f;
+
+    [Header("Ghost Stats : Non Favorite Room")]
+    [Range(0f, 100f)] public float returnToFavoriteAfterNonFavoriteInteractionChance = 80f;
+    [Range(0f, 100f)] public float stayAfterNonFavoriteInteractionChance = 10f;
+    [Range(0f, 100f)] public float changeNeighborAfterNonFavoriteInteractionChance = 10f;
+    [Min(0)] public int interactionsRequiredBeforeLeavingFavoriteAfterForcedReturn = 3;
+
+    [Header("Training Tweaks")]
+    [Min(0f)] public float trainingHouseTutoExtraPeaceTime = 10f;
+    [Range(0f, 100f)] public float trainingHouseTutoExtraFruitEatChance = 20f;
+    [Range(0f, 100f)] public float trainingHouseTutoExtraBlowOutFlammableChance = 20f;
 
     [Header("Ghost Stats : Anti Exploit")]
     public bool antiExploitEnabled = true;
@@ -220,6 +233,8 @@ public class Ghost : GameBehaviour
     private readonly Dictionary<Room, float> _nonFavoriteOvercoolTimers = new Dictionary<Room, float>();
     private float _favoriteRoomColdestTemperatureReached = float.MaxValue;
     private bool _forceReturnToFavoriteRoom;
+    private bool _favoriteRoomLeaveLockActive;
+    private int _favoriteRoomInteractionsSinceForcedReturn;
     private float _externalHuntSlowPercent;
     private float _externalHuntSlowEndTime;
 
@@ -240,7 +255,7 @@ public class Ghost : GameBehaviour
             ghostParameters = house.selectedGhostParameter;
         }
         
-        favoriteRoom = house.hauntableRooms[Random.Range(0, house.hauntableRooms.Length)];
+        favoriteRoom = ResolveInitialFavoriteRoom();
         
         _averageHuntTime = ghostParameters.averageHuntTime;
         
@@ -380,12 +395,16 @@ public class Ghost : GameBehaviour
         
         if (other.TryGetComponent(out Room newRoom))
         {
-            if (tutorialOverrideEnabled)
+            if (ShouldLockRoomForTutorial())
+            {
+                Room lockedRoom = GetTutorialLockedRoom();
+                if (lockedRoom != null)
+                    currentRoom = lockedRoom;
+            }
+            else if (tutorialOverrideEnabled)
             {
                 if (tutorialForceRoom && tutorialForcedRoom != null)
                     currentRoom = tutorialForcedRoom;
-                else if (!tutorialAllowRoomChange && favoriteRoom != null)
-                    currentRoom = favoriteRoom;
                 else
                     currentRoom = newRoom;
             }
@@ -395,7 +414,10 @@ public class Ghost : GameBehaviour
             }
 
             if (_forceReturnToFavoriteRoom && favoriteRoom != null && currentRoom == favoriteRoom)
+            {
                 _forceReturnToFavoriteRoom = false;
+                ActivateFavoriteRoomLeaveLock();
+            }
         }
         else if (other.TryGetComponent(out Player touchedPlayer))
         {
@@ -582,7 +604,7 @@ public class Ghost : GameBehaviour
         agent.ResetPath();
         
         //float startingHuntDelay = DivideByPercentage(startHuntingStandingTime, angerPercentage);
-        this.Invoke(startHuntingStandingTime, StartHunting);
+        this.Invoke(GetStartHuntingStandingDelay(), StartHunting);
         
         ghostModel.SetActive(true);
         SetVisibleRenderer(true);
@@ -607,6 +629,15 @@ public class Ghost : GameBehaviour
 
         currentHuntTime = Random.Range(_averageHuntTime - huntTimeVariation, _averageHuntTime + huntTimeVariation);
         //Debug.Log("Starting a HUNT for: " + currentHuntTime + " seconds");
+    }
+
+    private float GetStartHuntingStandingDelay()
+    {
+        float delay = startHuntingStandingTime;
+        if (MobileInput.Enabled || Application.isMobilePlatform)
+            delay += Mathf.Max(0f, mobileExtraStartHuntingStandingTime);
+
+        return delay;
     }
 
     private void Update()
@@ -978,7 +1009,7 @@ public class Ghost : GameBehaviour
         currentState = GhostState.hideState;
         
         _canHunt = false;
-        this.Invoke(ghostParameters.minimumPeaceTime, () =>
+        this.Invoke(GetMinimumPeaceTimeAfterHunt(), () =>
         {
             _canHunt = true;
         });
@@ -1021,7 +1052,7 @@ public class Ghost : GameBehaviour
         
         onGhostStopToHunt?.Invoke();
         
-        this.Invoke(ghostParameters.minimumPeaceTime, () =>
+        this.Invoke(GetMinimumPeaceTimeAfterHunt(), () =>
         {
             _canHunt = true;
         });
@@ -1250,7 +1281,20 @@ public class Ghost : GameBehaviour
         if (_activityValues == null || _activityValues.Length == 0)
             _activityValues = (GhostActivities[])Enum.GetValues(typeof(GhostActivities));
 
-        return _activityValues[Random.Range(0, _activityValues.Length)];
+        GhostActivities activity = _activityValues[Random.Range(0, _activityValues.Length)];
+
+        if (activity != GhostActivities.BlowOutAFlammable &&
+            IsHouseTutoTrainingMode() &&
+            ghostParameters != null &&
+            ghostParameters.HasEvidence(GhostInvestigator.EvidenceType.BlowUpFlammables) &&
+            GetRandomFlammableElement(true) != null)
+        {
+            float roll = Random.Range(0f, 100f);
+            if (roll <= trainingHouseTutoExtraBlowOutFlammableChance)
+                return GhostActivities.BlowOutAFlammable;
+        }
+
+        return activity;
     }
 
     private void InteractWithAStandardClickable()
@@ -1500,15 +1544,19 @@ public class Ghost : GameBehaviour
     {
         Room roomToGo = currentRoom != null ? currentRoom : favoriteRoom;
 
-        if (tutorialOverrideEnabled && !tutorialAllowRoomChange)
+        if (ShouldLockRoomForTutorial())
         {
-            roomToGo = tutorialForceRoom && tutorialForcedRoom != null ? tutorialForcedRoom : favoriteRoom;
+            roomToGo = GetTutorialLockedRoom();
         }
         else if (tutorialOverrideEnabled && tutorialForceRoom && tutorialForcedRoom != null)
         {
             roomToGo = tutorialForcedRoom;
         }
         else if (_forceReturnToFavoriteRoom && favoriteRoom != null && currentRoom != favoriteRoom)
+        {
+            roomToGo = favoriteRoom;
+        }
+        else if (_favoriteRoomLeaveLockActive && favoriteRoom != null && currentRoom == favoriteRoom)
         {
             roomToGo = favoriteRoom;
         }
@@ -1573,6 +1621,9 @@ public class Ghost : GameBehaviour
 
     public void ForceNewWaypoint(Room room)
     {
+        if (ShouldLockRoomForTutorial())
+            room = GetTutorialLockedRoom();
+
         currentHuntingWayPointDistanceTargeted = Random.Range(0.1f, 5f);
         currentWayPoint = house.SelectRandomWayPointFromARoom(room);
     }
@@ -1814,7 +1865,7 @@ public class Ghost : GameBehaviour
 
         if (objectToThrow == null) return; //No object to throw found
         
-        if (objectToThrow is Fruit fruit && ghostParameters.ShouldEatFruit() && fruit.canBeEaten)
+        if (objectToThrow is Fruit fruit && ShouldEatFruitForCurrentMode() && fruit.canBeEaten)
         {
             fruit.EatFruit(this);
             return;
@@ -1903,12 +1954,29 @@ public class Ghost : GameBehaviour
             currentRoom.AddTemperatureDelta(refreshment);
 
         ApplyFavoriteRoomIndirectCooling(refreshment);
+        RegisterFavoriteRoomInteractionIfNeeded();
         HandlePostActivityRoomDecision();
     }
 
     private bool TutorialAllowsHunt()
     {
         return !tutorialOverrideEnabled || tutorialAllowHunt;
+    }
+
+    private bool ShouldLockRoomForTutorial()
+    {
+        return TutorialManager.IsTutorialActive || (tutorialOverrideEnabled && !tutorialAllowRoomChange);
+    }
+
+    private Room GetTutorialLockedRoom()
+    {
+        if (TutorialManager.IsTutorialActive)
+            return favoriteRoom != null ? favoriteRoom : currentRoom;
+
+        if (tutorialOverrideEnabled && tutorialForceRoom && tutorialForcedRoom != null)
+            return tutorialForcedRoom;
+
+        return favoriteRoom != null ? favoriteRoom : currentRoom;
     }
 
     public void ApplyTutorialOverride(bool enabled, bool blockAllActivities, bool forceRoom, Room forcedRoom,
@@ -1929,7 +1997,7 @@ public class Ghost : GameBehaviour
         if (allowedActivities != null && allowedActivities.Count > 0)
             tutorialAllowedActivities.AddRange(allowedActivities);
 
-        if (tutorialOverrideEnabled && tutorialForceRoom && tutorialForcedRoom != null)
+        if (tutorialOverrideEnabled && tutorialForceRoom && tutorialForcedRoom != null && !TutorialManager.IsTutorialActive)
             ForceTutorialRoom(tutorialForcedRoom);
     }
 
@@ -2030,33 +2098,38 @@ public class Ghost : GameBehaviour
         if (ghostParameters == null || favoriteRoom == null || currentRoom == null)
             return;
 
+        if (ShouldLockRoomForTutorial())
+            return;
+
         if (currentRoom == favoriteRoom)
             return;
 
-        if (tutorialOverrideEnabled && !tutorialAllowRoomChange)
+        float returnWeight = Mathf.Max(0f, returnToFavoriteAfterNonFavoriteInteractionChance);
+        float stayWeight = Mathf.Max(0f, stayAfterNonFavoriteInteractionChance);
+        float changeNeighborWeight = Mathf.Max(0f, changeNeighborAfterNonFavoriteInteractionChance);
+        float totalWeight = returnWeight + stayWeight + changeNeighborWeight;
+        if (totalWeight <= 0f)
             return;
 
-        float roll = Random.Range(0f, 100f);
-        float cumulative = Mathf.Max(0f, ghostParameters.chancesToDoNothingAfterNonFavoriteActivity);
-        if (roll < cumulative)
-            return;
-
-        cumulative += Mathf.Max(0f, ghostParameters.chancesToChangeRoomAfterNonFavoriteActivity);
-        if (roll < cumulative)
-        {
-            TryMoveToNeighborRoomImmediately();
-            return;
-        }
-
-        cumulative += Mathf.Max(0f, ghostParameters.chancesToReturnToFavoriteAfterNonFavoriteActivity);
-        if (roll < cumulative)
+        float roll = Random.Range(0f, totalWeight);
+        if (roll < returnWeight)
         {
             ForceReturnToFavoriteRoom();
+            return;
         }
+
+        roll -= returnWeight;
+        if (roll < stayWeight)
+            return;
+
+        TryMoveToNeighborRoomImmediately();
     }
 
     private void TryMoveToNeighborRoomImmediately()
     {
+        if (ShouldLockRoomForTutorial())
+            return;
+
         if (currentRoom == null || currentRoom.neighborRooms == null || currentRoom.neighborRooms.Length == 0)
             return;
 
@@ -2091,6 +2164,70 @@ public class Ghost : GameBehaviour
             return;
 
         currentWayPoint = nextWaypoint;
+    }
+
+    private void ActivateFavoriteRoomLeaveLock()
+    {
+        if (interactionsRequiredBeforeLeavingFavoriteAfterForcedReturn <= 0)
+        {
+            _favoriteRoomLeaveLockActive = false;
+            _favoriteRoomInteractionsSinceForcedReturn = 0;
+            return;
+        }
+
+        _favoriteRoomLeaveLockActive = true;
+        _favoriteRoomInteractionsSinceForcedReturn = 0;
+    }
+
+    private void RegisterFavoriteRoomInteractionIfNeeded()
+    {
+        if (!_favoriteRoomLeaveLockActive || favoriteRoom == null || currentRoom != favoriteRoom)
+            return;
+
+        _favoriteRoomInteractionsSinceForcedReturn++;
+        if (_favoriteRoomInteractionsSinceForcedReturn >= interactionsRequiredBeforeLeavingFavoriteAfterForcedReturn)
+        {
+            _favoriteRoomLeaveLockActive = false;
+            _favoriteRoomInteractionsSinceForcedReturn = 0;
+        }
+    }
+
+    private Room ResolveInitialFavoriteRoom()
+    {
+        if (house == null || house.hauntableRooms == null || house.hauntableRooms.Length == 0)
+            return null;
+
+        Room forcedTutorialRoom = GetHouseTutoForcedBedroom();
+        if (forcedTutorialRoom != null)
+            return forcedTutorialRoom;
+
+        return house.hauntableRooms[Random.Range(0, house.hauntableRooms.Length)];
+    }
+
+    private Room GetHouseTutoForcedBedroom()
+    {
+        if (!TutorialManager.IsTutorialActive || house == null)
+            return null;
+
+        Scene activeScene = SceneManager.GetActiveScene();
+        if (!activeScene.IsValid() || !string.Equals(activeScene.name, "HouseTuto", StringComparison.Ordinal))
+            return null;
+
+        for (int i = 0; i < house.hauntableRooms.Length; i++)
+        {
+            Room room = house.hauntableRooms[i];
+            if (room != null && room.roomType == Room.RoomType.bedRoom)
+                return room;
+        }
+
+        for (int i = 0; i < house.hauntableRooms.Length; i++)
+        {
+            Room room = house.hauntableRooms[i];
+            if (room != null && string.Equals(room.name, "Bedroom", StringComparison.OrdinalIgnoreCase))
+                return room;
+        }
+
+        return null;
     }
 
     public void ApplyTutorialGhostParameters(GhostParameters parameters, bool reschedule = true)
@@ -2186,6 +2323,39 @@ public class Ghost : GameBehaviour
     private float GetMobileMovementSpeedMultiplier()
     {
         return MobileInput.Enabled ? Mathf.Clamp(mobileMovementSpeedMultiplier, 0.1f, 1f) : 1f;
+    }
+
+    private bool ShouldEatFruitForCurrentMode()
+    {
+        if (ghostParameters == null || !ghostParameters.EatFruits)
+            return false;
+
+        if (ghostParameters.ShouldEatFruit())
+            return true;
+
+        if (!IsHouseTutoTrainingMode())
+            return false;
+
+        float roll = Random.Range(0f, 100f);
+        return roll <= trainingHouseTutoExtraFruitEatChance;
+    }
+
+    private float GetMinimumPeaceTimeAfterHunt()
+    {
+        float peaceTime = ghostParameters != null ? ghostParameters.minimumPeaceTime : 0f;
+        if (IsHouseTutoTrainingMode())
+            peaceTime += Mathf.Max(0f, trainingHouseTutoExtraPeaceTime);
+
+        return peaceTime;
+    }
+
+    private bool IsHouseTutoTrainingMode()
+    {
+        if (TutorialManager.Instance == null || !TutorialManager.Instance.IsTraining)
+            return false;
+
+        Scene activeScene = SceneManager.GetActiveScene();
+        return activeScene.IsValid() && string.Equals(activeScene.name, "HouseTuto", StringComparison.Ordinal);
     }
 
     private void ResetExternalHuntSlow()

@@ -55,8 +55,17 @@ public class InputManager : GameBehaviour
     [Range(0.2f, 3f)] public float fpsLookVerticalSensitivityMultiplier = 1f;
 
     public const float DefaultLookSensitivityMultiplier = 1f;
+    public const float DefaultMobileTpsLookSensitivityMultiplier = 0.2f;
     public const float DefaultMobileFpsLookHorizontalSensitivityMultiplier = 0.5f;
     public const float DefaultMobileFpsLookVerticalSensitivityMultiplier = 0.2f;
+
+    public float GetDefaultTpsLookSensitivityMultiplier()
+    {
+        if (MobileInput.Enabled || Application.isMobilePlatform)
+            return DefaultMobileTpsLookSensitivityMultiplier;
+
+        return DefaultLookSensitivityMultiplier;
+    }
 
     public float GetDefaultFpsLookHorizontalSensitivityMultiplier()
     {
@@ -129,7 +138,7 @@ public class InputManager : GameBehaviour
     public bool GetMoveLeft() => TutorialInputGate.IsAllowed(TutorialInputGate.AllowMovement) && GetKey(leftKey, leftKeyAlt);
     public bool GetMoveRight() => TutorialInputGate.IsAllowed(TutorialInputGate.AllowMovement) && GetKey(rightKey, rightKeyAlt);
     public bool GetSprint() => TutorialInputGate.IsAllowed(TutorialInputGate.AllowMovement) && GetKey(sprintKey, sprintKeyAlt);
-    public bool GetTurnLightDown() => TutorialInputGate.IsAllowed(TutorialInputGate.AllowSecondary) && GetKeyDown(turnLight, turnLightAlt);
+    public bool GetTurnLightDown() => TutorialInputGate.IsAllowed(TutorialInputGate.AllowLight) && GetKeyDown(turnLight, turnLightAlt);
     public bool GetGrabDown() => TutorialInputGate.IsAllowed(TutorialInputGate.AllowGrab) && GetKeyDown(grabObject, grabObjectAlt);
     public bool GetDropDown() => TutorialInputGate.IsAllowed(TutorialInputGate.AllowDrop) && GetKeyDown(dropObject, dropObjectAlt);
     public bool GetThrowDown() => TutorialInputGate.IsAllowed(TutorialInputGate.AllowThrow) && GetKeyDown(throwObject, throwObjectAlt);
@@ -291,7 +300,9 @@ public class InputManager : GameBehaviour
                 display = GetKeyDisplay(sprintKey, sprintKeyAlt);
                 return true;
             case "crouch":
-                display = GetKeyDisplay(crouchKey, crouchKeyAlt);
+                display = MobileInput.Enabled
+                    ? LocalizationManager.Get("input.binding.crouch", "Crouch")
+                    : GetKeyDisplay(crouchKey, crouchKeyAlt);
                 return true;
             case "jump":
                 display = GetKeyDisplay(jumpKey, jumpKeyAlt);

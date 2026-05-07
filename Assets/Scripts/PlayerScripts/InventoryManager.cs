@@ -36,7 +36,13 @@ public class InventoryManager : GameBehaviour
     public LayerMask fpsMask;
     public LayerMask spirimonzMask;
 
+    [Header("Mobile Night Vision")]
+    [Min(0.05f)] public float mobileNightVisionTapMaxDuration = 0.22f;
+
     private bool _forcedLightStateDuringCam;
+    private bool _mobileNightVisionPressActive;
+    private bool _mobileNightVisionStartedOn;
+    private float _mobileNightVisionPressStartTime;
     private Player _player;
     private GamePlayer _gamePlayer;
     private GameManager _gameManager;
@@ -408,14 +414,7 @@ public class InventoryManager : GameBehaviour
 
         if (MobileInput.Enabled)
         {
-            if (allowNightVision && allowSecondary && MobileInput.SecondaryDown)
-            {
-                int handPos = _gamePlayer.handAnimator.GetInteger("HandPos");
-                if (handPos == (int)HandPoses.LightAim)
-                    TurnOnNightVision();
-                else if (handPos == (int)HandPoses.CameraAim)
-                    TurnOffNightVision();
-            }
+            HandleMobileNightVisionInput(allowNightVision && allowSecondary);
         }
         else
         {
@@ -429,6 +428,58 @@ public class InventoryManager : GameBehaviour
                 TurnOffNightVision();
             }
         }
+    }
+
+    private void HandleMobileNightVisionInput(bool allowed)
+    {
+        if (!allowed)
+        {
+            CancelMobileNightVisionPress();
+            return;
+        }
+
+        if (MobileInput.SecondaryDown)
+        {
+            _mobileNightVisionPressActive = true;
+            _mobileNightVisionStartedOn = IsNightVisionOn();
+            _mobileNightVisionPressStartTime = Time.unscaledTime;
+
+            if (!_mobileNightVisionStartedOn)
+                TurnOnNightVision();
+        }
+
+        if (!MobileInput.SecondaryUp || !_mobileNightVisionPressActive)
+            return;
+
+        float heldDuration = Time.unscaledTime - _mobileNightVisionPressStartTime;
+        bool isTap = heldDuration <= Mathf.Max(0.05f, mobileNightVisionTapMaxDuration);
+
+        if (_mobileNightVisionStartedOn)
+        {
+            if (isTap)
+                TurnOffNightVision();
+        }
+        else if (!isTap)
+        {
+            TurnOffNightVision();
+        }
+
+        _mobileNightVisionPressActive = false;
+    }
+
+    private void CancelMobileNightVisionPress()
+    {
+        if (_mobileNightVisionPressActive && !_mobileNightVisionStartedOn && IsNightVisionOn())
+            TurnOffNightVision();
+
+        _mobileNightVisionPressActive = false;
+    }
+
+    public bool IsNightVisionOn()
+    {
+        return _gamePlayer != null &&
+               _gamePlayer.handAnimator != null &&
+               _gamePlayer.handAnimator.GetInteger("HandPos") == (int)HandPoses.CameraAim;
     }
 
     private void TurnOnNightVision()
@@ -466,7 +517,8 @@ public class InventoryManager : GameBehaviour
         
         if (_gamePlayer.handAnimator != null)
             _gamePlayer.handAnimator.SetInteger("HandPos", (int)HandPoses.LightAim);
-        UnequipSpirimonz();
+        UnequipSpirimonz(clearSelectedSlot: false);
+        currentSelectedIndex = 0;
     }
 
     private void EquipSpirimonz(int teamIndex)
@@ -608,9 +660,11 @@ public class InventoryManager : GameBehaviour
         }
     }
 
-    private void UnequipSpirimonz()
+    private void UnequipSpirimonz(bool clearSelectedSlot = true)
     {
-        currentSelectedIndex = -1;
+        if (clearSelectedSlot)
+            currentSelectedIndex = -1;
+
         if (selectedSpirimonz != null && selectedSpirimonz.isOnTheMap == false)
         {
             selectedSpirimonz.gameObject.SetActive(false);

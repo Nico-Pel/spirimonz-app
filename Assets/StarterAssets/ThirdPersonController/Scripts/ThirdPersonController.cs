@@ -28,7 +28,11 @@ public class ThirdPersonController : MonoBehaviour
     public float mobileLookSensitivityMultiplier = 0.08f;
     public float mobileLookVerticalMultiplier = 0.6f;
     public float mobileLookSensitivityBoost = 2.5f;
+    public float mobilePanYawPerScreenWidth = 240f;
+    public float mobilePanPitchPerScreenHeight = 150f;
+    public float mobilePanSensitivity = 1f;
     public float mobileMoveLookDivisor = 3f;
+    public float mobileWalkLookMultiplier = 1.5f;
     public float mobileLookLerpSpeed = 6f;
 
     [Header("Mobile Sprint")]
@@ -68,6 +72,7 @@ public class ThirdPersonController : MonoBehaviour
     private float _verticalVelocity;
     private float _terminalVelocity = 53f;
     private bool _isMoving;
+    private bool _isSprinting;
     private float _mobileLookMultiplierCurrent = 1f;
     private float _lookAtYawOffset;
     private float _lookAtPitchOffset;
@@ -146,15 +151,28 @@ public class ThirdPersonController : MonoBehaviour
         }
         else
         {
-            Vector2 look = MobileInput.GetLookDelta();
-            bool usingLook = look.sqrMagnitude >= 0.00001f;
-            float targetMultiplier = mobileLookSensitivityMultiplier;
-            if (_isMoving && usingLook)
-                targetMultiplier = mobileLookSensitivityMultiplier / mobileMoveLookDivisor;
+            Vector2 panDelta = MobileInput.GetLookPanDelta();
+            bool usingPan = panDelta.sqrMagnitude >= 0.00001f;
+            Vector2 look = usingPan ? Vector2.zero : MobileInput.GetLookDelta();
+            bool usingLook = usingPan || look.sqrMagnitude >= 0.00001f;
+            float sprintLookMultiplier = mobileLookSensitivityMultiplier / Mathf.Max(0.01f, mobileMoveLookDivisor);
+            float walkLookMultiplier = sprintLookMultiplier * Mathf.Max(1f, mobileWalkLookMultiplier);
+            float targetMultiplier = _isSprinting && usingLook ? sprintLookMultiplier : walkLookMultiplier;
             _mobileLookMultiplierCurrent = Mathf.Lerp(_mobileLookMultiplierCurrent, targetMultiplier, mobileLookLerpSpeed * Time.deltaTime);
 
-            mouseX = look.x * sensitivity * _mobileLookMultiplierCurrent * mobileLookSensitivityBoost * 100f * Time.deltaTime;
-            mouseY = look.y * sensitivity * _mobileLookMultiplierCurrent * mobileLookSensitivityBoost * mobileLookVerticalMultiplier * 100f * Time.deltaTime;
+            if (usingPan)
+            {
+                float width = Mathf.Max(1f, Screen.width);
+                float height = Mathf.Max(1f, Screen.height);
+                float panMultiplier = _mobileLookMultiplierCurrent / Mathf.Max(0.0001f, mobileLookSensitivityMultiplier);
+                mouseX = (panDelta.x / width) * mobilePanYawPerScreenWidth * mobilePanSensitivity * sensitivity * panMultiplier;
+                mouseY = (panDelta.y / height) * mobilePanPitchPerScreenHeight * mobilePanSensitivity * sensitivity * panMultiplier;
+            }
+            else
+            {
+                mouseX = look.x * sensitivity * _mobileLookMultiplierCurrent * mobileLookSensitivityBoost * 100f * Time.deltaTime;
+                mouseY = look.y * sensitivity * _mobileLookMultiplierCurrent * mobileLookSensitivityBoost * mobileLookVerticalMultiplier * 100f * Time.deltaTime;
+            }
         }
 
         _cinemachineTargetYaw += mouseX;
@@ -211,6 +229,7 @@ public class ThirdPersonController : MonoBehaviour
         Vector2 mobileMove = MobileInput.Move;
         bool mobileSprint = MobileInput.Enabled && mobileMove.sqrMagnitude >= (mobileSprintThreshold * mobileSprintThreshold);
         bool sprintInput = (!MobileInput.Enabled && _inputManager.GetSprint()) || MobileInput.SprintHeld || mobileSprint;
+        _isSprinting = moveInput != Vector2.zero && sprintInput;
 
         float targetSpeed = sprintInput ? SprintSpeed : MoveSpeed;
         if (moveInput == Vector2.zero) targetSpeed = 0f;

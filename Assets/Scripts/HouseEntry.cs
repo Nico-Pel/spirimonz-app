@@ -164,6 +164,10 @@ public class HouseEntry : GameBehaviour
 
         if (isExit && _gameManager != null)
         {
+            int exitHouseID = ResolveExitHouseID();
+            if (exitHouseID >= 0)
+                _gameManager.SetCurrentHouseID(exitHouseID);
+
             House house = House.Instance;
             if (house != null && house.map != null && house.map.linkedSecretWorld != null)
                 _gameManager.MarkSecretWorldReturnToTaxi();
@@ -205,6 +209,21 @@ public class HouseEntry : GameBehaviour
             //Prevent to be hard locked on Editor test
             SceneManager.LoadSceneAsync(sceneName, LoadSceneMode.Single);
         }
+    }
+
+    private int ResolveExitHouseID()
+    {
+        if (houseID >= 0)
+            return houseID;
+
+        House house = House.Instance;
+        if (house != null && house.houseEntry != null && house.houseEntry.houseID >= 0)
+            return house.houseEntry.houseID;
+
+        if (house != null && house.map != null && int.TryParse(house.map.houseID, out int mapHouseID))
+            return mapHouseID;
+
+        return -1;
     }
 
     private void PlayerSound(AudioClip clip)

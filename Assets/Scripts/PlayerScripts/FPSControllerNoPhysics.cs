@@ -649,7 +649,11 @@ public class FPSControllerNoPhysics : Controller
     {
         if (_player.IsLocked()) return;
         
-        if (((!MobileInput.Enabled && _player.inputManager.GetTurnLightDown()) || MobileInput.ToggleLightDown) && mLight != null)
+        bool mobileLightDown = MobileInput.Enabled &&
+                               TutorialInputGate.IsAllowed(TutorialInputGate.AllowLight) &&
+                               MobileInput.ToggleLightDown;
+
+        if (((!MobileInput.Enabled && _player.inputManager.GetTurnLightDown()) || mobileLightDown) && mLight != null)
         {
             bool enable = !mLight.gameObject.activeSelf;
 

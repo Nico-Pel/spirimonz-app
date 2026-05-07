@@ -11,6 +11,7 @@ public static class TutorialInputGate
     public static bool AllowUseWatch = true;
     public static bool AllowGrab = true;
     public static bool AllowPickupSpmz = true;
+    public static bool AllowLight = true;
     public static bool AllowSecondary = true;
     public static bool AllowJournal = true;
     public static bool AllowTeamMenu = true;
@@ -29,6 +30,7 @@ public static class TutorialInputGate
         AllowUseWatch = allow;
         AllowGrab = allow;
         AllowPickupSpmz = allow;
+        AllowLight = allow;
         AllowSecondary = allow;
         AllowJournal = allow;
         AllowTeamMenu = allow;

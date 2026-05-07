@@ -937,29 +937,29 @@ public class UISettingsMenu : GameBehaviour
         slider.transition = Selectable.Transition.ColorTint;
 
         RectTransform sliderRect = sliderGO.GetComponent<RectTransform>();
-        sliderRect.sizeDelta = new Vector2(0f, 46f);
+        sliderRect.sizeDelta = new Vector2(0f, 42f);
         LayoutElement sliderLayout = sliderGO.AddComponent<LayoutElement>();
         sliderLayout.minWidth = 280f;
         sliderLayout.preferredWidth = 360f;
         sliderLayout.flexibleWidth = 1f;
-        sliderLayout.minHeight = 46f;
-        sliderLayout.preferredHeight = 46f;
+        sliderLayout.minHeight = 42f;
+        sliderLayout.preferredHeight = 42f;
 
         GameObject background = new GameObject("Background", typeof(RectTransform), typeof(Image));
         background.transform.SetParent(sliderGO.transform, false);
         Image bgImage = background.GetComponent<Image>();
         bgImage.color = new Color(1f, 1f, 1f, 0.18f);
         RectTransform bgRect = background.GetComponent<RectTransform>();
-        bgRect.anchorMin = new Vector2(0f, 0.42f);
-        bgRect.anchorMax = new Vector2(1f, 0.58f);
+        bgRect.anchorMin = new Vector2(0f, 0.38f);
+        bgRect.anchorMax = new Vector2(1f, 0.62f);
         bgRect.offsetMin = new Vector2(12f, 0f);
         bgRect.offsetMax = new Vector2(-12f, 0f);
 
         GameObject fillArea = new GameObject("Fill Area", typeof(RectTransform));
         fillArea.transform.SetParent(sliderGO.transform, false);
         RectTransform fillAreaRect = fillArea.GetComponent<RectTransform>();
-        fillAreaRect.anchorMin = new Vector2(0f, 0.42f);
-        fillAreaRect.anchorMax = new Vector2(1f, 0.58f);
+        fillAreaRect.anchorMin = new Vector2(0f, 0.38f);
+        fillAreaRect.anchorMax = new Vector2(1f, 0.62f);
         fillAreaRect.offsetMin = new Vector2(14f, 0f);
         fillAreaRect.offsetMax = new Vector2(-14f, 0f);
 
@@ -986,9 +986,21 @@ public class UISettingsMenu : GameBehaviour
         GameObject handleGO = new GameObject("Handle", typeof(RectTransform), typeof(Image));
         handleGO.transform.SetParent(handleSlideArea.transform, false);
         Image handleImage = handleGO.GetComponent<Image>();
-        handleImage.color = new Color(1f, 1f, 1f, 0.95f);
+        handleImage.color = new Color(1f, 1f, 1f, 0.01f);
         RectTransform handleRect = handleGO.GetComponent<RectTransform>();
-        handleRect.sizeDelta = new Vector2(24f, 42f);
+        handleRect.sizeDelta = new Vector2(42f, 54f);
+
+        GameObject handleVisualGO = new GameObject("Handle Visual", typeof(RectTransform), typeof(Image));
+        handleVisualGO.transform.SetParent(handleGO.transform, false);
+        Image handleVisualImage = handleVisualGO.GetComponent<Image>();
+        handleVisualImage.color = new Color(1f, 1f, 1f, 0.95f);
+        RectTransform handleVisualRect = handleVisualGO.GetComponent<RectTransform>();
+        handleVisualRect.anchorMin = new Vector2(0.5f, 0.5f);
+        handleVisualRect.anchorMax = new Vector2(0.5f, 0.5f);
+        handleVisualRect.pivot = new Vector2(0.5f, 0.5f);
+        handleVisualRect.sizeDelta = new Vector2(30f, 30f);
+        handleVisualRect.anchoredPosition = Vector2.zero;
+
         slider.handleRect = handleRect;
         slider.targetGraphic = handleImage;
         slider.direction = Slider.Direction.LeftToRight;
@@ -1553,7 +1565,7 @@ public class UISettingsMenu : GameBehaviour
         if (_sound == null) _sound = SoundManager.Instance;
         if (_input == null) _input = InputManager.Instance;
 
-        float ambient = DefaultVolumeMultiplier;
+        float ambient = _sound != null ? _sound.GetDefaultAmbientVolumeMultiplier() : DefaultVolumeMultiplier;
         float sfx = DefaultVolumeMultiplier;
         float ui = DefaultVolumeMultiplier;
         float tps = DefaultSensitivityMultiplier;
@@ -1569,6 +1581,7 @@ public class UISettingsMenu : GameBehaviour
 
         if (_input != null)
         {
+            tps = _input.GetDefaultTpsLookSensitivityMultiplier();
             _input.tpsLookSensitivityMultiplier = tps;
             fps = _input.GetDefaultFpsLookHorizontalSensitivityMultiplier();
             _input.fpsLookSensitivityMultiplier = fps;

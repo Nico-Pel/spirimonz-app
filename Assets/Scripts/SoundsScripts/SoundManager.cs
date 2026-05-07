@@ -14,6 +14,7 @@ public class SoundManager : GameBehaviour
     public AudioClip ambientSound;
     public float ambientSoundVolume = 0.2f;
     [Range(0.5f, 1.5f)] public float ambientVolumeMultiplier = 1f;
+    [Range(0.5f, 1.5f)] public float mobileDefaultAmbientVolumeMultiplier = 0.5f;
     [Range(0.5f, 1.5f)] public float sfxVolumeMultiplier = 1f;
     [Range(0.5f, 1.5f)] public float uiVolumeMultiplier = 1f;
 
@@ -32,6 +33,7 @@ public class SoundManager : GameBehaviour
     {
         Instance = this;
         _uiSoundStartupTime = Time.realtimeSinceStartup;
+        ambientVolumeMultiplier = GetDefaultAmbientVolumeMultiplier();
         
         if (ambientSound != null)
         {
@@ -188,6 +190,13 @@ public class SoundManager : GameBehaviour
         ambientVolumeMultiplier = multiplier;
         if (_ambientSource != null)
             _ambientSource.volume = ambientSoundVolume * ambientVolumeMultiplier;
+    }
+
+    public float GetDefaultAmbientVolumeMultiplier()
+    {
+        return MobileInput.Enabled || Application.isMobilePlatform
+            ? mobileDefaultAmbientVolumeMultiplier
+            : 1f;
     }
 
     public void SetSfxVolumeMultiplier(float multiplier)

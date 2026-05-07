@@ -40,6 +40,10 @@ public class Door : GameBehaviour, IInteractable
     public float spirimonzOpenSpeed = 50f;
     public float spirimonzOpenMinPercent = 0.8f;
 
+    [Header("Initial State")]
+    public bool applyStartOpenAngle = false;
+    [Min(0f)] public float startOpenAngle = 0f;
+
     [Header("Door Sounds")] 
     public float volume = 0.7f;
     public AudioClip openSound;
@@ -109,6 +113,8 @@ public class Door : GameBehaviour, IInteractable
             openFullAngle = opensTowardNegative ? limits.min : limits.max;
 
             _almostCloseAngle = Mathf.Abs(closeAngle) + closeAnglePermissiveness;
+
+            ApplyStartOpenAngleIfNeeded();
         }
         
         SetCursor(cursorHand, cursorHandSize);
@@ -304,6 +310,38 @@ public class Door : GameBehaviour, IInteractable
     #endregion
 
     #region Hinge Control
+
+    private void ApplyStartOpenAngleIfNeeded()
+    {
+        if (!applyStartOpenAngle || startOpenAngle <= 0.001f || hingeJoint == null)
+            return;
+
+        JointLimits limits = hingeJoint.limits;
+        float openDelta = openFullAngle - closeAngle;
+        float targetDelta = Mathf.Min(startOpenAngle, Mathf.Abs(openDelta)) * Mathf.Sign(openDelta);
+        float targetAngle = Mathf.Clamp(closeAngle + targetDelta, limits.min, limits.max);
+        float delta = targetAngle - hingeJoint.angle;
+
+        if (Mathf.Abs(delta) <= 0.001f)
+            return;
+
+        if (rb != null)
+        {
+            rb.velocity = Vector3.zero;
+            rb.angularVelocity = Vector3.zero;
+        }
+
+        Vector3 worldAxis = transform.TransformDirection(hingeJoint.axis);
+        transform.rotation = Quaternion.AngleAxis(delta, worldAxis) * transform.rotation;
+
+        if (rb != null)
+        {
+            rb.position = transform.position;
+            rb.rotation = transform.rotation;
+        }
+
+        isOpen = Mathf.Abs(targetAngle - closeAngle) > closeAnglePermissiveness;
+    }
 
     private void ForcedHinge(float targetAngle, float moveSpeed)
     {

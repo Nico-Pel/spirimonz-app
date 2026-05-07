@@ -144,6 +144,9 @@ public class MobileInventoryFooter : MonoBehaviour
                           UIGame.Instance.tablet != null &&
                           UIGame.Instance.tablet.gameObject.activeSelf;
         bool houseLoadingActive = UIGame.Instance != null && UIGame.Instance.IsBlockingHouseLoadingScreenActive;
+        bool dialogueActive = UIGame.Instance != null &&
+                              UIGame.Instance.uiDialogue != null &&
+                              UIGame.Instance.uiDialogue.IsDialogueActive;
         bool[] slotAllowed = new bool[6];
         int unlockedSlots = 0;
 
@@ -159,6 +162,7 @@ public class MobileInventoryFooter : MonoBehaviour
                           !isTitleScreen &&
                           !settingsOpen &&
                           !tabletOpen &&
+                          !dialogueActive &&
                           !houseLoadingActive &&
                           unlockedSlots > 0;
         ApplyVisibility(showFooter);

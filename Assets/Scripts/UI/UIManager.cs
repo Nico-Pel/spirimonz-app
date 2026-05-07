@@ -40,6 +40,10 @@ public class UIManager : GameBehaviour
     
     public void EnableOverlay(bool enable, float fadeDuration)
     {
+        if (overlay == null)
+            return;
+
+        overlay.DOKill();
         Color colorToUse = enable ? Color.black : new Color(0, 0, 0, 0);
         if (fadeDuration <= 0)
         {
