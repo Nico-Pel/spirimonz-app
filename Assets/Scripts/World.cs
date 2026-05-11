@@ -19,6 +19,13 @@ public class World : GameBehaviour
     public string tutorialSceneName = "HouseTuto";
     public float tutorialRedirectDelay = 0.1f;
 
+    [Header("Mobile NPC Optimization")]
+    [Tooltip("NPCs in this list are considered optional and may be hidden on mobile to reduce CPU / skinning cost.")]
+    public GameObject[] optionalMobileNpcs;
+    [Range(0f, 1f)] public float optionalMobileNpcVisibleRatio = 0.5f;
+
+    private bool _mobileNpcOptimizationApplied;
+
     private void Awake()
     {
         Instance = this;
@@ -26,6 +33,8 @@ public class World : GameBehaviour
 
     private void Start()
     {
+        ApplyMobileNpcOptimization();
+
         if (!autoRedirectToTutorial)
             return;
 
@@ -65,5 +74,61 @@ public class World : GameBehaviour
             return;
 
         travelAnimator.SetTrigger(travelTrigger);
+    }
+
+    private void ApplyMobileNpcOptimization()
+    {
+        if (_mobileNpcOptimizationApplied)
+            return;
+
+        _mobileNpcOptimizationApplied = true;
+
+        if (!ShouldOptimizeOptionalNpcsForMobile())
+            return;
+
+        if (optionalMobileNpcs == null || optionalMobileNpcs.Length == 0)
+            return;
+
+        List<GameObject> validNpcs = new List<GameObject>();
+        for (int i = 0; i < optionalMobileNpcs.Length; i++)
+        {
+            GameObject npc = optionalMobileNpcs[i];
+            if (npc != null)
+                validNpcs.Add(npc);
+        }
+
+        if (validNpcs.Count == 0)
+            return;
+
+        int visibleCount = Mathf.Clamp(Mathf.RoundToInt(validNpcs.Count * optionalMobileNpcVisibleRatio), 0, validNpcs.Count);
+        if (visibleCount >= validNpcs.Count)
+            return;
+
+        System.Random rng = new System.Random(BuildOptionalNpcSeed(validNpcs.Count));
+        for (int i = validNpcs.Count - 1; i > 0; i--)
+        {
+            int swapIndex = rng.Next(i + 1);
+            GameObject temp = validNpcs[i];
+            validNpcs[i] = validNpcs[swapIndex];
+            validNpcs[swapIndex] = temp;
+        }
+
+        for (int i = visibleCount; i < validNpcs.Count; i++)
+            validNpcs[i].SetActive(false);
+    }
+
+    private bool ShouldOptimizeOptionalNpcsForMobile()
+    {
+        if (Application.isMobilePlatform)
+            return true;
+
+        return GameManager.Instance != null && GameManager.Instance.mobileControlsEnabled;
+    }
+
+    private int BuildOptionalNpcSeed(int npcCount)
+    {
+        int saveSlotSeed = SaveManager.CurrentSlot;
+        int worldSeed = string.IsNullOrWhiteSpace(worldName) ? 0 : worldName.GetHashCode();
+        return worldSeed ^ (saveSlotSeed * 397) ^ (npcCount * 17);
     }
 }

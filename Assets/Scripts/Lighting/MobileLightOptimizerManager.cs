@@ -11,10 +11,10 @@ public class MobileLightOptimizerManager : MonoBehaviour
     public bool useCameraAsTarget = true;
 
     [Header("Distances")]
-    public float nearDistance = 10f;
-    public float shadowDisableDistance = 14f;
-    public float farDistance = 22f;
-    public float disableDistance = 30f;
+    public float nearDistance = 9f;
+    public float shadowDisableDistance = 12f;
+    public float farDistance = 19f;
+    public float disableDistance = 26f;
     public float viewDotThreshold = 0.2f;
 
     [Header("House Overrides")]
@@ -34,9 +34,9 @@ public class MobileLightOptimizerManager : MonoBehaviour
 
     [Header("Budget")]
     public bool useLightBudget = true;
-    public int maxNonGameplayLights = 10;
+    public int maxNonGameplayLights = 8;
     public float budgetRefreshInterval = 0.25f;
-    public float outOfViewPenalty = 5f;
+    public float outOfViewPenalty = 8f;
     public bool budgetAffectsNearLights = false;
     public int houseMaxNonGameplayLights = 18;
     public float houseOutOfViewPenalty = 2f;
@@ -46,7 +46,7 @@ public class MobileLightOptimizerManager : MonoBehaviour
     [Header("Stability")]
     public float downgradeDelay = 0.45f;
     public float disableOutOfViewDelay = 0.75f;
-    [Range(0.1f, 1f)] public float farRangeMultiplier = 0.88f;
+    [Range(0.1f, 1f)] public float farRangeMultiplier = 0.8f;
     public float houseDowngradeDelay = 1.5f;
     public float houseDisableOutOfViewDelay = 2.5f;
     [Range(0.1f, 1f)] public float houseFarRangeMultiplier = 1f;
