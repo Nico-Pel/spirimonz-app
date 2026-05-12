@@ -274,5 +274,13 @@ public class SoundManager : GameBehaviour
         }
 
         public bool IsPlaying => _source != null && _source.isPlaying;
+
+        public void SetPitch(float pitch)
+        {
+            if (_source == null)
+                return;
+
+            _source.pitch = pitch;
+        }
     }
 }

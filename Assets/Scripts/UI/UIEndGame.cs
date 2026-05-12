@@ -46,6 +46,12 @@ public class UIEndGame : GameBehaviour
     [Header("Rewarded Bonus")]
     public Button bRewardedBonus;
     public TextMeshProUGUI tRewardedBonus;
+    public Button bTicketBonus;
+    public TextMeshProUGUI tTicketBonus;
+    public TextMeshProUGUI tRewardTicketInfo;
+    public string rewardedBonusLabel = "REWARD x2";
+    public string ticketBonusLabel = "TICKET x2";
+    public string ticketsRemainingFormat = "{0}/{1} tickets";
     [Min(0)] public int minimumRewardedPayout = 50;
     [Min(0.1f)] public float rewardedButtonRefreshInterval = 0.5f;
 
@@ -62,6 +68,9 @@ public class UIEndGame : GameBehaviour
     private bool _soundHooksDone;
     private Button _runtimeRewardedBonusButton;
     private TextMeshProUGUI _runtimeRewardedBonusText;
+    private Button _runtimeTicketBonusButton;
+    private TextMeshProUGUI _runtimeTicketBonusText;
+    private TextMeshProUGUI _runtimeRewardTicketInfoText;
     private int _basePayout;
     private int _selectedPayout;
     private int _rewardedPayout;
@@ -155,6 +164,7 @@ public class UIEndGame : GameBehaviour
 
         EnsureRewardedBonusButton();
         RefreshRewardedButtonLabel();
+        RefreshRewardTicketInfo();
         RefreshRewardedButtonState();
         if (ShouldShowRewardedBonus())
             InvokeRepeating(nameof(RefreshRewardedButtonState), 0f, rewardedButtonRefreshInterval);
@@ -242,10 +252,65 @@ public class UIEndGame : GameBehaviour
             tRewardedBonus = _runtimeRewardedBonusText;
         }
 
+        if (bTicketBonus == null)
+        {
+            if (_runtimeTicketBonusButton == null)
+            {
+                GameObject clone = Instantiate(bContinue.gameObject, bContinue.transform.parent);
+                clone.name = "bTicketBonus";
+                clone.transform.SetSiblingIndex(Mathf.Max(0, bContinue.transform.GetSiblingIndex()));
+
+                _runtimeTicketBonusButton = clone.GetComponent<Button>();
+                _runtimeTicketBonusButton.onClick.RemoveAllListeners();
+
+                TextMeshProUGUI text = clone.GetComponentInChildren<TextMeshProUGUI>(true);
+                _runtimeTicketBonusText = text;
+                if (_runtimeTicketBonusText != null)
+                    _runtimeTicketBonusText.text = "TICKET x2 0#";
+            }
+
+            bTicketBonus = _runtimeTicketBonusButton;
+            tTicketBonus = _runtimeTicketBonusText;
+        }
+
+        if (tRewardTicketInfo == null && tTicketBonus != null)
+        {
+            if (_runtimeRewardTicketInfoText == null)
+            {
+                GameObject infoObject = Instantiate(tTicketBonus.gameObject, tTicketBonus.transform.parent);
+                infoObject.name = "tRewardTicketInfo";
+                RectTransform infoRect = infoObject.GetComponent<RectTransform>();
+                RectTransform sourceRect = tTicketBonus.rectTransform;
+                if (infoRect != null && sourceRect != null)
+                {
+                    infoRect.anchorMin = sourceRect.anchorMin;
+                    infoRect.anchorMax = sourceRect.anchorMax;
+                    infoRect.pivot = sourceRect.pivot;
+                    infoRect.anchoredPosition = sourceRect.anchoredPosition + new Vector2(0f, -58f);
+                    infoRect.sizeDelta = sourceRect.sizeDelta;
+                }
+
+                _runtimeRewardTicketInfoText = infoObject.GetComponent<TextMeshProUGUI>();
+                if (_runtimeRewardTicketInfoText != null)
+                {
+                    _runtimeRewardTicketInfoText.fontSize *= 0.65f;
+                    _runtimeRewardTicketInfoText.text = string.Empty;
+                }
+            }
+
+            tRewardTicketInfo = _runtimeRewardTicketInfoText;
+        }
+
         if (bRewardedBonus != null)
         {
             bRewardedBonus.onClick.RemoveAllListeners();
             bRewardedBonus.onClick.AddListener(OnRewardedBonusPressed);
+        }
+
+        if (bTicketBonus != null)
+        {
+            bTicketBonus.onClick.RemoveAllListeners();
+            bTicketBonus.onClick.AddListener(OnTicketBonusPressed);
         }
     }
 
@@ -255,16 +320,17 @@ public class UIEndGame : GameBehaviour
             return;
 
         bRewardedBonus.interactable = false;
-        MobileMonetizationManager store = MobileMonetizationManager.Instance;
-        store.ShowRewardedOrConsumeTicket(rewardGranted =>
+        if (YCManager.instance == null || YCManager.instance.adsManager == null)
+        {
+            RefreshRewardedButtonState();
+            return;
+        }
+
+        YCManager.instance.adsManager.ShowRewarded(rewardGranted =>
         {
             if (rewardGranted)
             {
-                _rewardApplied = true;
-                _selectedPayout = _rewardedPayout;
-                tTotal.text = _selectedPayout + "#";
-                RefreshRewardedButtonLabel();
-                RefreshRewardedButtonState();
+                ApplyRewardedPayout();
             }
             else
             {
@@ -273,36 +339,122 @@ public class UIEndGame : GameBehaviour
         });
     }
 
+    private void OnTicketBonusPressed()
+    {
+        if (!ShouldShowRewardedBonus() || _rewardApplied || !HasAvailableRewardTickets())
+            return;
+
+        if (bTicketBonus != null)
+            bTicketBonus.interactable = false;
+
+        MobileMonetizationManager store = MobileMonetizationManager.Instance;
+        if (store == null)
+        {
+            RefreshRewardedButtonState();
+            return;
+        }
+
+        store.ShowRewardedOrConsumeTicket(rewardGranted =>
+        {
+            if (rewardGranted)
+            {
+                ApplyRewardedPayout();
+            }
+            else
+            {
+                RefreshRewardTicketInfo();
+                RefreshRewardedButtonState();
+            }
+        });
+    }
+
+    private void ApplyRewardedPayout()
+    {
+        _rewardApplied = true;
+        _selectedPayout = _rewardedPayout;
+        tTotal.text = _selectedPayout + "#";
+        RefreshRewardedButtonLabel();
+        RefreshTicketButtonLabel();
+        RefreshRewardTicketInfo();
+        RefreshRewardedButtonState();
+    }
+
     private void RefreshRewardedButtonLabel()
     {
         if (tRewardedBonus == null)
             return;
 
         int displayAmount = _rewardApplied ? _selectedPayout : _rewardedPayout;
-        tRewardedBonus.text = $"{displayAmount}#";
+        tRewardedBonus.text = $"{rewardedBonusLabel} {displayAmount}#";
+    }
+
+    private void RefreshTicketButtonLabel()
+    {
+        if (tTicketBonus == null)
+            return;
+
+        int displayAmount = _rewardApplied ? _selectedPayout : _rewardedPayout;
+        tTicketBonus.text = $"{ticketBonusLabel} {displayAmount}#";
+    }
+
+    private void RefreshRewardTicketInfo()
+    {
+        if (tRewardTicketInfo == null)
+            return;
+
+        MobileMonetizationManager store = MobileMonetizationManager.Instance;
+        bool usingTicket = HasAvailableRewardTickets();
+        tRewardTicketInfo.gameObject.SetActive(usingTicket);
+
+        if (!usingTicket || store == null)
+            return;
+
+        int remaining = store.GetRemainingDailyRewardTickets();
+        int total = Mathf.Max(1, store.GetDailyRewardTicketLimit());
+        tRewardTicketInfo.text = string.Format(ticketsRemainingFormat, remaining, total);
     }
 
     private void RefreshRewardedButtonState()
     {
-        if (bRewardedBonus == null)
+        if (bRewardedBonus == null && bTicketBonus == null)
             return;
 
         bool shouldShow = ShouldShowRewardedBonus();
-        bRewardedBonus.gameObject.SetActive(shouldShow);
+        bool hasTickets = HasAvailableRewardTickets();
+
+        if (bRewardedBonus != null)
+            bRewardedBonus.gameObject.SetActive(shouldShow && !hasTickets);
+        if (bTicketBonus != null)
+            bTicketBonus.gameObject.SetActive(shouldShow && hasTickets);
+
+        RefreshRewardTicketInfo();
 
         if (!shouldShow)
             return;
 
         if (_rewardApplied)
         {
-            bRewardedBonus.interactable = false;
+            if (bRewardedBonus != null)
+                bRewardedBonus.interactable = false;
+            if (bTicketBonus != null)
+                bTicketBonus.interactable = false;
+            return;
+        }
+
+        if (hasTickets)
+        {
+            if (bTicketBonus != null)
+                bTicketBonus.interactable = true;
+            RefreshTicketButtonLabel();
             return;
         }
 
         bool rewardedReady = YCManager.instance != null &&
                             YCManager.instance.adsManager != null &&
                             YCManager.instance.adsManager.IsRewardedAdReady();
-        bRewardedBonus.interactable = rewardedReady;
+        if (bRewardedBonus != null)
+            bRewardedBonus.interactable = rewardedReady;
+        RefreshRewardedButtonLabel();
     }
 
     private bool ShouldShowRewardedBonus()
@@ -313,6 +465,12 @@ public class UIEndGame : GameBehaviour
     private bool ShouldUseMobileMonetization()
     {
         return MobileInput.Enabled || Application.isMobilePlatform;
+    }
+
+    private bool HasAvailableRewardTickets()
+    {
+        MobileMonetizationManager store = MobileMonetizationManager.Instance;
+        return store != null && store.GetRemainingDailyRewardTickets() > 0;
     }
 
     private void CommitSelectedPayout()

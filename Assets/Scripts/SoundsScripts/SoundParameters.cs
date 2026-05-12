@@ -2,6 +2,10 @@ using System;
 using UnityEngine;
 using Random = UnityEngine.Random;
 
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
+
 public class SoundParameters : GameBehaviour
 {
     [SerializeField] private bool playerOnEnabled;
@@ -10,8 +14,8 @@ public class SoundParameters : GameBehaviour
     
     [SerializeField] private AudioClip[] possibleClips;
     [SerializeField] public float volume = 1f;
-    [SerializeField] private float pitchMin = 0.9f;
-    [SerializeField] private float pitchMax = 1.1f;
+    public float pitchMin = 0.9f;
+    public float pitchMax = 1.1f;
     [SerializeField] private float duration = -1f;
     [SerializeField] private float range = 15f;
     [SerializeField] private bool loop = false;
@@ -31,7 +35,17 @@ public class SoundParameters : GameBehaviour
         PlayManagedSound(position, forcedVolume);
     }
 
+    public void PlaySound(Vector3 position, float forcedVolume, float forcedPitch)
+    {
+        PlayManagedSound(position, forcedVolume, forcedPitch);
+    }
+
     public SoundManager.SoundInstance PlayManagedSound(Vector3 position, float forcedVolume = -1)
+    {
+        return PlayManagedSound(position, forcedVolume, float.NaN);
+    }
+
+    public SoundManager.SoundInstance PlayManagedSound(Vector3 position, float forcedVolume, float forcedPitch)
     {
         AudioClip clip = GetRandomClip();
         if (clip == null)
@@ -54,7 +68,7 @@ public class SoundParameters : GameBehaviour
         if (isUISound && SoundManager.Instance != null)
             volumeToUse *= SoundManager.Instance.uiVolumeMultiplier;
 
-        float pitch = Random.Range(pitchMin, pitchMax);
+        float pitch = float.IsNaN(forcedPitch) ? Random.Range(pitchMin, pitchMax) : forcedPitch;
         return SoundManager.Instance.PlaySound(clip, position, volumeToUse, pitch, duration, range, loop, sourceParent, ignoreAudioOcclusion);
     }
     
@@ -83,6 +97,27 @@ public class SoundParameters : GameBehaviour
         SoundManager.SoundInstance soundInstance = SoundManager.Instance.PlaySound(clip, position: positionToUse, volumeToUse, pitch, duration, range, loop, sourceParent, ignoreAudioOcclusion);
 
         return soundInstance;
+    }
+
+    public float GetPitchMin()
+    {
+        return pitchMin;
+    }
+
+    public float GetPitchMax()
+    {
+        return pitchMax;
+    }
+
+    public void SetPitchRange(float min, float max)
+    {
+        pitchMin = Mathf.Max(0.01f, min);
+        pitchMax = Mathf.Max(pitchMin, max);
+
+#if UNITY_EDITOR
+        if (Application.isPlaying)
+            EditorUtility.SetDirty(this);
+#endif
     }
 
     private AudioClip GetRandomClip()
