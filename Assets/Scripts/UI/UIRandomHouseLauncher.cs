@@ -189,7 +189,7 @@ public class UIRandomHouseLauncher : GameBehaviour
         if (tPrice != null)
             tPrice.text = price <= 0
                 ? LocalizationManager.Get(FreeKey, LocalizeFallback(freeTextEnglish, freeTextFrench))
-                : (price + "$");
+                : (price + "#");
 
         if (_gameManager == null)
         {

@@ -62,7 +62,7 @@ public class UITitleSaveSlot : GameBehaviour
             return;
 
         if (tMoney != null)
-            tMoney.text = GetInt(data, SaveKeys.GOLD, 0) + "$";
+            tMoney.text = GetInt(data, SaveKeys.GOLD, 0) + "#";
 
         SpirimonzSettings[] all = gameManager != null ? gameManager.allSpirimonzSettings : SaveManager.allSpirimonzSettings;
         int unlocked = CountUnlocked(data, all);

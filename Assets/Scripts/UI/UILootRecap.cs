@@ -13,7 +13,7 @@ public class UILootRecap : GameBehaviour
             ? $"{articleName} x{quantity}"
             : articleName;
 
-        tValue.text = totalValue + "$";
+        tValue.text = totalValue + "#";
         tValue.color = valueTextColor;
     }
 

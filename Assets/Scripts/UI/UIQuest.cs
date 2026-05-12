@@ -110,7 +110,7 @@ public class UIQuest : GameBehaviour
 
         rewardButton.interactable = questComplete;
         if (rewardText != null)
-            rewardText.text = $"{Mathf.Max(0, _quest.rewardPrice)}$";
+            rewardText.text = $"{Mathf.Max(0, _quest.rewardPrice)}#";
 
         if (rewardButton.image != null)
             rewardButton.image.color = questComplete ? rewardColor : _rewardBaseColor;

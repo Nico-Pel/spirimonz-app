@@ -1,0 +1,35 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2da69e9a0e0f54f3c905a18b7cedd84c, type: 3}
+  m_Name: SPMZ_026
+  m_EditorClassIdentifier: 
+  unlockedByDefault: 0
+  spirimonzID: SPMZ_026
+  spirimonzName: Chochin
+  spirimonzPrefab: {fileID: 3911853361855069326, guid: b06a08de472a44751ab466752241a9b1, type: 3}
+  spirimonzBodyPrefab: {fileID: 6628111235909271887, guid: 442187feb3e1d4de7bc9e64bb5dc5f89, type: 3}
+  bodyPresentationOffset: {x: 0, y: 0, z: 0}
+  bodyPresentationScale: 7
+  skinMat: {fileID: 0}
+  img: {fileID: 21300000, guid: f9e4ef43bc9ee4ee9aa741c1bf70666b, type: 3}
+  abilities:
+  - evidenceTypes: 
+    description: Chochin's flame lights up when it senses an evil presence in the
+      room after a short time.
+  - evidenceTypes: 02000000
+    description: You can use its flame to <color=#F9AB2D>light candles</color>.
+  primarySPMZType: {fileID: 11400000, guid: fd1ba802da6494af69dd6b3be0777379, type: 2}
+  secondarySPMZType: {fileID: 11400000, guid: 6b74578408ec14b618200c6b1e1360a0, type: 2}
+  canUsePowerInHands: 1
+  canBeDroppedOnMap: 1
+  canBeTakenBackInHands: 1
+  canFollowPlayer: 0

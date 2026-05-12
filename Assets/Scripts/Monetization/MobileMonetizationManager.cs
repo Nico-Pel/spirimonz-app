@@ -29,12 +29,12 @@ public sealed class MobileMonetizationManager : MonoBehaviour
     private static readonly OfferConfig[] OfferConfigs =
     {
         new OfferConfig(MobileStoreOfferType.RemoveAds, null, 0, "Remove Ads", "Remove interstitials and get 5 free reward tickets per day.", "4,99€"),
-        new OfferConfig(MobileStoreOfferType.StarterPack, StarterPackProductId, 0, "Starter Pack", "Remove interstitials, 5 free reward tickets per day, 500$, and unlock the skin for SPMZ_001.", "7,99€"),
-        new OfferConfig(MobileStoreOfferType.CurrencyPack1, CurrencyPack1ProductId, 300, "Money Pack S", "300$ in game currency.", "1,99€"),
-        new OfferConfig(MobileStoreOfferType.CurrencyPack2, CurrencyPack2ProductId, 800, "Money Pack M", "800$ in game currency.", "4,99€"),
-        new OfferConfig(MobileStoreOfferType.CurrencyPack3, CurrencyPack3ProductId, 1800, "Money Pack L", "1 800$ in game currency.", "9,99€"),
-        new OfferConfig(MobileStoreOfferType.CurrencyPack4, CurrencyPack4ProductId, 4000, "Money Pack XL", "4 000$ in game currency.", "19,99€"),
-        new OfferConfig(MobileStoreOfferType.CurrencyPack5, CurrencyPack5ProductId, 9000, "Money Pack XXL", "9 000$ in game currency.", "39,99€")
+        new OfferConfig(MobileStoreOfferType.StarterPack, StarterPackProductId, 0, "Starter Pack", "Remove interstitials, 5 free reward tickets per day, 500#, and unlock the skin for SPMZ_001.", "7,99€"),
+        new OfferConfig(MobileStoreOfferType.CurrencyPack1, CurrencyPack1ProductId, 300, "Money Pack S", "300# in game currency.", "1,99€"),
+        new OfferConfig(MobileStoreOfferType.CurrencyPack2, CurrencyPack2ProductId, 800, "Money Pack M", "800# in game currency.", "4,99€"),
+        new OfferConfig(MobileStoreOfferType.CurrencyPack3, CurrencyPack3ProductId, 1800, "Money Pack L", "1 800# in game currency.", "9,99€"),
+        new OfferConfig(MobileStoreOfferType.CurrencyPack4, CurrencyPack4ProductId, 4000, "Money Pack XL", "4 000# in game currency.", "19,99€"),
+        new OfferConfig(MobileStoreOfferType.CurrencyPack5, CurrencyPack5ProductId, 9000, "Money Pack XXL", "9 000# in game currency.", "39,99€")
     };
 
     private static MobileMonetizationManager _instance;
@@ -657,7 +657,7 @@ public sealed class MobileMonetizationManager : MonoBehaviour
             case MobileStoreOfferType.StarterPack:
                 return $"{GetRemainingDailyRewardTickets()}/{Mathf.Max(1, GetDailyRewardTicketLimit())} tickets left today";
             default:
-                return config.CurrencyAmount > 0 ? $"+{config.CurrencyAmount}$" : string.Empty;
+                return config.CurrencyAmount > 0 ? $"+{config.CurrencyAmount}#" : string.Empty;
         }
     }
 
@@ -667,7 +667,7 @@ public sealed class MobileMonetizationManager : MonoBehaviour
             return string.Empty;
 
         if (inApp.moneyAmount > 0)
-            return $"+{inApp.moneyAmount}$";
+            return $"+{inApp.moneyAmount}#";
 
         if (inApp.rewardTicketsPerDay > 0)
             return $"{GetRemainingDailyRewardTickets()}/{Mathf.Max(1, GetDailyRewardTicketLimit())} tickets left today";

@@ -128,7 +128,7 @@ public class UIEntryPanel : GameBehaviour
             else if (!useSecretWorldPricing && freeAccess && !freeByPrice)
                 tPrice.text = LocalizationManager.Get(EnterKey, LocalizeFallback(enterTextEnglish, enterTextFrench));
             else
-                tPrice.text = priceToUse + "$";
+                tPrice.text = priceToUse + "#";
         }
 
         _entry = entry;

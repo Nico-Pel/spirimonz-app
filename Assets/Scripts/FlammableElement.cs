@@ -29,6 +29,7 @@ public class FlammableElement : GameBehaviour
     
     [Header("Loop Sound")]
     public SoundParameters activeLoopSound;
+    public SoundParameters igniteSound;
 
     [Header("Optional Linked Light")]
     public Light linkedLight;
@@ -161,6 +162,9 @@ public class FlammableElement : GameBehaviour
         }
 
         UpdateActiveLoopSound();
+
+        if (enable && !wasOnFire && igniteSound != null)
+            igniteSound.PlaySound(transform.position);
 
         if (enable && type != FlammableType.Candle && _usedForAQuest == false)
         {

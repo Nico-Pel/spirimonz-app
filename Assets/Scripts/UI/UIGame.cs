@@ -155,7 +155,7 @@ public class UIGame : UIManager
     {
         if (tGold == null)
             return;
-        tGold.text = "$" + _gameManager.GetInt(SaveKeys.GOLD);
+        tGold.text = "#" + _gameManager.GetInt(SaveKeys.GOLD);
     }
 
     private GameObject GetMoneyRoot()

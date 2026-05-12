@@ -229,7 +229,7 @@ public class UISecretWorldWindow : GameBehaviour
         {
             tPrice.text = price <= 0
                 ? LocalizationManager.Get(FreeKey, LocalizeFallback(freeTextEnglish, freeTextFrench))
-                : (price + "$");
+                : (price + "#");
             tPrice.color = canPay ? priceOkColor : priceNotEnoughColor;
         }
 

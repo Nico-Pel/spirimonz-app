@@ -148,7 +148,7 @@ public class UIEndGame : GameBehaviour
             totalValue += totalArticleValue;
         }
 
-        tTotal.text = totalValue + "$";
+        tTotal.text = totalValue + "#";
         _basePayout = totalValue;
         _rewardedPayout = Mathf.Max(_basePayout * 2, minimumRewardedPayout);
         _selectedPayout = _basePayout;
@@ -235,7 +235,7 @@ public class UIEndGame : GameBehaviour
                 TextMeshProUGUI text = clone.GetComponentInChildren<TextMeshProUGUI>(true);
                 _runtimeRewardedBonusText = text;
                 if (_runtimeRewardedBonusText != null)
-                    _runtimeRewardedBonusText.text = "x2 0$";
+                    _runtimeRewardedBonusText.text = "x2 0#";
             }
 
             bRewardedBonus = _runtimeRewardedBonusButton;
@@ -262,7 +262,7 @@ public class UIEndGame : GameBehaviour
             {
                 _rewardApplied = true;
                 _selectedPayout = _rewardedPayout;
-                tTotal.text = _selectedPayout + "$";
+                tTotal.text = _selectedPayout + "#";
                 RefreshRewardedButtonLabel();
                 RefreshRewardedButtonState();
             }
@@ -279,7 +279,7 @@ public class UIEndGame : GameBehaviour
             return;
 
         int displayAmount = _rewardApplied ? _selectedPayout : _rewardedPayout;
-        tRewardedBonus.text = $"{displayAmount}$";
+        tRewardedBonus.text = $"{displayAmount}#";
     }
 
     private void RefreshRewardedButtonState()
