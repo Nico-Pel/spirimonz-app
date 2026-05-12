@@ -4850,6 +4850,78 @@ MonoBehaviour:
   chargeSpeed: 0.35
   source: {fileID: 7822827439317856757}
   optionalActivationDuration: 3
+  activeLoopSound: {fileID: 667829600044802153}
+  makeGhostLeavePrintsWhenDetected: 0
+  ghostPrintPrefab: {fileID: 0}
+  ghostPrintTrailDuration: 3
+  ghostPrintLifeDuration: 12
+  ghostPrintStepDistance: 0.6
+  ghostPrintLateralOffset: 0.15
+  ghostPrintRaycastHeight: 1
+  ghostPrintRaycastDistance: 4
+  ghostPrintSurfaceOffset: 0.01
+  minGroundSurfaceExtent: 0.2
+  minGroundDot: 0.75
+  ghostPrintGroundLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+--- !u!1 &8445457402076661653
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 4445738014235273277}
+  - component: {fileID: 667829600044802153}
+  m_Layer: 12
+  m_Name: SoundParameters
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &4445738014235273277
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8445457402076661653}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 7625167983710424873}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &667829600044802153
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8445457402076661653}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 40b88c04d7940466da713f4000ddccc8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  playerOnEnabled: 0
+  usePlayerPos: 0
+  isUISound: 0
+  possibleClips:
+  - {fileID: 8300000, guid: ca8469b00ee15470888a7a402d26510c, type: 3}
+  volume: 0.05
+  pitchMin: 0.6
+  pitchMax: 0.6
+  duration: -1
+  range: 15
+  loop: 1
+  sourceParent: {fileID: 7625167983710424873}
+  ignoreAudioOcclusion: 0
 --- !u!1001 &2443030257083819856
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -4902,13 +4974,17 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    m_RemovedComponents: []
+    m_RemovedComponents:
+    - {fileID: 670890995135121893, guid: 06f4f0502ee8c4d9da1168d6ab0fd1a8, type: 3}
     m_RemovedGameObjects: []
     m_AddedGameObjects:
     - targetCorrespondingSourceObject: {fileID: 5215394522393975921, guid: 06f4f0502ee8c4d9da1168d6ab0fd1a8, type: 3}
       insertIndex: -1
       addedObject: {fileID: 7822827439317856757}
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 6380480239733377427, guid: 06f4f0502ee8c4d9da1168d6ab0fd1a8, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1134957671670880959}
   m_SourcePrefab: {fileID: 100100000, guid: 06f4f0502ee8c4d9da1168d6ab0fd1a8, type: 3}
 --- !u!108 &3830859053633376851 stripped
 Light:
@@ -4930,6 +5006,31 @@ Animator:
   m_CorrespondingSourceObject: {fileID: 5929382852833221358, guid: 06f4f0502ee8c4d9da1168d6ab0fd1a8, type: 3}
   m_PrefabInstance: {fileID: 2443030257083819856}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &8749200956634574531 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 6380480239733377427, guid: 06f4f0502ee8c4d9da1168d6ab0fd1a8, type: 3}
+  m_PrefabInstance: {fileID: 2443030257083819856}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &1134957671670880959
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8749200956634574531}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d0bedb8895a13485f9481e45d51580cd, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  targetLight: {fileID: 0}
+  ignoreOptimization: 0
+  allowDisableWhenFar: 1
+  useCustomDistances: 0
+  nearDistance: 10
+  shadowDisableDistance: 14
+  farDistance: 22
+  disableDistance: 30
 --- !u!1001 &3868884369116063063
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -5012,6 +5113,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 6657164899661425278, guid: 73b72ad84d9584d7e91279923787a2cc, type: 3}
       insertIndex: -1
       addedObject: {fileID: 7604238621399104289}
+    - targetCorrespondingSourceObject: {fileID: 6657164899661425278, guid: 73b72ad84d9584d7e91279923787a2cc, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 4445738014235273277}
     m_AddedComponents:
     - targetCorrespondingSourceObject: {fileID: 1928178831690860980, guid: 73b72ad84d9584d7e91279923787a2cc, type: 3}
       insertIndex: 1
@@ -5057,6 +5161,9 @@ MonoBehaviour:
   canBeDroppedOnMap: 0
   canBeTakenBackIntoHands: 0
   powerActiveInHands: 1
+  hideFromGhostHunt: 1
+  switchToWaitDuringGhostHunt: 0
+  stayInteractableDuringGhostHunt: 0
   useSecondaryButton: 0
   lookAtPlayerWhileWaiting: 1
   lookAtPlayerOnInteract: 0
@@ -5085,6 +5192,13 @@ MonoBehaviour:
   targetedEscapeDistance: 1
   escapingSpeed: 5
   nbOfWayPointsToConsider: 3
+  enableRoomValidation: 1
+  roomValidationInterval: 0.5
+  roomDetectionRadius: 0.2
+  roomProbeRadius: 0.05
+  roomLayerMask:
+    serializedVersion: 2
+    m_Bits: 0
   agent: {fileID: 4781829951833191395}
   collider: {fileID: 1511398959686120663}
   animator: {fileID: 8335605840680172990}
@@ -5110,6 +5224,7 @@ MonoBehaviour:
   currentEnergy: 100
   usingEnergyForSec: 16
   rechargeForSec: 5
+  tutorialRechargeMultiplier: 2
   minPercentToUse: 0.5
   useMode: 0
   energyCostPerUse: 0

@@ -14,6 +14,8 @@ public class SpmzDetector : Spirimonz
     public float detectionWalkSpeed = 4;
     public float activityDistanceToReach = 2f;
     public float detectionInterval = 0.2f;
+    public bool useMaxAttentionTime = false;
+    [Min(0.1f)] public float maxAttentionTime = 3f;
     
     public Transform detectorSourceTransform;
     public List<ActivitySource> activitySources = new List<ActivitySource>();
@@ -37,14 +39,17 @@ public class SpmzDetector : Spirimonz
     [Min(0f)] public float detectionSoundCooldown = 1f;
     
     private ActivitySource _currentActivitySourceDetected;
+    private readonly HashSet<ActivitySource> _ignoredActivitySources = new HashSet<ActivitySource>();
     private bool _newActivityReached;
     private float _nextDetectionTime;
     private float _nextSoundAllowedTime;
+    private float _activityReachedTime = -1f;
     
     private bool _emissionEnabled = false;
 
     [Header("Events")]
     public UnityEvent<ActivitySource> onActivityDetected;
+    public UnityEvent<ActivitySource> onActivityReached;
 
     public override void InitSpirimonz()
     {
@@ -68,11 +73,19 @@ public class SpmzDetector : Spirimonz
     {
         if (!base.UpdateSpirimonzBehaviour())
             return false;
+
+        RefreshIgnoredActivitySources();
         
         if (_currentActivitySourceDetected != null && _currentActivitySourceDetected.activityValue == 0)
         {
-            _currentActivitySourceDetected = null;
-            UpdateDetectionFeedback();
+            ClearCurrentActivitySource();
+        }
+        else if (_currentActivitySourceDetected != null &&
+                 _newActivityReached &&
+                 useMaxAttentionTime &&
+                 Time.time - _activityReachedTime >= maxAttentionTime)
+        {
+            IgnoreCurrentActivitySourceUntilReset();
         }
 
         if (detectionInterval <= 0f || Time.time >= _nextDetectionTime)
@@ -85,6 +98,7 @@ public class SpmzDetector : Spirimonz
                 
                 //If there is no spirit activity or the activity is already detected, ignore it
                 if (activitySource.activityValue == 0 || activitySource == _currentActivitySourceDetected) continue;
+                if (_ignoredActivitySources.Contains(activitySource)) continue;
                 
                 float dist = Vector3.Distance(detectorSourceTransform.position, activitySource.transform.position);
                 if (dist <= detectionRange)
@@ -120,6 +134,7 @@ public class SpmzDetector : Spirimonz
         onActivityDetected?.Invoke(activitySource);
         UpdateDetectionFeedback();
         _newActivityReached = false;
+        _activityReachedTime = -1f;
 
         if (detectionSound != null && Time.time >= _nextSoundAllowedTime)
         {
@@ -190,6 +205,8 @@ public class SpmzDetector : Spirimonz
     private void ActivityReached()
     {
         _newActivityReached = true;
+        _activityReachedTime = Time.time;
+        onActivityReached?.Invoke(_currentActivitySourceDetected);
 
         //Look at activity source without rotating up or down
         Vector3 activitySourcePos = _currentActivitySourceDetected.transform.position;
@@ -225,7 +242,7 @@ public class SpmzDetector : Spirimonz
         
         if (powerActiveInHands == false)
         {
-            _currentActivitySourceDetected = null;
+            ClearCurrentActivitySource();
         }
         
         _newActivityReached = false;
@@ -260,5 +277,30 @@ public class SpmzDetector : Spirimonz
         {
             this.Invoke(blinkInterval, BlinkingDetection);
         }
+    }
+
+    private void RefreshIgnoredActivitySources()
+    {
+        if (_ignoredActivitySources.Count == 0)
+            return;
+
+        _ignoredActivitySources.RemoveWhere(source => source == null || source.activityValue == 0);
+    }
+
+    private void IgnoreCurrentActivitySourceUntilReset()
+    {
+        if (_currentActivitySourceDetected == null)
+            return;
+
+        _ignoredActivitySources.Add(_currentActivitySourceDetected);
+        ClearCurrentActivitySource();
+    }
+
+    private void ClearCurrentActivitySource()
+    {
+        _currentActivitySourceDetected = null;
+        _newActivityReached = false;
+        _activityReachedTime = -1f;
+        UpdateDetectionFeedback();
     }
 }

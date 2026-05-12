@@ -1,0 +1,39 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2da69e9a0e0f54f3c905a18b7cedd84c, type: 3}
+  m_Name: SPMZ_024
+  m_EditorClassIdentifier: 
+  unlockedByDefault: 1
+  spirimonzID: SPMZ_024
+  spirimonzName: Ghostbally
+  spirimonzPrefab: {fileID: 3990404701300845526, guid: 4003d686ee17345c7898aeb9a0b5a9ea, type: 3}
+  spirimonzBodyPrefab: {fileID: 2146491726777669896, guid: 60d3ddc5182634117ba3bfa5c0a41790, type: 3}
+  bodyPresentationOffset: {x: 0, y: 2, z: 0}
+  bodyPresentationScale: 7
+  skinMat: {fileID: 0}
+  img: {fileID: 21300000, guid: 0e5f8c43daee84eec9161472725fb656, type: 3}
+  abilities:
+  - evidenceTypes: 00000000
+    description: When you activate Ghostbally continuously in your hand, it slowly
+      reveals the <color=#F9AB2D>spectral imprints</color> around you.
+  - evidenceTypes: 
+    description: Ghostbally needs time to recharge after using his power, but she
+      has plenty of energy.
+  - evidenceTypes: 00000000
+    description: If the Dark Spirit is nearby, it will leave footprints behind for
+      a short time.
+  primarySPMZType: {fileID: 11400000, guid: f3f25d6f57f954fe0b8a6b8175a06b35, type: 2}
+  secondarySPMZType: {fileID: 11400000, guid: bc465cea5eb7b49b7abc25d39e2cd70f, type: 2}
+  canUsePowerInHands: 1
+  canBeDroppedOnMap: 0
+  canBeTakenBackInHands: 0
+  canFollowPlayer: 0

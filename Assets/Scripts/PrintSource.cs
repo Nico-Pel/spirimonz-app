@@ -54,17 +54,21 @@ public class PrintSource : GameBehaviour
         {
             _currentDuration -= Time.deltaTime;
         }
-        else if (_activated)
-        {
-            Deactivate();
-        }
 
         if (_activated)
         {
-            HandlePrintColor();
             if (Time.time - _lastEnergyChargeTime >= delayBeforeEnergyDecay && _colorPower > 0)
             {
                 _colorPower -= _colorDecreasing * Time.deltaTime;
+                if (_colorPower < 0)
+                    _colorPower = 0;
+            }
+
+            HandlePrintColor();
+
+            if (_currentDuration <= 0 && _colorPower <= 0)
+            {
+                Deactivate();
             }
         }
     }

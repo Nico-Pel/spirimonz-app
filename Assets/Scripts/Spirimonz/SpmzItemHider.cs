@@ -12,6 +12,12 @@ public class SpmzItemHider : Spirimonz
     public GameObject itemPrefab;
     public float hideItemDelay = 3f;
     public float[] hotAndColdStatesRanges;
+
+    [Header("Sounds")]
+    public SoundParameters invokeItemSound;
+    public float invokeItemSoundDelay = 0f;
+    public SoundParameters[] rangeFeedbackSoundsByState;
+    public SoundParameters tooFarFeedbackSound;
     
     private bool _canInteractBase;
     private bool _canBeTakenBackIntoHandsBase;
@@ -73,6 +79,13 @@ public class SpmzItemHider : Spirimonz
         lookAtSpeed = 0;
         
         animator.SetTrigger("InvokeItem");
+        if (invokeItemSound != null)
+        {
+            if (invokeItemSoundDelay > 0f)
+                this.Invoke(invokeItemSoundDelay, () => invokeItemSound.PlaySound(transform.position));
+            else
+                invokeItemSound.PlaySound(transform.position);
+        }
         this.Invoke(hideItemDelay, SpawnItem);
 
         _currentBehaviour = SpirimonzBehaviourState.Wait;
@@ -154,6 +167,21 @@ public class SpmzItemHider : Spirimonz
 
             animator.SetInteger("RangeFeedbackState", rangeState);
             animator.SetTrigger("RangeFeedback");
+            PlayRangeFeedbackSound(rangeState);
         }
+    }
+
+    private void PlayRangeFeedbackSound(int rangeState)
+    {
+        if (rangeState >= hotAndColdStatesRanges.Length)
+        {
+            tooFarFeedbackSound?.PlaySound(transform.position);
+            return;
+        }
+
+        if (rangeFeedbackSoundsByState == null || rangeState < 0 || rangeState >= rangeFeedbackSoundsByState.Length)
+            return;
+
+        rangeFeedbackSoundsByState[rangeState]?.PlaySound(transform.position);
     }
 }

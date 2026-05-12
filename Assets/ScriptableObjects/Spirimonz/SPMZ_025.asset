@@ -1,0 +1,36 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2da69e9a0e0f54f3c905a18b7cedd84c, type: 3}
+  m_Name: SPMZ_025
+  m_EditorClassIdentifier: 
+  unlockedByDefault: 1
+  spirimonzID: SPMZ_025
+  spirimonzName: Pupug
+  spirimonzPrefab: {fileID: 6690621473432451843, guid: b45b64d10d6d141548d71bacdd10dc80, type: 3}
+  spirimonzBodyPrefab: {fileID: 6360040559680596110, guid: 7e24f70f6179748238637020e70aa7f8, type: 3}
+  bodyPresentationOffset: {x: 0, y: 0, z: 0}
+  bodyPresentationScale: 7
+  skinMat: {fileID: 0}
+  img: {fileID: 21300000, guid: c7eef5265b0454270847c1b246039182, type: 3}
+  abilities:
+  - evidenceTypes: 
+    description: When following you, Pupug can detect spirit activities and without
+      knowing their value.
+  - evidenceTypes: 01000000
+    description: When Pupug is happy to have detected paranormal activity, he sometimes
+      vomits <color=#F9AB2D>fruits</color> ...
+  primarySPMZType: {fileID: 11400000, guid: 02e113f3a6b9d45c6bea07f9359a9b9b, type: 2}
+  secondarySPMZType: {fileID: 11400000, guid: eda23aac6a50f4cd190b4623e32f57d4, type: 2}
+  canUsePowerInHands: 0
+  canBeDroppedOnMap: 1
+  canBeTakenBackInHands: 1
+  canFollowPlayer: 1

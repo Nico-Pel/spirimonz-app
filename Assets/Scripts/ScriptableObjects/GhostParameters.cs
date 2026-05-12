@@ -126,6 +126,7 @@ public class GhostParameters : ScriptableObject
     [Range(0f, 100f)] public float chancesToDoNothingAfterNonFavoriteActivity = 35f;
     [Range(0f, 100f)] public float chancesToChangeRoomAfterNonFavoriteActivity = 25f;
     [Range(0f, 100f)] public float chancesToReturnToFavoriteAfterNonFavoriteActivity = 40f;
+    [Min(0f)] public float minTimeBeforeLeavingFavoriteRoom = 90f;
 
     
     public int GetRandomActivityValue()

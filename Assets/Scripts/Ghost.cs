@@ -1576,9 +1576,17 @@ public class Ghost : GameBehaviour
             {
                 Room sourceRoom = currentRoom != null ? currentRoom : favoriteRoom;
                 float chances = Random.Range(0f, 100f);
+                bool canLeaveFavoriteRoom =
+                    !(sourceRoom == favoriteRoom &&
+                      favoriteRoom != null &&
+                      ghostParameters != null &&
+                      house != null &&
+                      Time.time - house.houseStartTime < ghostParameters.minTimeBeforeLeavingFavoriteRoom);
+
                 if (sourceRoom != null &&
                     sourceRoom.neighborRooms != null &&
                     sourceRoom.neighborRooms.Length > 0 &&
+                    canLeaveFavoriteRoom &&
                     chances <= chancesToRoamInAnotherRoom)
                 {
                     List<Room> validNeighbors = new List<Room>();
