@@ -6,6 +6,7 @@ using YsoCorp;
 
 public static class ClearIapTool
 {
+    private const string AdsShowKey = "ADSSHOW";
     private const string RemoveAdsOwnedKey = "mobile_store_remove_ads_owned";
     private const string StarterPackOwnedKey = "mobile_store_starter_pack_owned";
     private const string RewardTicketsDateKey = "mobile_store_reward_tickets_date";
@@ -29,6 +30,7 @@ public static class ClearIapTool
 
     private static void ClearGlobalIapState()
     {
+        ADataManager.DeleteKey(AdsShowKey);
         ADataManager.DeleteKey(RemoveAdsOwnedKey);
         ADataManager.DeleteKey(StarterPackOwnedKey);
         ADataManager.DeleteKey(RewardTicketsDateKey);

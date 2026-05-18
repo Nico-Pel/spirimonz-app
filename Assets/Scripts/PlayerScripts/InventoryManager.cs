@@ -894,6 +894,7 @@ public class InventoryManager : GameBehaviour
     public void AddArticle(Article article, bool useSound = false)
     {
         articlesFoundInGame.Add(article);
+        WeeklyArticleHarvestState.RegisterFound(article);
         if (useSound)
         {
             if (_gamePlayer != null)

@@ -14,6 +14,18 @@ public class SkinRenderer : MonoBehaviour
         CacheBaseMaterials();
     }
 
+    private void Reset()
+    {
+        if (targetRenderer == null)
+            targetRenderer = GetComponent<Renderer>();
+
+        if (string.IsNullOrWhiteSpace(materialId))
+            materialId = "0";
+
+        _cached = false;
+        CacheBaseMaterials();
+    }
+
     public void ApplySkin(Material skinMat, bool useSkin)
     {
         CacheBaseMaterials();

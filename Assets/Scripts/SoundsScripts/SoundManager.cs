@@ -141,16 +141,26 @@ public class SoundManager : GameBehaviour
     private bool RegisterUiInputIfAny()
     {
         bool hasInput = Input.anyKeyDown ||
+                        Input.anyKey ||
                         Input.GetMouseButtonDown(0) ||
                         Input.GetMouseButtonDown(1) ||
-                        Input.GetMouseButtonDown(2);
+                        Input.GetMouseButtonDown(2) ||
+                        Input.GetMouseButtonUp(0) ||
+                        Input.GetMouseButtonUp(1) ||
+                        Input.GetMouseButtonUp(2) ||
+                        Input.GetMouseButton(0) ||
+                        Input.GetMouseButton(1) ||
+                        Input.GetMouseButton(2);
 
         if (!hasInput && Input.touchCount > 0)
         {
             for (int i = 0; i < Input.touchCount; i++)
             {
                 Touch touch = Input.GetTouch(i);
-                if (touch.phase == TouchPhase.Began)
+                if (touch.phase == TouchPhase.Began ||
+                    touch.phase == TouchPhase.Moved ||
+                    touch.phase == TouchPhase.Stationary ||
+                    touch.phase == TouchPhase.Ended)
                 {
                     hasInput = true;
                     break;

@@ -60,6 +60,7 @@ public class UIEndGame : GameBehaviour
 
     [Header("Sounds")]
     public SoundParameters continueSound;
+    public SoundParameters rewardClaimSound;
     public Button bQuit;
     public Button bRetry;
     public SoundParameters quitSound;
@@ -373,6 +374,7 @@ public class UIEndGame : GameBehaviour
         _rewardApplied = true;
         _selectedPayout = _rewardedPayout;
         tTotal.text = _selectedPayout + "#";
+        rewardClaimSound?.PlaySound();
         RefreshRewardedButtonLabel();
         RefreshTicketButtonLabel();
         RefreshRewardTicketInfo();
@@ -385,7 +387,7 @@ public class UIEndGame : GameBehaviour
             return;
 
         int displayAmount = _rewardApplied ? _selectedPayout : _rewardedPayout;
-        tRewardedBonus.text = $"{rewardedBonusLabel} {displayAmount}#";
+        tRewardedBonus.text = $"{GetRewardedButtonLabelPrefix()} {displayAmount}#";
     }
 
     private void RefreshTicketButtonLabel()
@@ -394,7 +396,24 @@ public class UIEndGame : GameBehaviour
             return;
 
         int displayAmount = _rewardApplied ? _selectedPayout : _rewardedPayout;
-        tTicketBonus.text = $"{ticketBonusLabel} {displayAmount}#";
+        tTicketBonus.text = $"{GetTicketButtonLabelPrefix()} {displayAmount}#";
+    }
+
+    private string GetRewardedButtonLabelPrefix()
+    {
+        return IsUsingMinimumRewardedPayout() ? "REWARD" : rewardedBonusLabel;
+    }
+
+    private string GetTicketButtonLabelPrefix()
+    {
+        return IsUsingMinimumRewardedPayout() ? "TICKET" : ticketBonusLabel;
+    }
+
+    private bool IsUsingMinimumRewardedPayout()
+    {
+        return _basePayout > 0 &&
+               _rewardedPayout == minimumRewardedPayout &&
+               _rewardedPayout > _basePayout * 2;
     }
 
     private void RefreshRewardTicketInfo()

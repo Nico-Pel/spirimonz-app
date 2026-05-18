@@ -290,6 +290,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1194104083297006417}
   - component: {fileID: 6480432975318136735}
+  - component: {fileID: 618040622490414466}
   m_Layer: 12
   m_Name: Bellbock_Mesh
   m_TagString: Untagged
@@ -377,6 +378,20 @@ SkinnedMeshRenderer:
     m_Center: {x: -0.001985073, y: 0.37486306, z: -0.045994252}
     m_Extent: {x: 0.76000065, y: 0.83878565, z: 0.5483954}
   m_DirtyAABB: 0
+--- !u!114 &618040622490414466
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5376123958525866399}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a52ecd06a4cef47fb8531af198329dce, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  targetRenderer: {fileID: 6480432975318136735}
+  materialId: 0
 --- !u!1 &5464569027293709121
 GameObject:
   m_ObjectHideFlags: 0

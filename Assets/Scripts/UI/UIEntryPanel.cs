@@ -4,6 +4,8 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 using UnityEngine.SceneManagement;
+using YsoCorp;
+using YsoCorp.GameUtils;
 
 public class UIEntryPanel : GameBehaviour
 {
@@ -22,6 +24,16 @@ public class UIEntryPanel : GameBehaviour
     public Button bClose;
     public Color goColorBase;
     public Color goColorQuestsCompleted;
+
+    [Header("Mobile Free Entry")]
+    public Button bRewardedEntry;
+    public TextMeshProUGUI tRewardedEntry;
+    public Button bTicketEntry;
+    public TextMeshProUGUI tTicketEntry;
+    public string rewardedEntryLabel = "FREE";
+    public string ticketEntryLabel = "FREE";
+    public string rewardedEntryRemainingFormat = "{0}/{1}";
+    [Min(0.1f)] public float freeEntryButtonRefreshInterval = 0.5f;
 
     [Header("Sounds")]
     public SoundParameters goSound;
@@ -56,6 +68,8 @@ public class UIEntryPanel : GameBehaviour
     private const string TipsSecretWorldKey = "ui.entry.tips.secret_world";
     private const string EnterKey = "ui.entry.enter";
     private const string FreeKey = "ui.common.free";
+    private const string FreeEntryRewardDateKey = "mobile_store_entry_reward_date";
+    private const string FreeEntryRewardUsedKey = "mobile_store_entry_reward_used";
 
     private GameManager _gameManager;
     private HouseEntry _entry;
@@ -92,10 +106,7 @@ public class UIEntryPanel : GameBehaviour
         bool freeAccess = freeByPrice || (allQuestCompleted && questCount > 0);
         _allQuestCompleted = freeAccess;
 
-        bool isSecretWorldHouse = entry != null && entry.map != null && entry.map.linkedSecretWorld != null;
-        bool isInSecretWorld = _gameManager != null &&
-                               _gameManager.IsTemporaryWorldScene(SceneManager.GetActiveScene().name);
-        bool useSecretWorldPricing = isSecretWorldHouse && isInSecretWorld;
+        bool useSecretWorldPricing = ShouldUseSecretWorldPricing(entry);
         if (useSecretWorldPricing && _gameManager != null)
         {
             _gameManager.SetSecretWorldPriceConfig(
@@ -115,11 +126,7 @@ public class UIEntryPanel : GameBehaviour
         
         bGo.image.color = freeAccess && !freeByPrice ? goColorQuestsCompleted : goColorBase;
 
-        int priceToUse = entry != null && entry.map != null ? entry.map.entryPrince : 0;
-        if (useSecretWorldPricing)
-            priceToUse = _gameManager != null ? _gameManager.GetSecretWorldHouseEntryPrice(entry.map.linkedSecretWorld) : 0;
-        else if (freeAccess)
-            priceToUse = 0;
+        int priceToUse = GetEntryPrice(entry, freeAccess);
 
         if (tPrice != null)
         {
@@ -154,6 +161,19 @@ public class UIEntryPanel : GameBehaviour
             bGoTraining.onClick.AddListener(GoTraining);
         }
 
+        EnsureFreeEntryButtons();
+        if (bRewardedEntry != null)
+        {
+            bRewardedEntry.onClick.RemoveAllListeners();
+            bRewardedEntry.onClick.AddListener(OnRewardedEntryPressed);
+        }
+
+        if (bTicketEntry != null)
+        {
+            bTicketEntry.onClick.RemoveAllListeners();
+            bTicketEntry.onClick.AddListener(OnTicketEntryPressed);
+        }
+
         int price = priceToUse;
         bool enoughMoney = price <= 0 || _gameManager.CanBuy(price);
         bGo.interactable = enoughMoney;
@@ -185,6 +205,11 @@ public class UIEntryPanel : GameBehaviour
                 }
             }
         }
+
+        CancelInvoke(nameof(RefreshFreeEntryButtonState));
+        RefreshFreeEntryButtonState();
+        if (ShouldUseMobileMonetization())
+            InvokeRepeating(nameof(RefreshFreeEntryButtonState), 0f, freeEntryButtonRefreshInterval);
     }
 
     private void GoNormal()
@@ -207,32 +232,249 @@ public class UIEntryPanel : GameBehaviour
         if (_gameManager == null || _currentEntry == null)
             return;
 
-        bool isSecretWorldHouse = _currentEntry.map != null && _currentEntry.map.linkedSecretWorld != null;
-        bool isInSecretWorld = _gameManager.IsTemporaryWorldScene(SceneManager.GetActiveScene().name);
-        bool useSecretWorldPricing = isSecretWorldHouse && isInSecretWorld;
-
-        int price = _allQuestCompleted ? 0 : _currentEntry.map.entryPrince;
-        if (useSecretWorldPricing)
-            price = _gameManager.GetSecretWorldHouseEntryPrice(_currentEntry.map.linkedSecretWorld);
+        int price = GetCurrentEntryPrice();
 
         if (price > 0 && !_gameManager.Buy(price))
             return;
 
-        if (price > 0)
-        {
-            if (paidSound != null)
-                paidSound.PlaySound();
-        }
-        else if (freeSound != null)
-        {
-            freeSound.PlaySound();
-        }
+        EnterCurrentEntry(mode, price > 0 ? paidSound : freeSound);
+    }
+
+    private void EnterCurrentEntry(GameManager.HouseSceneMode mode, SoundParameters soundToPlay)
+    {
+        if (_gameManager == null || _entry == null)
+            return;
+
+        if (soundToPlay != null)
+            soundToPlay.PlaySound();
 
         _gameManager.SetNextHouseSceneMode(mode);
+        UIGame.Instance.CloseAllWindows();
+        _entry.Entry(Player.Instance);
+    }
+
+    private void OnRewardedEntryPressed()
+    {
+        if (!CanUseRewardedEntry())
+            return;
+
+        if (bRewardedEntry != null)
+            bRewardedEntry.interactable = false;
+
+        AdsManager adsManager = YCManager.instance != null ? YCManager.instance.adsManager : null;
+        if (adsManager == null)
         {
-            UIGame.Instance.CloseAllWindows();
-            _entry.Entry(Player.Instance);
+            RefreshFreeEntryButtonState();
+            return;
         }
+
+        adsManager.ShowRewarded(rewardGranted =>
+        {
+            if (!rewardGranted)
+            {
+                RefreshFreeEntryButtonState();
+                return;
+            }
+
+            adsManager.ResetInterstitialDelay();
+            ConsumeRewardedEntryUse();
+            EnterCurrentEntry(GameManager.HouseSceneMode.NormalMap, goSound);
+        });
+    }
+
+    private void OnTicketEntryPressed()
+    {
+        if (!CanUseTicketEntry())
+            return;
+
+        if (bTicketEntry != null)
+            bTicketEntry.interactable = false;
+
+        MobileMonetizationManager store = MobileMonetizationManager.Instance;
+        if (store == null)
+        {
+            RefreshFreeEntryButtonState();
+            return;
+        }
+
+        store.ShowRewardedOrConsumeTicket(rewardGranted =>
+        {
+            if (!rewardGranted)
+            {
+                RefreshFreeEntryButtonState();
+                return;
+            }
+
+            EnterCurrentEntry(GameManager.HouseSceneMode.NormalMap, goSound);
+        });
+    }
+
+    private void RefreshFreeEntryButtonState()
+    {
+        EnsureFreeEntryButtons();
+
+        if (bRewardedEntry == null && bTicketEntry == null)
+            return;
+
+        bool shouldShowRewarded = CanUseRewardedEntry();
+        bool shouldShowTicket = CanUseTicketEntry();
+
+        if (bRewardedEntry != null)
+            bRewardedEntry.gameObject.SetActive(shouldShowRewarded);
+        if (bTicketEntry != null)
+            bTicketEntry.gameObject.SetActive(shouldShowTicket);
+
+        if (tRewardedEntry != null)
+        {
+            int remaining = HasUnusedRewardedEntry() ? 1 : 0;
+            tRewardedEntry.text = $"{rewardedEntryLabel} {string.Format(rewardedEntryRemainingFormat, remaining, 1)}";
+        }
+
+        if (tTicketEntry != null)
+        {
+            MobileMonetizationManager store = MobileMonetizationManager.Instance;
+            if (store != null)
+            {
+                int remaining = store.GetRemainingDailyRewardTickets();
+                int total = Mathf.Max(1, store.GetDailyRewardTicketLimit());
+                tTicketEntry.text = $"{ticketEntryLabel} {string.Format(rewardedEntryRemainingFormat, remaining, total)}";
+            }
+            else
+            {
+                tTicketEntry.text = ticketEntryLabel;
+            }
+        }
+
+        if (bRewardedEntry != null)
+        {
+            AdsManager adsManager = YCManager.instance != null ? YCManager.instance.adsManager : null;
+            bool rewardedReady = adsManager != null && adsManager.IsRewardedAdReady();
+            bRewardedEntry.interactable = shouldShowRewarded && rewardedReady;
+        }
+
+        if (bTicketEntry != null)
+            bTicketEntry.interactable = shouldShowTicket;
+    }
+
+    private bool CanUseRewardedEntry()
+    {
+        return ShouldShowAnyFreeEntryButton() &&
+               !HasAvailableRewardTickets() &&
+               HasUnusedRewardedEntry();
+    }
+
+    private bool CanUseTicketEntry()
+    {
+        return ShouldShowAnyFreeEntryButton() &&
+               HasAvailableRewardTickets();
+    }
+
+    private bool ShouldShowAnyFreeEntryButton()
+    {
+        if (!ShouldUseMobileMonetization() ||
+            _gameManager == null ||
+            _currentEntry == null ||
+            !_gameManager.IsWorld())
+        {
+            return false;
+        }
+
+        if (normalPanel != null && !normalPanel.activeInHierarchy)
+            return false;
+
+        return GetCurrentEntryPrice() > 0;
+    }
+
+    private bool HasAvailableRewardTickets()
+    {
+        MobileMonetizationManager store = MobileMonetizationManager.Instance;
+        return store != null && store.GetRemainingDailyRewardTickets() > 0;
+    }
+
+    private bool HasUnusedRewardedEntry()
+    {
+        EnsureRewardedEntryDayIsCurrent();
+        return ADataManager.GetInt(FreeEntryRewardUsedKey, 0) <= 0;
+    }
+
+    private void ConsumeRewardedEntryUse()
+    {
+        EnsureRewardedEntryDayIsCurrent();
+        ADataManager.SetInt(FreeEntryRewardUsedKey, 1);
+        ADataManager.ForceSave();
+    }
+
+    private void EnsureRewardedEntryDayIsCurrent()
+    {
+        string today = System.DateTime.UtcNow.ToString("yyyyMMdd");
+        string savedDay = ADataManager.GetString(FreeEntryRewardDateKey, string.Empty);
+        if (savedDay == today)
+            return;
+
+        ADataManager.SetString(FreeEntryRewardDateKey, today);
+        ADataManager.SetInt(FreeEntryRewardUsedKey, 0);
+        ADataManager.ForceSave();
+    }
+
+    private bool ShouldUseMobileMonetization()
+    {
+        return MobileInput.Enabled ||
+               Application.isMobilePlatform ||
+               (_gameManager != null && _gameManager.mobileControlsEnabled);
+    }
+
+    private bool ShouldUseSecretWorldPricing(HouseEntry entry)
+    {
+        bool isSecretWorldHouse = entry != null && entry.map != null && entry.map.linkedSecretWorld != null;
+        bool isInSecretWorld = _gameManager != null &&
+                               _gameManager.IsTemporaryWorldScene(SceneManager.GetActiveScene().name);
+        return isSecretWorldHouse && isInSecretWorld;
+    }
+
+    private int GetEntryPrice(HouseEntry entry, bool freeAccess)
+    {
+        if (entry == null || entry.map == null)
+            return 0;
+
+        if (ShouldUseSecretWorldPricing(entry))
+            return _gameManager != null ? _gameManager.GetSecretWorldHouseEntryPrice(entry.map.linkedSecretWorld) : 0;
+
+        return freeAccess ? 0 : entry.map.entryPrince;
+    }
+
+    private int GetCurrentEntryPrice()
+    {
+        return GetEntryPrice(_currentEntry, _allQuestCompleted);
+    }
+
+    private void EnsureFreeEntryButtons()
+    {
+        if (bRewardedEntry == null)
+            bRewardedEntry = FindOptionalButton(normalPanel != null ? normalPanel.transform : transform, "BReward");
+        if (bTicketEntry == null)
+            bTicketEntry = FindOptionalButton(normalPanel != null ? normalPanel.transform : transform, "BTicket");
+
+        if (tRewardedEntry == null && bRewardedEntry != null)
+            tRewardedEntry = bRewardedEntry.GetComponentInChildren<TextMeshProUGUI>(true);
+        if (tTicketEntry == null && bTicketEntry != null)
+            tTicketEntry = bTicketEntry.GetComponentInChildren<TextMeshProUGUI>(true);
+    }
+
+    private Button FindOptionalButton(Transform root, string objectName)
+    {
+        if (root == null)
+            return null;
+
+        Transform[] children = root.GetComponentsInChildren<Transform>(true);
+        for (int i = 0; i < children.Length; i++)
+        {
+            if (children[i] == null || children[i].name != objectName)
+                continue;
+
+            return children[i].GetComponent<Button>();
+        }
+
+        return null;
     }
 
     private void ClosePanel()
@@ -253,6 +495,11 @@ public class UIEntryPanel : GameBehaviour
             return french;
 
         return english;
+    }
+
+    private void OnDisable()
+    {
+        CancelInvoke(nameof(RefreshFreeEntryButtonState));
     }
 
 #if UNITY_EDITOR

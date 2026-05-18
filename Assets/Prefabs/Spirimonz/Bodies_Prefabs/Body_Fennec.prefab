@@ -158,6 +158,7 @@ GameObject:
   - component: {fileID: 7540592694238212961}
   - component: {fileID: 5440512897655962116}
   - component: {fileID: 6878534544492317857}
+  - component: {fileID: 5871518139159106485}
   m_Layer: 12
   m_Name: FennecHead
   m_TagString: Untagged
@@ -232,6 +233,20 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
+--- !u!114 &5871518139159106485
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1220605273693969220}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a52ecd06a4cef47fb8531af198329dce, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  targetRenderer: {fileID: 6878534544492317857}
+  materialId: 0
 --- !u!1 &1485221031164151919
 GameObject:
   m_ObjectHideFlags: 0
@@ -616,6 +631,7 @@ GameObject:
   m_Component:
   - component: {fileID: 3164844133066636742}
   - component: {fileID: 3025377863207310108}
+  - component: {fileID: 999340052511129230}
   m_Layer: 12
   m_Name: BodyRenderer
   m_TagString: Untagged
@@ -702,6 +718,20 @@ SkinnedMeshRenderer:
     m_Center: {x: -0.021049269, y: 0.039917, z: -0.041419514}
     m_Extent: {x: 0.2139467, y: 0.23516503, z: 0.17846152}
   m_DirtyAABB: 0
+--- !u!114 &999340052511129230
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3484308405326751844}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a52ecd06a4cef47fb8531af198329dce, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  targetRenderer: {fileID: 3025377863207310108}
+  materialId: 0
 --- !u!1 &3582315416894679395
 GameObject:
   m_ObjectHideFlags: 0
@@ -890,6 +920,7 @@ GameObject:
   - component: {fileID: 1144716337019098365}
   - component: {fileID: 6869262463024937356}
   - component: {fileID: 8582787682326236898}
+  - component: {fileID: 8828047768997519705}
   m_Layer: 12
   m_Name: FennecTail
   m_TagString: Untagged
@@ -962,6 +993,20 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
+--- !u!114 &8828047768997519705
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5393296778153629541}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a52ecd06a4cef47fb8531af198329dce, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  targetRenderer: {fileID: 8582787682326236898}
+  materialId: 0
 --- !u!1 &5453656450278695769
 GameObject:
   m_ObjectHideFlags: 0
@@ -1487,6 +1532,7 @@ GameObject:
   - component: {fileID: 520289438820813920}
   - component: {fileID: 7360539438331823549}
   - component: {fileID: 743186303886397323}
+  - component: {fileID: 8540814893622721093}
   m_Layer: 12
   m_Name: FennecNose
   m_TagString: Untagged
@@ -1559,6 +1605,20 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
+--- !u!114 &8540814893622721093
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8679998315649499539}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a52ecd06a4cef47fb8531af198329dce, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  targetRenderer: {fileID: 743186303886397323}
+  materialId: 0
 --- !u!1 &8764965672226853049
 GameObject:
   m_ObjectHideFlags: 0

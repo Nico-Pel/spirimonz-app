@@ -371,6 +371,8 @@ public class UIIntroVideoOverlay : MonoBehaviour
 
         _videoPlayer.Stop();
         _audioSource.Stop();
+        _videoPlayer.clip = null;
+        _videoPlayer.url = string.Empty;
         _videoPlayer.source = VideoSource.Url;
         SetVisible(true);
         SetSkipButtonVisible(false);
@@ -569,6 +571,23 @@ public class UIIntroVideoOverlay : MonoBehaviour
 
     private System.Collections.IEnumerator PrepareAndPlayVideo(string fileName)
     {
+#if UNITY_ANDROID && !UNITY_EDITOR
+        VideoClip resourceClip = TryLoadVideoClipFromResources(fileName);
+        if (resourceClip != null)
+        {
+            _prepareCoroutine = null;
+
+            if (_isFinishing)
+                yield break;
+
+            Debug.Log($"Intro video: using Resources VideoClip '{resourceClip.name}' on Android.");
+            _videoPlayer.source = VideoSource.VideoClip;
+            _videoPlayer.clip = resourceClip;
+            _videoPlayer.Prepare();
+            yield break;
+        }
+#endif
+
         string resolvedPath = null;
 
 #if UNITY_ANDROID && !UNITY_EDITOR
@@ -592,6 +611,8 @@ public class UIIntroVideoOverlay : MonoBehaviour
         }
 
         _videoPlayer.url = resolvedPath;
+        _videoPlayer.clip = null;
+        _videoPlayer.source = VideoSource.Url;
         _videoPlayer.Prepare();
     }
 
@@ -609,7 +630,7 @@ public class UIIntroVideoOverlay : MonoBehaviour
 
         if (File.Exists(persistentPath))
         {
-            onResolved?.Invoke(persistentPath);
+            onResolved?.Invoke(ToVideoPlayerUrl(persistentPath));
             yield break;
         }
 
@@ -622,7 +643,7 @@ public class UIIntroVideoOverlay : MonoBehaviour
         if (request.result != UnityWebRequest.Result.Success)
         {
             Debug.LogWarning($"Intro video download failed: {request.error}");
-            onResolved?.Invoke(null);
+            onResolved?.Invoke(ToVideoPlayerUrl(streamingAssetsPath));
             yield break;
         }
 
@@ -634,7 +655,7 @@ public class UIIntroVideoOverlay : MonoBehaviour
         catch (Exception exception)
         {
             Debug.LogWarning($"Intro video cache write failed: {exception.Message}");
-            onResolved?.Invoke(null);
+            onResolved?.Invoke(ToVideoPlayerUrl(streamingAssetsPath));
         }
     }
 #endif
@@ -656,6 +677,22 @@ public class UIIntroVideoOverlay : MonoBehaviour
 
         Debug.LogWarning($"Intro video not found: {fileName}");
         return null;
+    }
+
+    private static VideoClip TryLoadVideoClipFromResources(string fileName)
+    {
+        if (string.IsNullOrWhiteSpace(fileName))
+            return null;
+
+        string resourceName = Path.GetFileNameWithoutExtension(fileName);
+        if (string.IsNullOrWhiteSpace(resourceName))
+            return null;
+
+        VideoClip clip = Resources.Load<VideoClip>(resourceName);
+        if (clip == null)
+            Debug.LogWarning($"Intro video Resources fallback not found: {resourceName}");
+
+        return clip;
     }
 
     private static string ToVideoPlayerUrl(string path)

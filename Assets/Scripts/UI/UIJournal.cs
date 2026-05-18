@@ -117,17 +117,27 @@ public class UIJournal : GameBehaviour
         if (captureButton == null) return;
         
         int selectedSlotsCount = GetSelectedGhosts().Count;
-        captureButton.interactable = selectedSlotsCount > 0 && House.Instance.currentGhost.IsHunting() == false;
+        bool isHunting = House.Instance != null &&
+                         House.Instance.currentGhost != null &&
+                         House.Instance.currentGhost.IsHunting();
+        captureButton.interactable = selectedSlotsCount > 0 && !isHunting;
 
         UpdateTrainingCtas();
     }
 
     private void StartCapture()
     {
+        List<GhostParameters> selectedGhosts = GetSelectedGhosts();
+        if (selectedGhosts == null || selectedGhosts.Count == 0)
+        {
+            SetCaptureButtonState();
+            return;
+        }
+
         gameObject.SetActive(false);
         if (captureSound != null)
             captureSound.PlaySound();
-        GhostInvestigator.Instance.TryToCapture(GetSelectedGhosts());
+        GhostInvestigator.Instance.TryToCapture(selectedGhosts);
         UIGame.Instance.tablet.TurnOffTablet();
     }
 
@@ -236,7 +246,24 @@ public class UIJournal : GameBehaviour
 
     private void OnInvestigationChanged(GhostInvestigator.EvidenceType evidenceType)
     {
+        AutoSelectSingleVisibleGhost();
+        SetCaptureButtonState();
         UpdateTrainingCtas();
+    }
+
+    private void AutoSelectSingleVisibleGhost()
+    {
+        GhostInvestigator investigator = GhostInvestigator.Instance;
+        if (investigator == null || investigator.possibleSuspects == null || investigator.possibleSuspects.Count != 1)
+            return;
+
+        GhostParameters onlySuspect = investigator.possibleSuspects[0];
+        UIGhostTypeSlot slot = FindSlotForGhost(onlySuspect);
+        if (slot == null)
+            return;
+
+        if (slot.currentForcedState != UIGhostTypeSlot.GhostTypeSlotForcedState.selected)
+            SelectGhostTypeSlot(slot);
     }
 
     private bool IsTrainingMode()

@@ -45,7 +45,6 @@ public class MobileKeyButtonsVisibility : MonoBehaviour
                            (GameManager.Instance != null && GameManager.Instance.mobileControlsEnabled);
         bool isTitleScreen = GameManager.Instance != null && GameManager.Instance.IsTitleScreenActive();
         bool isWorld = GameManager.Instance != null && GameManager.Instance.IsWorld();
-
         if (isTitleScreen)
         {
             SetActive(settingsButton, useMobileUi && !captureUiHidden);
@@ -59,7 +58,7 @@ public class MobileKeyButtonsVisibility : MonoBehaviour
 
         SetActive(settingsButton, true);
         SetActive(journalButton, canOpenJournal && showOtherTopButtons);
-        SetActive(shopButton, useMobileUi && showOtherTopButtons && isWorld);
+        SetActive(shopButton, useMobileUi && showOtherTopButtons && (isWorld || showDebugMoney));
         SetActive(prevButton, showOtherTopButtons);
         SetActive(nextButton, showOtherTopButtons);
         SetActive(yButton, showDebugMoney && showOtherTopButtons);
