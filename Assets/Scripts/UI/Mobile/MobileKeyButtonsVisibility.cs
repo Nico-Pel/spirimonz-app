@@ -43,6 +43,7 @@ public class MobileKeyButtonsVisibility : MonoBehaviour
         bool useMobileUi = MobileInput.Enabled ||
                            Application.isMobilePlatform ||
                            (GameManager.Instance != null && GameManager.Instance.mobileControlsEnabled);
+        bool allowStoreShortcut = Application.isMobilePlatform || Application.isEditor || Debug.isDebugBuild;
         bool isTitleScreen = GameManager.Instance != null && GameManager.Instance.IsTitleScreenActive();
         bool isWorld = GameManager.Instance != null && GameManager.Instance.IsWorld();
         if (isTitleScreen)
@@ -58,7 +59,7 @@ public class MobileKeyButtonsVisibility : MonoBehaviour
 
         SetActive(settingsButton, true);
         SetActive(journalButton, canOpenJournal && showOtherTopButtons);
-        SetActive(shopButton, useMobileUi && showOtherTopButtons && (isWorld || showDebugMoney));
+        SetActive(shopButton, useMobileUi && allowStoreShortcut && showOtherTopButtons && (isWorld || showDebugMoney));
         SetActive(prevButton, showOtherTopButtons);
         SetActive(nextButton, showOtherTopButtons);
         SetActive(yButton, showDebugMoney && showOtherTopButtons);

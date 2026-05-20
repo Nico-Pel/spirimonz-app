@@ -26,11 +26,15 @@ public class CaptureScene : GameBehaviour
     
     public Animator sceneAnimator;
     public float delayBeforeStartingWinAnimation = 0.5f;
+    public Transform winCameraTransform;
+    public Vector3 winCameraLookAtOffset;
 
     private GameObject _capturedSpirimonz;
     private House _house;
     
     private GameObject _ghost;
+    private bool _isWinCameraLookingAt;
+
     private void OnEnable()
     {
         UIGame.Instance.EnableOverlay(false, 0.5f);
@@ -50,6 +54,13 @@ public class CaptureScene : GameBehaviour
             _ghost.GetComponentInChildren<Renderer>().enabled = true;
             _ghostAnimator = _ghost.GetComponentInChildren<Animator>();
         }
+
+        EnsureWinCameraReference();
+    }
+
+    private void LateUpdate()
+    {
+        UpdateWinCameraLookAt();
     }
 
     //Animation Event
@@ -83,7 +94,10 @@ public class CaptureScene : GameBehaviour
         smokeDarkWinEffect.SetActive(true);
         
         _ghost.SetActive(false);
-        _capturedSpirimonz = Instantiate(selectedSpirimonz.spirimonzBodyPrefab, transform.position + selectedSpirimonz.bodyPresentationOffset, Quaternion.identity);
+        _capturedSpirimonz = Instantiate(selectedSpirimonz.spirimonzBodyPrefab, transform);
+        _capturedSpirimonz.transform.localPosition = selectedSpirimonz.bodyPresentationOffset;
+        _capturedSpirimonz.transform.localRotation = Quaternion.identity;
+        StartWinCameraLookAt();
         this.Invoke(delayBeforeStartingWinAnimation, PlayWinAnimation);
         
         UnlockSpirimonz(selectedSpirimonz.spirimonzID);
@@ -303,5 +317,62 @@ public class CaptureScene : GameBehaviour
         }
 
         return true;
+    }
+
+    private void EnsureWinCameraReference()
+    {
+        if (winCameraTransform != null)
+            return;
+
+        Transform pivot = transform.Find("Pivot");
+        if (pivot != null)
+        {
+            Transform cameraTransform = pivot.Find("Camera");
+            if (cameraTransform != null)
+                winCameraTransform = cameraTransform;
+        }
+    }
+
+    private void StartWinCameraLookAt()
+    {
+        EnsureWinCameraReference();
+        if (winCameraTransform == null || _capturedSpirimonz == null)
+            return;
+
+        _isWinCameraLookingAt = true;
+    }
+
+    private void UpdateWinCameraLookAt()
+    {
+        if (_isWinCameraLookingAt == false || winCameraTransform == null || _capturedSpirimonz == null)
+            return;
+
+        Renderer targetRenderer = _capturedSpirimonz.GetComponentInChildren<Renderer>(true);
+        Vector3 targetPosition = targetRenderer != null
+            ? targetRenderer.bounds.center
+            : _capturedSpirimonz.transform.position;
+        targetPosition += winCameraLookAtOffset;
+
+        Transform parentTransform = winCameraTransform.parent;
+        Vector3 lookDirection = targetPosition - winCameraTransform.position;
+        if (lookDirection.sqrMagnitude <= 0.0001f)
+        {
+            _isWinCameraLookingAt = false;
+            return;
+        }
+
+        if (parentTransform == null)
+        {
+            winCameraTransform.rotation = Quaternion.LookRotation(lookDirection.normalized, Vector3.up);
+            return;
+        }
+
+        Vector3 localTargetPosition = parentTransform.InverseTransformPoint(targetPosition);
+        Vector3 localLookDirection = localTargetPosition - winCameraTransform.localPosition;
+        if (localLookDirection.sqrMagnitude <= 0.0001f)
+            return;
+
+        // Only rotate the child camera locally so the animated Pivot can keep driving the shot movement.
+        winCameraTransform.localRotation = Quaternion.LookRotation(localLookDirection.normalized, Vector3.up);
     }
 }

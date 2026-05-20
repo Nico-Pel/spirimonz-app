@@ -667,6 +667,9 @@ MonoBehaviour:
   heartBeatVolume: 1
   sceneAnimator: {fileID: 2958389907729855707}
   delayBeforeStartingWinAnimation: 0.5
+  winCameraTransform: {fileID: 7440307867750971789}
+  winCameraLookAtDuration: 0.6
+  winCameraLookAtOffset: {x: 0, y: 0, z: 0}
 --- !u!95 &2958389907729855707
 Animator:
   serializedVersion: 5
@@ -1846,6 +1849,7 @@ GameObject:
   m_Component:
   - component: {fileID: 9121188743548719144}
   - component: {fileID: 7928465613881881779}
+  - component: {fileID: 8948693113154248550}
   m_Layer: 0
   m_Name: Spot Light
   m_TagString: Untagged
@@ -1930,6 +1934,26 @@ Light:
   m_UseViewFrustumForShadowCasterCull: 1
   m_ShadowRadius: 0
   m_ShadowAngle: 0
+--- !u!114 &8948693113154248550
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7660929619184909455}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d0bedb8895a13485f9481e45d51580cd, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  targetLight: {fileID: 7928465613881881779}
+  ignoreOptimization: 1
+  allowDisableWhenFar: 1
+  useCustomDistances: 0
+  nearDistance: 10
+  shadowDisableDistance: 14
+  farDistance: 22
+  disableDistance: 30
 --- !u!1 &7925018425622114835
 GameObject:
   m_ObjectHideFlags: 0

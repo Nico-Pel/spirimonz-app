@@ -176,14 +176,22 @@ public sealed class MobileMonetizationManager : MonoBehaviour
     {
         EnsureInAppsLoaded();
 
+        OfferConfig config = GetConfig(offerType);
+
         InApp boundInApp = GetRegisteredInApp(GetProductId(offerType));
         if (boundInApp != null)
-            return GetInAppViewData(boundInApp);
+        {
+            OfferViewData data = GetInAppViewData(boundInApp);
+            if (string.IsNullOrWhiteSpace(data.priceText))
+                data.priceText = config.FallbackPrice;
+            return data;
+        }
 
-        OfferConfig config = GetConfig(offerType);
         string productId = GetProductId(offerType);
         bool owned = IsOfferOwned(offerType);
-        bool available = ShouldUseMobileStore() && IsOfferConfigured(offerType);
+        bool configured = ShouldUseMobileStore() && IsOfferConfigured(offerType);
+        bool priceLoaded = HasLoadedStorePrice(productId);
+        bool available = configured && priceLoaded;
 
         return new OfferViewData
         {
@@ -210,8 +218,10 @@ public sealed class MobileMonetizationManager : MonoBehaviour
         string productId = effectiveInApp.GetResolvedProductId();
         bool owned = IsInAppOwned(inApp);
         bool allowEditorTestPurchase = CanUseEditorTestPurchase(effectiveInApp);
-        bool available = (ShouldUseMobileStore() && IsInAppConfigured(effectiveInApp)) || allowEditorTestPurchase;
-        string localizedPrice = GetLocalizedPrice(productId);
+        bool configured = ShouldUseMobileStore() && IsInAppConfigured(effectiveInApp);
+        bool priceLoaded = HasLoadedStorePrice(productId);
+        bool available = (configured && priceLoaded) || allowEditorTestPurchase;
+        string localizedPrice = GetLocalizedPrice(productId, effectiveInApp.fallbackPrice);
         if (allowEditorTestPurchase && string.IsNullOrWhiteSpace(localizedPrice))
             localizedPrice = "TEST";
 
@@ -241,7 +251,7 @@ public sealed class MobileMonetizationManager : MonoBehaviour
             return false;
 
         string productId = GetProductId(offerType);
-        if (!IsOfferConfigured(offerType) || string.IsNullOrEmpty(productId))
+        if (!IsOfferConfigured(offerType) || string.IsNullOrEmpty(productId) || !HasLoadedStorePrice(productId))
             return false;
 
 #if IN_APP_PURCHASING
@@ -310,7 +320,7 @@ public sealed class MobileMonetizationManager : MonoBehaviour
 #if UNITY_EDITOR
         Debug.Log($"Pouet PurchaseInApp resolved productId='{productId}' configured={IsInAppConfigured(effectiveInApp)}");
 #endif
-        if (!IsInAppConfigured(effectiveInApp) || string.IsNullOrEmpty(productId))
+        if (!IsInAppConfigured(effectiveInApp) || string.IsNullOrEmpty(productId) || !HasLoadedStorePrice(productId))
             return false;
 
         InAppManager inAppManager = YCManager.instance != null ? YCManager.instance.inAppManager : null;
@@ -638,6 +648,14 @@ public sealed class MobileMonetizationManager : MonoBehaviour
         }
 
         return fallbackPrice;
+    }
+
+    private bool HasLoadedStorePrice(string productId)
+    {
+        if (string.IsNullOrEmpty(productId) || YCManager.instance == null || YCManager.instance.inAppManager == null)
+            return false;
+
+        return !string.IsNullOrWhiteSpace(YCManager.instance.inAppManager.GetProductPrice(productId));
     }
 
     private bool CanUseEditorTestPurchase(InApp inApp)

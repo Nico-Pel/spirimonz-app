@@ -80,10 +80,11 @@ public class GameManager : GameBehaviour
         if (IsDebugMoneyCheatExpired())
             ResetDebugMoneyCheatSequence();
 
-        bool mobileDebugMoneyDown = MobileInput.Enabled &&
+        bool mobileDebugMoneyDown = CanUseDebugMoneyCheat() &&
+                                    MobileInput.Enabled &&
                                     IsDebugMoneyButtonVisibleOnMobile() &&
                                     MobileInput.ConsumeYDown();
-        if (enableDebugMoneyButton && ((!MobileInput.Enabled && Input.GetKeyDown(KeyCode.Y)) || mobileDebugMoneyDown))
+        if (CanUseDebugMoneyCheat() && ((!MobileInput.Enabled && Input.GetKeyDown(KeyCode.Y)) || mobileDebugMoneyDown))
         {
             AddMoney(100);
         }
@@ -1207,12 +1208,12 @@ public class GameManager : GameBehaviour
 
     public bool IsDebugMoneyButtonVisibleOnMobile()
     {
-        return enableDebugMoneyButton && _debugMoneyButtonRevealed;
+        return CanUseDebugMoneyCheat() && _debugMoneyButtonRevealed;
     }
 
     public void RegisterDebugMoneySettingsPress()
     {
-        if (!MobileInput.Enabled)
+        if (!CanUseDebugMoneyCheat() || !MobileInput.Enabled)
             return;
 
         if (IsDebugMoneyCheatExpired())
@@ -1232,7 +1233,7 @@ public class GameManager : GameBehaviour
 
     public void RegisterDebugMoneyAPress()
     {
-        if (!MobileInput.Enabled)
+        if (!CanUseDebugMoneyCheat() || !MobileInput.Enabled)
             return;
 
         if (IsDebugMoneyCheatExpired())
@@ -1256,6 +1257,11 @@ public class GameManager : GameBehaviour
     {
         return _debugMoneyCheatStartTime >= 0f &&
                Time.unscaledTime - _debugMoneyCheatStartTime > DebugMoneyCheatWindowSeconds;
+    }
+
+    private bool CanUseDebugMoneyCheat()
+    {
+        return enableDebugMoneyButton && (Application.isEditor || Debug.isDebugBuild);
     }
 
     private void ResetDebugMoneyCheatSequence()

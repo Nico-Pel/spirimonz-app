@@ -37,11 +37,13 @@ public static class LoadSceneMenuItems
     private static void Open_House04_8() => Open("Assets/Scenes/House04.unity");
     [MenuItem("LoadScene/House05", priority = 91)]
     private static void Open_House05_9() => Open("Assets/Scenes/House05.unity");
-    [MenuItem("LoadScene/HouseSakura", priority = 101)]
-    private static void Open_HouseSakura_10() => Open("Assets/Scenes/HouseSakura.unity");
-    [MenuItem("LoadScene/HouseTuto", priority = 111)]
-    private static void Open_HouseTuto_11() => Open("Assets/Scenes/HouseTuto.unity");
-    [MenuItem("LoadScene/HouseWinter", priority = 121)]
-    private static void Open_HouseWinter_12() => Open("Assets/Scenes/HouseWinter.unity");
+    [MenuItem("LoadScene/House06", priority = 101)]
+    private static void Open_House06_10() => Open("Assets/Scenes/House06.unity");
+    [MenuItem("LoadScene/HouseSakura", priority = 111)]
+    private static void Open_HouseSakura_11() => Open("Assets/Scenes/HouseSakura.unity");
+    [MenuItem("LoadScene/HouseTuto", priority = 121)]
+    private static void Open_HouseTuto_12() => Open("Assets/Scenes/HouseTuto.unity");
+    [MenuItem("LoadScene/HouseWinter", priority = 131)]
+    private static void Open_HouseWinter_13() => Open("Assets/Scenes/HouseWinter.unity");
 }
 #endif

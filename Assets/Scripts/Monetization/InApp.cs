@@ -18,6 +18,7 @@ public class InApp : ScriptableObject
     public bool grantRewardsOnEachSave;
     public string title;
     [TextArea(2, 5)] public string description;
+    public string fallbackPrice;
     
     [Header("Conditional Variant")]
     public InApp switchToThisInAppWhenOwned;
